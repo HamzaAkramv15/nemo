@@ -63,7 +63,7 @@ pub fn clock<A: Action>(ui: &mut Ui<A>, w: i32, h: i32) -> i32 {
     let t = ui.t;
     let tm = local_now();
     let big = font::px(128);
-    let s = format!("{:02}:{:02}", tm.hour, tm.min);
+    let s = crate::time::clock_text(&tm, false);
     let cw = ui.w(big, &s);
     let cy = h / 2 - 150;
     // тень-сдвиг на 4 px, как у панелей
