@@ -284,6 +284,8 @@ pub(crate) fn tab_look(ui: &mut Ui, st: &State, b: R) {
     ui.toggle(R::new(b.x, y, half, 26), "размытие под панелями", "", s.blur_shell, Act::SBool("blur_shell"));
     ui.toggle(R::new(b.x + half + 20, y, half, 26), "размытие под терминалами", "", s.blur_term, Act::SBool("blur_term"));
     y += 38;
+    ui.slider(R::new(b.x, y, b.w, 40), "сила размытия (выше — тяжелее для видеокарты)", (s.blur_strength - 1) as f32 / 7.0, &format!("{}/8", s.blur_strength), 7, Act::SSlider("blur_strength", 1.0, 8.0, 7));
+    y += 48;
     // анимации — своя вкладка (animtab.rs); развёртка — только шелл
     ui.toggle(R::new(b.x, y, b.w, 26), "строки развёртки на панелях шелла (как на старом мониторе)", "", s.scanlines, Act::SBool("scanlines"));
     y += 38;

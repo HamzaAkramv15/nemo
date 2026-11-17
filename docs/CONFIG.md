@@ -112,6 +112,7 @@ file for one run. The files are reread when they change.
 | `inner` | `1.0` | opacity of cards, graphs and fields inside panels |
 | `dim` | `0.5` | dim behind menus and settings |
 | `blurShell`, `blurTerm` | `true` | niri blur under the shell's panels / terminals |
+| `blurStrength` | `3` | how strong that blur is, 1–8 (niri `passes` and `offset`: 1 is a light haze, 8 is frosted glass and costs the GPU more); 3 is what it was before this setting. Settings → look |
 | `animations` | `true` | Bayer dissolve, panel motion; off everywhere when false |
 | `lite` | `false` | lite mode for weak and virtual machines (old laptops, VMs, software rendering): no blur, no shell or niri animations, opaque inactive windows; the settings above stay as they are and come back when it is off. A fresh install turns it on by itself on a VM, without GPU acceleration, on pre-2011 Intel graphics or with ≤ 4 GB and ≤ 4 threads (`config lite-auto`); `yami doctor` says why |
 | `animSpeed` | `1.0` | duration multiplier: 0.5 faster, 2 slower |

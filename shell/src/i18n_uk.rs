@@ -1424,4 +1424,5 @@ const UK: &[(&str, &str)] = &[
     ("temperature (lower is warmer)", "температура (нижче — тепліше)"),
     ("no schedule needed: warm colors all day", "розклад не потрібен: теплі кольори цілий день"),
     ("night light: on-off, all day or on a schedule, temperature", "нічне світло: увімк.-вимк., цілий день або за розкладом, температура"),
+    ("blur strength (higher is heavier for the GPU)", "сила розмиття (вище — важче для відеокарти)"),
 ];

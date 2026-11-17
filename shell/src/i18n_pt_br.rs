@@ -1203,4 +1203,5 @@ const PT_BR: &[(&str, &str)] = &[
     ("temperature (lower is warmer)", "temperatura (menor é mais quente)"),
     ("no schedule needed: warm colors all day", "sem agenda: cores quentes o dia todo"),
     ("night light: on-off, all day or on a schedule, temperature", "luz noturna: ligar-desligar, o dia todo ou com agenda, temperatura"),
+    ("blur strength (higher is heavier for the GPU)", "intensidade do desfoque (maior pesa mais na GPU)"),
 ];

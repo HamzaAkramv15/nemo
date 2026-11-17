@@ -400,6 +400,7 @@ const PAIRS: &[(&str, &str)] = &[
     ("сколько висит", "how long it stays"),
     ("теплее вечером", "warmer in the evening"),
     ("нужен wlsunset", "needs wlsunset"),
+    ("сила размытия (выше — тяжелее для видеокарты)", "blur strength (higher is heavier for the GPU)"),
     ("часы и календарь", "clock and calendar"),
     ("мм/дд", "mm/dd"),
     ("дд.мм", "dd.mm"),

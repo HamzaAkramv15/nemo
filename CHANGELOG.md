@@ -9,6 +9,7 @@ has its Russian line in CHANGELOG.ru.md: `tools/check.sh` checks that.
 
 ## Unreleased
 
+- Blur strength: a slider in settings → look (`blurStrength`, 1–8) sets how strong niri's blur under panels and terminals is; 3 is what it was, so nothing changes until you move it.
 - Clock: a 12-hour format with AM/PM (settings → bar → clock and calendar, `clock12`) in the bar, side bar, control panel, calendar, clock widget and lock screen; the short date in the bar can be `dd.mm`, `mm/dd` or `2026-11-17` (`dateStyle`); the calendar can start its week on Monday, Sunday or Saturday (`weekStart`).
 - Night light: «all day, no schedule» keeps it warm without sunset and sunrise (`nightAlways`), the temperature is a slider, and `yami night on|off|toggle|always|schedule|temp K` controls it from a terminal or a key. The choice is saved in `shell.json`, so it comes back after a restart and a reboot.
 - Updates: when the network broke off while switching to the new version, the updater's own copy of the sources was left half taken apart, and every later update refused with «has local edits» (an update to 3.0.0 could stay stuck this way). The switch now puts the copy back at once, and the leftovers of one cut short (a logout, a dead battery) are cleared by the next update. Stuck on an older version with that message: `git -C ~/.local/share/yami/src reset --hard`, then update again.

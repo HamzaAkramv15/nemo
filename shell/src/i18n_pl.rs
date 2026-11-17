@@ -1424,4 +1424,5 @@ const PL: &[(&str, &str)] = &[
     ("temperature (lower is warmer)", "temperatura (niżej = cieplej)"),
     ("no schedule needed: warm colors all day", "harmonogram niepotrzebny: ciepłe kolory cały dzień"),
     ("night light: on-off, all day or on a schedule, temperature", "światło nocne: wł.-wył., cały dzień lub wg harmonogramu, temperatura"),
+    ("blur strength (higher is heavier for the GPU)", "siła rozmycia (wyżej = większe obciążenie GPU)"),
 ];

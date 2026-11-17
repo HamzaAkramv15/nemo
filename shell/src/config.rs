@@ -134,6 +134,8 @@ pub struct Settings {
     pub dim: f32,
     pub blur_shell: bool,
     pub blur_term: bool,
+    /// сила размытия niri, 1–8: проходы и смещение (blur_params); 3 — как было до настройки
+    pub blur_strength: i32,
     pub animations: bool,
     /// множитель длительности анимаций: 0.5 — быстрее, 2 — медленнее
     pub anim_speed: f32,
@@ -438,6 +440,13 @@ pub struct Settings {
 }
 
 /// группа модуля — только для переноса старых настроек (migrate_seps)
+/// проходы и смещение размытия niri по силе 1–8: слабее — мягкая дымка, сильнее — матовое стекло
+/// (больше проходов — дороже для видеокарты, так что верх шкалы нужен не всем); 3 = прежние 3 и 3
+pub fn blur_params(strength: i32) -> (i32, i32) {
+    const T: [(i32, i32); 8] = [(1, 2), (2, 2), (3, 3), (3, 5), (4, 6), (4, 8), (5, 10), (5, 12)];
+    T[(strength.clamp(1, 8) - 1) as usize]
+}
+
 fn group(m: &str) -> i32 {
     match m {
         "launcher" => 0,
@@ -541,6 +550,7 @@ impl Default for Settings {
             dim: 0.5,
             blur_shell: true,
             blur_term: true,
+            blur_strength: 3,
             animations: true,
             anim_speed: 1.0,
             reveal: "dither".into(),
@@ -807,6 +817,7 @@ impl Settings {
         if self.tray_mode != "arrow" {
             self.tray_mode = "icons".into();
         }
+        self.blur_strength = self.blur_strength.clamp(1, 8);
         if !["dm", "md", "iso"].contains(&self.date_style.as_str()) {
             self.date_style = "dm".into();
         }
@@ -1249,8 +1260,9 @@ impl Settings {
             l.push("blur { off; }".into());
             return l.join("\n") + "\n";
         }
-        for s in ["blur {", "    passes 3", "    offset 3", "    noise 0.03", "    saturation 1.2", "}", ""] {
-            l.push(s.into());
+        let (passes, offset) = blur_params(self.blur_strength);
+        for s in ["blur {".to_string(), format!("    passes {passes}"), format!("    offset {offset}"), "    noise 0.03".into(), "    saturation 1.2".into(), "}".into(), String::new()] {
+            l.push(s);
         }
         if self.blur_term() {
             for s in ["window-rule {", "    match app-id=r#\"^(kitty|foot|Alacritty|org\\.wezfurlong\\.wezterm|com\\.mitchellh\\.ghostty)$\"#", "    background-effect { blur true; }", "}", ""] {
@@ -1266,6 +1278,19 @@ impl Settings {
 #[cfg(test)]
 mod tests {
     use super::Settings;
+
+    #[test]
+    fn blur_strength_maps_to_niri_blur() {
+        // 3 — прежние значения: у тех, кто ничего не трогал, размытие не меняется
+        assert_eq!(super::blur_params(3), (3, 3));
+        assert_eq!(super::blur_params(1), (1, 2));
+        assert_eq!(super::blur_params(8), (5, 12));
+        // вне шкалы — край шкалы, как после sanitize
+        assert_eq!((super::blur_params(0), super::blur_params(99)), (super::blur_params(1), super::blur_params(8)));
+        let mut s = Settings { blur_strength: 99, ..Settings::default() };
+        s.sanitize();
+        assert_eq!(s.blur_strength, 8);
+    }
 
     fn load(raw: &str) -> Settings {
         let mut s = Settings::lenient(raw);
