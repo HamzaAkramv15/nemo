@@ -284,6 +284,8 @@ pub(crate) fn tab_look(ui: &mut Ui, st: &State, b: R) {
     ui.toggle(R::new(b.x, y, half, 26), "размытие под панелями", "", s.blur_shell, Act::SBool("blur_shell"));
     ui.toggle(R::new(b.x + half + 20, y, half, 26), "размытие под терминалами", "", s.blur_term, Act::SBool("blur_term"));
     y += 38;
+    ui.toggle(R::new(b.x, y, b.w, 40), "размытие и того, что за панелью: окна тоже", "обои одни — дешевле, но окно за панелью видно резко", !s.blur_xray, Act::SBool("blur_real"));
+    y += 46;
     ui.slider(R::new(b.x, y, b.w, 40), "сила размытия (выше — тяжелее для видеокарты)", (s.blur_strength - 1) as f32 / 7.0, &format!("{}/8", s.blur_strength), 7, Act::SSlider("blur_strength", 1.0, 8.0, 7));
     y += 48;
     // анимации — своя вкладка (animtab.rs); развёртка — только шелл
@@ -606,9 +608,16 @@ pub(crate) fn tab_about(ui: &mut Ui, st: &State, b: R) {
     let t = ui.t;
     let mut y = b.y;
     let face = font::px(32);
-    ui.text(face, b.x, y, "YAMI", t.red);
-    y += ui.f.line(face) + 4;
+    ui.text(face, b.x, y, "NEMO", t.red);
+    let (fw, fh) = yami_px::brand::fish_size(4);
+    yami_px::brand::fish(ui, b.right() - fw - 6, y, 4, 1.0);
+    y += ui.f.line(face).max(fh) + 4;
     ui.text_in(PX, R::new(b.x, y, b.w, 20), &crate::tf!("yami-shell {} — лёгкий Wayland-шелл для niri на Rust", "yami-shell {} — a lightweight Wayland shell for niri, written in Rust", "yami-shell {} — um shell Wayland leve para niri, escrito em Rust", env!("CARGO_PKG_VERSION")), t.text_dim);
+    y += 26;
+    // форк: честно говорим, чей он; ссылка — на оригинал
+    ui.text_in(PX, R::new(b.x, y, b.w, 20), &crate::tf!("Nemo — форк yami, автор Trendorin, лицензия MIT", "Nemo is a fork of yami by Trendorin, MIT license", "Nemo é um fork do yami, de Trendorin, licença MIT"), t.text_dim);
+    y += 22;
+    ui.text_in(PX, R::new(b.x, y, b.w, 20), "github.com/Trendorin/yami", t.text_faint);
     y += 34;
     let up = st.started.elapsed().as_secs();
     let rows = [

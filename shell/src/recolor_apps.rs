@@ -395,6 +395,11 @@ pub fn fonts(cx: &Cx, _p: &P) -> Res {
     }
     if cx.on("kitty") {
         write(&cx.cfg.join("kitty/yami-font.conf"), &format!("# YAMI: written by {WHO} (settings → fonts)\nfont_family {mono}\nfont_size {mono_pt}.0\n"))?;
+        // оболочка kitty: fish подсказывает команды по истории сам, и kitty знает его по имени
+        // (shell integration работает); входная оболочка системы остаётся как была
+        let fish = cx.st.get("terminalFish").and_then(|v| v.as_bool()).unwrap_or(true) && crate::doctor::which("fish");
+        let body = if fish { "shell fish\n" } else { "# fish is off or not installed: kitty starts your usual shell\n" };
+        write(&cx.cfg.join("kitty/yami-shell.conf"), &format!("# YAMI: written by {WHO} (settings → fonts → terminal)\n{body}"))?;
     }
     Ok(())
 }

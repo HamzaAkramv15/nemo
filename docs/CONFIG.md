@@ -112,6 +112,7 @@ file for one run. The files are reread when they change.
 | `inner` | `1.0` | opacity of cards, graphs and fields inside panels |
 | `dim` | `0.5` | dim behind menus and settings |
 | `blurShell`, `blurTerm` | `true` | niri blur under the shell's panels / terminals |
+| `blurXray` | `true` | niri's default: blur only the wallpaper behind a panel, so an app window behind it stays sharp (cheap). `false` blurs everything behind panels and terminals, windows too, so a panel looks the same with or without an app behind it (heavier for the GPU). Settings → look |
 | `blurStrength` | `3` | how strong that blur is, 1–8 (niri `passes` and `offset`: 1 is a light haze, 8 is frosted glass and costs the GPU more); 3 is what it was before this setting. Settings → look |
 | `animations` | `true` | Bayer dissolve, panel motion; off everywhere when false |
 | `lite` | `false` | lite mode for weak and virtual machines (old laptops, VMs, software rendering): no blur, no shell or niri animations, opaque inactive windows; the settings above stay as they are and come back when it is off. A fresh install turns it on by itself on a VM, without GPU acceleration, on pre-2011 Intel graphics or with ≤ 4 GB and ≤ 4 threads (`config lite-auto`); `yami doctor` says why |
@@ -186,6 +187,7 @@ Settings → look → «pixel look» moves these keys, `iconPixel` and `cursor` 
 | `fontUi` | `""` | GTK/Qt apps: empty Tiny5 on its grid, `"sans"` the system sans, or a family (the installer's default is `"sans"`) |
 | `fontPt` | `0` | size of a non-pixel `fontUi`, pt; 0: 11 |
 | `fontSize` | `0` | size of the pixel `fontUi`: 16, 24, 32 px, or 0 by screen height |
+| `terminalFish` | `true` | kitty starts fish when it is installed (suggestions from history as you type, highlighting); only the terminal, your login shell stays. `false`: kitty starts your usual shell. Settings → fonts → terminal |
 | `fontMono` | `""` | terminal (kitty) and Qt fixed font; empty: Monocraft, else Terminess |
 | `browserMenus` | `true` | Firefox-family browsers: right-click menus, dropdowns and tooltips in the palette (nothing else of the browser is touched) |
 | `browserFont` | `false` | and the pixel font in the browser's menus and toolbars (never on web pages) |
@@ -368,6 +370,11 @@ script), where `\n` in the JSON `text` starts a new line; the bar shows the firs
 t=$(curl -fs 'https://wttr.in/?format=%t' || echo '?')
 printf '{"text":"%s","icon":"temp","color":"accent","click":"xdg-open https://wttr.in","interval":600}\n' "$t"
 ```
+
+Ten ready scripts come with the shell (`yami scripts` lists them, `yami scripts add NAME` or
+`add all` puts a copy in your folder; yours are never overwritten): `uptime` `load` `disk`
+`memtop` `cpufreq` `power` `kernel` `vpn` `docker` `flatpak`. They use no network and no account;
+each is a short `sh` file you can read and change.
 
 `color` is a theme role: `accent` `bright` `ok` `warn` `text` `dim`. `icon` is one of the shell's
 7×7 icons, e.g. `cpu` `ram` `temp` `net` `wifi` `bt` `bell` `clock` `cal` `music` `play` `power`

@@ -9,6 +9,10 @@ has its Russian line in CHANGELOG.ru.md: `tools/check.sh` checks that.
 
 ## Unreleased
 
+- Nemo: this fork is now called Nemo, with a pixel fish as its logo (README, «about», first-run setup and lock screen). The README tells that it is a fork of yami by Trendorin and credits them; the license keeps both copyright lines. Programs, folders and settings keep the name yami, so everything stays compatible with yami and its modules.
+- Real blur: with `blurXray` off (settings → look, «blur the windows behind a panel too») niri blurs everything behind the shell's panels and terminals, not only the wallpaper, so a panel looks the same with an app behind it as without one. It costs the GPU more, so it is off by default.
+- Ready scripts: ten small offline scripts for the bar and widgets (`uptime` `load` `disk` `memtop` `cpufreq` `power` `kernel` `vpn` `docker` `flatpak`); `yami scripts` lists them, `yami scripts add NAME|all` copies them into your scripts folder.
+- kitty: starts fish for suggestions as you type when fish is installed (settings → fonts → terminal, `terminalFish`; your login shell is not changed), and gets a notification when a long command finishes in a window you are not looking at, splits (`ctrl+shift+\` and `ctrl+shift+-`, `ctrl+shift+z` to zoom), jumping between prompts and reading the scrollback in a pager.
 - Blur strength: a slider in settings → look (`blurStrength`, 1–8) sets how strong niri's blur under panels and terminals is; 3 is what it was, so nothing changes until you move it.
 - Clock: a 12-hour format with AM/PM (settings → bar → clock and calendar, `clock12`) in the bar, side bar, control panel, calendar, clock widget and lock screen; the short date in the bar can be `dd.mm`, `mm/dd` or `2026-11-17` (`dateStyle`); the calendar can start its week on Monday, Sunday or Saturday (`weekStart`).
 - Night light: «all day, no schedule» keeps it warm without sunset and sunrise (`nightAlways`), the temperature is a slider, and `yami night on|off|toggle|always|schedule|temp K` controls it from a terminal or a key. The choice is saved in `shell.json`, so it comes back after a restart and a reboot.

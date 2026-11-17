@@ -105,6 +105,8 @@ pub fn tab(ui: &mut Ui, st: &State, b: R) {
     y = title(ui, b.x, y, b.w, "терминал");
     opt_btn(ui, R::new(b.x, y, b.w, 26), "шрифт", &shown("font_mono", &s.font_mono), Act::SCycle("font_mono"));
     y += 32;
+    ui.toggle(R::new(b.x, y, b.w, 40), "подсказки команд как в fish", if crate::doctor::which("fish") { "kitty запускает fish: подсказки по истории, подсветка" } else { "нужен fish: поставь его из своего дистрибутива" }, s.terminal_fish, Act::SBool("terminal_fish"));
+    y += 46;
     ui.toggle(R::new(b.x, y, b.w, 40), "расширенный fastfetch", "ещё ядро, пакеты, процессор, видеокарта, память, диск, экран", s.fetch_full, Act::SBool("fetch_full"));
     y += 48;
     y = title(ui, b.x, y, b.w, "браузер (Firefox, LibreWolf, Floorp, Zen)");

@@ -156,6 +156,7 @@ impl App {
                     "widget_contrast" => s.widget_contrast = !s.widget_contrast,
                     "blur_shell" => s.blur_shell = !s.blur_shell,
                     "blur_term" => s.blur_term = !s.blur_term,
+                    "blur_real" => s.blur_xray = !s.blur_xray,
                     "clock_seconds" => s.clock_seconds = !s.clock_seconds,
                     "tray_pixel" => s.tray_pixel = !s.tray_pixel,
                     "bat_hide_full" => s.bat_hide_full = !s.bat_hide_full,
@@ -190,6 +191,17 @@ impl App {
                     "niri_screens" => s.niri_screens = !s.niri_screens,
                     "session_restore" => s.session_restore = !s.session_restore,
                     "update_check" => s.update_check = !s.update_check,
+                    "terminal_fish" => {
+                        // recolor читает настройки с диска: сохранить, потом переписать kitty/yami-shell.conf
+                        s.terminal_fish = !s.terminal_fish;
+                        self.settings_changed();
+                        self.save_now();
+                        std::thread::spawn(|| {
+                            crate::proc::recolor_run(&["--fonts".as_ref()]);
+                        });
+                        self.dirty(&SKind::Modal);
+                        return true;
+                    }
                     "fetch_full" => {
                         // recolor читает настройки с диска: сохранить, потом перерисовать fastfetch
                         s.fetch_full = !s.fetch_full;

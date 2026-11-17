@@ -1,0 +1,3 @@
+#!/bin/sh
+# yami-script: the running kernel version
+printf '{"text":"%s","icon":"gear","color":"dim","interval":3600}\n' "$(uname -r | sed 's/[^A-Za-z0-9._+-].*//')"

@@ -1,0 +1,7 @@
+#!/bin/sh
+# yami-script: load average (1 minute); turns amber above one task per core
+read -r l _ </proc/loadavg
+n=$(nproc 2>/dev/null || echo 1)
+c=text
+awk -v l="$l" -v n="$n" 'BEGIN { exit !(l > n) }' && c=warn
+printf '{"text":"load %s","icon":"gauge","color":"%s","interval":5}\n' "$l" "$c"

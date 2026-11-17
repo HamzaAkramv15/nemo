@@ -67,7 +67,7 @@ impl Sty {
 
 fn banner(y: &Sty) {
     println!();
-    println!(" {} {}  {}", y.acc("▚▞"), y.head(&format!("YAMI {}", env!("CARGO_PKG_VERSION"))), y.dim(&crate::tf!("пиксельный рабочий стол для niri", "pixel desktop for niri", "desktop em pixel para niri")));
+    println!(" {} {}  {}", y.acc("▚▞"), y.head(&format!("NEMO {}", env!("CARGO_PKG_VERSION"))), y.dim(&crate::tf!("пиксельный рабочий стол для niri, форк yami (Trendorin)", "pixel desktop for niri, a fork of yami by Trendorin", "desktop em pixel para niri, um fork do yami de Trendorin")));
 }
 
 fn help(y: &Sty, me: &str) {
@@ -89,6 +89,8 @@ fn help(y: &Sty, me: &str) {
     y.section(&crate::tf!("настройки", "config", "configuração"));
     y.row("theme export | import FILE|URL", &crate::tf!("тема одним файлом: поделиться и поставить чужую (только вид)", "a theme as one file: share yours, apply others' (the look only)", "um tema em um arquivo: compartilhe o seu e aplique outros (apenas a aparência)"));
     y.row("theme save | list | apply NAME", &crate::tf!("свои темы: сохранить вид, список, применить (remove — удалить)", "your themes: keep the look, list, apply (remove deletes)", "seus temas: salvar o visual, listar e aplicar (remove exclui)"));
+    y.row("scripts [list | add NAME | add all]", &crate::tf!("готовые скрипты для бара и виджетов: аптайм, нагрузка, диск, VPN, Docker…", "ready scripts for the bar and widgets: uptime, load, disk, VPN, Docker…", "scripts prontos para a barra e os widgets: uptime, carga, disco, VPN, Docker…"));
+    y.row("night [on|off|toggle|always|schedule|temp K]", &crate::tf!("ночной свет: вкл-выкл, весь день или по расписанию, температура", "night light: on-off, all day or on a schedule, temperature", "luz noturna: ligar-desligar, o dia todo ou com agenda, temperatura"));
     y.row("templates [force NAME]", &crate::tf!("свои шаблоны: отрисовать и показать, что вышло (force — перезаписать изменённый руками)", "your templates: render them and show what came out (force overwrites one changed by hand)", "seus modelos: renderizar e mostrar o resultado (force sobrescreve um alterado à mão)"));
     y.row("export | import FILE", &crate::tf!("все настройки одним файлом: переезд на новую систему", "every setting as one file: move to a new system", "todas as configurações num arquivo: migrar para outro sistema"));
     y.row("config …", &crate::tf!("все настройки: list get set reset check path kdl", "every setting: list get set reset check path kdl", "todas as configurações: list get set reset check path kdl"));
@@ -582,6 +584,7 @@ pub fn run(args: &[String], me: &str) -> i32 {
             _ => crate::bundle::run(&y, "", &[]),
         },
         Some("templates") => crate::restyle::cli(&y, &a[1..]),
+        Some("scripts") => crate::scriptlib::cli(&y, &a[1..]),
         Some("icons") => crate::iconsets::cli(&y, false, &a[1..]),
         Some("cursor") => crate::iconsets::cli(&y, true, &a[1..]),
         Some("export") => crate::bundle::run(&y, "export", &a[1..]),

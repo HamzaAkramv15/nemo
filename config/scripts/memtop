@@ -1,0 +1,6 @@
+#!/bin/sh
+# yami-script: the program using the most memory right now
+set -- $(ps -eo rss=,comm= --sort=-rss 2>/dev/null | head -n 1)
+if [ -z "$1" ]; then printf '{"text":"?","icon":"ram","color":"dim","interval":30}\n'; exit 0; fi
+mb=$(($1 / 1024))
+printf '{"text":"%s %sM","icon":"ram","color":"text","interval":15}\n' "$2" "$mb"

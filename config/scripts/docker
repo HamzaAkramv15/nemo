@@ -1,0 +1,9 @@
+#!/bin/sh
+# yami-script: running Docker (or Podman) containers
+c=docker
+command -v docker >/dev/null 2>&1 || c=podman
+if ! command -v "$c" >/dev/null 2>&1; then printf '{"text":"no docker","icon":"gear","color":"dim","interval":600}\n'; exit 0; fi
+n=$("$c" ps -q 2>/dev/null | wc -l)
+col=dim
+[ "$n" -gt 0 ] && col=accent
+printf '{"text":"%s up","icon":"gear","color":"%s","interval":20}\n' "$n" "$col"

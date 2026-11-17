@@ -23,6 +23,7 @@ mod sleep;
 mod camera;
 mod privacy;
 mod catalog;
+mod scriptlib;
 mod bundle;
 mod calc;
 mod cli;

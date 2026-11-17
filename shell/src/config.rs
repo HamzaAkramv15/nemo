@@ -136,6 +136,12 @@ pub struct Settings {
     pub blur_term: bool,
     /// сила размытия niri, 1–8: проходы и смещение (blur_params); 3 — как было до настройки
     pub blur_strength: i32,
+    /// xray (по умолчанию у niri): размывается только обои, окна за панелью видны резко; выкл —
+    /// размывается всё под панелью, и вид не зависит от того, есть ли за ней окно. Дороже для видеокарты
+    pub blur_xray: bool,
+    /// kitty запускает fish, если он стоит: подсказки по истории и подсветка из коробки (kitty.conf:
+    /// только терминал, оболочка входа не меняется). Выкл — kitty берёт обычную оболочку
+    pub terminal_fish: bool,
     pub animations: bool,
     /// множитель длительности анимаций: 0.5 — быстрее, 2 — медленнее
     pub anim_speed: f32,
@@ -551,6 +557,8 @@ impl Default for Settings {
             blur_shell: true,
             blur_term: true,
             blur_strength: 3,
+            blur_xray: true,
+            terminal_fish: true,
             animations: true,
             anim_speed: 1.0,
             reveal: "dither".into(),
@@ -1264,8 +1272,15 @@ impl Settings {
         for s in ["blur {".to_string(), format!("    passes {passes}"), format!("    offset {offset}"), "    noise 0.03".into(), "    saturation 1.2".into(), "}".into(), String::new()] {
             l.push(s);
         }
+        let xray = if self.blur_xray { "" } else { " xray false;" };
         if self.blur_term() {
-            for s in ["window-rule {", "    match app-id=r#\"^(kitty|foot|Alacritty|org\\.wezfurlong\\.wezterm|com\\.mitchellh\\.ghostty)$\"#", "    background-effect { blur true; }", "}", ""] {
+            for s in ["window-rule {".to_string(), "    match app-id=r#\"^(kitty|foot|Alacritty|org\\.wezfurlong\\.wezterm|com\\.mitchellh\\.ghostty)$\"#".into(), format!("    background-effect {{ blur true;{xray} }}"), "}".into(), String::new()] {
+                l.push(s);
+            }
+        }
+        if !self.blur_xray && self.blur_on() {
+            // панели шелла: без xray размытие берёт и окна за ними, а не только обои
+            for s in ["layer-rule {", "    match namespace=\"^yami-(bar|popup|menu|notif|dock|osd)$\"", "    background-effect { xray false; }", "}", ""] {
                 l.push(s.into());
             }
         }

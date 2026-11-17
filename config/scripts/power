@@ -1,0 +1,13 @@
+#!/bin/sh
+# yami-script: what the laptop draws from the battery right now, in watts (nothing on a desktop)
+for b in /sys/class/power_supply/BAT*; do
+  [ -d "$b" ] || continue
+  w=$(awk -v p="$(cat "$b/power_now" 2>/dev/null)" -v i="$(cat "$b/current_now" 2>/dev/null)" -v v="$(cat "$b/voltage_now" 2>/dev/null)" \
+    'BEGIN { if (p + 0 > 0) w = p / 1000000; else if (i + 0 > 0 && v + 0 > 0) w = i * v / 1000000000000; else w = 0; printf "%.1f", w }')
+  st=$(cat "$b/status" 2>/dev/null)
+  c=text
+  [ "$st" = Charging ] && c=ok
+  printf '{"text":"%s W","icon":"bolt","color":"%s","interval":5}\n' "$w" "$c"
+  exit 0
+done
+printf '{"text":"no battery","icon":"bolt","color":"dim","interval":600}\n'

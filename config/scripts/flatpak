@@ -1,0 +1,9 @@
+#!/bin/sh
+# yami-script: Flatpak updates waiting (checked once an hour)
+if ! command -v flatpak >/dev/null 2>&1; then printf '{"text":"no flatpak","icon":"gear","color":"dim","interval":3600}\n'; exit 0; fi
+n=$(flatpak remote-ls --updates --columns=application 2>/dev/null | wc -l)
+if [ "$n" -gt 0 ]; then
+  printf '{"text":"%s flatpak","icon":"bell","color":"warn","interval":3600}\n' "$n"
+else
+  printf '{"text":"flatpak ok","icon":"leaf","color":"dim","interval":3600}\n'
+fi

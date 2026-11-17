@@ -135,7 +135,7 @@ pub fn draw(ui: &mut Ui, st: &State, w: i32, h: i32) {
     let t = ui.t;
     let fr = R::new(0, 0, w - 6, h - 6);
     ui.frame(fr, false);
-    let sub = crate::tf!("yami {} · {:.0} МБ", "yami {} · {:.0} MB", "yami {} · {:.0} MB", env!("CARGO_PKG_VERSION"), st.rss);
+    let sub = crate::tf!("Nemo {} · {:.0} МБ", "Nemo {} · {:.0} MB", "Nemo {} · {:.0} MB", env!("CARGO_PKG_VERSION"), st.rss);
     ui.header(R::new(1, 1, fr.w - 2, 30), "gear", "настройки", &sub);
     // за заголовок окно двигается (крестик зарегистрирован позже — он сверху)
     ui.zone(R::new(1, 1, fr.w - 2, 30), Act::MDrag, Cur::Default);
