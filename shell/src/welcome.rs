@@ -8,7 +8,7 @@
 // в него на тот же шаг, а метка хранит этот шаг до следующего входа. Метка снимается только в конце.
 
 use crate::app::{App, Modal, SKind, State};
-use crate::font::{self, PX, PX24};
+use crate::font::{PX, PX24};
 use crate::gfx::{BoxStyle, R};
 use crate::settings::{scroll_of, scrollbar, Tab};
 use crate::ui::{Act, Cur, Field, Tone, Ui};
@@ -32,7 +32,7 @@ const fn step(id: &'static str, chapter: &'static str, title: &'static str, sub:
 }
 
 const ALL: &[Step] = &[
-    step("hello", "начало", "добро пожаловать в yami", "пара минут — и стол будет твоим. Всё применяется сразу, и всё потом можно поменять.", page::hello, &[]),
+    step("hello", "начало", "добро пожаловать в Nemo", "пара минут — и стол будет твоим. Всё применяется сразу, и всё потом можно поменять.", page::hello, &[]),
     step("style", "начало", "какой стиль?", "панели, окна и программы yami будут выглядеть так", page::style, &["look"]),
     step("color", "вид", "твой цвет", "весь стол и программы перекрасятся сразу", page::color, &["color"]),
     step("wall", "вид", "обои", "своя картинка или узор в цвет палитры", page::wall, &["wall"]),
@@ -48,7 +48,7 @@ const ALL: &[Step] = &[
     step("services", "система", "уведомления и службы", "что шелл берёт на себя", page::services, &["notif", "agents"]),
     step("games", "система", "игры", "окна на весь экран, VRR и режим игры", crate::games::tab, &[]),
     step("login", "система", "экран входа", "как выглядит вход в систему", crate::login::tab, &[]),
-    step("done", "готово", "готово", "yami настроен. Всё это живёт в настройках (Mod+S), а мастер снова откроет команда yami setup.", page::done, &[]),
+    step("done", "готово", "готово", "Nemo настроен. Всё это живёт в настройках (Mod+S), а мастер снова откроет команда yami setup.", page::done, &[]),
 ];
 
 /// такой шаг есть (`yami setup STEP`)
@@ -262,7 +262,8 @@ pub fn draw(ui: &mut Ui, st: &State, w: i32, h: i32) {
         if cur.id == "done" && st.set.anim() {
             burst(ui, (x + COL - 34, 68), wz.since.elapsed().as_secs_f32());
         }
-        ui.text(font::jp(64), x + COL - 66, 36, "闇", t.red.fade(0.75));
+        let (fw, _) = yami_px::brand::fish_size(4);
+        yami_px::brand::fish(ui, x + COL - fw - 10, 44, 4, 0.9);
     }
     if wz.more.is_none() {
         ui.wrap(PX, R::new(x, 92, COL - 80, 40), cur.sub, t.text_dim, 2);

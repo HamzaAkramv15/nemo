@@ -1,19 +1,18 @@
 <div align="center">
 
-<img src=".github/assets/logo.svg" width="88" alt="">
+<img src=".github/assets/nemo-logo.svg" width="128" alt="Nemo: пиксельная рыбка">
 
-# yami
+# Nemo
 
-Пиксельный рабочий стол для niri — целыми пикселями.
+Пиксельный рабочий стол для niri — целыми пикселями. Форк [yami](https://github.com/Trendorin/yami).
 
-[![Release](https://img.shields.io/github/v/release/Trendorin/yami?label=release&color=a8a29c)](https://github.com/Trendorin/yami/releases/latest)
-[![Installs](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2FTrendorin%2Fyami%2Fstats%2Fbadge.json)](docs/SECURITY.ru.md#счётчик-установок)
+[![Fork of yami](https://img.shields.io/badge/fork%20of-Trendorin%2Fyami-a8a29c)](https://github.com/Trendorin/yami)
 [![License](https://img.shields.io/badge/license-MIT-a8a29c)](LICENSE)
 ![Rust](https://img.shields.io/badge/rust-1.89%2B-a8a29c)
 ![niri](https://img.shields.io/badge/niri-26.04-a8a29c)
 ![Platform](https://img.shields.io/badge/platform-Linux%20%C2%B7%20Wayland-a8a29c)
 
-[Установка](#установка) · [Скриншоты](#скриншоты) · [Настройки](docs/CONFIG.ru.md) · [Изменения](CHANGELOG.ru.md) · [English](README.md)
+[О форке](#о-форке) · [Установка](#установка) · [Скриншоты](#скриншоты) · [Настройки](docs/CONFIG.ru.md) · [Изменения](CHANGELOG.ru.md) · [English](README.md)
 
 </div>
 
@@ -21,7 +20,7 @@ https://github.com/user-attachments/assets/d5cbbf36-4591-4cba-adb6-3eda963a2db0
 
 <img src=".github/assets/clean.png" width="100%" alt="Рабочий стол yami как есть: бар, часы, виджеты процессора и музыки на пиксельных обоях">
 
-**yami** (闇, «тьма») превращает Wayland-композитор [niri](https://github.com/YaLTeR/niri) в
+**Nemo** — форк **yami** (闇, «тьма»), который превращает Wayland-композитор [niri](https://github.com/YaLTeR/niri) в
 готовый рабочий стол: тёмный графит, один акцентный цвет, чёткие пиксельные шрифты. Свой шелл,
 **yami-shell**, сам рисует бар, меню программ, док, уведомления, экран блокировки, виджеты и настройки —
 на Rust, без тулкитов, и в простое занимает **около 15 МБ памяти**. Файловый менеджер, просмотрщик,
@@ -33,10 +32,37 @@ https://github.com/user-attachments/assets/d5cbbf36-4591-4cba-adb6-3eda963a2db0
 Ставится на любой из восьми дистрибутивов одной командой:
 
 ```sh
-bash <(curl -fsSL https://raw.githubusercontent.com/Trendorin/yami/main/install.sh)
+bash <(curl -fsSL https://raw.githubusercontent.com/HamzaAkramv15/yami/main/install.sh)
 ```
 
 Что он делает и его флаги — в разделе [Установка](#установка).
+
+## О форке
+
+Nemo — форк [**yami**](https://github.com/Trendorin/yami) от [Trendorin](https://github.com/Trendorin)
+и его участников, и существует благодаря их работе: шелл, библиотека рисования, установщик,
+обновления, модули и весь пиксельный вид — их. Спасибо. Nemo сохраняет их лицензию MIT и строку
+копирайта ([LICENSE](LICENSE)), следует за их кодом и берёт своё имя и логотип, как их лицензия и
+просит от форка.
+
+Что Nemo добавляет к yami 3.0.0:
+
+- **Часы и календарь:** 12-часовой формат с AM/PM, три вида даты, неделя с понедельника,
+  воскресенья или субботы.
+- **Ночной свет:** весь день без расписания, ползунок температуры, `yami night …` из терминала или с клавиши.
+- **Размытие:** ползунок силы и настоящее размытие, которое захватывает и окна за панелью.
+- **Готовые скрипты:** десять небольших скриптов без сети для бара и виджетов (`yami scripts`).
+- **kitty:** подсказки как в fish при наборе, уведомления о долгих командах, разделение окна.
+- **Имя и рыбка.**
+
+Программы и папки сохраняют имя **yami** (`yami`, `yami-shell`, `~/.config/yami`, модули
+`yami-files` и остальные), поэтому всё совместимо с yami, его модулями и твоими настройками. Модули
+(файловый менеджер, просмотрщик, плеер, скриншоты, экран входа, форк niri) по-прежнему
+[репозитории Trendorin](https://github.com/Trendorin), и берутся оттуда.
+
+Обновления: встроенный апдейтер следует релизам yami, подписанным ключом его автора, поэтому сборку
+Nemo он не обновляет, пока ты не направишь его на свои подписанные релизы; см.
+[Обновления](#обновления). Баги, которые есть и в yami, лучше сообщать и там.
 
 ## Возможности
 
@@ -208,10 +234,10 @@ bash <(curl -fsSL https://raw.githubusercontent.com/Trendorin/yami/main/install.
 установщик оттуда):
 
 ```sh
-bash <(curl -fsSL https://raw.githubusercontent.com/Trendorin/yami/main/install.sh)
+bash <(curl -fsSL https://raw.githubusercontent.com/HamzaAkramv15/yami/main/install.sh)
 ```
 
-или из клона: `git clone https://github.com/Trendorin/yami yami && yami/install.sh`.
+или из клона: `git clone https://github.com/HamzaAkramv15/yami nemo && nemo/install.sh`.
 
 На x86_64 с glibc 2.34 или новее (Ubuntu 22.04, Debian 12, Fedora 35 и всё новее) выпуск ставит готовые бинарники
 с проверенной подписью: без компилятора, за несколько минут. На остальных системах собирает из исходников. Где в
@@ -502,6 +528,8 @@ yami-shell binds list                  # клавиши: id, сочетание,
 
 ## Спасибо
 
+- [Trendorin](https://github.com/Trendorin) и все, кто участвовал в
+  [yami](https://github.com/Trendorin/yami): Nemo построен на их работе.
 - [Minish777](https://github.com/Minish777) ищет баги и недоделки и описывает их вместе с
   вариантами исправления: переключение плееров, текст песен, выбор обоев, плавающий бар, погода,
   шаблоны программ и многое другое начались с этих отчётов, как и разбор шаблонов (#27), модуль

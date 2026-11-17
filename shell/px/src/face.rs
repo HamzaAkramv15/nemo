@@ -76,8 +76,9 @@ pub fn clock<A: Action>(ui: &mut Ui<A>, w: i32, h: i32) -> i32 {
     dy + 30
 }
 
-/// 闇 в правом нижнем углу
+/// знак рабочего стола (рыбка Nemo) в правом нижнем углу; название функции осталось с тех пор,
+/// как здесь был иероглиф, — его зовёт и yami-greet
 pub fn kanji<A: Action>(ui: &mut Ui<A>, w: i32, h: i32) {
-    let t = ui.t;
-    ui.text(font::jp(32), w - 72, h - 64, "闇", t.red.fade(0.5));
+    let (fw, fh) = crate::brand::fish_size(3);
+    crate::brand::fish(ui, w - fw - 28, h - fh - 28, 3, 0.7);
 }

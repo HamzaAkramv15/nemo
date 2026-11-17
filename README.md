@@ -1,19 +1,18 @@
 <div align="center">
 
-<img src=".github/assets/logo.svg" width="88" alt="">
+<img src=".github/assets/nemo-logo.svg" width="128" alt="Nemo: a pixel fish">
 
-# yami
+# Nemo
 
-A pixel-art desktop for niri, drawn in whole pixels.
+A pixel-art desktop for niri, drawn in whole pixels. A fork of [yami](https://github.com/Trendorin/yami).
 
-[![Release](https://img.shields.io/github/v/release/Trendorin/yami?label=release&color=a8a29c)](https://github.com/Trendorin/yami/releases/latest)
-[![Installs](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2FTrendorin%2Fyami%2Fstats%2Fbadge.json)](docs/SECURITY.md#install-count)
+[![Fork of yami](https://img.shields.io/badge/fork%20of-Trendorin%2Fyami-a8a29c)](https://github.com/Trendorin/yami)
 [![License](https://img.shields.io/badge/license-MIT-a8a29c)](LICENSE)
 ![Rust](https://img.shields.io/badge/rust-1.89%2B-a8a29c)
 ![niri](https://img.shields.io/badge/niri-26.04-a8a29c)
 ![Platform](https://img.shields.io/badge/platform-Linux%20%C2%B7%20Wayland-a8a29c)
 
-[Install](#installation) · [Screenshots](#screenshots) · [Settings](docs/CONFIG.md) · [Changelog](CHANGELOG.md) · [Русский](README.ru.md)
+[About this fork](#about-this-fork) · [Install](#installation) · [Screenshots](#screenshots) · [Settings](docs/CONFIG.md) · [Changelog](CHANGELOG.md) · [Русский](README.ru.md)
 
 </div>
 
@@ -21,7 +20,7 @@ https://github.com/user-attachments/assets/d5cbbf36-4591-4cba-adb6-3eda963a2db0
 
 <img src=".github/assets/clean.png" width="100%" alt="The yami desktop as it is: the bar, the clock, CPU and music widgets on the pixel wallpaper">
 
-**yami** (闇, "darkness") turns the [niri](https://github.com/YaLTeR/niri) Wayland compositor into a
+**Nemo** is a fork of **yami** (闇, "darkness"), which turns the [niri](https://github.com/YaLTeR/niri) Wayland compositor into a
 finished desktop: dark graphite, one accent colour, crisp pixel fonts. Its shell, **yami-shell**,
 draws the bar, launcher, dock, notifications, lock screen, widgets and settings itself, in Rust with no
 toolkit, and idles at **about 15 MB of RAM**. The file manager, image viewer, player, screenshots and
@@ -33,10 +32,37 @@ Every app follows the same palette, and updates arrive signed (as ready binaries
 Install on any of eight distributions with one command:
 
 ```sh
-bash <(curl -fsSL https://raw.githubusercontent.com/Trendorin/yami/main/install.sh)
+bash <(curl -fsSL https://raw.githubusercontent.com/HamzaAkramv15/yami/main/install.sh)
 ```
 
 Everything it does and its flags: [Installation](#installation).
+
+## About this fork
+
+Nemo is a fork of [**yami**](https://github.com/Trendorin/yami) by [Trendorin](https://github.com/Trendorin)
+and its contributors, and it exists because of their work: the shell, the drawing library, the
+installer, the updater, the modules and the whole pixel look are theirs. Thank you. Nemo keeps their
+MIT license and copyright line ([LICENSE](LICENSE)), tracks their code, and takes its own name and
+logo, as their license asks of a fork.
+
+What Nemo adds on top of yami 3.0.0:
+
+- **Clock and calendar:** a 12-hour format with AM/PM, three date styles, a week that starts on
+  Monday, Sunday or Saturday.
+- **Night light:** all day with no schedule, a temperature slider, `yami night …` from a terminal or a key.
+- **Blur:** a strength slider, and a real blur that includes the windows behind a panel.
+- **Ready scripts:** ten small offline scripts for the bar and widgets (`yami scripts`).
+- **kitty:** fish-style suggestions as you type, notifications for long commands, splits.
+- **The name and the fish.**
+
+The programs and folders keep the name **yami** (`yami`, `yami-shell`, `~/.config/yami`, the
+`yami-files` and other modules), so everything stays compatible with yami, its modules and your
+existing settings. The modules (file manager, viewer, player, screenshots, login screen, the niri
+fork) are still [Trendorin's repositories](https://github.com/Trendorin) and are fetched from there.
+
+Updates: the built-in updater follows yami's releases, which are signed with its author's key, so
+a Nemo build is not updated by it unless you point it at your own signed releases; see
+[Updates](#updates). Bugs that also exist in yami are best reported there too.
 
 ## Features
 
@@ -203,10 +229,10 @@ One command on a fresh system (it fetches the repository into `~/.local/share/ya
 the installer from there):
 
 ```sh
-bash <(curl -fsSL https://raw.githubusercontent.com/Trendorin/yami/main/install.sh)
+bash <(curl -fsSL https://raw.githubusercontent.com/HamzaAkramv15/yami/main/install.sh)
 ```
 
-or from a checkout: `git clone https://github.com/Trendorin/yami yami && yami/install.sh`.
+or from a checkout: `git clone https://github.com/HamzaAkramv15/yami nemo && nemo/install.sh`.
 
 On x86_64 with glibc 2.34 or newer (Ubuntu 22.04, Debian 12, Fedora 35 and everything newer) a release installs
 ready binaries with a checked signature: no compiler, a few minutes. Anywhere else it builds from source. Where the
@@ -495,6 +521,8 @@ log in, `~/.local/lib/yami-niri/yami-niri.sh off`.
 
 ## Thanks
 
+- [Trendorin](https://github.com/Trendorin) and everyone who contributed to
+  [yami](https://github.com/Trendorin/yami): Nemo is built on their work.
 - [Minish777](https://github.com/Minish777) hunts bugs and gaps and writes them up with fixes to
   pick from: player switching, lyrics, the wallpaper picker, the floating bar, weather, app
   templates and more started as those reports, and so did the template audit (#27), the windows
