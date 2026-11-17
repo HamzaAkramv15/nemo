@@ -127,7 +127,7 @@ a Nemo build is not updated by it unless you point it at your own signed release
   gets `us`, a Russian one `us,ru`), any xkb codes and the switch combination are a choice. Written
   to `~/.config/yami/niri/binds.kdl`.
 - **One palette everywhere.** Seven presets or any custom accent recolor the shell, wallpaper,
-  niri borders, kitty, foot, cava, starship, btop, fastfetch (闇 logo), Qt/KDE and GTK apps, the browser's menus (its
+  niri borders, kitty, foot, cava, starship, btop, fastfetch (the Nemo fish), Qt/KDE and GTK apps, the browser's menus (its
   own theme stays yours), the pixel cursor and the login screen at once; your own templates
   (`~/.config/yami/templates`) recolour any other app. App icons in the launcher, dock, file manager and tray are
   redrawn as 16×16 pixel art in the palette tones (can be turned off).

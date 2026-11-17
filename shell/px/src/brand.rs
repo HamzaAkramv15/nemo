@@ -10,7 +10,7 @@ use crate::ui::{Action, Ui};
 pub const NAME: &str = "Nemo";
 
 /// клетки рыбки: # контур, W блик, l светлая, t светлая с тенью, b тело, s низ тела
-const FISH: [&str; 9] = [
+pub const FISH: [&str; 9] = [
     "....#####....##.",
     "..##WWWbW##.#ll#",
     ".#WWlbbbbbb#llt#",
@@ -22,16 +22,16 @@ const FISH: [&str; 9] = [
     "....#####....##.",
 ];
 
-fn tone(ch: u8) -> Option<C> {
-    Some(C::hex(match ch {
-        b'#' => 0x5a5858,
-        b'W' => 0xeef1f4,
-        b'l' => 0xc8d6e0,
-        b'b' => 0x9eb4c6,
-        b's' => 0x8fa8b8,
-        b't' => 0xaac4d0,
-        _ => return None,
-    }))
+/// номер цвета клетки в `tones`; None — пусто
+pub fn tone_index(ch: u8) -> Option<usize> {
+    b"#Wltbs".iter().position(|&c| c == ch)
+}
+
+/// цвета рыбки по палитре рабочего стола (порядок как в `tone_index`): контур — тёмный акцент,
+/// тело — акцент, блики — к яркому. Те же роли, что и в палитре для остальных программ
+/// (accent, deep, bright, bg), поэтому знак меняет цвет вместе с темой; в fastfetch — тоже
+pub fn tones(accent: C, deep: C, bright: C, bg: C) -> [C; 6] {
+    [deep.lerp(bg, 0.35), bright, bright.lerp(accent, 0.4), bright.lerp(accent, 0.6), accent, accent.lerp(deep, 0.5)]
 }
 
 /// размер знака в пикселях при клетке `cell`
@@ -39,12 +39,15 @@ pub fn fish_size(cell: i32) -> (i32, i32) {
     (16 * cell, 9 * cell)
 }
 
-/// нарисовать рыбку; `fade` — 1.0 полный цвет, меньше — бледнее (как у знака на экране блокировки)
+/// нарисовать рыбку цветами темы; `fade` — 1.0 полный цвет, меньше — бледнее (как у знака на
+/// экране блокировки)
 pub fn fish<A: Action>(ui: &mut Ui<A>, x: i32, y: i32, cell: i32, fade: f32) {
+    let t = ui.t;
+    let c = tones(t.red, t.blood, t.ember, t.bg);
     for (j, row) in FISH.iter().enumerate() {
         for (i, ch) in row.bytes().enumerate() {
-            if let Some(c) = tone(ch) {
-                ui.cv.fill(R::new(x + i as i32 * cell, y + j as i32 * cell, cell, cell), if fade >= 1.0 { c } else { c.fade(fade) });
+            if let Some(k) = tone_index(ch) {
+                ui.cv.fill(R::new(x + i as i32 * cell, y + j as i32 * cell, cell, cell), if fade >= 1.0 { c[k] } else { c[k].fade(fade) });
             }
         }
     }
@@ -52,15 +55,25 @@ pub fn fish<A: Action>(ui: &mut Ui<A>, x: i32, y: i32, cell: i32, fade: f32) {
 
 #[cfg(test)]
 mod tests {
-    /// знак — ровно 16×9, и каждая клетка либо пустая, либо из палитры
+    /// знак — ровно 16×9, и каждая клетка либо пустая, либо из шести цветов
     #[test]
     fn the_fish_is_a_clean_grid() {
         assert_eq!(super::FISH.len(), 9);
         for row in super::FISH {
             assert_eq!(row.len(), 16, "{row}");
             for b in row.bytes() {
-                assert!(b == b'.' || super::tone(b).is_some(), "{}", b as char);
+                assert!(b == b'.' || super::tone_index(b).is_some(), "{}", b as char);
             }
         }
+    }
+
+    /// другая тема — другие цвета, и тело рыбки — акцент темы
+    #[test]
+    fn the_fish_wears_the_palette() {
+        use crate::gfx::C;
+        let a = super::tones(C::hex(0xc4161c), C::hex(0x5a0b0e), C::hex(0xff6a60), C::hex(0x0e0c0c));
+        let b = super::tones(C::hex(0x3a9fd0), C::hex(0x0b3a52), C::hex(0x7fd0ff), C::hex(0x0c0e10));
+        assert_ne!(a, b);
+        assert_eq!(a[4], C::hex(0xc4161c));
     }
 }

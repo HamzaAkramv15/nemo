@@ -85,7 +85,7 @@ t_desc() {
     qt) t "qt6ct с Fusion в палитре, kdeglobals (прежние — в .bak-yami)" "qt6ct with Fusion in the palette, kdeglobals (the old ones kept as .bak-yami)" "qt6ct com Fusion na paleta, kdeglobals (os antigos ficam como .bak-yami)" ;;
     cursor) t "пиксельный курсор в палитре: niri, GTK, X11-программы; выкл — системный" "the pixel cursor in the palette: niri, GTK, X11 apps; off: the system one" "o cursor em pixel na paleta: niri, GTK, apps X11; desligado: o do sistema" ;;
     kitty) t "цвета, шрифт и стекло: одна строка include yami.conf в конце kitty.conf, остальное твоё не трогается" "colours, font and glass: one line include yami.conf at the end of kitty.conf, the rest of yours stays" "cores, fonte e vidro: uma linha include yami.conf no fim do kitty.conf, o resto continua seu" ;;
-    fastfetch) t "свой конфиг с логотипом 闇 (прежний — в .bak)" "its own config with the 闇 logo (the old one kept as .bak)" "uma configuração própria com o logo 闇 (a antiga fica como .bak)" ;;
+    fastfetch) t "свой конфиг с логотипом Nemo (прежний — в .bak)" "its own config with the Nemo logo (the old one kept as .bak)" "uma configuração própria com o logo Nemo (a antiga fica como .bak)" ;;
     btop) t "тема yami в btop" "the yami theme in btop" "o tema yami no btop" ;;
     firefox) t "меню и шрифт: userChrome.css, только если он наш" "menus and font: userChrome.css, only one yami wrote" "menus e fonte: userChrome.css, só um escrito pelo yami" ;;
     mangohud) t "цвета и шрифт оверлея, только если конфиг наш" "the overlay's colours and font, only a config yami wrote" "cores e fonte do overlay, só uma configuração escrita pelo yami" ;;

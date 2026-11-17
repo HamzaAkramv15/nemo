@@ -129,6 +129,8 @@ recent-windows {{
 }}
 "###;
 
+// the shell itself now draws the Nemo fish; the glyph stays for yami-dev's README art
+#[allow(dead_code)]
 pub const KANJI: [&str; 16] = [
     "######..######",
     "#....#..#....#",

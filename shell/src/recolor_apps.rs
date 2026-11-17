@@ -849,7 +849,7 @@ pub fn fastfetch(cx: &Cx, p: &P) -> Res {
     let esc = |h: &str| format!("\u{1b}[{}m", e(h));
     let (a, d, f, t) = (p.g("accent"), p.g("border"), p.g("textFaint"), p.g("text"));
     let logo_path = cx.cfg.join("fastfetch/yami-logo.txt");
-    write(&logo_path, &crate::recolor_art::kanji_logo(p))?;
+    write(&logo_path, &crate::recolor_art::fish_logo(p))?;
     let swatch: String = [p.g("bg"), p.g("panel"), p.g("border"), p.g("deep"), a, p.g("bright"), p.g("textDim"), t]
         .iter()
         .map(|c| {
@@ -867,7 +867,7 @@ pub fn fastfetch(cx: &Cx, p: &P) -> Res {
     };
     let fmt = |v: &str| vec![("format", s(v))];
     let custom = |v: String| J::O(vec![("type", s("custom")), ("format", J::S(v))]);
-    let mut mods = vec![custom(format!("{}YAMI {}// {}niri", esc(a), esc(f), esc(p.g("textDim")))), custom(line.clone())];
+    let mut mods = vec![custom(format!("{}NEMO {}// {}niri", esc(a), esc(f), esc(p.g("textDim")))), custom(line.clone())];
     mods.push(module("title", "host", fmt("{user-name}@{host-name}")));
     mods.push(module("os", "os", fmt(if full { "{pretty-name} {arch}" } else { "{pretty-name}" })));
     if full {

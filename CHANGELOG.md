@@ -9,6 +9,7 @@ has its Russian line in CHANGELOG.ru.md: `tools/check.sh` checks that.
 
 ## Unreleased
 
+- The Nemo fish takes the colours of your palette: on the lock screen, in the setup and «about», and as the fastfetch logo (it follows the palette and the wallpaper accent like everything else).
 - Nemo: this fork is now called Nemo, with a pixel fish as its logo (README, «about», first-run setup and lock screen). The README tells that it is a fork of yami by Trendorin and credits them; the license keeps both copyright lines. Programs, folders and settings keep the name yami, so everything stays compatible with yami and its modules.
 - Real blur: with `blurXray` off (settings → look, «blur the windows behind a panel too») niri blurs everything behind the shell's panels and terminals, not only the wallpaper, so a panel looks the same with an app behind it as without one. It costs the GPU more, so it is off by default.
 - Ready scripts: ten small offline scripts for the bar and widgets (`uptime` `load` `disk` `memtop` `cpufreq` `power` `kernel` `vpn` `docker` `flatpak`); `yami scripts` lists them, `yami scripts add NAME|all` copies them into your scripts folder.

@@ -4,7 +4,7 @@
 
 use crate::recolor::*;
 use crate::recolor_apps::ini_set;
-use crate::recolor_data::{APP_ART, CURSOR_ALIASES, CURSOR_ART, KANJI};
+use crate::recolor_data::{APP_ART, CURSOR_ALIASES, CURSOR_ART};
 use image::{ImageFormat, Rgba, RgbaImage};
 use std::path::Path;
 
@@ -317,20 +317,27 @@ pub fn app_icons(cx: &Cx, p: &P) -> Res {
     Ok(())
 }
 
-/// иероглиф полублоками (▀: верхний пиксель — цвет текста, нижний — фон): квадратные пиксели, полосы
-/// от светлого к акценту сверху вниз и тень на пиксель, как у панелей шелла
-pub fn kanji_logo(p: &P) -> String {
-    let (gw, gh) = (KANJI[0].len() as i32, KANJI.len() as i32);
-    let (w, h) = (gw + 1, gh + 1);
-    let bands = [p.g("bright").to_string(), mix(p.g("bright"), p.g("accent"), 0.5), p.g("accent").to_string(), mix(p.g("accent"), p.g("deep"), 0.5)];
-    let shadow = mix(p.g("deep"), p.g("bg"), 0.45);
-    let on = |x: i32, y: i32| y >= 0 && y < gh && x >= 0 && x < gw && KANJI[y as usize].as_bytes()[x as usize] == b'#';
-    let px = |x: i32, y: i32| -> Option<&str> {
-        if on(x, y) {
-            return Some(&bands[((y * 4 / gh) as usize).min(3)]);
+/// рыбка Nemo полублоками (▀: верхний пиксель — цвет текста, нижний — фон): квадратные пиксели,
+/// каждая клетка знака — 2×2 пикселя, цвета — из палитры (px::brand::tones), так что знак
+/// перекрашивается вместе с рабочим столом
+pub fn fish_logo(p: &P) -> String {
+    use yami_px::brand::{tone_index, tones, FISH};
+    let c = |name: &str| {
+        let (r, g, b) = rgb(p.g(name));
+        yami_px::gfx::C::hex((r as u32) << 16 | (g as u32) << 8 | b as u32)
+    };
+    let col = tones(c("accent"), c("deep"), c("bright"), c("bg"));
+    const K: i32 = 2;
+    let (w, h) = (FISH[0].len() as i32 * K, FISH.len() as i32 * K);
+    let px = |x: i32, y: i32| -> Option<(u8, u8, u8)> {
+        if x < 0 || y < 0 || x >= w || y >= h {
+            return None;
         }
-        // тень только снаружи (справа и снизу), чтобы не забивать просветы знака
-        (on(x - 1, y - 1) && (x >= gw || y >= gh - 1)).then_some(shadow.as_str())
+        let ch = FISH[(y / K) as usize].as_bytes()[(x / K) as usize];
+        tone_index(ch).map(|i| {
+            let v = col[i].0;
+            ((v >> 16) as u8, (v >> 8) as u8, v as u8)
+        })
     };
     let mut rows = vec![];
     for y in (0..h).step_by(2) {
@@ -338,18 +345,9 @@ pub fn kanji_logo(p: &P) -> String {
         for x in 0..w {
             match (px(x, y), px(x, y + 1)) {
                 (None, None) => line += "\u{1b}[0m ",
-                (Some(t), None) => {
-                    let (r, g, b) = rgb(t);
-                    line += &format!("\u{1b}[0m\u{1b}[38;2;{r};{g};{b}m▀");
-                }
-                (None, Some(b_)) => {
-                    let (r, g, b) = rgb(b_);
-                    line += &format!("\u{1b}[0m\u{1b}[38;2;{r};{g};{b}m▄");
-                }
-                (Some(t), Some(b_)) => {
-                    let ((r, g, b), (r2, g2, b2)) = (rgb(t), rgb(b_));
-                    line += &format!("\u{1b}[38;2;{r};{g};{b}m\u{1b}[48;2;{r2};{g2};{b2}m▀");
-                }
+                (Some((r, g, b)), None) => line += &format!("\u{1b}[0m\u{1b}[38;2;{r};{g};{b}m▀"),
+                (None, Some((r, g, b))) => line += &format!("\u{1b}[0m\u{1b}[38;2;{r};{g};{b}m▄"),
+                (Some((r, g, b)), Some((r2, g2, b2))) => line += &format!("\u{1b}[38;2;{r};{g};{b}m\u{1b}[48;2;{r2};{g2};{b2}m▀"),
             }
         }
         rows.push(format!("{line}\u{1b}[0m"));
