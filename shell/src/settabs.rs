@@ -157,6 +157,12 @@ pub(crate) fn tab_widgets(ui: &mut Ui, st: &State, b: R) {
     let t = ui.t;
     let s = &st.set;
     let y0 = title(ui, b.x, b.y, b.w, "виджеты рабочего стола");
+    // готовые скрипты — кнопкой справа от заголовка, пока не все в папке скриптов (потом — модули
+    // бара x:имя и источник виджета «скрипт»); внизу списка её не нашли бы
+    let have = crate::plugins::scripts();
+    if crate::scriptlib::ALL.iter().any(|(n, _)| !have.iter().any(|h| h == n)) {
+        ui.button(R::new(b.right() - 250, b.y - 4, 250, 24), "готовые скрипты: добавить все", "plus", Tone::Primary, false, true, Act::SCycle("scripts_add"));
+    }
     // список слева
     let lw = 200;
     let mut y = y0;

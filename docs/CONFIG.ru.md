@@ -375,7 +375,7 @@ t=$(curl -fs 'https://wttr.in/?format=%t' || echo '?')
 printf '{"text":"%s","icon":"temp","color":"accent","click":"xdg-open https://wttr.in","interval":600}\n' "$t"
 ```
 
-Двадцать готовых скриптов идут с шеллом (`yami scripts` показывает их, `yami scripts add ИМЯ` или
+Двадцать готовых скриптов идут с шеллом (в настройки → виджеты есть кнопка «готовые скрипты: добавить все»; `yami scripts` показывает их, `yami scripts add ИМЯ` или
 `add all` кладёт копию в твою папку; твои файлы не перезаписываются): `uptime` `load` `disk`
 `memtop` `cpufreq` `power` `kernel` `vpn` `docker` `flatpak` `swap` `cputemp` `ipaddr` `wifi`
 `yearprogress` `utc` `processes` `fan` `gitdir` `moon`. Сети и аккаунтов они не используют (читают

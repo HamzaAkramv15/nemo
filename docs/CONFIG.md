@@ -372,7 +372,7 @@ t=$(curl -fs 'https://wttr.in/?format=%t' || echo '?')
 printf '{"text":"%s","icon":"temp","color":"accent","click":"xdg-open https://wttr.in","interval":600}\n' "$t"
 ```
 
-Twenty ready scripts come with the shell (`yami scripts` lists them, `yami scripts add NAME` or
+Twenty ready scripts come with the shell (settings → widgets has a «ready scripts: add them all» button; `yami scripts` lists them, `yami scripts add NAME` or
 `add all` puts a copy in your folder; yours are never overwritten): `uptime` `load` `disk`
 `memtop` `cpufreq` `power` `kernel` `vpn` `docker` `flatpak` `swap` `cputemp` `ipaddr` `wifi`
 `yearprogress` `utc` `processes` `fan` `gitdir` `moon`. They use no network and no account (they

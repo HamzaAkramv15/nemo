@@ -1437,4 +1437,6 @@ const UK: &[(&str, &str)] = &[
     ("normal", "звичайні"),
     ("by style", "за стилем"),
     ("bar and panel icons", "значки панелі та вікон"),
+    ("ready scripts: add them all", "готові скрипти: додати всі"),
+    ("the ready scripts are in your folder: a source for the «script» widget", "готові скрипти вже в теці: джерело віджета «скрипт»"),
 ];

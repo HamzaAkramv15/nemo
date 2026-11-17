@@ -400,6 +400,8 @@ const PAIRS: &[(&str, &str)] = &[
     ("сколько висит", "how long it stays"),
     ("теплее вечером", "warmer in the evening"),
     ("нужен wlsunset", "needs wlsunset"),
+    ("готовые скрипты: добавить все", "ready scripts: add them all"),
+    ("готовые скрипты уже в папке: источник виджета «скрипт»", "the ready scripts are in your folder: a source for the «script» widget"),
     ("обычные", "normal"),
     ("по стилю", "by style"),
     ("значки бара и панелей", "bar and panel icons"),

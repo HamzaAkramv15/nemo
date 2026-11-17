@@ -272,6 +272,15 @@ fn tab_bar_look(ui: &mut Ui, st: &State, b: R) {
         y += 32;
     }
     y += 6;
+    // значки бара: пиксельные или обычные (то же, что в настройках → вид)
+    y = title(ui, b.x, y, b.w, "значки бара и панелей");
+    let istyle = match s.icon_style.as_str() {
+        "normal" => "обычные",
+        "pixel" => "пиксельные",
+        _ => "по стилю",
+    };
+    opt_btn(ui, R::new(b.x, y, b.w, 26), "стиль", istyle, Act::SCycle("icon_style"));
+    y += 38;
     // часы и календарь: формат часов, вид даты, с какого дня неделя
     y = title(ui, b.x, y, b.w, "часы и календарь");
     let date_name = match s.date_style.as_str() {

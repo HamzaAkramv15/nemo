@@ -389,6 +389,13 @@ impl App {
                 }
                 "open_setup" => self.welcome_open("modules"),
                 "open_welcome" => self.welcome_open("hello"),
+                "scripts_add" => {
+                    for (n, _) in crate::scriptlib::ALL {
+                        let _ = crate::scriptlib::add(n);
+                    }
+                    self.settings_changed();
+                    self.dirty(&SKind::Modal);
+                }
                 "icon_style" => {
                     s.icon_style = cycle(&[("", ""), ("pixel", ""), ("normal", "")], &s.icon_style).into();
                     self.settings_changed();

@@ -1437,4 +1437,6 @@ const DE: &[(&str, &str)] = &[
     ("normal", "normal"),
     ("by style", "nach Stil"),
     ("bar and panel icons", "Symbole in Leiste und Panels"),
+    ("ready scripts: add them all", "fertige Skripte: alle hinzufügen"),
+    ("the ready scripts are in your folder: a source for the «script» widget", "die fertigen Skripte liegen im Ordner: Quelle für das Widget «Skript»"),
 ];
