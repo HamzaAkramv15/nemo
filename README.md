@@ -32,7 +32,7 @@ Every app follows the same palette, and updates arrive signed (as ready binaries
 Install on any of eight distributions with one command:
 
 ```sh
-bash <(curl -fsSL https://raw.githubusercontent.com/HamzaAkramv15/yami/main/install.sh)
+bash <(curl -fsSL https://raw.githubusercontent.com/HamzaAkramv15/nemo/main/install.sh)
 ```
 
 Everything it does and its flags: [Installation](#installation).
@@ -60,9 +60,10 @@ The programs and folders keep the name **yami** (`yami`, `yami-shell`, `~/.confi
 existing settings. The modules (file manager, viewer, player, screenshots, login screen, the niri
 fork) are still [Trendorin's repositories](https://github.com/Trendorin) and are fetched from there.
 
-Updates: the built-in updater follows yami's releases, which are signed with its author's key, so
-a Nemo build is not updated by it unless you point it at your own signed releases; see
-[Updates](#updates). Bugs that also exist in yami are best reported there too.
+Updates: the built-in updater only installs releases signed with the key in `keys/allowed_signers`,
+which is yami's author's, and Nemo has no signed releases of its own yet. To update Nemo, pull this
+repository and run `./install.sh --update` from the checkout (settings are kept, a rollback point is
+made first); see [Updates](#updates). Bugs that also exist in yami are best reported there too.
 
 ## Features
 
@@ -229,10 +230,10 @@ One command on a fresh system (it fetches the repository into `~/.local/share/ya
 the installer from there):
 
 ```sh
-bash <(curl -fsSL https://raw.githubusercontent.com/HamzaAkramv15/yami/main/install.sh)
+bash <(curl -fsSL https://raw.githubusercontent.com/HamzaAkramv15/nemo/main/install.sh)
 ```
 
-or from a checkout: `git clone https://github.com/HamzaAkramv15/yami nemo && nemo/install.sh`.
+or from a checkout: `git clone https://github.com/HamzaAkramv15/nemo nemo && nemo/install.sh`.
 
 On x86_64 with glibc 2.34 or newer (Ubuntu 22.04, Debian 12, Fedora 35 and everything newer) a release installs
 ready binaries with a checked signature: no compiler, a few minutes. Anywhere else it builds from source. Where the

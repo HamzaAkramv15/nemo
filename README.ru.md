@@ -32,7 +32,7 @@ https://github.com/user-attachments/assets/d5cbbf36-4591-4cba-adb6-3eda963a2db0
 Ставится на любой из восьми дистрибутивов одной командой:
 
 ```sh
-bash <(curl -fsSL https://raw.githubusercontent.com/HamzaAkramv15/yami/main/install.sh)
+bash <(curl -fsSL https://raw.githubusercontent.com/HamzaAkramv15/nemo/main/install.sh)
 ```
 
 Что он делает и его флаги — в разделе [Установка](#установка).
@@ -60,9 +60,10 @@ Nemo — форк [**yami**](https://github.com/Trendorin/yami) от [Trendorin]
 (файловый менеджер, просмотрщик, плеер, скриншоты, экран входа, форк niri) по-прежнему
 [репозитории Trendorin](https://github.com/Trendorin), и берутся оттуда.
 
-Обновления: встроенный апдейтер следует релизам yami, подписанным ключом его автора, поэтому сборку
-Nemo он не обновляет, пока ты не направишь его на свои подписанные релизы; см.
-[Обновления](#обновления). Баги, которые есть и в yami, лучше сообщать и там.
+Обновления: встроенный апдейтер ставит только релизы, подписанные ключом из `keys/allowed_signers`
+(это ключ автора yami), а своих подписанных релизов у Nemo пока нет. Чтобы обновить Nemo, забери
+этот репозиторий и запусти `./install.sh --update` из клона (настройки сохранятся, точка отката
+создаётся заранее); см. [Обновления](#обновления). Баги, которые есть и в yami, лучше сообщать и там.
 
 ## Возможности
 
@@ -234,10 +235,10 @@ Nemo он не обновляет, пока ты не направишь его 
 установщик оттуда):
 
 ```sh
-bash <(curl -fsSL https://raw.githubusercontent.com/HamzaAkramv15/yami/main/install.sh)
+bash <(curl -fsSL https://raw.githubusercontent.com/HamzaAkramv15/nemo/main/install.sh)
 ```
 
-или из клона: `git clone https://github.com/HamzaAkramv15/yami nemo && nemo/install.sh`.
+или из клона: `git clone https://github.com/HamzaAkramv15/nemo nemo && nemo/install.sh`.
 
 На x86_64 с glibc 2.34 или новее (Ubuntu 22.04, Debian 12, Fedora 35 и всё новее) выпуск ставит готовые бинарники
 с проверенной подписью: без компилятора, за несколько минут. На остальных системах собирает из исходников. Где в

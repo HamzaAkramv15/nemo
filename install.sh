@@ -34,7 +34,7 @@ set -uo pipefail
 {
 
 # ── bootstrap: started outside the repo (curl | bash) — fetch it and run from there ──
-YAMI_REPO="${YAMI_REPO:-https://github.com/Trendorin/yami.git}"
+YAMI_REPO="${YAMI_REPO:-https://github.com/HamzaAkramv15/nemo.git}"
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")" 2>/dev/null && pwd)"
 if [[ ! -f $ROOT/shell/Cargo.toml || ! -f $ROOT/installer/ui.sh ]]; then
   SRC_DIR="${XDG_DATA_HOME:-$HOME/.local/share}/yami/src"
