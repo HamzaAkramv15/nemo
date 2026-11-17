@@ -44,6 +44,7 @@ const TARGETS: &[&str] = &[
     "settings:color-catalog",
     "settings:wall-skwd",
     "settings:widgets",
+    "settings:widgets-scripts",
     "settings:look",
     "settings:anim",
     "settings:look-sets",
@@ -420,6 +421,10 @@ fn shoot(st: &mut State, res: &mut Res, target: &str, path: &Path) {
             }
             if arg == "screens" {
                 st.disp.outs = crate::displays::mock();
+            }
+            if arg == "widgets-scripts" {
+                st.stab = "widgets";
+                st.widget_scripts = true;
             }
             if arg == "widgets" {
                 // все виды и источники в списке, чтобы --lang en видел каждую подпись

@@ -12,6 +12,8 @@ pub struct Night {
     pub on: bool,
     child: Option<Child>,
     args: Vec<String>,
+    /// место по часовому поясу уже спрашивают (locate.rs): не запускать вторую нить
+    locating: bool,
 }
 
 impl Night {
@@ -56,7 +58,9 @@ pub fn args(set: &crate::config::Settings) -> Vec<String> {
     }
     // ночная температура всегда ниже дневной (6500): иначе wlsunset не запустится
     let mut a = vec!["-t".to_string(), temp.to_string(), "-T".into(), "6500".into()];
-    match geo(&set.night_geo) {
+    // auto: координаты из locate.rs (часовой пояс системы); пока их нет — по часам
+    let place = if crate::locate::is_auto(&set.night_geo) { crate::locate::cached().map(|(la, lo, _)| (la, lo)) } else { geo(&set.night_geo) };
+    match place {
         Some((lat, lon)) => a.extend(["-l".into(), format!("{lat}"), "-L".into(), format!("{lon}")]),
         None => {
             let (on, off) = (set.num("night_on_h"), set.num("night_off_h"));
@@ -80,6 +84,17 @@ impl App {
             }
             return;
         }
+        // «auto» и места ещё нет — узнать в фоне и перечитать настройки, когда узнали
+        if crate::locate::is_auto(&s.night_geo) && crate::locate::cached().is_none() && !self.st.night.locating {
+            self.st.night.locating = true;
+            let tx = self.tx.clone();
+            std::thread::spawn(move || {
+                if crate::locate::resolve().is_ok() {
+                    let _ = tx.send(crate::app::Msg::Ipc("reload".into()));
+                }
+            });
+        }
+        let s = &self.st.set;
         let a = args(s);
         if self.st.night.running() && self.st.night.args == a {
             return;

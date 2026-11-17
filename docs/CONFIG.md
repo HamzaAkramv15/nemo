@@ -38,6 +38,7 @@ yami palette | yami palette ash | yami palette '#3a9fd0' | yami palette wallpape
 yami palette show | yami palette export NAME   # every colour with its hex (the {{names}} of templates); the palette as a saved theme
 yami wallpaper ~/Pictures/x.png           # no path: the palette's pixel wallpaper
 yami restart                              # restart the shell (refuses while a game has focus; --force)
+yami caffeine [on|off|toggle|MINUTES|Nh]            # caffeine: no idle lock, no dimming, no sleep by itself, for N minutes or until you turn it off
 yami night [on|off|toggle|always|schedule|temp K]   # night light: switch it, keep it on all day (always) or back on its schedule, set the temperature (2500-6000 K); saved in shell.json, so it survives restarts and reboots
 yami status                               # shell, portal, niri, last update check
 yami doctor                               # programs, D-Bus services, config: what is missing and what it costs
@@ -197,7 +198,7 @@ Settings → look → «pixel look» moves these keys, `iconPixel` and `cursor` 
 
 | Key | Default | Meaning |
 |---|---|---|
-| `barLeft`, `barCenter`, `barRight` | see `config list` | module ids in order: `launcher` `workspaces` `mode` `tasks` `media` `tray` `net` `netspeed` `bt` `kb` `cpu` `ram` `temp` `gpu` `disk` `weather` `bat` `vol` `profile` `night` `privacy` `clock` `notif` `settings` `power` `sep` (`bat`: laptop battery, hidden without one; `gpu`: graphics load from amdgpu or `nvidia-smi` every 3 s, hidden without either, «sleep» while a laptop's discrete card sleeps; `disk`: how full `/` is; `privacy`: lights up while a program records the microphone, holds the camera or shares the screen, and is hidden otherwise; a click says who and can mute the microphone or stop the sharing) |
+| `barLeft`, `barCenter`, `barRight` | see `config list` | module ids in order: `launcher` `workspaces` `mode` `tasks` `media` `tray` `net` `netspeed` `bt` `kb` `cpu` `ram` `temp` `gpu` `disk` `weather` `bat` `vol` `profile` `night` `caffeine` `privacy` `clock` `notif` `settings` `power` `sep` (`bat`: laptop battery, hidden without one; `gpu`: graphics load from amdgpu or `nvidia-smi` every 3 s, hidden without either, «sleep» while a laptop's discrete card sleeps; `disk`: how full `/` is; `privacy`: lights up while a program records the microphone, holds the camera or shares the screen, and is hidden otherwise; a click says who and can mute the microphone or stop the sharing) |
 | `cpuStyle` | `"gauge"` | `gauge` `graph` `number`, for `cpu` `ram` `gpu` `disk` (`disk` has no history: `graph` draws a gauge) |
 | `tempStyle` | `"full"` | the `temp` module: `full` like `cpu` and `ram` (label and `cpuStyle`), `compact` a small thermometer column and the number |
 | `trayMode` | `"icons"` | `icons`: every tray icon on the bar; `arrow`: one arrow that opens them as a list (clicks work as on the bar; a dot when an app asks for attention). A network applet (`nm-applet` and the like) is left out while the bar has `net` |
@@ -252,9 +253,11 @@ Settings → look → «pixel look» moves these keys, `iconPixel` and `cursor` 
 | `lockSleep` | `true` | lock the screen before any sleep: the lid, `systemctl suspend`, the system's own timer; the shell holds a logind delay lock and lets the sleep go on once niri confirms the lock (at most 3 s) |
 | `sessionRestore` | `false` | at login, start the programs that were open last time and put their first window back on its monitor and workspace (snapshot in `~/.local/state/yami/session.json`; games stay out) |
 | `night` | `false` | night light through wlsunset |
+| `caffeineMinutes` | `0` | how many minutes caffeine (the coffee cup in the bar, a control-panel tile, `yami caffeine`) lasts after a click; 0 until you turn it off. While it is on the screen is not dimmed or locked by idle and logind does not suspend the machine on its own; closing the lid still does. Settings → system |
+| `fetchLogo` | `"auto"` | the fastfetch logo: `image` (the fish as a picture, in kitty), `blocks` (terminal half-blocks, any terminal), `auto` (image when kitty is installed) |
 | `nightTemp` | `4000` | evening colour temperature, K (2500–6000, steps of 250) |
 | `nightAlways` | `false` | night light with no schedule: warm colours all day while `night` is on (wlsunset is run with the temperature and one Kelvin more, since it refuses equal ones). `yami night always` / `schedule` |
-| `nightGeo` | `""` | `"lat, lon"`: from sunset to sunrise there; empty: by the clock |
+| `nightGeo` | `""` | `"lat, lon"`: from sunset to sunrise there; `"auto"`: the same for the place the system time zone names (see `weatherCity`); empty: by the clock |
 | `nightOnH`, `nightOffH` | `20`, `7` | the clock: warm from / until this hour |
 | `dnd`, `notifTimeout` | `false`, `7` | do not disturb; seconds a notification stays |
 
@@ -312,7 +315,7 @@ the screen-share picker and automount belong to [yami-agents](#yami-agents).
 | `mediaArtNet` | `true` | album covers from the player's web links (`curl`, https after redirects, ≤ 16 MB); off: only local files |
 | `lyricsNet` | `true` | lyrics from lrclib.net (artist, title and length are sent) when the player has none and there is no `.lrc` or `.txt` file next to the track; asked only while the music popup shows lyrics, answers cached in `~/.cache/yami/lyrics` |
 | `btReconnect` | `true` | when Bluetooth turns on (and once per login), connect the paired and trusted headphones, speakers, keyboards and mice that are not connected yet; phones and computers connect by themselves. Settings → bluetooth |
-| `weatherCity`, `weatherUnits` | `""`, `"c"` | the `weather` bar module and widget: a city (`Berlin`) or `latitude, longitude`, asked from open-meteo.com every 20 minutes while one of them is shown; `f` gives °F and mph. Settings → services → network |
+| `weatherCity`, `weatherUnits` | `"auto"`, `"c"` | the `weather` bar module and widget: a city (`Berlin`), `latitude, longitude`, or `auto`: the city that the system time zone names (`Africa/Cairo` → Cairo), checked against the geocoder's answer for that time zone so it is the right Cairo; that one city name is all that leaves the machine. Asked from open-meteo.com every 20 minutes while one of them is shown; `f` gives °F and mph. Settings → services → network |
 | `portalFiles` | `true` | file dialogs from yami-files (else GTK) |
 
 ### Updates
@@ -350,7 +353,7 @@ installer writes them to `~/.local/state/yami/packages-needed`; `yami update nee
 |---|---|---|
 | `binds` | `{}` | binding id → keys, e.g. `{"terminal": "Mod+Return", "launcher-2": ""}` (`""` turns it off). Ids: `yami-shell binds list` |
 | `customBinds` | `[]` | your commands: `[{"key": "Mod+Shift+B", "cmd": "kitty -e btop"}]` (run with `sh -c`) |
-| `kbLayout` | `""` | keyboard layouts, xkb codes separated by commas (`"us,ru"`, `"de"`); empty: from the system languages (LANG and LC_*: English gives `us`, every other language adds its layout, non-Latin ones after `us`) |
+| `kbLayout` | `""` | keyboard layouts, xkb codes separated by commas (`"us,ru"`, `"de"`, `"us,ara"`); empty: the keyboard layouts and variants the system itself is set up with (`localectl`: `/etc/vconsole.conf`, `00-keyboard.conf`), else from the system languages (LANG and LC_*: English gives `us`, every other language adds its layout, non-Latin ones after `us`) |
 | `kbSwitch` | `"grp:alt_shift_toggle"` | the xkb option that switches layouts (`grp:ctrl_shift_toggle`, `grp:caps_toggle`, `grp:alt_space_toggle`); empty: no switch |
 
 Keys are written as niri does: `Mod` (Super), `Ctrl`, `Alt`, `Shift`, then a key name (`Q`,

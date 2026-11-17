@@ -356,6 +356,35 @@ pub fn fish_logo(p: &P) -> String {
     rows.join("\n") + "\n"
 }
 
+/// рыбка Nemo картинкой: клетка — 16×16 точек, прозрачный фон, цвета палитры (те же роли, что у
+/// полублоков); для fastfetch в kitty, где знак рисуется настоящей картинкой, а не блоками
+pub fn fish_png(p: &P) -> Vec<u8> {
+    use yami_px::brand::{tone_index, tones, FISH};
+    let c = |name: &str| {
+        let (r, g, b) = rgb(p.g(name));
+        yami_px::gfx::C::hex((r as u32) << 16 | (g as u32) << 8 | b as u32)
+    };
+    let col = tones(c("accent"), c("deep"), c("bright"), c("bg"));
+    const K: u32 = 16;
+    let mut img = RgbaImage::new(FISH[0].len() as u32 * K, FISH.len() as u32 * K);
+    for (j, row) in FISH.iter().enumerate() {
+        for (i, ch) in row.bytes().enumerate() {
+            if let Some(t) = tone_index(ch) {
+                let v = col[t].0;
+                let px = Rgba([(v >> 16) as u8, (v >> 8) as u8, v as u8, 255]);
+                for dy in 0..K {
+                    for dx in 0..K {
+                        img.put_pixel(i as u32 * K + dx, j as u32 * K + dy, px);
+                    }
+                }
+            }
+        }
+    }
+    let mut out = std::io::Cursor::new(Vec::new());
+    let _ = img.write_to(&mut out, ImageFormat::Png);
+    out.into_inner()
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

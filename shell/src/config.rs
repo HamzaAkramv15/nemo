@@ -374,6 +374,8 @@ pub struct Settings {
     pub custom_binds: Vec<crate::keys::Custom>,
     /// fastfetch с железом (процессор, видеокарта, память, диск, экран); иначе — короткий
     pub fetch_full: bool,
+    /// логотип fastfetch: auto (картинка, если стоит kitty) | image | blocks
+    pub fetch_logo: String,
     /// раскладки xkb через запятую («us,ru»); пусто — по языкам системы (keys::auto_layout)
     pub kb_layout: String,
     /// переключение раскладок: опция xkb (grp:alt_shift_toggle) или пусто — без сочетания
@@ -398,6 +400,8 @@ pub struct Settings {
     /// ночной свет без расписания: тёплые цвета весь день, пока он включён
     pub night_always: bool,
     pub night_temp: i32,
+    /// через сколько минут кофе выключается само после клика (0 — не выключается)
+    pub caffeine_minutes: i32,
     pub night_geo: String,
     /// погода (#6): город или «широта, долгота» для Open-Meteo; пусто — погоды нет
     pub weather_city: String,
@@ -462,7 +466,7 @@ fn group(m: &str) -> i32 {
         "workspaces" => 1,
         "mode" => 2,
         "tray" => 3,
-        "net" | "netspeed" | "bt" | "kb" | "cpu" | "ram" | "temp" | "bat" | "profile" | "night" | "privacy" => 4,
+        "net" | "netspeed" | "bt" | "kb" | "cpu" | "ram" | "temp" | "bat" | "profile" | "night" | "caffeine" | "privacy" => 4,
         "vol" | "media" => 5,
         "clock" | "notif" | "settings" | "power" => 6,
         _ => 7,
@@ -490,6 +494,7 @@ pub const ALL_MODULES: &[(&str, &str)] = &[
     ("bat", "батарея"),
     ("profile", "профиль питания"),
     ("night", "ночной свет"),
+    ("caffeine", "кофе"),
     ("privacy", "приватность"),
     ("clock", "часы"),
     ("notif", "уведомления"),
@@ -538,6 +543,7 @@ pub const NUMS: &[(&str, i32, i32, i32)] = &[
     ("win_border", 0, 8, 1),
     ("reveal_grain", 1, 4, 1),
     ("night_temp", 2500, 6000, 250),
+    ("caffeine_minutes", 0, 480, 15),
     ("night_on_h", 0, 23, 1),
     ("night_off_h", 0, 23, 1),
     ("notif_offset", 0, 400, 2),
@@ -601,7 +607,7 @@ impl Default for Settings {
             wall_skwd_colors: true,
             bar_left: v(&["launcher", "sep", "workspaces", "sep", "mode"]),
             bar_center: v(&["tasks"]),
-            bar_right: v(&["tray", "sep", "net", "kb", "cpu", "ram", "bat", "profile", "sep", "vol", "sep", "clock", "sep", "settings", "power"]),
+            bar_right: v(&["tray", "sep", "net", "kb", "cpu", "ram", "bat", "profile", "caffeine", "sep", "vol", "sep", "clock", "sep", "settings", "power"]),
             cpu_style: "gauge".into(),
             temp_style: "full".into(),
             tray_mode: "icons".into(),
@@ -695,6 +701,7 @@ impl Default for Settings {
             binds: Default::default(),
             custom_binds: vec![],
             fetch_full: false,
+            fetch_logo: "auto".into(),
             kb_layout: String::new(),
             kb_switch: "grp:alt_shift_toggle".into(),
             game_fullscreen: true,
@@ -709,8 +716,9 @@ impl Default for Settings {
             night: false,
             night_always: false,
             night_temp: 4000,
+            caffeine_minutes: 0,
             night_geo: String::new(),
-            weather_city: String::new(),
+            weather_city: "auto".into(),
             weather_units: "c".into(),
             night_on_h: 20,
             night_off_h: 7,
@@ -830,6 +838,9 @@ impl Settings {
             self.tray_mode = "icons".into();
         }
         self.blur_strength = self.blur_strength.clamp(1, 8);
+        if !["auto", "image", "blocks"].contains(&self.fetch_logo.as_str()) {
+            self.fetch_logo = "auto".into();
+        }
         if !["", "pixel", "normal"].contains(&self.icon_style.as_str()) {
             self.icon_style.clear();
         }
@@ -942,6 +953,7 @@ impl Settings {
             "task_width" => self.task_width,
             "reveal_grain" => self.reveal_grain,
             "night_temp" => self.night_temp,
+            "caffeine_minutes" => self.caffeine_minutes,
             "night_on_h" => self.night_on_h,
             "night_off_h" => self.night_off_h,
             "win_gap" => self.win_gap,
@@ -974,6 +986,7 @@ impl Settings {
             "task_width" => self.task_width = v,
             "reveal_grain" => self.reveal_grain = v,
             "night_temp" => self.night_temp = v,
+            "caffeine_minutes" => self.caffeine_minutes = v,
             "night_on_h" => self.night_on_h = v,
             "night_off_h" => self.night_off_h = v,
             "win_gap" => self.win_gap = v,

@@ -91,6 +91,8 @@ pub fn shapes(name: &str) -> Option<Vec<P>> {
         "user" => v.extend([D(12.0, 8.0, 4.2), A(12.0, 21.5, 8.5, 180.0, 360.0, w)]),
         "folder" => v.extend([F(3.0, 5.5, 8.0, 3.5, 1.2), R(3.0, 8.0, 18.0, 12.0, 2.2, w)]),
         "music" => v.extend([D(8.0, 18.0, 3.2), D(16.5, 16.0, 3.2), L(11.0, 18.0, 11.0, 4.5, w), L(11.0, 4.5, 19.5, 2.8, 2.8), L(19.5, 2.8, 19.5, 16.0, w)]),
+        // чашка: корпус, ручка, блюдце и пар
+        "coffee" => v.extend([F(3.5, 9.5, 13.0, 9.5, 3.0), A(16.5, 13.5, 3.6, -85.0, 85.0, w), L(2.5, 21.5, 18.5, 21.5, w), L(7.5, 2.5, 7.5, 6.5, w), L(12.0, 2.5, 12.0, 6.5, w)]),
         "play" => v.push(T(PLAY)),
         "pause" => v.extend([F(6.0, 4.0, 4.0, 16.0, 1.0), F(14.0, 4.0, 4.0, 16.0, 1.0)]),
         "next" => v.extend([T(NEXT), F(17.0, 5.0, 3.0, 14.0, 1.0)]),
@@ -217,7 +219,7 @@ mod tests {
     /// у каждого значка есть что рисовать, и он целиком влезает в свой квадрат
     #[test]
     fn every_shape_draws_something() {
-        for n in ["speaker", "mute", "mic", "wifi", "net", "bt", "bolt", "moon", "sun", "power", "gear", "clock", "cal", "bell", "bellx", "cpu", "ram", "temp", "gauge", "lock", "user", "folder", "music", "play", "pause", "next", "prev", "check", "close", "plus", "min", "max", "dots", "menu", "search", "camera", "image", "drop", "leaf", "reboot", "exit", "eye", "grid", "tile"] {
+        for n in ["speaker", "mute", "mic", "wifi", "net", "bt", "bolt", "moon", "sun", "power", "gear", "clock", "cal", "bell", "bellx", "cpu", "ram", "temp", "gauge", "lock", "user", "folder", "music", "play", "pause", "next", "prev", "check", "close", "plus", "min", "max", "dots", "menu", "search", "camera", "image", "drop", "leaf", "reboot", "exit", "eye", "grid", "tile", "coffee"] {
             let c = coverage(n, 14).unwrap_or_else(|| panic!("{n}"));
             let lit = c.iter().filter(|v| **v > 0).count();
             assert!(lit > 8, "{n}: {lit}");
@@ -250,7 +252,7 @@ mod tests {
     #[ignore]
     fn dump_sheet() {
         let Ok(path) = std::env::var("VICON_SHEET") else { return };
-        let names = ["speaker", "mute", "mic", "wifi", "net", "bt", "bolt", "moon", "sun", "power", "gear", "clock", "cal", "bell", "bellx", "cpu", "ram", "temp", "gauge", "lock", "user", "folder", "music", "play", "pause", "next", "prev", "check", "close", "plus", "min", "max", "dots", "menu", "search", "camera", "image", "drop", "leaf", "reboot", "exit", "eye", "grid", "tile"];
+        let names = ["speaker", "mute", "mic", "wifi", "net", "bt", "bolt", "moon", "sun", "power", "gear", "clock", "cal", "bell", "bellx", "cpu", "ram", "temp", "gauge", "lock", "user", "folder", "music", "play", "pause", "next", "prev", "check", "close", "plus", "min", "max", "dots", "menu", "search", "camera", "image", "drop", "leaf", "reboot", "exit", "eye", "grid", "tile", "coffee"];
         let (cols, sz) = (11usize, 28usize);
         let rows = names.len().div_ceil(cols);
         let mut img = vec![0u8; cols * sz * rows * sz];

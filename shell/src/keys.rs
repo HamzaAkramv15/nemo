@@ -56,10 +56,39 @@ pub const SWITCHES: &[(&str, &str)] = &[
     ("", "нет"),
 ];
 
+/// раскладка и вариант из настроек клавиатуры самой системы (то, что ставят localectl, установщик
+/// дистрибутива или GNOME): «us,ara» и «,». Формат /etc/vconsole.conf (XKBLAYOUT=us,ara) или
+/// /etc/X11/xorg.conf.d/00-keyboard.conf (Option "XkbLayout" "us,ara")
+pub fn parse_xkb(text: &str) -> Option<(String, String)> {
+    let grab = |keys: [&str; 2]| -> Option<String> {
+        text.lines().find_map(|l| {
+            let l = l.trim();
+            if let Some(v) = l.strip_prefix(keys[0]).and_then(|r| r.strip_prefix('=')) {
+                return Some(v.trim().trim_matches('"').to_string());
+            }
+            let mut q = l.split('"').filter(|p| !p.trim().is_empty());
+            (q.next()?.trim() == "Option" && q.next()? == keys[1]).then(|| q.next().unwrap_or("").to_string())
+        })
+    };
+    let clean = |s: String, extra: &str| s.chars().filter(|c| c.is_ascii_alphanumeric() || extra.contains(*c)).collect::<String>();
+    let layout = clean(grab(["XKBLAYOUT", "XkbLayout"])?, "_-(),");
+    let variant = clean(grab(["XKBVARIANT", "XkbVariant"]).unwrap_or_default(), "_-,");
+    (!layout.trim_matches(',').is_empty()).then_some((layout, variant))
+}
+
+fn system_xkb() -> Option<(String, String)> {
+    ["/etc/vconsole.conf", "/etc/X11/xorg.conf.d/00-keyboard.conf"].iter().find_map(|p| parse_xkb(&std::fs::read_to_string(p).ok()?))
+}
+
 /// раскладки по языкам системы: LANG и все LC_* (из окружения и /etc/locale.conf). Английский —
 /// us (en_GB — gb), любой другой язык добавляет свою; нелатинские идут после us, чтобы сочетания
 /// и пароли набирались. Американец получит «us», русский — «us,ru», немец — «de»
 pub fn auto_layout() -> String {
+    // клавиатура, которую настроила система: arabic-ноутбук с «us,ara» получит обе раскладки, а не
+    // одну «us» по английскому LANG
+    if let Some((layout, _)) = system_xkb() {
+        return layout;
+    }
     let mut locs: Vec<String> = ["LC_ALL", "LANG", "LC_MESSAGES", "LC_TIME", "LC_ADDRESS", "LC_NAME", "LC_TELEPHONE", "LC_MONETARY", "LC_PAPER", "LC_MEASUREMENT", "LC_NUMERIC"]
         .iter()
         .filter_map(|k| std::env::var(k).ok())
@@ -118,6 +147,24 @@ pub fn auto_layout() -> String {
     } else {
         out.join(",")
     }
+}
+
+/// варианты раскладок («,» — у всех основной): свои раскладки — без вариантов, системные — как в системе
+pub fn variants(set: &crate::config::Settings) -> String {
+    if !layouts_own(set).is_empty() {
+        return String::new();
+    }
+    let v = system_xkb().map(|(_, v)| v).unwrap_or_default();
+    if v.trim_matches(',').is_empty() {
+        String::new()
+    } else {
+        v
+    }
+}
+
+fn layouts_own(set: &crate::config::Settings) -> String {
+    let own: String = set.kb_layout.chars().filter(|c| c.is_ascii_alphanumeric() || "_-(),".contains(*c)).collect();
+    own.split(',').filter(|s| !s.is_empty()).collect::<Vec<_>>().join(",")
 }
 
 /// раскладки, которые уйдут в niri: своё значение (только буквы, цифры, _ - ( ) и запятые) или авто
@@ -346,6 +393,10 @@ pub fn kdl(set: &crate::config::Settings) -> String {
     l.push("    keyboard {".into());
     l.push("        xkb {".into());
     l.push(format!("            layout {}", kdl_str(&layouts(set))));
+    let v = variants(set);
+    if !v.is_empty() {
+        l.push(format!("            variant {}", kdl_str(&v)));
+    }
     if !set.kb_switch.is_empty() {
         l.push(format!("            options {}", kdl_str(&set.kb_switch)));
     }
@@ -722,6 +773,18 @@ impl App {
 
 #[cfg(test)]
 mod tests {
+    /// раскладки системы: оба формата, с вариантами; мусор отбрасывается
+    #[test]
+    fn the_system_keyboard_is_read() {
+        let vconsole = "KEYMAP=ara\nFONT=eurlatgr\nXKBLAYOUT=us,ara\nXKBVARIANT=,\n";
+        assert_eq!(super::parse_xkb(vconsole), Some(("us,ara".to_string(), ",".to_string())));
+        let xorg = "Section \"InputClass\"\n        Option \"XkbLayout\" \"us,ara\"\n        Option \"XkbVariant\" \",intl\"\nEndSection\n";
+        assert_eq!(super::parse_xkb(xorg), Some(("us,ara".to_string(), ",intl".to_string())));
+        assert_eq!(super::parse_xkb("KEYMAP=us\n"), None);
+        assert_eq!(super::parse_xkb("XKBLAYOUT=\"us;rm -rf\"\n").map(|p| p.0), Some("usrm-rf".to_string()));
+        assert_eq!(super::parse_xkb("XKBLAYOUT=,\n"), None);
+    }
+
     /// Ctrl+буква: QWERTY и русская — по положению, AZERTY и Dvorak — по подписи на клавише
     #[test]
     fn latin_letters_in_any_layout() {

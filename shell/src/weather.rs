@@ -146,7 +146,7 @@ pub fn status(st: &crate::app::State, no_city: &str) -> String {
 }
 
 /// запрос к Open-Meteo: https и после переадресаций, 10 с, ответ ≤ 1 МБ
-fn get(url: &str, q: &[(&str, String)]) -> Result<serde_json::Value, String> {
+pub(crate) fn get(url: &str, q: &[(&str, String)]) -> Result<serde_json::Value, String> {
     let mut c = crate::proc::curl_get(10, 1 << 20, url, q);
     let o = crate::proc::owned(c.arg("-f")).output().map_err(|_| crate::tf!("нет curl", "no curl", "curl não encontrado"))?;
     if !o.status.success() {
@@ -159,6 +159,10 @@ fn get(url: &str, q: &[(&str, String)]) -> Result<serde_json::Value, String> {
 fn locate(city: &str) -> Result<(f64, f64, String), String> {
     if let Some((la, lo)) = crate::night::geo(city) {
         return Ok((la, lo, format!("{la:.2}, {lo:.2}")));
+    }
+    // auto: часовой пояс системы называет город (locate.rs)
+    if crate::locate::is_auto(city) {
+        return crate::locate::resolve();
     }
     let lang = if crate::i18n::pt_br() { "pt" } else if crate::i18n::en() { "en" } else { "ru" };
     let v = get("https://geocoding-api.open-meteo.com/v1/search", &[("name", city.to_string()), ("count", "1".into()), ("language", lang.into()), ("format", "json".into())])?;

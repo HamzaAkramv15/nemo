@@ -247,6 +247,8 @@ pub struct State {
     pub disp: crate::displays::Disp,
     pub bar_ed: crate::settings::BarEd,
     pub sel_widget: u32,
+    /// вкладка «виджеты»: справа список готовых скриптов вместо параметров виджета
+    pub widget_scripts: bool,
     pub editing: bool,
     /// к какой линии креста (по x, по y) прилип виджет, который тащат: она горит на сетке
     pub snap_cross: (bool, bool),
@@ -328,6 +330,7 @@ pub struct State {
     pub mods_here: crate::welcome::Here,
     pub niri_note: String,
     pub night: crate::night::Night,
+    pub caffeine: crate::caffeine::Caffeine,
     /// модули бара из скриптов (~/.config/yami/scripts)
     pub plugins: crate::plugins::Plugins,
     pub session: crate::session::Session,
@@ -485,6 +488,7 @@ impl State {
             disp: Default::default(),
             bar_ed: Default::default(),
             sel_widget: 0,
+            widget_scripts: false,
             editing: false,
             snap_cross: (false, false),
             notifs: notif::Notifs::default(),
@@ -545,6 +549,7 @@ impl State {
             mods_here: crate::welcome::Here::probe(),
             niri_note: String::new(),
             night: Default::default(),
+            caffeine: Default::default(),
             plugins: Default::default(),
             session: Default::default(),
             skwd: Default::default(),

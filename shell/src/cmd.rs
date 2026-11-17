@@ -90,6 +90,7 @@ fn help(y: &Sty, me: &str) {
     y.row("theme export | import FILE|URL", &crate::tf!("тема одним файлом: поделиться и поставить чужую (только вид)", "a theme as one file: share yours, apply others' (the look only)", "um tema em um arquivo: compartilhe o seu e aplique outros (apenas a aparência)"));
     y.row("theme save | list | apply NAME", &crate::tf!("свои темы: сохранить вид, список, применить (remove — удалить)", "your themes: keep the look, list, apply (remove deletes)", "seus temas: salvar o visual, listar e aplicar (remove exclui)"));
     y.row("scripts [list | add NAME | add all]", &crate::tf!("готовые скрипты для бара и виджетов: аптайм, нагрузка, диск, VPN, Docker…", "ready scripts for the bar and widgets: uptime, load, disk, VPN, Docker…", "scripts prontos para a barra e os widgets: uptime, carga, disco, VPN, Docker…"));
+    y.row("caffeine [on|off|toggle|MINUTES]", &crate::tf!("кофе: не гасить экран и не засыпать (на N минут или пока не выключишь)", "caffeine: keep the screen awake and the system from sleeping (for N minutes or until you stop it)", "cafeína: manter a tela acesa e o sistema sem dormir (por N minutos ou até desligar)"));
     y.row("night [on|off|toggle|always|schedule|temp K]", &crate::tf!("ночной свет: вкл-выкл, весь день или по расписанию, температура", "night light: on-off, all day or on a schedule, temperature", "luz noturna: ligar-desligar, o dia todo ou com agenda, temperatura"));
     y.row("templates [force NAME]", &crate::tf!("свои шаблоны: отрисовать и показать, что вышло (force — перезаписать изменённый руками)", "your templates: render them and show what came out (force overwrites one changed by hand)", "seus modelos: renderizar e mostrar o resultado (force sobrescreve um alterado à mão)"));
     y.row("export | import FILE", &crate::tf!("все настройки одним файлом: переезд на новую систему", "every setting as one file: move to a new system", "todas as configurações num arquivo: migrar para outro sistema"));
@@ -174,6 +175,7 @@ pub fn msg_ok(cmd: &str) -> bool {
         // лаунчер с набранным текстом: любые слова
         "launcher" => true,
         "clipboard" | "power" | "lock" | "bar" | "stacking" | "minimize" | "restore" | "edit" | "reload" | "quit" | "ping" | "restart" | "profile" | "walls" | "cast-hide" => one(&mut w),
+        "caffeine" => w.next().is_none_or(|a| matches!(a, "on" | "off" | "toggle") || crate::caffeine::parse_minutes(a).is_some()) && w.next().is_none(),
         "night" => w.next().is_none_or(|a| match a {
             "on" | "off" | "toggle" | "always" | "schedule" => w.next().is_none(),
             "temp" => w.next().is_some_and(|k| k.parse::<i32>().is_ok()) && w.next().is_none(),
@@ -561,6 +563,15 @@ pub fn run(args: &[String], me: &str) -> i32 {
             let cmd = if a.len() == 1 { "night".to_string() } else { format!("night {}", a[1..].join(" ")) };
             if !msg_ok(&cmd) {
                 eprintln!(" {} yami night [on|off|toggle|always|schedule|temp 2500-6000]", y.bad("✕"));
+                return 2;
+            }
+            send(&y, &cmd)
+        }
+        // кофе: не гасить экран и не засыпать — yami caffeine [on|off|toggle|МИНУТЫ|Nh]
+        Some("caffeine") => {
+            let cmd = if a.len() == 1 { "caffeine".to_string() } else { format!("caffeine {}", a[1..].join(" ")) };
+            if !msg_ok(&cmd) {
+                eprintln!(" {} yami caffeine [on|off|toggle|{}|Nh]", y.bad("✕"), crate::tf!("МИНУТЫ", "MINUTES", "MINUTOS"));
                 return 2;
             }
             send(&y, &cmd)

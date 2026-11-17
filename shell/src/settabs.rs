@@ -157,12 +157,9 @@ pub(crate) fn tab_widgets(ui: &mut Ui, st: &State, b: R) {
     let t = ui.t;
     let s = &st.set;
     let y0 = title(ui, b.x, b.y, b.w, "виджеты рабочего стола");
-    // готовые скрипты — кнопкой справа от заголовка, пока не все в папке скриптов (потом — модули
-    // бара x:имя и источник виджета «скрипт»); внизу списка её не нашли бы
-    let have = crate::plugins::scripts();
-    if crate::scriptlib::ALL.iter().any(|(n, _)| !have.iter().any(|h| h == n)) {
-        ui.button(R::new(b.right() - 250, b.y - 4, 250, 24), "готовые скрипты: добавить все", "plus", Tone::Primary, false, true, Act::SCycle("scripts_add"));
-    }
+    // готовые скрипты — кнопкой справа от заголовка: справа откроется их список (внизу левой колонки
+    // его не находили). Нажатие ещё раз — назад к параметрам виджета
+    ui.button(R::new(b.right() - 210, b.y - 4, 210, 24), "готовые скрипты", "plus", if st.widget_scripts { Tone::Primary } else { Tone::Plain }, st.widget_scripts, true, Act::SCycle("widget_scripts"));
     // список слева
     let lw = 200;
     let mut y = y0;
@@ -172,7 +169,13 @@ pub(crate) fn tab_widgets(ui: &mut Ui, st: &State, b: R) {
         ui.button(r, "", "", Tone::Ghost, sel, true, Act::SWidgetSel(w.id));
         let c = if w.on { t.ok } else { t.text_faint };
         ui.cv.fill(R::new(r.x + 8, r.cy() - 3, 6, 6), c);
-        let extra = if w.kind == "graph" { format!(" · {}", crate::i18n::tr(name_of(SOURCES, &w.source))) } else { String::new() };
+        let extra = if w.kind == "graph" {
+            format!(" · {}", crate::i18n::tr(name_of(SOURCES, &w.source)))
+        } else if w.kind == "script" && !w.source.is_empty() {
+            format!(" · {}", w.source)
+        } else {
+            String::new()
+        };
         ui.text_in(PX, R::new(r.x + 22, r.y, r.w - 26, r.h), &format!("{}{}", crate::i18n::tr(name_of(KINDS, &w.kind)), extra), if sel { t.text_hi } else if w.on { t.text } else { t.text_faint });
         y += 30;
     }
@@ -186,6 +189,24 @@ pub(crate) fn tab_widgets(ui: &mut Ui, st: &State, b: R) {
     // параметры справа
     let px = b.x + lw + 20;
     let pw = b.right() - px;
+    if st.widget_scripts {
+        let have = crate::plugins::scripts();
+        let mut y = y0;
+        y += ui.wrap(PX, R::new(px, y, pw, 40), "нажми скрипт: он станет виджетом на столе", t.text_dim, 2) + 6;
+        let cw = (pw - 6) / 2;
+        for (i, (n, body)) in crate::scriptlib::ALL.iter().enumerate() {
+            let r = R::new(px + (i as i32 % 2) * (cw + 6), y + (i as i32 / 2) * 30, cw, 26);
+            ui.button(r, n, "", Tone::Plain, false, true, Act::SWidgetAddScript(n));
+            if ui.hover(r) {
+                ui.text_in(PX, R::new(px, y + 10 * 30 + 6, pw, 22), crate::i18n::tr(crate::scriptlib::about(body)), t.text_faint);
+            }
+        }
+        y += 10 * 30 + 34;
+        if crate::scriptlib::ALL.iter().any(|(n, _)| !have.iter().any(|h| h == n)) {
+            ui.button(R::new(px, y, pw, 26), "готовые скрипты: добавить все", "plus", Tone::Plain, false, true, Act::SCycle("scripts_add"));
+        }
+        return;
+    }
     let Some(w) = s.widgets.iter().find(|w| w.id == st.sel_widget) else {
         ui.text_in(PX, R::new(px, y0, pw, 20), "выбери виджет слева", t.text_faint);
         return;
@@ -351,6 +372,7 @@ pub(crate) fn tab_system(ui: &mut Ui, st: &State, b: R) {
     ui.slider(R::new(rx, y, half, 40), "погасить экран через", s.screen_off_after as f32 / 60.0, &mins(s.screen_off_after), 12, Act::SSlider("screen_off_after", 0.0, 60.0, 20));
     y += 52;
     ui.toggle(R::new(lx, y, half, 40), "запирать перед сном", "крышка, suspend, таймер системы", s.lock_sleep, Act::SBool("lock_sleep"));
+    num_btn(ui, R::new(rx, y + 6, half, 26), "кофе: выкл. через, мин", s.num("caffeine_minutes"), "caffeine_minutes");
     y += 46;
     // ночной свет: wlsunset; по координатам — от заката до восхода, иначе по часам
     y = title(ui, b.x, y, b.w, "ночной свет: по солнцу или по часам");
@@ -365,8 +387,8 @@ pub(crate) fn tab_system(ui: &mut Ui, st: &State, b: R) {
     } else {
         // координаты есть — по закату и восходу, часы тогда не нужны
         let gf = st.field_focus == Some("night_geo");
-        let by_sun = crate::night::geo(&s.night_geo).is_some();
-        ui.field(R::new(lx, y, half, 26), &st.geo_field, if s.night_geo.is_empty() { "широта, долгота — по солнцу" } else { &s.night_geo }, gf, false, Act::SField("night_geo"));
+        let by_sun = crate::night::geo(&s.night_geo).is_some() || crate::locate::is_auto(&s.night_geo);
+        ui.field(R::new(lx, y, half, 26), &st.geo_field, if s.night_geo.is_empty() { "auto или координаты — по солнцу" } else { &s.night_geo }, gf, false, Act::SField("night_geo"));
         if by_sun {
             ui.text_in(PX, R::new(rx + 8, y, half - 8, 26), "по закату и восходу", ui.t.text_faint);
         } else {

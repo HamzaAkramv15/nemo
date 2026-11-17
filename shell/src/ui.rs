@@ -89,12 +89,15 @@ pub enum Act {
     /// щелчок по модулю-скрипту: его команда
     Plug(String),
     NightToggle,
+    CaffeineToggle,
     ReplySend,
     SModDel(usize, usize),
     /// свои темы: применить, удалить (themetab.rs)
     STheme(usize),
     SThemeDel(usize),
     SWidgetAdd(&'static str),
+    /// готовый скрипт виджетом: кладёт его в папку скриптов (если нет) и добавляет виджет «скрипт» с ним
+    SWidgetAddScript(&'static str),
     SWidgetDel(u32),
     SWidgetOpt(u32, &'static str),
     SWidgetSel(u32),

@@ -322,9 +322,15 @@ pub fn draw(ui: &mut Ui, st: &State, w: i32, h: i32) {
         cover(ui, img, w, h);
     }
     if st.set.wall_kanji {
-        let face = font::jp(32);
-        let kw = ui.w(face, "闇");
-        ui.text(face, w - 40 - kw, h - 32 - ui.f.line(face), "闇", t.red.fade(0.45));
+        // знак Nemo в правом нижнем углу: рыбка и слово (раньше здесь был иероглиф 闇); ключ
+        // wallKanji остался как был, чтобы настройки не потерялись
+        let face = font::px(32);
+        let word = yami_px::brand::NAME.to_lowercase();
+        let (tw, th) = (ui.w(face, &word), ui.f.line(face));
+        let (fw, fh) = yami_px::brand::fish_size(3);
+        let (x, y) = (w - 40 - tw - 14 - fw, h - 32 - th.max(fh));
+        yami_px::brand::fish(ui, x, y + (th.max(fh) - fh) / 2, 3, 0.55);
+        ui.text(face, x + fw + 14, y + (th.max(fh) - th) / 2, &word, t.red.fade(0.45));
     }
 }
 
@@ -426,7 +432,7 @@ pub fn tab(ui: &mut Ui, st: &State, b: R) {
     let (lx, rx2) = (b.x, b.x + half + 20);
     let ph = if s.wall_skwd && s.wall_skwd_colors { "палитру ведёт skwd-wall" } else { "акцент из картинки" };
     ui.toggle(R::new(lx, y, half, 40), "палитра из обоев", ph, s.wall_accent, Act::SWall("accent"));
-    ui.toggle(R::new(rx2, y, half, 40), "иероглиф на обоях", "в правом нижнем углу", s.wall_kanji, Act::SBool("wall_kanji"));
+    ui.toggle(R::new(rx2, y, half, 40), "знак Nemo на обоях", "в правом нижнем углу", s.wall_kanji, Act::SBool("wall_kanji"));
     y += 46;
     if has_skwd {
         // кто рисует: skwd-paper (видео, сцены, переходы) или шелл (картинка в клетках и тонах)

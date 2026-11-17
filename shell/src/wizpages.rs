@@ -276,7 +276,7 @@ pub fn wall(ui: &mut Ui, st: &State, b: R) {
     y += 62;
     ui.toggle(R::new(rx, y, rw, 40), "палитра из обоев", "цвет — из картинки", s.wall_accent, Act::SWall("accent"));
     y += 48;
-    ui.toggle(R::new(rx, y, rw, 40), "иероглиф на обоях", "в правом нижнем углу", s.wall_kanji, Act::SBool("wall_kanji"));
+    ui.toggle(R::new(rx, y, rw, 40), "знак Nemo на обоях", "в правом нижнем углу", s.wall_kanji, Act::SBool("wall_kanji"));
 }
 
 pub fn look(ui: &mut Ui, st: &State, b: R) {

@@ -149,7 +149,7 @@ pub fn tab(ui: &mut Ui, st: &State, b: R) {
     y += 46;
     // погода (#6): город или координаты для open-meteo.com, единицы
     let gf = st.field_focus == Some("weather_city");
-    ui.field(R::new(b.x, y, half, 26), &st.weather_field, if s.weather_city.is_empty() { "погода: город или широта, долгота" } else { &s.weather_city }, gf, false, Act::SField("weather_city"));
+    ui.field(R::new(b.x, y, half, 26), &st.weather_field, if s.weather_city.is_empty() { "погода: город, координаты, auto" } else { &s.weather_city }, gf, false, Act::SField("weather_city"));
     let units = if s.weather_units == "f" { "°F, mph" } else { "°C, км/ч" };
     crate::settings::opt_btn(ui, R::new(x2, y, half, 26), "погода", units, Act::SCycle("weather_units"));
     y += 44;

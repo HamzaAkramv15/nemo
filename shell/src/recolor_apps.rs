@@ -891,11 +891,30 @@ pub fn fastfetch(cx: &Cx, p: &P) -> Res {
     }
     mods.push(s("break"));
     mods.push(custom(format!("{swatch}\u{1b}[0m")));
+    // знак: в kitty — настоящей картинкой (чёткие клетки на любом экране), иначе полублоками;
+    // fetchLogo: auto (картинка, если kitty стоит), image, blocks
+    let image = match cx.st.get("fetchLogo").and_then(|v| v.as_str()).unwrap_or("auto") {
+        "image" => true,
+        "blocks" => false,
+        _ => crate::doctor::which("kitty"),
+    };
+    let png_path = cx.cfg.join("fastfetch/yami-logo.png");
+    if image {
+        let tmp = png_path.with_extension("png~");
+        if std::fs::write(&tmp, crate::recolor_art::fish_png(p)).and_then(|_| std::fs::rename(&tmp, &png_path)).is_err() {
+            let _ = std::fs::remove_file(&tmp);
+        }
+    }
+    let (logo_rows, logo_cols) = if image { (6, 22) } else { (logo.lines().count() as i64, 16) };
     // знак — по вертикали посередине блока строк, а не прижат к заголовку
-    let top = ((mods.len() as i64 - logo.lines().count() as i64) / 2).max(0);
+    let top = ((mods.len() as i64 - logo_rows) / 2).max(0);
     let conf = J::O(vec![
         ("$schema", s("https://github.com/fastfetch-cli/fastfetch/raw/dev/doc/json_schema.json")),
-        ("logo", J::O(vec![("type", s("file-raw")), ("source", s(logo_path.display().to_string())), ("padding", J::O(vec![("top", J::I(top)), ("left", J::I(3)), ("right", J::I(4))]))])),
+        ("logo", J::O(if image {
+            vec![("type", s("kitty-direct")), ("source", s(png_path.display().to_string())), ("width", J::I(logo_cols)), ("height", J::I(logo_rows)), ("padding", J::O(vec![("top", J::I(top)), ("left", J::I(3)), ("right", J::I(4))]))]
+        } else {
+            vec![("type", s("file-raw")), ("source", s(logo_path.display().to_string())), ("padding", J::O(vec![("top", J::I(top)), ("left", J::I(3)), ("right", J::I(4))]))]
+        })),
         (
             "display",
             J::O(vec![

@@ -389,6 +389,10 @@ impl App {
                 }
                 "open_setup" => self.welcome_open("modules"),
                 "open_welcome" => self.welcome_open("hello"),
+                "widget_scripts" => {
+                    self.st.widget_scripts = !self.st.widget_scripts;
+                    self.dirty(&SKind::Modal);
+                }
                 "scripts_add" => {
                     for (n, _) in crate::scriptlib::ALL {
                         let _ = crate::scriptlib::add(n);
@@ -519,7 +523,7 @@ impl App {
                 "geo_apply" => {
                     let g = self.st.geo_field.text.trim().to_string();
                     // пусто — по часам; иначе только верные координаты
-                    if g.is_empty() || crate::night::geo(&g).is_some() {
+                    if g.is_empty() || crate::night::geo(&g).is_some() || crate::locate::is_auto(&g) {
                         self.st.set.night_geo = g;
                         self.st.field_focus = None;
                         self.settings_changed();
@@ -602,7 +606,10 @@ impl App {
                 }
                 self.settings_changed();
             }
-            Act::SWidgetSel(id) => self.st.sel_widget = *id,
+            Act::SWidgetSel(id) => {
+                self.st.sel_widget = *id;
+                self.st.widget_scripts = false;
+            }
             Act::SWidgetAdd(k) => {
                 let id = s.next_widget_id();
                 let mut w = Widget::new(id, k);
@@ -618,6 +625,17 @@ impl App {
                 }
                 s.widgets.push(w);
                 self.st.sel_widget = id;
+                self.settings_changed();
+            }
+            Act::SWidgetAddScript(name) => {
+                // готовый скрипт в папку (свой файл с этим именем остаётся как есть)
+                let _ = crate::scriptlib::add(name);
+                let id = s.next_widget_id();
+                let mut w = Widget::new(id, "script");
+                w.source = name.to_string();
+                s.widgets.push(w);
+                self.st.sel_widget = id;
+                self.st.widget_scripts = false;
                 self.settings_changed();
             }
             Act::SWidgetDel(id) => {

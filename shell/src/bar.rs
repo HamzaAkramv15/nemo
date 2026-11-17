@@ -555,6 +555,23 @@ fn module(ui: &mut Ui, st: &State, out: &str, m: &str, x: i32, measure: bool) ->
             }
             14
         }
+        "caffeine" => {
+            // кофе (caffeine.rs): значок чашки; горит янтарным, пока включён; срок — цифрой рядом
+            let left = st.caffeine.left_min().map(|m| if m >= 60 { format!("{}h", m.div_ceil(60)) } else { format!("{m}m") });
+            let tw = left.as_deref().map(|s| ui.w(PX, s) + 4).unwrap_or(0);
+            let w = 14 + tw;
+            if !measure {
+                let r = R::new(x - 2, 0, w + 4, H - 1);
+                let hov = ui.hover(r);
+                let c = if hov { t.text_hi } else if st.caffeine.on { t.warn } else { t.text_faint };
+                ui.cv.icon("coffee", x, cy - 7, 2, c);
+                if let Some(s) = &left {
+                    ui.text_in(PX, R::new(x + 18, 0, tw, H - 1), s, t.warn);
+                }
+                ui.zone(r, Act::CaffeineToggle, Cur::Pointer);
+            }
+            w
+        }
         "weather" => {
             // погода (weather.rs): значок и температура; города нет или ответа ещё нет — «?»
             let wt = crate::weather::ready(st);
@@ -1061,6 +1078,11 @@ fn vmodule(ui: &mut Ui, st: &State, out: &str, m: &str, y: i32, measure: bool) -
             let hov = !measure && ui.hover(R::new(x0, y - 2, W, 18));
             let c = if hov { t.text_hi } else if st.night.on { t.warn } else { t.text_faint };
             vstack(ui, st, y, "moon", c, "", c, Act::NightToggle, measure)
+        }
+        "caffeine" => {
+            let hov = !measure && ui.hover(R::new(x0, y - 2, W, 18));
+            let c = if hov { t.text_hi } else if st.caffeine.on { t.warn } else { t.text_faint };
+            vstack(ui, st, y, "coffee", c, "", c, Act::CaffeineToggle, measure)
         }
         "weather" => {
             let wt = crate::weather::ready(st);
