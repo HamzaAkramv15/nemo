@@ -139,6 +139,9 @@ pub struct Settings {
     /// xray (по умолчанию у niri): размывается только обои, окна за панелью видны резко; выкл —
     /// размывается всё под панелью, и вид не зависит от того, есть ли за ней окно. Дороже для видеокарты
     pub blur_xray: bool,
+    /// значки шелла: "" — по стилю (пиксельные у yami, обычные у нейтрального), pixel, normal —
+    /// векторные со сглаживанием (px::vicon; значка нет в таблице — рисуется пиксельный)
+    pub icon_style: String,
     /// kitty запускает fish, если он стоит: подсказки по истории и подсветка из коробки (kitty.conf:
     /// только терминал, оболочка входа не меняется). Выкл — kitty берёт обычную оболочку
     pub terminal_fish: bool,
@@ -558,6 +561,7 @@ impl Default for Settings {
             blur_term: true,
             blur_strength: 3,
             blur_xray: true,
+            icon_style: String::new(),
             terminal_fish: true,
             animations: true,
             anim_speed: 1.0,
@@ -826,6 +830,9 @@ impl Settings {
             self.tray_mode = "icons".into();
         }
         self.blur_strength = self.blur_strength.clamp(1, 8);
+        if !["", "pixel", "normal"].contains(&self.icon_style.as_str()) {
+            self.icon_style.clear();
+        }
         if !["dm", "md", "iso"].contains(&self.date_style.as_str()) {
             self.date_style = "dm".into();
         }
@@ -1223,6 +1230,14 @@ impl Settings {
         self.animations && !self.lite
     }
     /// размытие под панелями шелла и под терминалами на деле (лёгкий режим их снимает)
+    /// рисовать обычные (векторные) значки: выбрано прямо или стиль нейтральный
+    pub fn vector_icons(&self) -> bool {
+        match self.icon_style.as_str() {
+            "normal" => true,
+            "pixel" => false,
+            _ => self.preset == "plain",
+        }
+    }
     pub fn blur_on(&self) -> bool {
         self.blur_shell && !self.lite
     }

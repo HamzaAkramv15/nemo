@@ -318,7 +318,8 @@ pub fn app_icons(cx: &Cx, p: &P) -> Res {
 }
 
 /// рыбка Nemo полублоками (▀: верхний пиксель — цвет текста, нижний — фон): квадратные пиксели,
-/// каждая клетка знака — 2×2 пикселя, цвета — из палитры (px::brand::tones), так что знак
+/// одна клетка знака — один пиксель (16 столбцов, 5 строк: рядом с строками fastfetch не громоздко),
+/// цвета — из палитры (px::brand::tones), так что знак
 /// перекрашивается вместе с рабочим столом
 pub fn fish_logo(p: &P) -> String {
     use yami_px::brand::{tone_index, tones, FISH};
@@ -327,7 +328,7 @@ pub fn fish_logo(p: &P) -> String {
         yami_px::gfx::C::hex((r as u32) << 16 | (g as u32) << 8 | b as u32)
     };
     let col = tones(c("accent"), c("deep"), c("bright"), c("bg"));
-    const K: i32 = 2;
+    const K: i32 = 1;
     let (w, h) = (FISH[0].len() as i32 * K, FISH.len() as i32 * K);
     let px = |x: i32, y: i32| -> Option<(u8, u8, u8)> {
         if x < 0 || y < 0 || x >= w || y >= h {

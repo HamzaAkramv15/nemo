@@ -280,6 +280,13 @@ pub(crate) fn tab_look(ui: &mut Ui, st: &State, b: R) {
     ui.slider(R::new(b.x, y, half, 40), "пиксельность", lvl as f32 / 3.0, PIXEL_LEVELS[lvl], 4, Act::SSlider("pixel_level", 0.0, 3.0, 3));
     ui.toggle(R::new(b.x + half + 20, y, half, 40), "лёгкий режим", "без размытия и анимаций", s.lite, Act::SBool("lite"));
     y += 48;
+    let istyle = match s.icon_style.as_str() {
+        "normal" => "обычные",
+        "pixel" => "пиксельные",
+        _ => "по стилю",
+    };
+    opt_btn(ui, R::new(b.x, y, b.w, 26), "значки бара и панелей", istyle, Act::SCycle("icon_style"));
+    y += 38;
     // размытие рисует niri (ext-background-effect), каждый кадр
     ui.toggle(R::new(b.x, y, half, 26), "размытие под панелями", "", s.blur_shell, Act::SBool("blur_shell"));
     ui.toggle(R::new(b.x + half + 20, y, half, 26), "размытие под терминалами", "", s.blur_term, Act::SBool("blur_term"));
@@ -609,6 +616,9 @@ pub(crate) fn tab_about(ui: &mut Ui, st: &State, b: R) {
     let mut y = b.y;
     let face = font::px(32);
     ui.text(face, b.x, y, "NEMO", t.red);
+    // версия Nemo; версия шелла ниже — yami, на котором он стоит
+    let nw = ui.w(face, "NEMO");
+    ui.text(PX, b.x + nw + 12, y + ui.f.line(face) - 22, yami_px::brand::VERSION, t.text_dim);
     let (fw, fh) = yami_px::brand::fish_size(4);
     yami_px::brand::fish(ui, b.right() - fw - 6, y, 4, 1.0);
     y += ui.f.line(face).max(fh) + 4;

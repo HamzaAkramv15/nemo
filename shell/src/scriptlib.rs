@@ -18,6 +18,16 @@ pub const ALL: &[(&str, &str)] = &[
     ("vpn", include_str!("../../config/scripts/vpn")),
     ("docker", include_str!("../../config/scripts/docker")),
     ("flatpak", include_str!("../../config/scripts/flatpak")),
+    ("swap", include_str!("../../config/scripts/swap")),
+    ("cputemp", include_str!("../../config/scripts/cputemp")),
+    ("ipaddr", include_str!("../../config/scripts/ipaddr")),
+    ("wifi", include_str!("../../config/scripts/wifi")),
+    ("yearprogress", include_str!("../../config/scripts/yearprogress")),
+    ("utc", include_str!("../../config/scripts/utc")),
+    ("processes", include_str!("../../config/scripts/processes")),
+    ("fan", include_str!("../../config/scripts/fan")),
+    ("gitdir", include_str!("../../config/scripts/gitdir")),
+    ("moon", include_str!("../../config/scripts/moon")),
 ];
 
 /// строка «# yami-script: …» — что скрипт показывает
@@ -48,7 +58,7 @@ pub fn cli(y: &crate::cmd::Sty, args: &[&str]) -> i32 {
             let have = crate::plugins::scripts();
             for (n, body) in ALL {
                 let mark = if have.iter().any(|h| h == n) { y.ok("✓") } else { y.dim("·") };
-                println!(" {mark} {n:<9} {}", y.dim(crate::i18n::tr(about(body))));
+                println!(" {mark} {n:<13} {}", y.dim(crate::i18n::tr(about(body))));
             }
             println!("   {}", y.dim(&crate::tf!("yami scripts add ИМЯ | all; потом: настройки → бар (x:ИМЯ) или виджеты → скрипт", "yami scripts add NAME | all; then settings → bar (x:NAME) or widgets → script", "yami scripts add NOME | all; depois: configurações → barra (x:NOME) ou widgets → script")));
             0

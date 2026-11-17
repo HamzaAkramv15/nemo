@@ -16,6 +16,7 @@ pub mod theme;
 pub mod time;
 pub mod trash;
 pub mod ui;
+pub mod vicon;
 
 /// время «1:05» или «1:02:03» (плееры: шелл, yami-play)
 pub fn clock(secs: f64) -> String {

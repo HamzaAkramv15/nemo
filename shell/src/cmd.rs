@@ -67,7 +67,7 @@ impl Sty {
 
 fn banner(y: &Sty) {
     println!();
-    println!(" {} {}  {}", y.acc("▚▞"), y.head(&format!("NEMO {}", env!("CARGO_PKG_VERSION"))), y.dim(&crate::tf!("пиксельный рабочий стол для niri, форк yami (Trendorin)", "pixel desktop for niri, a fork of yami by Trendorin", "desktop em pixel para niri, um fork do yami de Trendorin")));
+    println!(" {} {}  {}", y.acc("▚▞"), y.head(&format!("NEMO {}", yami_px::brand::VERSION)), y.dim(&crate::tf!("пиксельный рабочий стол для niri, форк yami (Trendorin)", "pixel desktop for niri, a fork of yami by Trendorin", "desktop em pixel para niri, um fork do yami de Trendorin")));
 }
 
 fn help(y: &Sty, me: &str) {
@@ -290,7 +290,8 @@ fn version(y: &Sty) -> i32 {
     println!();
     let row = |k: &str, v: String| println!("   {}{}", y.dim(&format!("{k:<14}")), v);
     let commit: String = st.commit.chars().take(8).collect();
-    row("yami", format!("{}{}", if st.version.is_empty() { env!("CARGO_PKG_VERSION") } else { &st.version }, if commit.is_empty() { String::new() } else { format!("  {}", y.dim(&commit)) }));
+    row("nemo", yami_px::brand::VERSION.into());
+    row("yami base", format!("{}{}", if st.version.is_empty() { env!("CARGO_PKG_VERSION") } else { &st.version }, if commit.is_empty() { String::new() } else { format!("  {}", y.dim(&commit)) }));
     row("yami-shell", env!("CARGO_PKG_VERSION").into());
     for b in ["yami-files", "yami-view", "yami-play", "yami-shot", "yami-agents", "yami-greet"] {
         // каждое из них ставится по выбору (компоненты установщика): нет — не беда

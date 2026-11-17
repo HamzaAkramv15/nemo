@@ -1434,4 +1434,7 @@ const UK: &[(&str, &str)] = &[
     ("Nemo {} · {:.0} MB", "Nemo {} · {:.0} МБ"),
     ("Nemo is a fork of yami by Trendorin, MIT license", "Nemo — форк yami від Trendorin, ліцензія MIT"),
     ("pixel desktop for niri, a fork of yami by Trendorin", "піксельний робочий стіл для niri, форк yami від Trendorin"),
+    ("normal", "звичайні"),
+    ("by style", "за стилем"),
+    ("bar and panel icons", "значки панелі та вікон"),
 ];

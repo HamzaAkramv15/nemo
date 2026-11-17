@@ -112,6 +112,7 @@ file for one run. The files are reread when they change.
 | `inner` | `1.0` | opacity of cards, graphs and fields inside panels |
 | `dim` | `0.5` | dim behind menus and settings |
 | `blurShell`, `blurTerm` | `true` | niri blur under the shell's panels / terminals |
+| `iconStyle` | `""` | the icons of the shell's panels, bar and control panel: `""` follows the style (pixel for the pixel look, normal for the neutral one), `pixel` the 7×7 bitmaps, `normal` smooth vector icons (about forty are drawn; the rest stay pixel). Settings → look |
 | `blurXray` | `true` | niri's default: blur only the wallpaper behind a panel, so an app window behind it stays sharp (cheap). `false` blurs everything behind panels and terminals, windows too, so a panel looks the same with or without an app behind it (heavier for the GPU). Settings → look |
 | `blurStrength` | `3` | how strong that blur is, 1–8 (niri `passes` and `offset`: 1 is a light haze, 8 is frosted glass and costs the GPU more); 3 is what it was before this setting. Settings → look |
 | `animations` | `true` | Bayer dissolve, panel motion; off everywhere when false |
@@ -371,10 +372,12 @@ t=$(curl -fs 'https://wttr.in/?format=%t' || echo '?')
 printf '{"text":"%s","icon":"temp","color":"accent","click":"xdg-open https://wttr.in","interval":600}\n' "$t"
 ```
 
-Ten ready scripts come with the shell (`yami scripts` lists them, `yami scripts add NAME` or
+Twenty ready scripts come with the shell (`yami scripts` lists them, `yami scripts add NAME` or
 `add all` puts a copy in your folder; yours are never overwritten): `uptime` `load` `disk`
-`memtop` `cpufreq` `power` `kernel` `vpn` `docker` `flatpak`. They use no network and no account;
-each is a short `sh` file you can read and change.
+`memtop` `cpufreq` `power` `kernel` `vpn` `docker` `flatpak` `swap` `cputemp` `ipaddr` `wifi`
+`yearprogress` `utc` `processes` `fan` `gitdir` `moon`. They use no network and no account (they
+only read `/proc`, `/sys` and the tools already on the machine); each is a short `sh` file you
+can read and change, and the few that take a setting (`disk`, `utc`, `gitdir`) say so at the top.
 
 `color` is a theme role: `accent` `bright` `ok` `warn` `text` `dim`. `icon` is one of the shell's
 7×7 icons, e.g. `cpu` `ram` `temp` `net` `wifi` `bt` `bell` `clock` `cal` `music` `play` `power`

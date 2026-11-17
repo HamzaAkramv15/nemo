@@ -9,6 +9,10 @@ has its Russian line in CHANGELOG.ru.md: `tools/check.sh` checks that.
 
 ## Unreleased
 
+- Normal icons: settings → look → «bar and panel icons» (`iconStyle`) switches the bar, the control panel and the popups from the pixel bitmaps to smooth vector icons (about forty are drawn: speaker, Wi-Fi, Bluetooth, battery, clock, gear, power and so on; the rest stay pixel). By style: pixel for the pixel look, normal for the neutral one.
+- Ten more ready scripts (`swap` `cputemp` `ipaddr` `wifi` `yearprogress` `utc` `processes` `fan` `gitdir` `moon`), twenty in all.
+- Nemo is version 0.1. The packages keep yami's version (3.0.0), because updates, rollback and the modules depend on it; the settings header, «about» and `yami version` show Nemo 0.1 and the yami version it is built on.
+- The fastfetch fish is half its size: one cell, one pixel.
 - The Nemo fish takes the colours of your palette: on the lock screen, in the setup and «about», and as the fastfetch logo (it follows the palette and the wallpaper accent like everything else).
 - Nemo: this fork is now called Nemo, with a pixel fish as its logo (README, «about», first-run setup and lock screen). The README tells that it is a fork of yami by Trendorin and credits them; the license keeps both copyright lines. Programs, folders and settings keep the name yami, so everything stays compatible with yami and its modules.
 - Real blur: with `blurXray` off (settings → look, «blur the windows behind a panel too») niri blurs everything behind the shell's panels and terminals, not only the wallpaper, so a panel looks the same with an app behind it as without one. It costs the GPU more, so it is off by default.

@@ -45,13 +45,15 @@ installer, the updater, the modules and the whole pixel look are theirs. Thank y
 MIT license and copyright line ([LICENSE](LICENSE)), tracks their code, and takes its own name and
 logo, as their license asks of a fork.
 
-What Nemo adds on top of yami 3.0.0:
+Nemo is at version 0.1, built on yami 3.0.0 (the programs still report yami's version, which updates and
+the modules depend on). What Nemo adds on top of yami 3.0.0:
 
 - **Clock and calendar:** a 12-hour format with AM/PM, three date styles, a week that starts on
   Monday, Sunday or Saturday.
 - **Night light:** all day with no schedule, a temperature slider, `yami night …` from a terminal or a key.
 - **Blur:** a strength slider, and a real blur that includes the windows behind a panel.
-- **Ready scripts:** ten small offline scripts for the bar and widgets (`yami scripts`).
+- **Ready scripts:** twenty small offline scripts for the bar and widgets (`yami scripts`).
+- **Normal icons:** smooth vector icons for the bar and panels next to the pixel ones (settings → look).
 - **kitty:** fish-style suggestions as you type, notifications for long commands, splits.
 - **The name and the fish.**
 

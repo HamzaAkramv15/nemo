@@ -389,6 +389,10 @@ impl App {
                 }
                 "open_setup" => self.welcome_open("modules"),
                 "open_welcome" => self.welcome_open("hello"),
+                "icon_style" => {
+                    s.icon_style = cycle(&[("", ""), ("pixel", ""), ("normal", "")], &s.icon_style).into();
+                    self.settings_changed();
+                }
                 "date_style" => {
                     s.date_style = cycle(&[("dm", ""), ("md", ""), ("iso", "")], &s.date_style).into();
                     self.settings_changed();

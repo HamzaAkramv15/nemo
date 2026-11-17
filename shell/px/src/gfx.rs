@@ -6,6 +6,17 @@ use crate::font::{Fonts, Face};
 use crate::style::{Corners, Shadow, Style};
 use crate::theme::Theme;
 
+/// обычные (векторные) значки вместо пиксельных: выбирает шелл по настройке `iconStyle`
+static VECTOR_ICONS: std::sync::atomic::AtomicBool = std::sync::atomic::AtomicBool::new(false);
+
+pub fn set_vector_icons(on: bool) {
+    VECTOR_ICONS.store(on, std::sync::atomic::Ordering::Relaxed);
+}
+
+pub fn vector_icons() -> bool {
+    VECTOR_ICONS.load(std::sync::atomic::Ordering::Relaxed)
+}
+
 #[derive(Clone, Copy, PartialEq, Eq, Debug, Default)]
 pub struct C(pub u32);
 
@@ -735,8 +746,12 @@ impl<'a> Canvas<'a> {
         }
     }
 
-    /// иконка 7×7 из битмапа клетками cell (в сглаженных стилях — со скруглением)
+    /// иконка 7×7 из битмапа клетками cell (в сглаженных стилях — со скруглением; обычные значки —
+    /// векторные, если они есть в vicon, иначе то же самое)
     pub fn icon(&mut self, name: &str, x: i32, y: i32, cell: i32, c: C) {
+        if vector_icons() && self.icon_vector(name, x, y, cell, c) {
+            return;
+        }
         if self.style.smooth {
             return self.icon_smooth(name, x, y, cell, c);
         }
@@ -749,6 +764,27 @@ impl<'a> Canvas<'a> {
                 }
             }
         }
+    }
+    /// обычный (векторный) значок в квадрате 7×cell; false — такого нет, рисуй пиксельный
+    fn icon_vector(&mut self, name: &str, x: i32, y: i32, cell: i32, c: C) -> bool {
+        let size = 7 * cell;
+        let src = self.eff(c);
+        ICONS.with(|m| {
+            let mut m = m.borrow_mut();
+            let cov = m.entry((format!("v:{name}"), cell)).or_insert_with(|| crate::vicon::coverage(name, size).unwrap_or_default());
+            if cov.len() != (size * size) as usize {
+                return false;
+            }
+            for j in 0..size {
+                for i in 0..size {
+                    let v = cov[(j * size + i) as usize];
+                    if v > 0 {
+                        self.put(x + i, y + j, if v == 255 { src } else { scale_premul(src, v as f32 / 255.0) });
+                    }
+                }
+            }
+            true
+        })
     }
     fn icon_smooth(&mut self, name: &str, x: i32, y: i32, cell: i32, c: C) {
         let src = self.eff(c);
@@ -774,6 +810,9 @@ impl<'a> Canvas<'a> {
     /// батарейка клетками, как значки icon7: корпус 10×7 с фасками и «пипкой» (11 клеток в ширину),
     /// внутри 6 столбиков заряда; погасшие — цветом `empty`. frac > 0 зажигает хотя бы один
     pub fn battery(&mut self, x: i32, y: i32, cell: i32, frac: f32, body: C, fill: C, empty: C) {
+        if vector_icons() {
+            return self.battery_vector(x, y, cell, frac, body, fill, empty);
+        }
         let c = |i: i32, j: i32, w: i32, h: i32| R::new(x + i * cell, y + j * cell, w * cell, h * cell);
         for r in [c(1, 0, 8, 1), c(1, 6, 8, 1), c(0, 1, 1, 5), c(9, 1, 1, 5), c(10, 2, 1, 3)] {
             self.fill(r, body);
@@ -781,6 +820,31 @@ impl<'a> Canvas<'a> {
         let lit = if frac <= 0.0 { 0 } else { ((frac.min(1.0) * 6.0).ceil() as i32).max(1) };
         for k in 0..6 {
             self.fill(c(2 + k, 2, 1, 3), if k < lit { fill } else { empty });
+        }
+    }
+    /// батарейка в обычном стиле: скруглённый корпус, «пипка», заряд полосой; те же 11×7 клеток
+    fn battery_vector(&mut self, x: i32, y: i32, cell: i32, frac: f32, body: C, fill: C, empty: C) {
+        let c = cell as f32;
+        let s = (c * 0.8).max(1.3);
+        let (body, fill, empty) = (self.eff(body), self.eff(fill), self.eff(empty));
+        let lit = frac.clamp(0.0, 1.0);
+        let lit_w = if frac <= 0.0 { 0.0 } else { (6.0 * c * lit).max(c) };
+        let mut paint = |px: i32, py: i32, color: u32, k: f32| {
+            if k > 0.0 {
+                self.put(x + px, y + py, if k >= 1.0 { color } else { scale_premul(color, k) });
+            }
+        };
+        for j in 0..7 * cell {
+            for i in 0..11 * cell {
+                let (fx, fy) = (i as f32 + 0.5, j as f32 + 0.5);
+                let ring = crate::vicon::rect_cov(s / 2.0, s / 2.0, 10.0 * c - s, 7.0 * c - s, c * 1.2, s, fx, fy);
+                let nub = crate::vicon::rect_cov(10.0 * c - 0.2, 2.0 * c, c + 0.2, 3.0 * c, c * 0.5, 0.0, fx, fy);
+                paint(i, j, body, ring.max(nub));
+                let inner = crate::vicon::rect_cov(2.0 * c, 2.0 * c, 6.0 * c, 3.0 * c, c * 0.5, 0.0, fx, fy);
+                let on = crate::vicon::rect_cov(2.0 * c, 2.0 * c, lit_w, 3.0 * c, c * 0.5, 0.0, fx, fy);
+                paint(i, j, empty, (inner - on).max(0.0));
+                paint(i, j, fill, on);
+            }
         }
     }
     /// иконка по центру прямоугольника

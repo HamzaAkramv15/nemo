@@ -1,0 +1,10 @@
+#!/bin/sh
+# yami-script: the fastest fan, in RPM (nothing if the machine reports no fan)
+best=0
+for f in /sys/class/hwmon/hwmon*/fan*_input; do
+  [ -r "$f" ] || continue
+  v=$(cat "$f" 2>/dev/null)
+  [ "${v:-0}" -gt "$best" ] && best=$v
+done
+if [ "$best" -eq 0 ]; then printf '{"text":"no fan","icon":"gauge","color":"dim","interval":300}\n'; exit 0; fi
+printf '{"text":"%s rpm","icon":"gauge","color":"text","interval":4}\n' "$best"

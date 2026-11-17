@@ -1434,4 +1434,7 @@ const DE: &[(&str, &str)] = &[
     ("Nemo {} · {:.0} MB", "Nemo {} · {:.0} MB"),
     ("Nemo is a fork of yami by Trendorin, MIT license", "Nemo ist ein Fork von yami von Trendorin, MIT-Lizenz"),
     ("pixel desktop for niri, a fork of yami by Trendorin", "Pixel-Desktop für niri, ein Fork von yami von Trendorin"),
+    ("normal", "normal"),
+    ("by style", "nach Stil"),
+    ("bar and panel icons", "Symbole in Leiste und Panels"),
 ];

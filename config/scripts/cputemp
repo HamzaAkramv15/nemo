@@ -1,0 +1,17 @@
+#!/bin/sh
+# yami-script: CPU temperature from the kernel's sensors (amber from 80°C, red from 90°C)
+best=0
+for z in /sys/class/hwmon/hwmon*; do
+  n=$(cat "$z/name" 2>/dev/null)
+  case "$n" in coretemp|k10temp|zenpower|cpu_thermal|x86_pkg_temp) ;; *) continue ;; esac
+  for t in "$z"/temp*_input; do
+    [ -r "$t" ] || continue
+    v=$(($(cat "$t") / 1000))
+    [ "$v" -gt "$best" ] && best=$v
+  done
+done
+if [ "$best" -eq 0 ]; then printf '{"text":"? °C","icon":"temp","color":"dim","interval":60}\n'; exit 0; fi
+c=text
+[ "$best" -ge 80 ] && c=warn
+[ "$best" -ge 90 ] && c=accent
+printf '{"text":"%s°C","icon":"temp","color":"%s","interval":3}\n' "$best" "$c"

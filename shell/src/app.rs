@@ -622,6 +622,7 @@ pub fn run() {
     let set = Settings::load();
     crate::i18n::set(&set.lang);
     yami_px::time::set_hour12(set.clock12);
+    yami_px::gfx::set_vector_icons(set.vector_icons());
     let iset = icon_set(&set.icon_theme);
     let mut icons = Icons::new(&iset);
     icons.set_style(Theme::new(set.accent_rgb(), set.tint, set.glass, set.lift, set.inner, set.light).icon_ramp(), set.icon_pixel, set.icon_tint);

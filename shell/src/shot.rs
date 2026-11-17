@@ -199,6 +199,7 @@ pub fn run(args: &[String]) -> i32 {
     }
     crate::i18n::set(&set.lang);
     yami_px::time::set_hour12(set.clock12);
+    yami_px::gfx::set_vector_icons(set.vector_icons());
     let mut res = Res { icons: Icons::new(&set.icon_theme), fonts: Fonts::with(&set.font_family()), font: set.font_family(), iset: crate::app::icon_set(&set.icon_theme) };
     res.icons.set_style(crate::theme::Theme::new(set.accent_rgb(), set.tint, set.glass, set.lift, set.inner, set.light).icon_ramp(), set.icon_pixel, set.icon_tint);
     let mut st = State::new(set, mock_niri());

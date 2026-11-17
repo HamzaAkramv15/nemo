@@ -1210,4 +1210,7 @@ const PT_BR: &[(&str, &str)] = &[
     ("kitty starts fish: suggestions from history, highlighting", "o kitty abre o fish: sugestões do histórico, realce"),
     ("needs fish: install it from your distribution", "precisa do fish: instale pela sua distribuição"),
     ("ready scripts for the bar and widgets: uptime, load, disk, VPN, Docker…", "scripts prontos para a barra e os widgets: uptime, carga, disco, VPN, Docker…"),
+    ("normal", "normais"),
+    ("by style", "pelo estilo"),
+    ("bar and panel icons", "ícones da barra e dos painéis"),
 ];
