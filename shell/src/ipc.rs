@@ -85,6 +85,7 @@ impl crate::app::App {
             "launcher" => self.toggle_modal(Modal::Launcher, false),
             c if c.starts_with("launcher ") => self.launcher_with(c["launcher ".len()..].trim()),
             "night" => self.night_toggle(),
+            c if c.starts_with("night ") => self.night_cmd(c["night ".len()..].trim()),
             "clipboard" => self.toggle_modal(Modal::Launcher, true),
             "power" => self.toggle_modal(Modal::Power, false),
             "settings" => self.toggle_modal(Modal::Settings, false),

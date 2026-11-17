@@ -137,7 +137,7 @@ pub fn draw(ui: &mut Ui, st: &State, b: R) {
     ui.zone(card, Act::SWall("browse"), Cur::Pointer);
     let tm = local_now();
     let face = font::px(48);
-    let time = if st.set.clock_seconds { format!("{:02}:{:02}:{:02}", tm.hour, tm.min, tm.sec) } else { format!("{:02}:{:02}", tm.hour, tm.min) };
+    let time = crate::clock::clock_text(&tm, st.set.clock_seconds);
     let (lx, ty) = (card.x + 16, card.y + 14);
     ui.text(face, lx, ty, &time, t.text_hi);
     let date = yami_px::i18n::long_date(crate::i18n::tr(RU_DAY_FULL[tm.wday as usize]), tm.day as u32, (tm.mon - 1) as usize, crate::i18n::tr(RU_MON[(tm.mon - 1) as usize]));

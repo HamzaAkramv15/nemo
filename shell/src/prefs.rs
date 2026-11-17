@@ -31,6 +31,7 @@ impl App {
     pub fn settings_changed(&mut self) {
         let s = &self.st.set;
         crate::i18n::set(&s.lang);
+        yami_px::time::set_hour12(s.clock12);
         if s.font_family() != self.res.font {
             self.res.font = s.font_family();
             self.res.fonts = Fonts::with(&self.res.font);
@@ -253,6 +254,7 @@ pub fn settings_set_f32(s: &mut Settings, key: &str, v: f32) {
         "dock_size" => s.dock_size = ((v / 4.0).round() * 4.0) as i32,
         "float_h" => s.float_h = (v * 20.0).round() / 20.0,
         "lock_after" => s.lock_after = v.round() as u32,
+        "night_temp" => s.night_temp = ((v / 250.0).round() * 250.0) as i32,
         "screen_off_after" => s.screen_off_after = v.round() as u32,
         "notif_timeout" => s.notif_timeout = v.round().max(2.0) as u32,
         "task_width" => s.task_width = (v / 10.0).round() as i32 * 10,
@@ -278,6 +280,7 @@ pub fn settings_get_f32(s: &Settings, key: &str) -> f32 {
         "dock_size" => s.dock_size as f32,
         "float_h" => s.float_h,
         "lock_after" => s.lock_after as f32,
+        "night_temp" => s.night_temp as f32,
         "screen_off_after" => s.screen_off_after as f32,
         "notif_timeout" => s.notif_timeout as f32,
         "task_width" => s.task_width as f32,

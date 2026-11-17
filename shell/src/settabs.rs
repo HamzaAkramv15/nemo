@@ -338,19 +338,25 @@ pub(crate) fn tab_system(ui: &mut Ui, st: &State, b: R) {
     // ночной свет: wlsunset; по координатам — от заката до восхода, иначе по часам
     y = title(ui, b.x, y, b.w, "ночной свет: по солнцу или по часам");
     let has = crate::doctor::which("wlsunset");
-    ui.toggle(R::new(lx, y, half, 40), "теплее вечером", if has { "wlsunset" } else { "нужен wlsunset" }, s.night, Act::SBool("night"));
-    num_btn(ui, R::new(rx, y + 6, half, 26), "температура, K", s.num("night_temp"), "night_temp");
+    ui.toggle(R::new(lx, y, half, 40), "ночной свет", if has { "wlsunset" } else { "нужен wlsunset" }, s.night, Act::SBool("night"));
+    ui.toggle(R::new(rx, y, half, 40), "весь день, без расписания", "", s.night_always, Act::SBool("night_always"));
     y += 46;
-    // координаты есть — по закату и восходу, часы тогда не нужны
-    let gf = st.field_focus == Some("night_geo");
-    let by_sun = crate::night::geo(&s.night_geo).is_some();
-    ui.field(R::new(lx, y, half, 26), &st.geo_field, if s.night_geo.is_empty() { "широта, долгота — по солнцу" } else { &s.night_geo }, gf, false, Act::SField("night_geo"));
-    if by_sun {
-        ui.text_in(PX, R::new(rx + 8, y, half - 8, 26), "по закату и восходу", ui.t.text_faint);
+    ui.slider(R::new(lx, y, b.w, 40), "температура (ниже — теплее)", (s.night_temp as f32 - 2500.0) / 3500.0, &format!("{} K", s.night_temp), 14, Act::SSlider("night_temp", 2500.0, 6000.0, 14));
+    y += 46;
+    if s.night_always {
+        ui.text_in(PX, R::new(lx, y, b.w, 26), "расписание не нужно: тёплые цвета весь день", ui.t.text_faint);
     } else {
-        let qw = (half - 8) / 2;
-        num_btn(ui, R::new(rx, y, qw, 26), "с", s.num("night_on_h"), "night_on_h");
-        num_btn(ui, R::new(rx + qw + 8, y, qw, 26), "до", s.num("night_off_h"), "night_off_h");
+        // координаты есть — по закату и восходу, часы тогда не нужны
+        let gf = st.field_focus == Some("night_geo");
+        let by_sun = crate::night::geo(&s.night_geo).is_some();
+        ui.field(R::new(lx, y, half, 26), &st.geo_field, if s.night_geo.is_empty() { "широта, долгота — по солнцу" } else { &s.night_geo }, gf, false, Act::SField("night_geo"));
+        if by_sun {
+            ui.text_in(PX, R::new(rx + 8, y, half - 8, 26), "по закату и восходу", ui.t.text_faint);
+        } else {
+            let qw = (half - 8) / 2;
+            num_btn(ui, R::new(rx, y, qw, 26), "с", s.num("night_on_h"), "night_on_h");
+            num_btn(ui, R::new(rx + qw + 8, y, qw, 26), "до", s.num("night_off_h"), "night_off_h");
+        }
     }
     y += 40;
     y = title(ui, b.x, y, b.w, "язык и вход");

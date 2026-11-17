@@ -178,7 +178,7 @@ fn cal(ui: &mut Ui, st: &State, b: R) {
     let t = ui.t;
     let now = crate::clock::local_now();
     let face = font::px(32);
-    ui.text(face, b.x, b.y - 2, &format!("{:02}:{:02}", now.hour, now.min), t.text);
+    ui.text(face, b.x, b.y - 2, &crate::clock::clock_text(&now, false), t.text);
     let date = yami_px::i18n::long_date(crate::i18n::tr(crate::clock::RU_DAY_FULL[now.wday as usize]), now.day as u32, (now.mon - 1) as usize, crate::i18n::tr(crate::clock::RU_MON[(now.mon - 1) as usize]));
     ui.text_in(PX, R::new(b.x, b.y + 34, 300, 20), &date, t.text_dim);
     let cr = R::new(b.x, b.y + 66, 290, b.h - 66);

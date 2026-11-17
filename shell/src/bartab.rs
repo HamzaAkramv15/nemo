@@ -268,25 +268,45 @@ fn tab_bar_look(ui: &mut Ui, st: &State, b: R) {
     let eq = if s.media_viz == "off" { "выкл" } else { crate::widgets::name_of(crate::widgets::STYLES, &s.media_viz) };
     opt_btn(ui, cell(&mut y), "эквалайзер", eq, Act::SCycle("media_viz"));
     opt_btn(ui, cell(&mut y), "всплывашка музыки", crate::widgets::name_of(crate::config::MEDIA_VIEWS, &s.media_view), Act::SCycle("media_view"));
+    if i % 2 == 1 {
+        y += 32;
+    }
     y += 6;
-    // переключатели — в три столбца, они короче
-    let toggles: [(&str, bool, &'static str); 8] = [
-        ("часы с секундами", s.clock_seconds, "clock_seconds"),
-        ("дата в часах", s.clock_date, "clock_date"),
+    // часы и календарь: формат часов, вид даты, с какого дня неделя
+    y = title(ui, b.x, y, b.w, "часы и календарь");
+    let date_name = match s.date_style.as_str() {
+        "md" => "мм/дд",
+        "iso" => "2026-11-17",
+        _ => "дд.мм",
+    };
+    let week_name = match s.week_start.as_str() {
+        "sun" => "воскресенье",
+        "sat" => "суббота",
+        _ => "понедельник",
+    };
+    opt_btn(ui, R::new(b.x, y, hw, 26), "формат часов", if s.clock12 { "12 ч, AM/PM" } else { "24 ч" }, Act::SBool("clock12"));
+    opt_btn(ui, R::new(b.x + hw + 12, y, hw, 26), "дата в баре", date_name, Act::SCycle("date_style"));
+    y += 32;
+    opt_btn(ui, R::new(b.x, y, hw, 26), "неделя с", week_name, Act::SCycle("week_start"));
+    y += 32;
+    ui.toggle(R::new(b.x, y, hw, 26), "часы с секундами", "", s.clock_seconds, Act::SBool("clock_seconds"));
+    ui.toggle(R::new(b.x + hw + 12, y, hw, 26), "дата в часах", "", s.clock_date, Act::SBool("clock_date"));
+    y += 38;
+    // переключатели — в два столбца, они короче
+    let toggles: [(&str, bool, &'static str); 5] = [
         ("трей клетками", s.tray_pixel, "tray_pixel"),
         // #21: ноутбук от сети — заряженная батарея в баре не нужна
         ("прятать полную батарею", s.bat_hide_full, "bat_hide_full"),
         ("приватность: микрофон", s.privacy_mic, "privacy_mic"),
         ("камера", s.privacy_cam, "privacy_cam"),
         ("показ экрана", s.privacy_screen, "privacy_screen"),
-        ("", false, ""),
     ];
     for (j, (label, on, k)) in toggles.into_iter().enumerate() {
         if !k.is_empty() {
             ui.toggle(R::new(b.x + (j as i32 % 2) * (hw + 12), y + (j as i32 / 2) * 32, hw, 26), label, "", on, Act::SBool(k));
         }
     }
-    y += 4 * 32 + 8;
+    y += 3 * 32 + 8;
     // панель управления (control.rs): какие плитки в её ряду, по порядку включения
     y = title(ui, b.x, y, b.w, "панель управления — ПКМ по пустому месту бара");
     let n = s.control_tiles.len();

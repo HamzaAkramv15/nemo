@@ -526,8 +526,8 @@ fn module(ui: &mut Ui, st: &State, out: &str, m: &str, x: i32, measure: bool) ->
         }
         "clock" => {
             let tm = local_now();
-            let time = if st.set.clock_seconds { format!("{:02}:{:02}:{:02}", tm.hour, tm.min, tm.sec) } else { format!("{:02}:{:02}", tm.hour, tm.min) };
-            let date = format!("{} {:02}.{:02}", crate::i18n::tr(RU_DAY[tm.wday as usize]), tm.day, tm.mon);
+            let time = crate::clock::clock_text(&tm, st.set.clock_seconds);
+            let date = crate::clock::date_short(&tm, &st.set.date_style, crate::i18n::tr(RU_DAY[tm.wday as usize]));
             let tw = ui.w(PX, &time);
             let dw = if st.set.clock_date { ui.w(PX, &date) + 6 } else { 0 };
             let w = tw + dw;
@@ -1027,9 +1027,12 @@ fn vmodule(ui: &mut Ui, st: &State, out: &str, m: &str, y: i32, measure: bool) -
         }
         "clock" => {
             let tm = local_now();
-            let mut parts = vec![format!("{:02}", tm.hour), format!("{:02}", tm.min)];
+            let mut parts = vec![crate::clock::hour_text(&tm), format!("{:02}", tm.min)];
             if st.set.clock_seconds {
                 parts.push(format!("{:02}", tm.sec));
+            }
+            if let Some(p) = crate::clock::ampm(&tm) {
+                parts.push(p.to_string());
             }
             let lines = parts.len() as i32;
             let date = st.set.clock_date;

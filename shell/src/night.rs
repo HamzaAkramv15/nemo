@@ -49,8 +49,13 @@ pub fn geo(s: &str) -> Option<(f64, f64)> {
 
 /// аргументы wlsunset по настройкам
 pub fn args(set: &crate::config::Settings) -> Vec<String> {
+    let temp = set.num("night_temp");
+    if set.night_always {
+        // без расписания: wlsunset отвергает равные температуры, а разница в 1 K глазу не видна
+        return vec!["-t".to_string(), temp.to_string(), "-T".into(), (temp + 1).to_string()];
+    }
     // ночная температура всегда ниже дневной (6500): иначе wlsunset не запустится
-    let mut a = vec!["-t".to_string(), set.num("night_temp").to_string(), "-T".into(), "6500".into()];
+    let mut a = vec!["-t".to_string(), temp.to_string(), "-T".into(), "6500".into()];
     match geo(&set.night_geo) {
         Some((lat, lon)) => a.extend(["-l".into(), format!("{lat}"), "-L".into(), format!("{lon}")]),
         None => {
@@ -88,6 +93,33 @@ impl App {
         self.dirty(&SKind::Bar);
     }
 
+    /// `yami night on|off|toggle|always|schedule|temp K`: то же, что в настройках; сохраняется в shell.json
+    pub fn night_cmd(&mut self, arg: &str) {
+        if !crate::doctor::which("wlsunset") {
+            self.toast_note("ночной свет", "нужен wlsunset: поставь его из своего дистрибутива");
+            return;
+        }
+        let s = &mut self.st.set;
+        match arg.split_once(' ').unwrap_or((arg, "")) {
+            ("on", _) => s.night = true,
+            ("off", _) => s.night = false,
+            ("toggle", _) => s.night = !s.night,
+            // «always» включает сразу: на команду, которая молча ничего не меняет, не похоже
+            ("always", _) => {
+                s.night = true;
+                s.night_always = true;
+            }
+            ("schedule", _) => s.night_always = false,
+            ("temp", k) => match k.trim().parse::<i32>() {
+                Ok(k) => s.night_temp = k.clamp(2500, 6000) / 250 * 250,
+                Err(_) => return,
+            },
+            _ => return,
+        }
+        self.settings_changed();
+        self.save_now();
+    }
+
     pub fn night_toggle(&mut self) {
         if !crate::doctor::which("wlsunset") {
             self.toast_note("ночной свет", "нужен wlsunset: поставь его из своего дистрибутива");
@@ -120,5 +152,9 @@ mod tests {
         s.night_off_h = 7;
         let a = super::args(&s);
         assert_eq!(&a[4..], ["-S", "07:00", "-s", "08:00"]);
+        // всегда включён: расписания нет, высокая температура всего на 1 K выше низкой
+        s.night_always = true;
+        s.night_temp = 3500;
+        assert_eq!(super::args(&s), ["-t", "3500", "-T", "3501"]);
     }
 }

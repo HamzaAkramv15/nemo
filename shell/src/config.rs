@@ -214,6 +214,12 @@ pub struct Settings {
     pub theme_apps: Vec<String>,
     pub clock_seconds: bool,
     pub clock_date: bool,
+    /// часы в 12-часовом формате с AM/PM (бар, панель управления, календарь, виджет, экран блокировки)
+    pub clock12: bool,
+    /// короткая дата в баре: dm «пн 17.11» | md «Mon 11/17» | iso «2026-11-17»
+    pub date_style: String,
+    /// с какого дня начинается неделя в календаре: mon | sun | sat
+    pub week_start: String,
     pub task_width: i32,
     /// разделитель-модуль "sep": dots | line | blocks | gap
     pub bar_sep: String,
@@ -378,6 +384,8 @@ pub struct Settings {
     pub session_restore: bool,
     /// ночной свет (wlsunset): температура, координаты «lat, lon» или часы вкл/выкл
     pub night: bool,
+    /// ночной свет без расписания: тёплые цвета весь день, пока он включён
+    pub night_always: bool,
     pub night_temp: i32,
     pub night_geo: String,
     /// погода (#6): город или «широта, долгота» для Open-Meteo; пусто — погоды нет
@@ -583,6 +591,9 @@ impl Default for Settings {
             theme_apps: THEME_APPS.iter().map(|a| a.0.to_string()).collect(),
             clock_seconds: false,
             clock_date: true,
+            clock12: false,
+            date_style: "dm".into(),
+            week_start: "mon".into(),
             task_width: 190,
             bar_sep: "dots".into(),
             bar_sep_w: 10,
@@ -674,6 +685,7 @@ impl Default for Settings {
             game_gamemode: true,
             session_restore: false,
             night: false,
+            night_always: false,
             night_temp: 4000,
             night_geo: String::new(),
             weather_city: String::new(),
@@ -794,6 +806,12 @@ impl Settings {
         self.theme_apps.dedup();
         if self.tray_mode != "arrow" {
             self.tray_mode = "icons".into();
+        }
+        if !["dm", "md", "iso"].contains(&self.date_style.as_str()) {
+            self.date_style = "dm".into();
+        }
+        if !["mon", "sun", "sat"].contains(&self.week_start.as_str()) {
+            self.week_start = "mon".into();
         }
         if self.media_viz != "off" && !crate::widgets::STYLES.iter().any(|(k, _)| *k == self.media_viz) {
             self.media_viz = "bars".into();

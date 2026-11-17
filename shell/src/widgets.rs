@@ -443,10 +443,14 @@ fn draw_widget(ui: &mut Ui, st: &State, w: &Widget, sw: i32, sh: i32) {
             let pad = if w.frame { 14 } else { 4 };
             let mut x = pad;
             let y = pad;
-            x += ui.text(face, x, y, &format!("{:02}", tm.hour), t.text);
+            x += ui.text(face, x, y, &crate::clock::hour_text(&tm), t.text);
             let colon = if w.seconds && tm.sec % 2 == 1 { t.dim } else { c };
             x += ui.text(face, x, y, ":", colon);
-            ui.text(face, x, y, &format!("{:02}", tm.min), t.text);
+            x += ui.text(face, x, y, &format!("{:02}", tm.min), t.text);
+            // AM/PM — мелко у верхнего края цифр, как рядом с часами на телефоне
+            if let Some(p) = crate::clock::ampm(&tm) {
+                ui.text(PX, x + 6, y + 6, p, t.text_dim);
+            }
             let mut yy = y + ui.f.line(face) + 6;
             if w.date {
                 let s = yami_px::i18n::long_date(crate::i18n::tr(RU_DAY_FULL[tm.wday as usize]), tm.day as u32, (tm.mon - 1) as usize, crate::i18n::tr(RU_MON[(tm.mon - 1) as usize]));
@@ -608,7 +612,7 @@ pub fn media_card(ui: &mut Ui, st: &State, r: R, style: &str, c: C, label: bool,
 }
 
 /// месяц сеткой: сегодня — в акценте, выходные — тусклее
-pub fn calendar(ui: &mut Ui, _st: &State, r: R, month_shift: i32, c: C, nav: bool) {
+pub fn calendar(ui: &mut Ui, st: &State, r: R, month_shift: i32, c: C, nav: bool) {
     let t = ui.t;
     let now = local_now();
     let mut y = now.year;
@@ -627,12 +631,15 @@ pub fn calendar(ui: &mut Ui, _st: &State, r: R, month_shift: i32, c: C, nav: boo
     }
     let cw = r.w / 7;
     let ch = ((r.h - 50) / 6).max(16);
-    for (i, d) in ["пн", "вт", "ср", "чт", "пт", "сб", "вс"].iter().enumerate() {
-        ui.text_center(PX, R::new(r.x + i as i32 * cw, r.y + 26, cw, 18), d, if i >= 5 { t.red.fade(0.7) } else { t.text_faint });
+    // первый столбец — день недели `first_col` (0 = пн … 6 = вс), выходные красим по самому дню
+    let first_col = week_start_col(&st.set.week_start);
+    for i in 0..7 {
+        let day = (first_col + i) % 7;
+        ui.text_center(PX, R::new(r.x + i as i32 * cw, r.y + 26, cw, 18), ["пн", "вт", "ср", "чт", "пт", "сб", "вс"][day as usize], if day >= 5 { t.red.fade(0.7) } else { t.text_faint });
     }
     // первый день месяца
     let first = days_from_civil(y, m as u32 + 1, 1);
-    let wd = ((first + 3).rem_euclid(7)) as i32; // 0 = пн
+    let wd = ((first + 3).rem_euclid(7) as i32 - first_col).rem_euclid(7); // столбец первого числа
     let dim = days_in_month(y, m as u32 + 1);
     let gy = r.y + 48;
     for d in 1..=dim as i32 {
@@ -643,8 +650,17 @@ pub fn calendar(ui: &mut Ui, _st: &State, r: R, month_shift: i32, c: C, nav: boo
         if today {
             ui.cv.pxbox(rr, &BoxStyle::new(c, t.ember).bevel(true));
         }
-        let col = if today { t.on_accent } else if cell % 7 >= 5 { t.red.lerp(t.text, 0.4) } else { t.text };
+        let col = if today { t.on_accent } else if (first_col + cell % 7) % 7 >= 5 { t.red.lerp(t.text, 0.4) } else { t.text };
         ui.text_center(PX, rr, &d.to_string(), col);
+    }
+}
+
+/// столбец, с которого начинается неделя: 0 = пн, 6 = вс, 5 = сб
+pub fn week_start_col(s: &str) -> i32 {
+    match s {
+        "sun" => 6,
+        "sat" => 5,
+        _ => 0,
     }
 }
 
@@ -921,6 +937,15 @@ impl App {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn calendar_week_starts_where_asked() {
+        // 1 ноября 2026 — воскресенье: в столбце 6 при неделе с понедельника, в столбце 0 с воскресенья
+        let first = days_from_civil(2026, 11, 1);
+        let col = |s: &str| ((first + 3).rem_euclid(7) as i32 - week_start_col(s)).rem_euclid(7);
+        assert_eq!((col("mon"), col("sun"), col("sat")), (6, 0, 1));
+        assert_eq!(week_start_col("whatever"), 0);
+    }
 
     #[test]
     fn widgets_stick_to_edges_neighbours_cross_and_grid() {

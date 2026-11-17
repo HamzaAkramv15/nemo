@@ -129,7 +129,7 @@ fn help_msg(y: &Sty) {
         ("walls", "выбор обоев: картинки папки обоев", "wallpaper picker: the wallpaper folder's pictures"),
         ("media play-pause|next|previous|player", "плееру, что в баре; player — другой плеер", "to the player shown in the bar; player switches to another one"),
         ("profile", "следующий профиль питания", "next power profile"),
-        ("night", "ночной свет вкл-выкл", "night light on-off"),
+        ("night [on|off|toggle|always|schedule|temp K]", "ночной свет: вкл-выкл, весь день или по расписанию, температура", "night light: on-off, all day or on a schedule, temperature"),
         ("reload | restart | quit", "перечитать настройки / перезапуск / выход", "reload settings / restart / quit"),
         ("ping", "жив ли шелл: ответит pong", "is the shell alive: answers pong"),
     ] {
@@ -171,7 +171,12 @@ pub fn msg_ok(cmd: &str) -> bool {
     match head {
         // лаунчер с набранным текстом: любые слова
         "launcher" => true,
-        "clipboard" | "power" | "lock" | "bar" | "stacking" | "minimize" | "restore" | "edit" | "reload" | "quit" | "ping" | "restart" | "profile" | "night" | "walls" | "cast-hide" => one(&mut w),
+        "clipboard" | "power" | "lock" | "bar" | "stacking" | "minimize" | "restore" | "edit" | "reload" | "quit" | "ping" | "restart" | "profile" | "walls" | "cast-hide" => one(&mut w),
+        "night" => w.next().is_none_or(|a| match a {
+            "on" | "off" | "toggle" | "always" | "schedule" => w.next().is_none(),
+            "temp" => w.next().is_some_and(|k| k.parse::<i32>().is_ok()) && w.next().is_none(),
+            _ => false,
+        }),
         "settings" => w.next().is_none_or(|t| crate::settings::find(t).is_some()) && one(&mut w),
         "welcome" => w.next().is_none_or(crate::welcome::has_step) && one(&mut w),
         "popup" => w.next().is_some_and(|k| crate::popups::KINDS.contains(&k)) && one(&mut w),
@@ -548,6 +553,15 @@ pub fn run(args: &[String], me: &str) -> i32 {
                 2
             }
         },
+        // ночной свет из терминала или с клавиши: yami night [on|off|toggle|always|schedule|temp K]
+        Some("night") => {
+            let cmd = if a.len() == 1 { "night".to_string() } else { format!("night {}", a[1..].join(" ")) };
+            if !msg_ok(&cmd) {
+                eprintln!(" {} yami night [on|off|toggle|always|schedule|temp 2500-6000]", y.bad("✕"));
+                return 2;
+            }
+            send(&y, &cmd)
+        }
         Some("restart") => restart(&y, a.contains(&"--force")),
         Some("status") => status(&y),
         Some("doctor") if a.get(1) == Some(&"games") => crate::gameboost::doctor(&y),

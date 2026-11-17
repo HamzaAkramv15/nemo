@@ -181,6 +181,8 @@ impl App {
                     "game_ntsync" => s.game_ntsync = !s.game_ntsync,
                     "game_gamemode" => s.game_gamemode = !s.game_gamemode,
                     "night" => s.night = !s.night,
+                    "night_always" => s.night_always = !s.night_always,
+                    "clock12" => s.clock12 = !s.clock12,
                     "niri_look" => s.niri_look = !s.niri_look,
                     "niri_keys" => s.niri_keys = !s.niri_keys,
                     "niri_rules" => s.niri_rules = !s.niri_rules,
@@ -375,6 +377,14 @@ impl App {
                 }
                 "open_setup" => self.welcome_open("modules"),
                 "open_welcome" => self.welcome_open("hello"),
+                "date_style" => {
+                    s.date_style = cycle(&[("dm", ""), ("md", ""), ("iso", "")], &s.date_style).into();
+                    self.settings_changed();
+                }
+                "week_start" => {
+                    s.week_start = cycle(&[("mon", ""), ("sun", ""), ("sat", "")], &s.week_start).into();
+                    self.settings_changed();
+                }
                 "dock_anim" => {
                     s.dock_anim = cycle(&[("grow", ""), ("wave", ""), ("lift", ""), ("none", "")], &s.dock_anim).into();
                     self.settings_changed();

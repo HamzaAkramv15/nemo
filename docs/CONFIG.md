@@ -38,6 +38,7 @@ yami palette | yami palette ash | yami palette '#3a9fd0' | yami palette wallpape
 yami palette show | yami palette export NAME   # every colour with its hex (the {{names}} of templates); the palette as a saved theme
 yami wallpaper ~/Pictures/x.png           # no path: the palette's pixel wallpaper
 yami restart                              # restart the shell (refuses while a game has focus; --force)
+yami night [on|off|toggle|always|schedule|temp K]   # night light: switch it, keep it on all day (always) or back on its schedule, set the temperature (2500-6000 K); saved in shell.json, so it survives restarts and reboots
 yami status                               # shell, portal, niri, last update check
 yami doctor                               # programs, D-Bus services, config: what is missing and what it costs
 yami doctor games                         # ntsync, gamemode, MangoHud: what is there, one command for the rest
@@ -203,6 +204,9 @@ Settings → look → «pixel look» moves these keys, `iconPixel` and `cursor` 
 | `mediaViz` | `"bars"` | the equalizer of the `media` module and the music popup: `bars` `line` `blocks` `wave` `dots`, or `off` (no equalizer, and no audio capture for it) |
 | `mediaView` | `"cover"` | what the music popup shows (the button in its header switches it): `cover` (cover, buttons, equalizer), `both` (cover and lyrics), `lyrics`, `minimal` (title and buttons) |
 | `clockSeconds`, `clockDate` | `false`, `true` | |
+| `clock12` | `false` | 12-hour clock with AM/PM (`3:05 PM`; the hour has no leading zero) in the bar, side bar, control panel, calendar popup, clock widget and lock screen. Settings → bar → clock and calendar. The login screen follows once yami-greet reads it |
+| `dateStyle` | `"dm"` | the short date in the bar: `dm` (`Tu 17.11`), `md` (`Tu 11/17`), `iso` (`2026-11-17`) |
+| `weekStart` | `"mon"` | the first day of the week in the calendar popup and widget: `mon`, `sun`, `sat` |
 | `taskWidth` | `190` | width of a task button, px (60–400); `tasks` works in any group and is the one module that narrows when the bar runs out of room |
 | `barTaskGap` | `4` | gap between task buttons, px (0–16) |
 | `barSep` | `"dots"` | separator look: `dots` `line` `blocks` `gap` |
@@ -244,7 +248,8 @@ Settings → look → «pixel look» moves these keys, `iconPixel` and `cursor` 
 | `lockSleep` | `true` | lock the screen before any sleep: the lid, `systemctl suspend`, the system's own timer; the shell holds a logind delay lock and lets the sleep go on once niri confirms the lock (at most 3 s) |
 | `sessionRestore` | `false` | at login, start the programs that were open last time and put their first window back on its monitor and workspace (snapshot in `~/.local/state/yami/session.json`; games stay out) |
 | `night` | `false` | night light through wlsunset |
-| `nightTemp` | `4000` | evening colour temperature, K (2500–6000) |
+| `nightTemp` | `4000` | evening colour temperature, K (2500–6000, steps of 250) |
+| `nightAlways` | `false` | night light with no schedule: warm colours all day while `night` is on (wlsunset is run with the temperature and one Kelvin more, since it refuses equal ones). `yami night always` / `schedule` |
 | `nightGeo` | `""` | `"lat, lon"`: from sunset to sunrise there; empty: by the clock |
 | `nightOnH`, `nightOffH` | `20`, `7` | the clock: warm from / until this hour |
 | `dnd`, `notifTimeout` | `false`, `7` | do not disturb; seconds a notification stays |

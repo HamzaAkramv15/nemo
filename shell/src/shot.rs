@@ -37,6 +37,7 @@ const TARGETS: &[&str] = &[
     "settings:color",
     "settings:bar",
     "settings:bar-look",
+    "settings:bar-clock",
     "settings:color-themes",
     "settings:color-apps",
     "settings:color-apps-scroll",
@@ -197,6 +198,7 @@ pub fn run(args: &[String]) -> i32 {
         set.light = l;
     }
     crate::i18n::set(&set.lang);
+    yami_px::time::set_hour12(set.clock12);
     let mut res = Res { icons: Icons::new(&set.icon_theme), fonts: Fonts::with(&set.font_family()), font: set.font_family(), iset: crate::app::icon_set(&set.icon_theme) };
     res.icons.set_style(crate::theme::Theme::new(set.accent_rgb(), set.tint, set.glass, set.lift, set.inner, set.light).icon_ramp(), set.icon_pixel, set.icon_tint);
     let mut st = State::new(set, mock_niri());
@@ -359,7 +361,7 @@ fn shoot(st: &mut State, res: &mut Res, target: &str, path: &Path) {
                 st.sel_widget = st.set.widgets.first().map(|w| w.id).unwrap_or(0);
             }
             // вкладка «бар», раздел «вид»: форма бара, отступы
-            st.bar_ed.look = arg == "bar-look";
+            st.bar_ed.look = arg == "bar-look" || arg == "bar-clock";
             // вкладка «цвет», раздел «темы» (#8): свои темы карточками
             st.color_page = match arg {
                 "color-themes" => 1,
@@ -400,6 +402,15 @@ fn shoot(st: &mut State, res: &mut Res, target: &str, path: &Path) {
             }
             if arg == "bar-look" {
                 st.stab = "bar";
+            }
+            if arg == "bar-clock" {
+                // раздел «вид», пролистанный до часов и календаря: 12-часовой формат, дата по-американски
+                st.stab = "bar";
+                st.set.clock12 = true;
+                st.set.date_style = "md".into();
+                st.set.week_start = "sun".into();
+                st.sscroll = (330, "bar");
+                st.sscroll_h.set(1200);
             }
             if arg == "bar-drag" {
                 // фишка «часы» в руке над правым рядом, щель раскрыта
