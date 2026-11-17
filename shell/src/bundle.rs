@@ -412,10 +412,10 @@ struct Head {
 /// сохранённые темы в естественном порядке имён (не больше 48). Файлы с картинкой весят мегабайты:
 /// шелл зовёт это из нити, файл читается потоком, без копии в памяти
 pub fn cards() -> Vec<Card> {
-    let Ok(rd) = std::fs::read_dir(themes_dir()) else { return vec![] };
-    let mut v: Vec<Card> = rd
-        .flatten()
-        .map(|e| e.path())
+    // папки тем может ещё не быть: встроенные карточки всё равно есть
+    let files: Vec<PathBuf> = std::fs::read_dir(themes_dir()).map(|rd| rd.flatten().map(|e| e.path()).collect()).unwrap_or_default();
+    let mut v: Vec<Card> = files
+        .into_iter()
         .filter(|p| p.extension().is_some_and(|e| e == "json"))
         .filter_map(|p| {
             let name = p.file_stem()?.to_str()?.to_string();
