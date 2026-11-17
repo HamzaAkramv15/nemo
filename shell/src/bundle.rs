@@ -23,12 +23,21 @@ const FORMAT: &str = "yami-bundle";
 /// ключи вида (camelCase, как в yami-shell.json)
 fn is_look(k: &str) -> bool {
     const EXACT: &[&str] = &[
-        "accent", "palette", "tint", "light", "glass", "lift", "inner", "dim", "blurShell", "blurTerm", "animations", "animSpeed", "animClose", "reveal", "revealGrain", "scanlines", "iconTheme", "iconPixel", "cursor", "cursorSize",
+        "accent", "palette", "tint", "light", "glass", "lift", "inner", "dim", "blurShell", "blurTerm", "preset", "corners", "radius", "shadow", "iconStyle", "animations", "animSpeed", "animClose", "reveal", "revealGrain", "scanlines", "iconTheme", "iconPixel", "cursor", "cursorSize",
         "curtainStyle", "curtainCell", "cpuStyle", "tempStyle", "trayMode", "clockDate", "clockSeconds", "taskWidth", "widgets", "widgetContrast", "titlebars", "fetchFull", "winGap", "winLeft", "winRight", "winTop", "winBottom",
         "mediaViz", "mediaView",
     ];
     // barOutputs, dockPins, wallDir — имена экранов, программы и папки этой машины
     EXACT.contains(&k) || ((k.starts_with("bar") || k.starts_with("wall") || k.starts_with("font") || k.starts_with("dock")) && !matches!(k, "dockPins" | "wallpaper" | "wallDir" | "barOutputs"))
+}
+
+/// темы, что идут с программой (Nemo): применяются как любая тема, но без своих обоев и палитры
+/// (`keepWallpaper`), так что вид меняется, а картинка и цвет остаются твоими
+const BUILTIN: &[(&str, &str)] = &[("Nemo", include_str!("../../config/themes/nemo.json"))];
+
+fn builtin(name: &str) -> Option<Value> {
+    let (_, text) = BUILTIN.iter().find(|(n, _)| n.eq_ignore_ascii_case(name.trim()))?;
+    serde_json::from_str(text).ok()
 }
 
 /// ключи, которые никуда не переносятся: откуда обновления и проверяются ли они
@@ -250,7 +259,7 @@ fn commit(b: &Value, p: Plan, yes: bool, y: Option<&Sty>) -> Result<PathBuf, Str
                 set.insert("wallpaper".into(), Value::String(p.to_string_lossy().to_string()));
             }
         }
-    } else if theme {
+    } else if theme && b["keepWallpaper"] != true {
         // тема без своей картинки — пиксельные обои из её палитры
         set.insert("wallpaper".into(), Value::String(String::new()));
     } else if let Some(p) = b["restore"]["wallpaper"].as_str() {
@@ -419,6 +428,13 @@ pub fn cards() -> Vec<Card> {
         .collect();
     v.sort_by(|a, b| yami_px::paths::natural(&a.name.to_lowercase(), &b.name.to_lowercase()));
     v.truncate(48);
+    // встроенные — первыми (если своя тема не носит то же имя)
+    for (name, _) in BUILTIN.iter().rev() {
+        if !v.iter().any(|c| c.name.eq_ignore_ascii_case(name)) {
+            // акцент карточки — цвет рыбки: сама тема палитру не трогает
+            v.insert(0, Card { name: name.to_string(), accent: 0x6f9ec0, light: false, wall: false });
+        }
+    }
     v
 }
 
@@ -462,14 +478,19 @@ pub fn save(name: &str) -> Result<String, String> {
 }
 
 pub fn remove(name: &str) -> Result<(), String> {
+    if theme_file(name).is_none() && builtin(name).is_some() {
+        return Err(crate::tf!("{} идёт с программой: её не удалить", "{} comes with the program and cannot be removed", "{} vem com o programa e não pode ser removido", name));
+    }
     let p = theme_file(name).ok_or_else(|| crate::tf!("нет такой темы: {}", "no such theme: {}", "tema inexistente: {}", name))?;
     std::fs::remove_file(p).map_err(|e| e.to_string())
 }
 
 /// применить тему из библиотеки (шелл: молча, ответ — ошибкой)
 pub fn apply(name: &str) -> Result<(), String> {
-    let p = theme_file(name).ok_or_else(|| crate::tf!("нет такой темы: {}", "no such theme: {}", "tema inexistente: {}", name))?;
-    let b = load(&p)?;
+    let b = match theme_file(name) {
+        Some(p) => load(&p)?,
+        None => builtin(name).ok_or_else(|| crate::tf!("нет такой темы: {}", "no such theme: {}", "tema inexistente: {}", name))?,
+    };
     commit(&b, plan(&b, true, false), false, None).map(|_| ())
 }
 
@@ -663,6 +684,25 @@ pub fn run(y: &Sty, cmd: &str, args: &[&str]) -> i32 {
 
 #[cfg(test)]
 mod tests {
+        /// встроенная тема Nemo: только ключи вида, не трогает обои, находится без учёта регистра
+    #[test]
+    fn builtin_nemo_theme_is_a_clean_look() {
+        let b = super::builtin("nemo").expect("Nemo");
+        assert_eq!((b["kind"].as_str(), b["format"].as_str(), b["keepWallpaper"].as_bool()), (Some("theme"), Some(super::FORMAT), Some(true)));
+        let keys: Vec<&String> = b["settings"].as_object().unwrap().keys().collect();
+        assert!(keys.len() >= 10);
+        for k in keys {
+            assert!(super::is_look(k), "{k} is not a look key");
+        }
+        // палитры и обоев в ней нет: у человека они свои
+        assert!(b["settings"].get("palette").is_none() && b["settings"].get("accent").is_none() && b["settings"].get("wallpaper").is_none());
+        assert!(super::builtin("no such theme").is_none());
+        // тема, что идёт с программой, настроек читается как есть: каждое значение принимает Settings
+        let mut s = crate::config::Settings::lenient(&b["settings"].to_string());
+        s.sanitize();
+        assert_eq!((s.corners.as_str(), s.icon_style.as_str(), s.cursor.as_str()), ("notch", "normal", "yami"));
+    }
+
     #[test]
     fn base64_round_trip() {
         for d in [&b""[..], b"f", b"fo", b"foo", b"foob", b"fooba", b"foobar", &[0, 255, 128, 7]] {

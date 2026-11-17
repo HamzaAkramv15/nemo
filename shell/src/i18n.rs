@@ -662,7 +662,7 @@ const PAIRS: &[(&str, &str)] = &[
     ("так это выглядит", "how it looks"),
     ("узор из палитры", "a pattern from the palette"),
     ("цвет — из картинки", "colour from the picture"),
-    ("стекло за шторками бара и меню", "glass behind the bar's popups and menus"),
+    ("стекло за шторками бара и меню", "glass behind bar popups and menus"),
     ("окна терминала видны насквозь", "terminal windows are see-through"),
     ("строки развёртки", "scanlines"),
     ("панели как на старом мониторе", "panels like on an old monitor"),
@@ -749,7 +749,7 @@ const PAIRS: &[(&str, &str)] = &[
     // окна
     ("app-id окна: niri msg windows · правила пишутся в ~/.config/yami/niri/rules.kdl", "window app-id: niri msg windows · rules go to ~/.config/yami/niri/rules.kdl"),
     ("app-id через запятую: org.telegram.desktop, imv", "app-ids, comma separated: org.telegram.desktop, imv"),
-    ("в правом нижнем углу", "in the bottom right corner"),
+    ("в правом нижнем углу", "bottom right corner"),
     ("высота", "height"),
     ("картинка в картинке", "picture-in-picture"),
     ("плавающие окна", "floating windows"),

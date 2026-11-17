@@ -46,7 +46,7 @@ yami report [-o FILE]                     # versions, doctor, this boot's journa
 yami setup [STEP]                         # the first-run setup again: language, look, bar, keys, niri, modules (STEP: niri, modules…)
 yami ocr FILE                             # text from an image, the same recognition as «text» in the screenshot overlay (needs tesseract)
 yami theme export FILE | import FILE|URL  # the look as one file: palette, effects, fonts, bar, widgets, wallpaper (never commands); an imported theme is kept in your themes, a URL must be https
-yami theme save [NAME] | list | apply NAME | remove NAME   # your themes in ~/.config/yami/themes (settings → color → themes); save with no name names it after the palette
+yami theme save [NAME] | list | apply NAME | remove NAME   # your themes in ~/.config/yami/themes; `Nemo` is built in (the pixel/normal balance, keeps your palette and wallpaper) (settings → color → themes); save with no name names it after the palette
 yami templates [force NAME]                # render your templates and print what came out of each (force overwrites one changed by hand)
 yami icons [NAME | auto | add PATH]        # icon sets: list them, switch (auto: the system's), install your own from an archive or a folder into ~/.local/share/icons
 yami cursor [NAME | yami | system | size N | add PATH]   # cursors: the yami pixel one, any installed set, system (leave alone); the size; your own set
@@ -103,7 +103,7 @@ file for one run. The files are reread when they change.
 | `palette` | `"blood"` | preset: `blood` `ash` `sakura` `amber` `venom` `ice` `dusk` |
 | `accent` | `""` | own accent `#rrggbb`; empty: the preset's |
 | `preset` | `"yami"` | the style of every module: `yami` (pixel) or `plain` (neutral), [details](#the-look-of-every-module) |
-| `corners`, `shadow` | `""` | `notch` `round` `square`; `hard` `soft` `none`; empty: from the style |
+| `corners`, `shadow` | `""`, `"soft"` | `notch` `round` `square`; `hard` `soft` `none`; empty: from the style |
 | `radius` | `-1` | corner radius in pixels; `-1`: from the style |
 | `colors` | `{}` | your colours over those derived from the accent |
 | `tint` | `1.0` | how strongly the graphite takes the accent's hue |
@@ -112,7 +112,7 @@ file for one run. The files are reread when they change.
 | `inner` | `1.0` | opacity of cards, graphs and fields inside panels |
 | `dim` | `0.5` | dim behind menus and settings |
 | `blurShell`, `blurTerm` | `true` | niri blur under the shell's panels / terminals |
-| `iconStyle` | `""` | the icons of the shell's panels, bar and control panel: `""` follows the style (pixel for the pixel look, normal for the neutral one), `pixel` the 7×7 bitmaps, `normal` smooth vector icons (about forty are drawn; the rest stay pixel). Settings → look |
+| `iconStyle` | `"normal"` | the icons of the shell's panels, bar and control panel: `""` follows the style (pixel for the pixel look, normal for the neutral one), `pixel` the 7×7 bitmaps, `normal` smooth vector icons (about forty are drawn; the rest stay pixel). Settings → look |
 | `blurXray` | `true` | niri's default: blur only the wallpaper behind a panel, so an app window behind it stays sharp (cheap). `false` blurs everything behind panels and terminals, windows too, so a panel looks the same with or without an app behind it (heavier for the GPU). Settings → look |
 | `blurStrength` | `3` | how strong that blur is, 1–8 (niri `passes` and `offset`: 1 is a light haze, 8 is frosted glass and costs the GPU more); 3 is what it was before this setting. Settings → look |
 | `animations` | `true` | Bayer dissolve, panel motion; off everywhere when false |
@@ -183,9 +183,9 @@ Settings → look → «pixel look» moves these keys, `iconPixel` and `cursor` 
 
 | Key | Default | Meaning |
 |---|---|---|
-| `fontShell` | `""` | the shell's font (any fontconfig family); empty: Tiny5. Non-pixel fonts are sized to Tiny5's cap height so layouts hold |
-| `fontFiles`, `fontView` | `""` | yami-files / yami-view; empty: as the shell |
-| `fontUi` | `""` | GTK/Qt apps: empty Tiny5 on its grid, `"sans"` the system sans, or a family (the installer's default is `"sans"`) |
+| `fontShell` | `"sans"` | the shell's font (any fontconfig family); `"sans"` the system sans, empty: Tiny5 (the pixel look). Non-pixel fonts are sized to Tiny5's cap height so layouts hold |
+| `fontFiles`, `fontView` | `"sans"` | yami-files / yami-view; empty: as the shell |
+| `fontUi` | `"sans"` | GTK/Qt apps: empty Tiny5 on its grid, `"sans"` the system sans, or a family |
 | `fontPt` | `0` | size of a non-pixel `fontUi`, pt; 0: 11 |
 | `fontSize` | `0` | size of the pixel `fontUi`: 16, 24, 32 px, or 0 by screen height |
 | `terminalFish` | `true` | kitty starts fish when it is installed (suggestions from history as you type, highlighting); only the terminal, your login shell stays. `false`: kitty starts your usual shell. Settings → fonts → terminal |

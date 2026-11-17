@@ -1,0 +1,24 @@
+{
+  "format": "yami-bundle",
+  "version": 1,
+  "kind": "theme",
+  "yami": "3.0.0",
+  "name": "Nemo",
+  "keepWallpaper": true,
+  "settings": {
+    "preset": "yami",
+    "corners": "notch",
+    "radius": -1,
+    "shadow": "soft",
+    "fontShell": "sans",
+    "fontFiles": "sans",
+    "fontView": "sans",
+    "fontUi": "sans",
+    "fontMono": "",
+    "iconPixel": true,
+    "iconStyle": "normal",
+    "cursor": "yami",
+    "reveal": "dither",
+    "revealGrain": 1
+  }
+}

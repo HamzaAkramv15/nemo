@@ -53,6 +53,7 @@ the modules depend on). What Nemo adds on top of yami 3.0.0:
 - **Night light:** all day with no schedule, a temperature slider, `yami night …` from a terminal or a key.
 - **Blur:** a strength slider, and a real blur that includes the windows behind a panel.
 - **Ready scripts:** twenty small offline scripts for the bar and widgets (`yami scripts`).
+- **The Nemo look:** pixel character where it is cheap (notched corners, the pixel cursor, dithered motion, the fish) and normal where you read (system sans, smooth icons, soft shadows). Also a built-in theme: `yami theme apply Nemo`.
 - **Normal icons:** smooth vector icons for the bar and panels next to the pixel ones (settings → look).
 - **kitty:** fish-style suggestions as you type, notifications for long commands, splits.
 - **The name and the fish.**

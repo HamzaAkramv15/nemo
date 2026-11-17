@@ -849,7 +849,8 @@ pub fn fastfetch(cx: &Cx, p: &P) -> Res {
     let esc = |h: &str| format!("\u{1b}[{}m", e(h));
     let (a, d, f, t) = (p.g("accent"), p.g("border"), p.g("textFaint"), p.g("text"));
     let logo_path = cx.cfg.join("fastfetch/yami-logo.txt");
-    write(&logo_path, &crate::recolor_art::fish_logo(p))?;
+    let logo = crate::recolor_art::fish_logo(p);
+    write(&logo_path, &logo)?;
     let swatch: String = [p.g("bg"), p.g("panel"), p.g("border"), p.g("deep"), a, p.g("bright"), p.g("textDim"), t]
         .iter()
         .map(|c| {
@@ -890,9 +891,11 @@ pub fn fastfetch(cx: &Cx, p: &P) -> Res {
     }
     mods.push(s("break"));
     mods.push(custom(format!("{swatch}\u{1b}[0m")));
+    // знак — по вертикали посередине блока строк, а не прижат к заголовку
+    let top = ((mods.len() as i64 - logo.lines().count() as i64) / 2).max(0);
     let conf = J::O(vec![
         ("$schema", s("https://github.com/fastfetch-cli/fastfetch/raw/dev/doc/json_schema.json")),
-        ("logo", J::O(vec![("type", s("file-raw")), ("source", s(logo_path.display().to_string())), ("padding", J::O(vec![("top", J::I(1)), ("left", J::I(2)), ("right", J::I(4))]))])),
+        ("logo", J::O(vec![("type", s("file-raw")), ("source", s(logo_path.display().to_string())), ("padding", J::O(vec![("top", J::I(top)), ("left", J::I(3)), ("right", J::I(4))]))])),
         (
             "display",
             J::O(vec![
