@@ -599,3 +599,48 @@ impl App {
         self.sync_dock();
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn app(id: &str, name: &str, wm_class: &str) -> DApp {
+        DApp { id: id.into(), name: name.into(), wm_class: wm_class.into(), ..Default::default() }
+    }
+
+    /// окно находит свою программу: по id (без учёта регистра), по классу окна, по последнему куску id, по имени
+    #[test]
+    fn a_window_finds_its_desktop_entry() {
+        let apps = vec![app("firefox", "Firefox", ""), app("Alacritty", "Alacritty", "Alacritty"), app("org.telegram.desktop", "Telegram", "TelegramDesktop"), app("steam", "Steam", "")];
+        let id = |wid: &str| app_for(&apps, wid).map(|a| a.id.as_str());
+        assert_eq!(id("firefox"), Some("firefox"));
+        assert_eq!(id("FIREFOX"), Some("firefox"));
+        assert_eq!(id("alacritty"), Some("Alacritty"));
+        // StartupWMClass: класс окна не похож на id файла
+        assert_eq!(id("TelegramDesktop"), Some("org.telegram.desktop"));
+        // последний кусок id: окно «org.mozilla.firefox», файл «firefox»
+        assert_eq!(id("org.mozilla.firefox"), Some("firefox"));
+        // последнее средство — имя
+        assert_eq!(id("Steam"), Some("steam"));
+        assert_eq!(id("something-unknown"), None);
+    }
+
+    /// точное совпадение id важнее класса окна, а класс — важнее хвоста
+    #[test]
+    fn exact_id_beats_class_beats_tail() {
+        let apps = vec![app("org.example.term", "Term", "term"), app("term", "Other Term", "")];
+        // id «term» точный у второго, у первого «term» — класс и хвост
+        assert_eq!(app_for(&apps, "term").map(|a| a.name.as_str()), Some("Other Term"));
+        let apps = vec![app("com.vendor.editor", "Editor", ""), app("editor", "Plain Editor", "Editor")];
+        // у окна «Editor»: id нет ни у кого, класс — у второго, хвост — у обоих: берётся класс
+        assert_eq!(app_for(&apps, "Editor").map(|a| a.name.as_str()), Some("Plain Editor"));
+    }
+
+    /// без файла программы окно остаётся в доке под своим app-id
+    #[test]
+    fn a_window_without_an_entry_keeps_its_app_id() {
+        let w = Win { app_id: "weird-tool".into(), ..Default::default() };
+        assert_eq!(key_of(&[], &w), "weird-tool");
+        assert_eq!(key_of(&[app("weird-tool.desktop", "Tool", "")], &w), "weird-tool");
+    }
+}

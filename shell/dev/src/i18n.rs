@@ -493,3 +493,83 @@ fn installer() -> (Vec<String>, String) {
     }
     (problems, if line.is_empty() { String::new() } else { format!("installer {}", line.join(", ")) })
 }
+
+/// `yami-dev i18n-new РУС АНГЛ --pt ТЕКСТ [--de ТЕКСТ …]`: одна новая надпись вместо ручной правки семи
+/// таблиц. Русская и английская пара — в PAIRS (shell/src/i18n.rs), перевод на каждый язык — в его
+/// таблицу, ключом идёт английский текст. Португальский обязателен (на нём проверка), остальные
+/// языки без перевода показывают английский. Дубликат русской или английской надписи — ошибка.
+pub fn new_string(args: &[String]) -> i32 {
+    let mut free: Vec<&str> = vec![];
+    let mut tr: Vec<(&str, &str)> = vec![];
+    let mut i = 0;
+    while i < args.len() {
+        match args[i].strip_prefix("--") {
+            Some(code) if ["pt", "de", "fr", "es", "uk", "pl"].contains(&code) && i + 1 < args.len() => {
+                tr.push((code, args[i + 1].as_str()));
+                i += 2;
+            }
+            Some(_) => {
+                eprintln!("i18n-new: unknown option {}", args[i]);
+                return 2;
+            }
+            None => {
+                free.push(&args[i]);
+                i += 1;
+            }
+        }
+    }
+    let [ru, en] = free[..] else {
+        eprintln!("usage: yami-dev i18n-new RU EN --pt TEXT [--de TEXT --fr TEXT --es TEXT --uk TEXT --pl TEXT]");
+        return 2;
+    };
+    if !tr.iter().any(|(c, _)| *c == "pt") {
+        eprintln!("i18n-new: --pt is required (the check wants every English text in Portuguese)");
+        return 2;
+    }
+    let q = |s: &str| format!("\"{}\"", s.replace('\\', "\\\\").replace('"', "\\\""));
+    let dir = crate::root().join("shell/src");
+    let pairs_path = dir.join("i18n.rs");
+    let Ok(pairs) = std::fs::read_to_string(&pairs_path) else {
+        eprintln!("i18n-new: cannot read {}", pairs_path.display());
+        return 1;
+    };
+    let (kru, ken) = (q(ru), q(en));
+    if pairs.contains(&format!("({kru},")) || pairs.contains(&format!(", {ken})")) {
+        eprintln!("i18n-new: that Russian or English text is already in PAIRS");
+        return 1;
+    }
+    // конец массива PAIRS: первая строка «];» после его объявления
+    let lines: Vec<&str> = pairs.split('\n').collect();
+    let Some(start) = lines.iter().position(|l| l.starts_with("const PAIRS")) else {
+        eprintln!("i18n-new: PAIRS not found");
+        return 1;
+    };
+    let Some(end) = lines[start..].iter().position(|l| *l == "];").map(|n| start + n) else {
+        eprintln!("i18n-new: the end of PAIRS not found");
+        return 1;
+    };
+    let mut out: Vec<String> = lines.iter().map(|s| s.to_string()).collect();
+    out.insert(end, format!("    ({kru}, {ken}),"));
+    if std::fs::write(&pairs_path, out.join("\n")).is_err() {
+        eprintln!("i18n-new: cannot write PAIRS");
+        return 1;
+    }
+    for (code, text) in &tr {
+        let file = dir.join(format!("i18n_{}.rs", if *code == "pt" { "pt_br" } else { code }));
+        let Ok(s) = std::fs::read_to_string(&file) else {
+            eprintln!("i18n-new: cannot read {}", file.display());
+            return 1;
+        };
+        let Some(at) = s.trim_end().rfind("];") else {
+            eprintln!("i18n-new: no table end in {}", file.display());
+            return 1;
+        };
+        let t = format!("{}    ({ken}, {}),\n{}", &s[..at], q(text), &s[at..]);
+        if std::fs::write(&file, t).is_err() {
+            eprintln!("i18n-new: cannot write {}", file.display());
+            return 1;
+        }
+    }
+    println!("added to PAIRS and {} table(s). Next: yami-dev check-i18n, then yami-shell shot --defaults --fit --lang LANG -o DIR for each language", tr.len());
+    0
+}

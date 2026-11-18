@@ -5,6 +5,7 @@
 //   yami-dev check-i18n [ПАПКА …]       у каждой русской строки есть перевод
 //   yami-dev i18n-todo КОД [ПАПКА]       непереведённые строки языка, по номерам (ПАПКА installer — установщик)
 //   yami-dev i18n-add КОД ФАЙЛ [ПАПКА]   вписать переводы «номер<TAB>текст» в таблицу языка
+//   yami-dev i18n-new РУС АНГЛ --pt ТЕКСТ [--de … --fr … --es … --uk … --pl …]   новая надпись во все таблицы шелла разом
 //   yami-dev readme-art [#акцент]       картинки README
 //   yami-dev changelog ВЕРСИЯ           «Unreleased» становится выпуском
 //   yami-dev nar-hash ПАПКА             sha256 архива NAR (как у nix)
@@ -39,6 +40,7 @@ fn main() {
         Some("check-i18n") => i18n::run(rest),
         Some("i18n-todo") => i18n::todo(rest),
         Some("i18n-add") => i18n::add(rest),
+        Some("i18n-new") => i18n::new_string(rest),
         Some("readme-art") => art::run(rest),
         Some("changelog") => docs::changelog(rest),
         Some("nar-hash") => flake::run_nar(rest),

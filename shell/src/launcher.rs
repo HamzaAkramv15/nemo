@@ -150,12 +150,18 @@ fn score(hay: &str, q: &str) -> i32 {
     if hay.starts_with(q) {
         return 100;
     }
-    if let Some(i) = hay.find(q) {
-        let prev = hay[..i].chars().last();
-        if matches!(prev, Some(' ') | Some('-') | Some('_') | Some('.')) {
-            return 80;
+    // совпадение в начале любого слова весит больше, чем где-то внутри: смотрим все вхождения,
+    // а не первое («s» в «Visual Studio Code» — это «Studio», а не середина «Visual»)
+    if hay.contains(q) {
+        let at_word_start = hay.match_indices(q).any(|(i, _)| matches!(hay[..i].chars().last(), Some(' ') | Some('-') | Some('_') | Some('.')));
+        return if at_word_start { 80 } else { 60 };
+    }
+    // инициалы слов: «vsc» → Visual Studio Code, «gc» → Google Chrome (от двух букв: одна буква — не сокращение)
+    if q.chars().count() >= 2 {
+        let initials: String = hay.split(|c: char| !c.is_alphanumeric()).filter_map(|w| w.chars().next()).collect();
+        if initials.starts_with(q) {
+            return 70;
         }
-        return 60;
     }
     let qc: Vec<char> = q.chars().collect();
     let mut j = 0;
@@ -825,4 +831,38 @@ pub fn draw(ui: &mut Ui, st: &State, w: i32, h: i32) {
     // строка подсказок внизу
     let hint = if l.clip { "Enter — скопировать · Ctrl+P — закрепить · Del — удалить · Tab — программы" } else { "Enter — запустить · = считать · > команда · / файлы · ? настройки · Tab — буфер" };
     ui.text_in(PX, R::new(fx, fr.h - 30, fr.w - 28, 20), hint, t.text_faint);
+}
+
+#[cfg(test)]
+mod tests {
+    use super::score;
+
+    /// порядок выдачи: начало названия, начало слова, сокращение, подстрока, буквы по порядку, ничего
+    #[test]
+    fn the_ranking_is_pinned() {
+        let prefix = score("Firefox", "fire");
+        let word = score("Mozilla Firefox", "fire");
+        let acronym = score("Visual Studio Code", "vsc");
+        let inner = score("Telegram Desktop", "gram");
+        let fuzzy = score("Telegram Desktop", "tgd");
+        assert_eq!((prefix, word, acronym, inner, fuzzy), (100, 80, 70, 60, 20));
+        assert!(prefix > word && word > acronym && acronym > inner && inner > fuzzy && fuzzy > 0);
+        assert_eq!(score("Firefox", "zzz"), 0);
+    }
+
+    #[test]
+    fn acronyms_need_two_letters_and_follow_word_order() {
+        assert_eq!(score("Google Chrome", "gc"), 70);
+        assert_eq!(score("OBS Studio", "os"), 70);
+        // одна буква — это начало названия или слова, не сокращение
+        assert_eq!(score("Visual Studio Code", "s"), 80);
+        // порядок слов важен: «cg» не Google Chrome
+        assert!(score("Google Chrome", "cg") < 70);
+    }
+
+    #[test]
+    fn case_and_empty_queries() {
+        assert_eq!(score("FIREFOX", "fire"), 100);
+        assert_eq!(score("anything", ""), 1);
+    }
 }
