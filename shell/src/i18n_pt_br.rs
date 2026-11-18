@@ -1222,4 +1222,9 @@ const PT_BR: &[(&str, &str)] = &[
     ("ready scripts:", "scripts prontos:"),
     ("ready scripts", "scripts prontos"),
     ("press a script: it becomes a widget on the desktop", "clique num script: ele vira um widget na área de trabalho"),
+    ("startup apps", "inicialização"),
+    ("programs that start when you log in", "programas que iniciam no login"),
+    ("not for this desktop", "não é para esta área de trabalho"),
+    ("nothing in startup", "nada na inicialização"),
+    ("turning one off writes a marker file in ~/.config/autostart; removing it turns it back on", "desligar grava um arquivo-marca em ~/.config/autostart; removê-lo liga de novo"),
 ];

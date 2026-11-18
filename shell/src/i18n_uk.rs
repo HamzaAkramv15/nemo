@@ -1446,4 +1446,9 @@ const UK: &[(&str, &str)] = &[
     ("ready scripts:", "готові скрипти:"),
     ("ready scripts", "готові скрипти"),
     ("press a script: it becomes a widget on the desktop", "натисни скрипт: він стане віджетом на столі"),
+    ("startup apps", "автозапуск"),
+    ("programs that start when you log in", "програми, що запускаються під час входу"),
+    ("not for this desktop", "не для цього стола"),
+    ("nothing in startup", "в автозапуску нічого немає"),
+    ("turning one off writes a marker file in ~/.config/autostart; removing it turns it back on", "вимкнення пише файл-позначку в ~/.config/autostart; прибрати її — увімкнути"),
 ];

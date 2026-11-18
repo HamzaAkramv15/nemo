@@ -98,6 +98,8 @@ pub enum Act {
     SWidgetAdd(&'static str),
     /// готовый скрипт виджетом: кладёт его в папку скриптов (если нет) и добавляет виджет «скрипт» с ним
     SWidgetAddScript(&'static str),
+    /// запись автозапуска по номеру в списке startup::entries
+    SStartup(usize),
     SWidgetDel(u32),
     SWidgetOpt(u32, &'static str),
     SWidgetSel(u32),

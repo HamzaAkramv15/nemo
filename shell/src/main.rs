@@ -24,6 +24,7 @@ mod camera;
 mod privacy;
 mod caffeine;
 mod catalog;
+mod startup;
 mod locate;
 mod scriptlib;
 mod bundle;

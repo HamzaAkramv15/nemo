@@ -1446,4 +1446,9 @@ const DE: &[(&str, &str)] = &[
     ("ready scripts:", "fertige Skripte:"),
     ("ready scripts", "fertige Skripte"),
     ("press a script: it becomes a widget on the desktop", "Skript anklicken: es wird ein Widget auf dem Desktop"),
+    ("startup apps", "Autostart"),
+    ("programs that start when you log in", "Programme, die beim Anmelden starten"),
+    ("not for this desktop", "nicht für diesen Desktop"),
+    ("nothing in startup", "nichts im Autostart"),
+    ("turning one off writes a marker file in ~/.config/autostart; removing it turns it back on", "Ausschalten legt eine Markierungsdatei in ~/.config/autostart an; sie zu löschen schaltet wieder ein"),
 ];

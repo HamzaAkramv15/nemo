@@ -627,6 +627,10 @@ impl App {
                 self.st.sel_widget = id;
                 self.settings_changed();
             }
+            Act::SStartup(i) => {
+                crate::startup::toggle(*i);
+                self.dirty(&SKind::Modal);
+            }
             Act::SWidgetAddScript(name) => {
                 // готовый скрипт в папку (свой файл с этим именем остаётся как есть)
                 let _ = crate::scriptlib::add(name);

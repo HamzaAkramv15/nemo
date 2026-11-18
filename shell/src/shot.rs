@@ -45,6 +45,7 @@ const TARGETS: &[&str] = &[
     "settings:wall-skwd",
     "settings:widgets",
     "settings:widgets-scripts",
+    "settings:startup",
     "settings:look",
     "settings:anim",
     "settings:look-sets",
@@ -421,6 +422,9 @@ fn shoot(st: &mut State, res: &mut Res, target: &str, path: &Path) {
             }
             if arg == "screens" {
                 st.disp.outs = crate::displays::mock();
+            }
+            if arg == "startup" {
+                crate::startup::mock();
             }
             if arg == "widgets-scripts" {
                 st.stab = "widgets";

@@ -54,6 +54,7 @@ the modules depend on). What Nemo adds on top of yami 3.0.0:
 - **Blur:** a strength slider, and a real blur that includes the windows behind a panel.
 - **Ready scripts:** twenty small offline scripts for the bar and widgets (`nemo scripts`).
 - **The Nemo look:** pixel character where it is cheap (notched corners, the pixel cursor, dithered motion, the fish) and normal where you read (system sans, smooth icons, soft shadows). Also a built-in theme: `nemo theme apply Nemo`.
+- **Startup apps:** a page that lists what starts at login with a switch for each (settings → system → startup apps), reversible and never deleting your files.
 - **Normal icons:** smooth vector icons for the bar and panels next to the pixel ones (settings → look).
 - **kitty:** fish-style suggestions as you type, notifications for long commands, splits.
 - **The name and the fish.**
