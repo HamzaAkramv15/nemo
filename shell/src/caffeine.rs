@@ -45,6 +45,23 @@ fn hold() -> mpsc::Sender<()> {
 }
 
 /// «30», «30m», «2h», «1h30m»-не-надо: минуты числом, с «m» или часы с «h»; 0 и мусор — None
+/// сроки правой кнопки, минуты; 0 — без срока
+pub const PRESETS: [u32; 5] = [30, 60, 120, 240, 0];
+
+/// что включить следующим: выключено — первый срок; идёт срок — ближайший больше остатка; без срока — выключить (None)
+pub fn next_preset(on: bool, left: Option<u64>) -> Option<u32> {
+    if !on {
+        return Some(PRESETS[0]);
+    }
+    let Some(left) = left else { return None };
+    PRESETS.iter().copied().find(|&p| p != 0 && p as u64 > left).or(Some(0))
+}
+
+/// «30 мин» / «2 ч»
+fn fmt_span(m: u32) -> String {
+    if m >= 60 && m % 60 == 0 { format!("{}h", m / 60) } else { format!("{m}m") }
+}
+
 pub fn parse_minutes(s: &str) -> Option<u32> {
     let s = s.trim();
     let (num, mult) = match s.strip_suffix('h') {
@@ -81,6 +98,20 @@ impl App {
         self.caffeine_set(on, minutes);
     }
 
+    /// правая кнопка на чашке: следующий срок из набора (потом «пока не выключу», потом выкл.)
+    pub fn caffeine_preset(&mut self) {
+        let left = self.st.caffeine.left_min();
+        let on = self.st.caffeine.on;
+        match next_preset(on, left) {
+            Some(m) => {
+                self.caffeine_set(true, m);
+                let say = if m == 0 { "кофе включён, пока не выключишь".to_string() } else { crate::tf!("кофе включён на {}", "caffeine on for {}", "café ligado por {}", fmt_span(m)) };
+                self.toast_note("кофе", &say);
+            }
+            None => self.caffeine_set(false, 0),
+        }
+    }
+
     /// `yami caffeine on|off|toggle|N`
     pub fn caffeine_cmd(&mut self, arg: &str) {
         match arg.trim() {
@@ -106,6 +137,18 @@ impl App {
 
 #[cfg(test)]
 mod tests {
+    #[test]
+    fn right_click_presets_walk_up_then_unlimited_then_off() {
+        use super::next_preset as n;
+        assert_eq!(n(false, None), Some(30));
+        assert_eq!(n(true, Some(25)), Some(30));
+        assert_eq!(n(true, Some(30)), Some(60));
+        assert_eq!(n(true, Some(59)), Some(60));
+        assert_eq!(n(true, Some(200)), Some(240));
+        assert_eq!(n(true, Some(240)), Some(0));
+        assert_eq!(n(true, None), None);
+    }
+
     #[test]
     fn minutes_are_parsed() {
         assert_eq!(super::parse_minutes("30"), Some(30));

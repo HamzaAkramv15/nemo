@@ -1232,4 +1232,7 @@ const PT_BR: &[(&str, &str)] = &[
     ("everything on this page is already the default", "tudo nesta página já está no padrão"),
     ("the page is back to its defaults", "a página voltou ao padrão"),
     ("search", "buscar"),
+    ("caffeine on until you turn it off", "café ligado até você desligar"),
+    ("caffeine on for {}", "café ligado por {}"),
+    ("{} K", "{} K"),
 ];

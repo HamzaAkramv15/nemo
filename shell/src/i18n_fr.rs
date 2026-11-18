@@ -1456,4 +1456,7 @@ const FR: &[(&str, &str)] = &[
     ("everything on this page is already the default", "tout est déjà par défaut ici"),
     ("the page is back to its defaults", "la page est revenue aux valeurs par défaut"),
     ("search", "chercher"),
+    ("caffeine on until you turn it off", "caféine active jusqu'à l'arrêt"),
+    ("caffeine on for {}", "caféine active pour {}"),
+    ("{} K", "{} K"),
 ];

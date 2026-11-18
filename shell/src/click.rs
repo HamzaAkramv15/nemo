@@ -68,7 +68,9 @@ impl App {
             // ── бар ─────────────────────────────────────────────────────────
             Act::Launcher => self.toggle_modal(Modal::Launcher, button == RMB),
             Act::Plug(cmd) => App::sh(&cmd),
+            Act::NightToggle if button == RMB => self.night_preset(),
             Act::NightToggle => self.night_toggle(),
+            Act::CaffeineToggle if button == RMB => self.caffeine_preset(),
             Act::CaffeineToggle => self.caffeine_toggle(),
             Act::ReplySend => self.reply_send(),
             Act::Power => self.toggle_modal(Modal::Power, false),

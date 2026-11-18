@@ -1456,4 +1456,7 @@ const UK: &[(&str, &str)] = &[
     ("everything on this page is already the default", "на цій сторінці все й так за замовчуванням"),
     ("the page is back to its defaults", "сторінку повернуто до типових значень"),
     ("search", "пошук"),
+    ("caffeine on until you turn it off", "кава ввімкнена, доки не вимкнеш"),
+    ("caffeine on for {}", "кава ввімкнена на {}"),
+    ("{} K", "{} K"),
 ];

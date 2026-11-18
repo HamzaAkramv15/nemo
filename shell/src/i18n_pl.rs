@@ -1456,4 +1456,7 @@ const PL: &[(&str, &str)] = &[
     ("everything on this page is already the default", "wszystko na tej stronie jest już domyślne"),
     ("the page is back to its defaults", "strona wróciła do ustawień domyślnych"),
     ("search", "szukaj"),
+    ("caffeine on until you turn it off", "kofeina włączona do wyłączenia"),
+    ("caffeine on for {}", "kofeina włączona na {}"),
+    ("{} K", "{} K"),
 ];

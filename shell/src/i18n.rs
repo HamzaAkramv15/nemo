@@ -1092,4 +1092,7 @@ const PAIRS: &[(&str, &str)] = &[
     ("на этой странице всё и так по умолчанию", "everything on this page is already the default"),
     ("страница возвращена к значениям по умолчанию", "the page is back to its defaults"),
     ("поиск", "search"),
+    ("кофе включён, пока не выключишь", "caffeine on until you turn it off"),
+    ("кофе включён на {}", "caffeine on for {}"),
+    ("{} К", "{} K"),
 ];

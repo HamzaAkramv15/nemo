@@ -118,6 +118,18 @@ impl App {
         self.save_now();
     }
 
+    /// правая кнопка на луне: следующая температура из набора (тёплый вечер → очень тёплый → мягкий), и включить
+    pub fn night_preset(&mut self) {
+        if !crate::doctor::which("wlsunset") {
+            self.toast_note("ночной свет", "нужен wlsunset: поставь его из своего дистрибутива");
+            return;
+        }
+        self.st.set.night = true;
+        self.st.set.night_temp = next_temp(self.st.set.night_temp);
+        self.settings_changed();
+        self.toast_note("ночной свет", &crate::tf!("{} К", "{} K", "{} K", self.st.set.night_temp));
+    }
+
     pub fn night_toggle(&mut self) {
         if !crate::doctor::which("wlsunset") {
             self.toast_note("ночной свет", "нужен wlsunset: поставь его из своего дистрибутива");
@@ -128,8 +140,26 @@ impl App {
     }
 }
 
+/// температуры правой кнопки, кельвины: от мягкой к тёплой, и по кругу
+pub const TEMPS: [i32; 4] = [4500, 3500, 2800, 2500];
+
+/// следующая температура из набора: ближайшая ниже текущей, а ниже всех — снова самая мягкая
+pub fn next_temp(cur: i32) -> i32 {
+    TEMPS.iter().copied().find(|&t| t < cur).unwrap_or(TEMPS[0])
+}
+
 #[cfg(test)]
 mod tests {
+    #[test]
+    fn temp_presets_cycle_downwards() {
+        assert_eq!(super::next_temp(6000), 4500);
+        assert_eq!(super::next_temp(4500), 3500);
+        assert_eq!(super::next_temp(4000), 3500);
+        assert_eq!(super::next_temp(2800), 2500);
+        assert_eq!(super::next_temp(2500), 4500);
+        assert!(super::TEMPS.iter().all(|t| (2500..=6000).contains(t)));
+    }
+
     #[test]
     fn coords() {
         assert_eq!(super::geo("55.75, 37.62"), Some((55.75, 37.62)));
