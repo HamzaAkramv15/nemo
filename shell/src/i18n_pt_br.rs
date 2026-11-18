@@ -1227,4 +1227,9 @@ const PT_BR: &[(&str, &str)] = &[
     ("not for this desktop", "não é para esta área de trabalho"),
     ("nothing in startup", "nada na inicialização"),
     ("turning one off writes a marker file in ~/.config/autostart; removing it turns it back on", "desligar grava um arquivo-marca em ~/.config/autostart; removê-lo liga de novo"),
+    ("reset page", "redefinir página"),
+    ("click again to reset", "clique de novo: redefinir"),
+    ("everything on this page is already the default", "tudo nesta página já está no padrão"),
+    ("the page is back to its defaults", "a página voltou ao padrão"),
+    ("search", "buscar"),
 ];

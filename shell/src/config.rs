@@ -457,6 +457,49 @@ pub struct Settings {
 }
 
 /// группа модуля — только для переноса старых настроек (migrate_seps)
+/// какие ключи настроек принадлежат странице настроек: их сбрасывает «сбросить страницу». Нет в списке —
+/// у страницы нет кнопки (клавиши, обновления, Bluetooth, скриншоты: их состояние лежит не только здесь).
+/// Ключ с «*» в конце — все ключи с таким началом
+pub fn page_keys(tab: &str) -> &'static [&'static str] {
+    match tab {
+        "color" => &["palette", "accent", "tint", "light", "glass", "lift", "inner", "dim", "wallAccent", "wallScheme", "wallSkwd", "wallSkwdColors", "themeGtk4", "themeApps", "templatesOff"],
+        "look" => &["preset", "corners", "radius", "shadow", "blurShell", "blurTerm", "blurStrength", "blurXray", "lite", "scanlines", "iconPixel", "iconTint", "iconStyle", "iconTheme", "cursor", "cursorSize"],
+        "fonts" => &["fontShell", "fontFiles", "fontView", "fontUi", "fontPt", "fontSize", "fontMono", "browserMenus", "browserFont", "terminalFish", "fetchFull"],
+        "anim" => &["animations", "animSpeed", "animClose", "reveal", "revealGrain", "anims"],
+        "wall" => &["wallDir", "wallFit", "wallPixel", "wallTone", "wallDim", "wallKanji"],
+        "bar" => &["bar*", "clockSeconds", "clockDate", "clock12", "dateStyle", "weekStart", "taskWidth", "cpuStyle", "tempStyle", "trayMode", "trayPixel", "batHideFull", "privacyMic", "privacyCam", "privacyScreen", "mediaViz", "mediaView", "controlTiles"],
+        "widgets" => &["widgets", "widgetContrast"],
+        "dock" => &["dock*"],
+        "windows" => &["stacking", "titlebars", "floatMedia", "floatPip", "floatApps", "floatW", "floatH", "winGap", "winLeft", "winRight", "winTop", "winBottom", "winRadius", "winBorder", "castHide"],
+        "notif" => &["dnd", "notifTimeout", "notifMax", "notifHistory", "notifPos", "osdPos", "osdBright", "notifOffset", "osdOffset", "notifImages"],
+        "system" => &["lockAfter", "screenOffAfter", "lockSleep", "night", "nightTemp", "nightGeo", "nightOnH", "nightOffH", "nightAlways", "caffeineMinutes", "sessionRestore"],
+        "games" => &["game*"],
+        "login" => &["greet*"],
+        _ => &[],
+    }
+}
+
+impl Settings {
+    /// вернуть ключи страницы к значениям по умолчанию; сколько ключей изменилось
+    pub fn reset_page(&mut self, tab: &str) -> usize {
+        let defaults = serde_json::to_value(Settings::default()).unwrap_or_default();
+        let mut cur = serde_json::to_value(&*self).unwrap_or_default();
+        let (Some(d), Some(c)) = (defaults.as_object(), cur.as_object_mut()) else { return 0 };
+        let mut n = 0;
+        for k in d.keys() {
+            let hit = page_keys(tab).iter().any(|p| p.strip_suffix('*').map_or(*p == k, |pre| k.starts_with(pre)));
+            if hit && c.get(k) != d.get(k) {
+                c.insert(k.clone(), d[k].clone());
+                n += 1;
+            }
+        }
+        if let Ok(s) = serde_json::from_value::<Settings>(cur) {
+            *self = s;
+        }
+        n
+    }
+}
+
 /// проходы и смещение размытия niri по силе 1–8: слабее — мягкая дымка, сильнее — матовое стекло
 /// (больше проходов — дороже для видеокарты, так что верх шкалы нужен не всем); 3 = прежние 3 и 3
 pub fn blur_params(strength: i32) -> (i32, i32) {
@@ -1329,6 +1372,42 @@ impl Settings {
 
 #[cfg(test)]
 mod tests {
+
+    /// у каждого ключа страницы есть ключ в настройках: опечатка не должна молча оставить ключ несброшенным
+    #[test]
+    fn every_page_key_exists() {
+        let d = serde_json::to_value(Settings::default()).unwrap();
+        let keys: Vec<&String> = d.as_object().unwrap().keys().collect();
+        for tab in ["color", "look", "fonts", "anim", "wall", "bar", "widgets", "dock", "windows", "notif", "system", "games", "login"] {
+            let list = super::page_keys(tab);
+            assert!(!list.is_empty(), "{tab}");
+            for p in list {
+                let found = match p.strip_suffix('*') {
+                    Some(pre) => keys.iter().any(|k| k.starts_with(pre)),
+                    None => keys.iter().any(|k| *k == p),
+                };
+                assert!(found, "page {tab}: no setting called {p}");
+            }
+        }
+        assert!(super::page_keys("keys").is_empty() && super::page_keys("updates").is_empty());
+    }
+
+    /// сброс страницы возвращает только её ключи
+    #[test]
+    fn reset_page_touches_only_its_own_keys() {
+        let mut s = Settings { clock12: true, dock_size: 64, night_temp: 3000, palette: "ash".into(), ..Settings::default() };
+        let n = s.reset_page("dock");
+        assert!(n >= 1);
+        assert_eq!(s.dock_size, Settings::default().dock_size);
+        // чужие страницы не тронуты
+        assert!(s.clock12 && s.night_temp == 3000 && s.palette == "ash");
+        assert_eq!(s.reset_page("dock"), 0);
+        assert_eq!(s.reset_page("bar") >= 1, true);
+        assert!(!s.clock12);
+        // страница без ключей — ничего
+        assert_eq!(s.reset_page("keys"), 0);
+        assert_eq!(s.night_temp, 3000);
+    }
     use super::Settings;
 
     #[test]

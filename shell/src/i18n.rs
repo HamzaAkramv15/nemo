@@ -1087,4 +1087,9 @@ const PAIRS: &[(&str, &str)] = &[
     ("не для этого рабочего стола", "not for this desktop"),
     ("в автозапуске ничего нет", "nothing in startup"),
     ("выключение — файл-пометка в ~/.config/autostart; убрать его — включить", "turning one off writes a marker file in ~/.config/autostart; removing it turns it back on"),
+    ("сбросить страницу", "reset page"),
+    ("нажми ещё раз: сбросить", "click again to reset"),
+    ("на этой странице всё и так по умолчанию", "everything on this page is already the default"),
+    ("страница возвращена к значениям по умолчанию", "the page is back to its defaults"),
+    ("поиск", "search"),
 ];

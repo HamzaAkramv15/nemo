@@ -1451,4 +1451,9 @@ const PL: &[(&str, &str)] = &[
     ("not for this desktop", "nie dla tego pulpitu"),
     ("nothing in startup", "autostart jest pusty"),
     ("turning one off writes a marker file in ~/.config/autostart; removing it turns it back on", "wyłączenie zapisuje plik-znacznik w ~/.config/autostart; usunięcie go włącza z powrotem"),
+    ("reset page", "zresetuj stronę"),
+    ("click again to reset", "jeszcze raz: resetuj"),
+    ("everything on this page is already the default", "wszystko na tej stronie jest już domyślne"),
+    ("the page is back to its defaults", "strona wróciła do ustawień domyślnych"),
+    ("search", "szukaj"),
 ];

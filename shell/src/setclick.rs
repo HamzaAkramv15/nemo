@@ -393,6 +393,25 @@ impl App {
                     self.st.widget_scripts = !self.st.widget_scripts;
                     self.dirty(&SKind::Modal);
                 }
+                "reset_page" => {
+                    let tab = self.st.stab;
+                    let armed = self.st.reset_armed.is_some_and(|(t, at)| t == tab && at.elapsed().as_secs() < 5);
+                    if !armed {
+                        self.st.reset_armed = Some((tab, std::time::Instant::now()));
+                    } else {
+                        self.st.reset_armed = None;
+                        let n = self.st.set.reset_page(tab);
+                        self.settings_changed();
+                        self.save_now();
+                        // шрифты программ и курсор перекрашивает recolor: только если ключи страницы их касаются
+                        if tab == "fonts" || tab == "look" {
+                            self.apply_fonts();
+                            self.apply_cursor();
+                        }
+                        self.toast_note("настройки", if n == 0 { "на этой странице всё и так по умолчанию" } else { "страница возвращена к значениям по умолчанию" });
+                    }
+                    self.dirty(&SKind::Modal);
+                }
                 "scripts_add" => {
                     for (n, _) in crate::scriptlib::ALL {
                         let _ = crate::scriptlib::add(n);

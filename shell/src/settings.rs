@@ -129,6 +129,25 @@ pub(crate) fn scrollbar(ui: &mut Ui, r: R, view: i32, full: i32, at: i32) {
     ui.cv.fill(R::new(r.x, ty, 4, th), t.red);
 }
 
+/// вкладка подходит запросу: все слова запроса есть в её названии (как на экране и по-русски) или в
+/// словах-подсказках (на всех языках сразу), без учёта регистра
+/// высота поля поиска над списком вкладок
+const SEARCH_H: i32 = 36;
+
+pub fn tab_matches(tb: &Tab, query: &str) -> bool {
+    let q = query.trim().to_lowercase();
+    if q.is_empty() {
+        return true;
+    }
+    let hay = format!("{} {} {}", tb.name, crate::i18n::tr(tb.name), tb.find).to_lowercase();
+    q.split_whitespace().all(|w| hay.contains(w))
+}
+
+/// вкладки, подходящие запросу, по порядку
+pub fn matching(st: &State, query: &str) -> Vec<&'static Tab> {
+    tabs().filter(|tb| st.mods_here.shows(tb.id) && tab_matches(tb, query)).collect()
+}
+
 pub fn draw(ui: &mut Ui, st: &State, w: i32, h: i32) {
     if st.welcome.is_some() {
         return crate::welcome::draw(ui, st, w, h);
@@ -141,20 +160,35 @@ pub fn draw(ui: &mut Ui, st: &State, w: i32, h: i32) {
     // за заголовок окно двигается (крестик зарегистрирован позже — он сверху)
     ui.zone(R::new(1, 1, fr.w - 2, 30), Act::MDrag, Cur::Default);
     ui.ghost(R::new(fr.right() - 28, 5, 24, 22), "close", Act::CloseModal);
+    // «сбросить страницу»: у страниц с ключами настроек; первый щелчок спрашивает, второй (пять секунд) сбрасывает
+    if !crate::config::page_keys(st.stab).is_empty() {
+        let armed = st.reset_armed.is_some_and(|(tab, at)| tab == st.stab && at.elapsed().as_secs() < 5);
+        let label = if armed { "нажми ещё раз: сбросить" } else { "сбросить страницу" };
+        let bw = (ui.w(PX, label) + 40).min(fr.w - 330);
+        ui.button(R::new(fr.right() - 34 - bw, 5, bw, 22), label, "reboot", if armed { Tone::Primary } else { Tone::Ghost }, armed, true, Act::SCycle("reset_page"));
+    }
     // вкладки группами; список длиннее окна — листается колесом
     let sw = side_w(ui, st);
     let side = side_rect(h, sw);
     ui.cv.fill(side, t.panel.alpha(0.5));
     ui.cv.fill(R::new(side.right(), side.y, 1, side.h), t.border);
     ui.zone(side, Act::SSideScroll, Cur::Default);
-    ui.cv.push_clip(side);
-    let mut y = side.y + 8 - st.stab_scroll;
+    // поиск по вкладкам над списком: пишешь «ночь», «часы», «blur» — остаются подходящие вкладки
+    let query = st.search_field.text.clone();
+    let focused = st.field_focus == Some("set_search");
+    ui.field(R::new(side.x + 8, side.y + 6, side.w - 16, 24), &st.search_field, "поиск", focused, false, Act::SField("set_search"));
+    ui.cv.push_clip(R::new(side.x, side.y + SEARCH_H, side.w, side.h - SEARCH_H));
+    let mut y = side.y + SEARCH_H + 8 - st.stab_scroll;
+    let any = !query.trim().is_empty();
     for (gname, tabs) in GROUPS {
+        if any && !tabs.iter().any(|tb| st.mods_here.shows(tb.id) && tab_matches(tb, &query)) {
+            continue;
+        }
         ui.cv.fill(R::new(side.x + 12, y + 8, 4, 4), t.red.alpha(0.7));
         ui.text_in(PX, R::new(side.x + 22, y, side.w - 30, HEAD_H - 4), gname, t.text_faint);
         y += HEAD_H;
         // вкладки модулей, которых нет (скриншоты без yami-shot, экран входа без yami-greet), прячутся
-        for tb in tabs.iter().filter(|tb| st.mods_here.shows(tb.id)) {
+        for tb in tabs.iter().filter(|tb| st.mods_here.shows(tb.id) && tab_matches(tb, &query)) {
             let r = R::new(side.x + 8, y, side.w - 16, ROW_H - 2);
             ui.button(r, tb.name, tb.icon, Tone::Ghost, st.stab == tb.id, true, Act::STab(tb.id));
             if st.stab == tb.id {
@@ -280,9 +314,22 @@ impl App {
         }
         if let Some(f) = self.st.field_focus {
             match e.keysym {
-                Keysym::Escape => self.st.field_focus = None,
+                Keysym::Escape => {
+                    if f == "set_search" {
+                        self.st.search_field.set("");
+                    }
+                    self.st.field_focus = None;
+                }
                 Keysym::Return | Keysym::KP_Enter => {
-                    if f == "hex" {
+                    if f == "set_search" {
+                        // Enter открывает первую подходящую вкладку
+                        if let Some(tb) = matching(&self.st, &self.st.search_field.text.clone()).first() {
+                            self.st.stab = tb.id;
+                            self.st.sscroll = (0, tb.id);
+                            self.tab_probe();
+                        }
+                        self.st.field_focus = None;
+                    } else if f == "hex" {
                         self.apply_hex();
                     } else if f == "float_apps" {
                         self.settings_click(&Act::SCycle("float_apply"));
@@ -317,6 +364,7 @@ impl App {
                         "game_apps" => &mut self.st.game_field,
                         "night_geo" => &mut self.st.geo_field,
                         "weather_city" => &mut self.st.weather_field,
+                        "set_search" => &mut self.st.search_field,
                         "kb_layout" => &mut self.st.keys.lay,
                         "w_pass" => match self.st.welcome.as_mut() {
                             Some(w) => &mut w.pass,
@@ -377,6 +425,40 @@ impl App {
         }
         if self.st.modal == Some(Modal::Settings) {
             self.dirty(&SKind::Modal);
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn tab_of(id: &str) -> &'static Tab {
+        find(id).expect(id)
+    }
+
+    /// поиск по вкладкам: пустой запрос — все; слова — на любом языке из подсказок; все слова сразу; регистр не важен
+    #[test]
+    fn the_search_finds_tabs_by_their_words() {
+        let system = tab_of("system");
+        assert!(tab_matches(system, ""));
+        assert!(tab_matches(system, "   "));
+        assert!(tab_matches(system, "night"));
+        assert!(tab_matches(system, "NIGHT Light"));
+        assert!(tab_matches(system, "ночной")); // i18n-ok
+        assert!(!tab_matches(system, "night zzz"));
+        assert!(!tab_matches(system, "wallpaper"));
+        // другая вкладка по своему слову
+        assert!(tab_matches(tab_of("games"), "proton"));
+        assert!(!tab_matches(tab_of("games"), "night"));
+    }
+
+    /// у каждого слова из подсказок есть хотя бы одна вкладка, а запрос «настрой» не пуст: поиск не тупик
+    #[test]
+    fn every_tab_can_be_found_by_its_own_name() {
+        for tb in tabs() {
+            assert!(tab_matches(tb, tb.name), "{} is not found by its own name", tb.id);
+            assert!(tab_matches(tb, tb.id) || tab_matches(tb, tb.name), "{}", tb.id);
         }
     }
 }

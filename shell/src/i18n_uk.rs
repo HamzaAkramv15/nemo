@@ -1451,4 +1451,9 @@ const UK: &[(&str, &str)] = &[
     ("not for this desktop", "не для цього стола"),
     ("nothing in startup", "в автозапуску нічого немає"),
     ("turning one off writes a marker file in ~/.config/autostart; removing it turns it back on", "вимкнення пише файл-позначку в ~/.config/autostart; прибрати її — увімкнути"),
+    ("reset page", "скинути сторінку"),
+    ("click again to reset", "ще раз: скинути"),
+    ("everything on this page is already the default", "на цій сторінці все й так за замовчуванням"),
+    ("the page is back to its defaults", "сторінку повернуто до типових значень"),
+    ("search", "пошук"),
 ];

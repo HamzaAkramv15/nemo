@@ -347,6 +347,10 @@ pub struct State {
     pub reply: crate::reply::Reply,
     /// координаты для ночного света
     pub geo_field: Field,
+    /// поиск по вкладкам настроек (поле над списком вкладок)
+    pub search_field: Field,
+    /// «сбросить страницу» нажата один раз: вкладка и когда (второй щелчок в течение пяти секунд сбрасывает)
+    pub reset_armed: Option<(&'static str, Instant)>,
     /// настройки yami-shot (вкладка «скриншоты»)
     pub shot_cfg: crate::shotcfg::ShotCfg,
     pub shot_field: Field,
@@ -559,6 +563,8 @@ impl State {
             game_field: Field::default(),
             reply: Default::default(),
             geo_field: Field::default(),
+            search_field: Field::default(),
+            reset_armed: None,
             shot_cfg: crate::shotcfg::ShotCfg::load(),
             shot_field: Field::default(),
             float_field: Field::default(),
