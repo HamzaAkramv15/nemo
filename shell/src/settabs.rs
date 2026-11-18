@@ -611,7 +611,7 @@ pub(crate) fn tab_shots(ui: &mut Ui, st: &State, b: R) {
     ui.button(R::new(b.right() - 120, y + 2, 120, 26), "применить", "check", Tone::Primary, false, true, Act::SCycle("shot_dir_apply"));
     y += 46;
     y = title(ui, b.x, y, b.w, "оверлей");
-    ui.toggle(R::new(b.x, y, half, 40), "лупа", "пиксели под мышью, ctrl+c — цвет", c.loupe, Act::SBool("shot_loupe"));
+    ui.toggle(R::new(b.x, y, half, 40), "лупа", "пиксели у мыши, ctrl+c — цвет", c.loupe, Act::SBool("shot_loupe"));
     ui.toggle(R::new(b.x + half + 20, y, half, 40), "уведомление", "с миниатюрой и кнопками", c.notify, Act::SBool("shot_notify"));
     y += 50;
     let d = crate::tf!("{} с", "{} s", "{} s", c.delay);

@@ -550,7 +550,7 @@ const PAIRS: &[(&str, &str)] = &[
     ("лупа", "loupe"),
     ("область · окно · экран", "area · window · screen"),
     ("оверлей", "overlay"),
-    ("пиксели под мышью, ctrl+c — цвет", "zoomed pixels, ctrl+c: colour"),
+    ("пиксели у мыши, ctrl+c — цвет", "zoomed pixels, ctrl+c: colour"),
     ("рамка", "frame"),
     ("скриншот сохранён и скопирован", "screenshot saved and copied"),
     ("скриншоты", "screenshots"),

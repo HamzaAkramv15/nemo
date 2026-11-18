@@ -604,7 +604,7 @@ const PL: &[(&str, &str)] = &[
     ("large", "duży"),
     ("last start", "ostatnie uruchomienie"),
     ("later", "później"),
-    ("later: the settings button on the bar or nemo setup", "później: przycisk ustawień na pasku lub polecenie nemo setup"),
+    ("later: the settings button on the bar or nemo setup", "później: przycisk ustawień lub polecenie nemo setup"),
     ("auto or coordinates: by the sun", "auto lub współrzędne: wg słońca"),
     ("launcher clipboard settings[:tab] power lock screenshot …", "launcher clipboard settings[:tab] power lock screenshot …"),
     ("launcher, settings, power, wallpapers", "uruchamianie, ustawienia, zasilanie, tapety"),
