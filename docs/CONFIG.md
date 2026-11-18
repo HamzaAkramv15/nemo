@@ -101,7 +101,7 @@ file for one run. The files are reread when they change.
 
 | Key | Default | Meaning |
 |---|---|---|
-| `palette` | `"blood"` | preset: `blood` `ash` `sakura` `amber` `venom` `ice` `dusk` |
+| `palette` | `"nemo"` | preset: `nemo` (lavender on graphite) `blood` `ash` `sakura` `amber` `venom` `ice` `dusk` |
 | `accent` | `""` | own accent `#rrggbb`; empty: the preset's |
 | `preset` | `"yami"` | the style of every module: `yami` (pixel) or `plain` (neutral), [details](#the-look-of-every-module) |
 | `corners`, `shadow` | `""`, `"soft"` | `notch` `round` `square`; `hard` `soft` `none`; empty: from the style |

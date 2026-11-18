@@ -102,7 +102,7 @@ yami-shell binds list | print | write     # сочетания клавиш
 
 | Ключ | По умолчанию | Значение |
 |---|---|---|
-| `palette` | `"blood"` | набор: `blood` `ash` `sakura` `amber` `venom` `ice` `dusk` |
+| `palette` | `"nemo"` | набор: `nemo` (сирень на графите) `blood` `ash` `sakura` `amber` `venom` `ice` `dusk` |
 | `accent` | `""` | свой акцент `#rrggbb`; пусто — акцент набора |
 | `preset` | `"yami"` | стиль всех модулей: `yami` (пиксельный) или `plain` (нейтральный), [подробности](#вид-всех-модулей) |
 | `corners`, `shadow` | `""`, `"soft"` | `notch` `round` `square`; `hard` `soft` `none`; пусто — как у стиля |

@@ -3,11 +3,11 @@
 # shellcheck shell=bash
 
 # ── the choices; the palettes are the shell's own ──────────────────────────
-PAL_ID=(blood ash sakura amber venom ice dusk)
-PAL_RU=(кровь пепел сакура янтарь яд лёд сумрак)
-PAL_EN=(blood ash sakura amber venom ice dusk)
-PAL_PT=(sangue cinza sakura âmbar veneno gelo crepúsculo)
-PAL_HEX=(c4161c a8a29c d9577c d98e1f 5fae34 3a9fd0 8a5cf0)
+PAL_ID=(nemo blood ash sakura amber venom ice dusk)
+PAL_RU=(Nemo кровь пепел сакура янтарь яд лёд сумрак)
+PAL_EN=(Nemo blood ash sakura amber venom ice dusk)
+PAL_PT=(Nemo sangue cinza sakura âmbar veneno gelo crepúsculo)
+PAL_HEX=(a78bfa c4161c a8a29c d9577c d98e1f 5fae34 3a9fd0 8a5cf0)
 # panel look: glass (panel opacity), lift (lighter graphite), inner (cards and graphs), dim
 # (behind menus); percent, written to the shell settings
 LOOK_ID=(matte glass light solid)

@@ -215,47 +215,103 @@ fn dim(i: &mut RgbaImage, bg: C, k: f32) {
 /// схемы палитры из обоев (#31): id и имя
 pub const SCHEMES: [(&str, &str); 5] = [("tonal", "тональная"), ("vibrant", "яркая"), ("content", "как на картинке"), ("muted", "приглушённая"), ("mono", "монохром")];
 
-/// главный цвет картинки: самый весомый тон среди насыщенных и не тёмных пикселей,
-/// доведённый до яркости, на которой акцент читается на тёмных панелях. Схема решает, какой тон
-/// весомее (яркая — самый насыщенный) и насколько его довести
+/// главный цвет картинки. Цвета картинки собираются в 16 групп (k-средних), и у каждой группы свой
+/// вес: доля картинки в степени 0,65 (большая однотонная область не забивает маленькую яркую),
+/// насыщенность и яркость; серые и почти чёрные группы почти ничего не весят. Берётся лучшая
+/// группа вместе с соседями того же тона (±21°), и её цвет доводится до насыщенности и яркости, на
+/// которых акцент читается на тёмных панелях: схема решает, насколько яркий и насыщенный он нужен.
+/// Раньше весом был сумма «насыщенность² × яркость» по пикселям по 24 корзинам тона, и широкое тусклое
+/// небо перевешивало малое яркое облако: на закате с розовым облаком получался синий.
+/// Почти серая картинка цвета не даёт (None): акцент остаётся прежним
 fn dominant(i: &RgbaImage, scheme: &str) -> Option<u32> {
-    let mut bins = [(0f32, [0f32; 3]); 24];
-    for p in i.pixels() {
-        let [r, g, b] = [p.0[0] as f32 / 255.0, p.0[1] as f32 / 255.0, p.0[2] as f32 / 255.0];
-        let (mx, mn) = (r.max(g).max(b), r.min(g).min(b));
-        let s = if mx > 0.0 { (mx - mn) / mx } else { 0.0 };
-        if mx < 0.15 || s < 0.2 {
-            continue;
-        }
-        let h = hue(r, g, b, mx, mn);
-        let wt = if scheme == "vibrant" { s * s * s * s * mx } else { s * s * mx };
-        let bin = &mut bins[((h / 15.0) as usize).min(23)];
-        bin.0 += wt;
-        for (c, v) in bin.1.iter_mut().zip([r, g, b]) {
-            *c += v * wt;
-        }
-    }
-    let (wt, sum) = bins.iter().enumerate().map(|(k, _)| {
-        // соседние корзины вместе: тон на границе не делится пополам
-        let (a, b, c) = (bins[(k + 23) % 24], bins[k], bins[(k + 1) % 24]);
-        (a.0 * 0.5 + b.0 + c.0 * 0.5, b)
-    }).max_by(|a, b| a.0.total_cmp(&b.0))?;
-    let total: f32 = bins.iter().map(|b| b.0).sum();
-    if wt < 0.5 || total < 1.0 || sum.0 <= 0.0 {
+    const K: usize = 16;
+    let px: Vec<[f32; 3]> = i.pixels().map(|p| [p.0[0] as f32 / 255.0, p.0[1] as f32 / 255.0, p.0[2] as f32 / 255.0]).collect();
+    if px.len() < K {
         return None;
     }
-    let [r, g, b] = sum.1.map(|v| v / sum.0);
-    let (mx, mn) = (r.max(g).max(b), r.min(g).min(b));
-    let h = hue(r, g, b, mx, mn);
-    let s0 = (mx - mn) / mx.max(1e-3);
-    let (s, v) = match scheme {
-        "vibrant" => (s0.clamp(0.8, 1.0), mx.clamp(0.85, 0.96)),
-        "content" => (s0.clamp(0.3, 0.95), mx.clamp(0.6, 0.95)),
-        "muted" => (s0.clamp(0.22, 0.38), mx.clamp(0.66, 0.82)),
-        "mono" => (0.06, mx.clamp(0.7, 0.85)),
-        _ => (s0.clamp(0.55, 0.9), mx.clamp(0.7, 0.92)),
+    // начальные центры — по яркости, ровными долями: без случайности, один и тот же ответ на одну картинку
+    let lum = |c: &[f32; 3]| 0.299 * c[0] + 0.587 * c[1] + 0.114 * c[2];
+    let mut order: Vec<usize> = (0..px.len()).collect();
+    order.sort_by(|&a, &b| lum(&px[a]).total_cmp(&lum(&px[b])));
+    let mut cen: Vec<[f32; 3]> = (0..K).map(|k| px[order[(k * 2 + 1) * px.len() / (K * 2)]]).collect();
+    let mut count = vec![0usize; K];
+    for _ in 0..10 {
+        let mut sum = vec![[0f32; 3]; K];
+        count = vec![0; K];
+        for p in &px {
+            let k = (0..K).min_by(|&a, &b| dist2(p, &cen[a]).total_cmp(&dist2(p, &cen[b]))).unwrap_or(0);
+            count[k] += 1;
+            for c in 0..3 {
+                sum[k][c] += p[c];
+            }
+        }
+        for k in 0..K {
+            if count[k] > 0 {
+                cen[k] = sum[k].map(|v| v / count[k] as f32);
+            }
+        }
+    }
+    // как схема взвешивает насыщенность: «яркая» тянется к самому насыщенному цвету
+    let se = if scheme == "vibrant" { 2.0 } else { 1.2 };
+    let total = px.len() as f32;
+    let hsv_of = |c: &[f32; 3]| {
+        let (mx, mn) = (c[0].max(c[1]).max(c[2]), c[0].min(c[1]).min(c[2]));
+        (hue(c[0], c[1], c[2], mx, mn) / 360.0, if mx > 0.0 { (mx - mn) / mx } else { 0.0 }, mx)
     };
-    Some(hsv(h, s, v))
+    // два прохода: сначала настоящие цвета, потом (для бледных картинок, вроде фото) мягче
+    for (min_s, min_v, floor) in [(0.16f32, 0.16f32, 0.05f32), (0.08, 0.2, 0.0)] {
+        let mut groups: Vec<(f32, f32, f32, f32)> = vec![]; // вес, тон (0..1), насыщенность, яркость
+        let mut mass = 0f32;
+        for k in 0..K {
+            let (h, s, v) = hsv_of(&cen[k]);
+            let p = count[k] as f32 / total;
+            if p == 0.0 || v < min_v {
+                continue;
+            }
+            if s >= 0.25 && v >= 0.3 {
+                mass += p;
+            }
+            let mut w = p.powf(0.65) * s.powf(se) * (0.35 + 0.65 * v) * if s < min_s { floor } else { 1.0 };
+            if s > 0.45 && v > 0.6 {
+                w *= 1.15;
+            }
+            groups.push((w, h, s, v));
+        }
+        let Some(&(best, h0, ..)) = groups.iter().max_by(|a, b| a.0.total_cmp(&b.0)) else { continue };
+        // настоящих цветов мало (почти серая картинка): на первом проходе ничего не берём, на втором — тоже
+        if best <= 0.0 || (min_s > 0.1 && mass < 0.05) {
+            continue;
+        }
+        if min_s <= 0.1 && !groups.iter().any(|g| g.2 >= 0.1) {
+            return None;
+        }
+        let (mut wsum, mut hx, mut hy, mut ss, mut vs) = (0f32, 0f32, 0f32, 0f32, 0f32);
+        for &(w, h, s, v) in &groups {
+            let d = (h - h0).abs();
+            if d.min(1.0 - d) <= 0.06 {
+                wsum += w;
+                hx += (h * std::f32::consts::TAU).cos() * w;
+                hy += (h * std::f32::consts::TAU).sin() * w;
+                ss += s * w;
+                vs += v * w;
+            }
+        }
+        let h = hy.atan2(hx).rem_euclid(std::f32::consts::TAU) / std::f32::consts::TAU * 360.0;
+        let (s0, v0) = (ss / wsum, vs / wsum);
+        let (s, v) = match scheme {
+            "vibrant" => (s0.clamp(0.8, 1.0), v0.clamp(0.85, 0.96)),
+            "content" => (s0.clamp(0.3, 0.95), v0.clamp(0.6, 0.95)),
+            "muted" => (s0.clamp(0.22, 0.38), v0.clamp(0.66, 0.82)),
+            "mono" => (0.06, v0.clamp(0.7, 0.85)),
+            _ => (s0.clamp(0.5, 0.85), v0.clamp(0.74, 0.95)),
+        };
+        return Some(hsv(h, s, v));
+    }
+    None
+}
+
+fn dist2(a: &[f32; 3], b: &[f32; 3]) -> f32 {
+    (a[0] - b[0]).powi(2) + (a[1] - b[1]).powi(2) + (a[2] - b[2]).powi(2)
 }
 
 fn hue(r: f32, g: f32, b: f32, mx: f32, mn: f32) -> f32 {
@@ -618,6 +674,83 @@ mod tests {
             let s = super::shrink(&img, 640);
             assert!(s.w >= 1 && s.h >= 1 && s.w <= 640 && s.h <= 640 && s.px.len() == (s.w * s.h) as usize);
             assert_eq!(s.px[0], 0xff10_2030);
+        }
+    }
+
+    /// картинка из долей: (доля, цвет); остальное — почти чёрное
+    fn pic(parts: &[(f32, [u8; 3])]) -> image::RgbaImage {
+        let n = 64usize;
+        let mut img = image::RgbaImage::from_pixel(n as u32, n as u32, image::Rgba([8, 8, 10, 255]));
+        let mut at = 0usize;
+        for (share, c) in parts {
+            let cells = (share * (n * n) as f32) as usize;
+            for k in at..(at + cells).min(n * n) {
+                img.put_pixel((k % n) as u32, (k / n) as u32, image::Rgba([c[0], c[1], c[2], 255]));
+            }
+            at += cells;
+        }
+        img
+    }
+
+    /// тон результата в градусах
+    fn hue_of(c: u32) -> f32 {
+        let (r, g, b) = (((c >> 16) & 255) as f32 / 255.0, ((c >> 8) & 255) as f32 / 255.0, (c & 255) as f32 / 255.0);
+        let (mx, mn) = (r.max(g).max(b), r.min(g).min(b));
+        super::hue(r, g, b, mx, mn)
+    }
+
+    /// закат с розовым облаком: широкое тусклое сине-серое небо не должно перевесить малое яркое облако
+    /// (раньше акцентом получался синий)
+    #[test]
+    fn a_small_vivid_cloud_beats_a_wide_dull_sky() {
+        let img = pic(&[(0.45, [88, 106, 140]), (0.14, [242, 112, 150]), (0.20, [120, 90, 150])]);
+        for scheme in ["tonal", "content", "vibrant"] {
+            let h = hue_of(super::dominant(&img, scheme).expect("a colour"));
+            assert!(!(150.0..290.0).contains(&h), "{scheme}: hue {h} is the dull sky's blue, not the cloud");
+        }
+    }
+
+    #[test]
+    fn plain_colours_stay_themselves() {
+        let red = hue_of(super::dominant(&pic(&[(0.9, [200, 20, 50])]), "tonal").unwrap());
+        assert!(red < 12.0 || red > 340.0, "red came out as {red}");
+        let green = hue_of(super::dominant(&pic(&[(0.9, [60, 180, 80])]), "tonal").unwrap());
+        assert!((100.0..150.0).contains(&green), "green came out as {green}");
+    }
+
+    /// серое — цвета нет; бледное, но цветное (кожа, песок) — цвет есть
+    #[test]
+    fn grey_gives_nothing_and_soft_colours_still_give_something() {
+        assert!(super::dominant(&pic(&[(0.5, [120, 120, 120]), (0.5, [200, 200, 200])]), "tonal").is_none());
+        assert!(super::dominant(&pic(&[(0.0, [0, 0, 0])]), "tonal").is_none());
+        let skin = super::dominant(&pic(&[(0.9, [190, 160, 140])]), "tonal").expect("soft colour");
+        let h = hue_of(skin);
+        assert!((10.0..45.0).contains(&h), "skin tone came out as hue {h}");
+    }
+
+    /// один ответ на одну картинку, и схема действительно меняет насыщенность
+    #[test]
+    fn the_answer_is_stable_and_the_scheme_matters() {
+        let img = pic(&[(0.4, [60, 130, 200]), (0.2, [220, 90, 60])]);
+        assert_eq!(super::dominant(&img, "tonal"), super::dominant(&img, "tonal"));
+        let sat = |c: u32| {
+            let (r, g, b) = (((c >> 16) & 255) as f32, ((c >> 8) & 255) as f32, (c & 255) as f32);
+            (r.max(g).max(b) - r.min(g).min(b)) / r.max(g).max(b)
+        };
+        assert!(sat(super::dominant(&img, "muted").unwrap()) < sat(super::dominant(&img, "vibrant").unwrap()));
+        assert!(sat(super::dominant(&img, "mono").unwrap()) < 0.12);
+    }
+
+    /// `NEMO_TEST_WALL=/path/a.png cargo test -p yami-shell live_wallpaper -- --ignored --nocapture`: что выбрано для настоящей картинки
+    #[test]
+    #[ignore]
+    fn live_wallpaper() {
+        let Ok(path) = std::env::var("NEMO_TEST_WALL") else { return };
+        for p in path.split(':') {
+            let src = image::open(p).expect("image").to_rgba8();
+            let small = image::imageops::thumbnail(&src, 64, 64);
+            let show = |s: &str| super::dominant(&small, s).map(|c| format!("#{c:06x}")).unwrap_or_else(|| "none".into());
+            println!("{p}: tonal {} vibrant {} content {} muted {}", show("tonal"), show("vibrant"), show("content"), show("muted"));
         }
     }
 }

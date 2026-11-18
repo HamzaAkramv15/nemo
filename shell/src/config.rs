@@ -559,7 +559,7 @@ impl Default for Settings {
         let v = |xs: &[&str]| xs.iter().map(|s| s.to_string()).collect::<Vec<_>>();
         Settings {
             lang: String::new(),
-            palette: "blood".into(),
+            palette: "nemo".into(),
             accent: String::new(),
             tint: 1.0,
             light: false,

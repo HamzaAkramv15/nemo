@@ -11,6 +11,8 @@ pub struct Preset {
 }
 
 pub const PRESETS: &[Preset] = &[
+    // Nemo: сиреневый на тёмном графите; первый в списке и палитра по умолчанию
+    Preset { id: "nemo", name: "Nemo", accent: 0xa78bfa },
     Preset { id: "blood", name: "кровь", accent: 0xc4161c },
     Preset { id: "ash", name: "пепел", accent: 0xa8a29c },
     Preset { id: "sakura", name: "сакура", accent: 0xd9577c },
