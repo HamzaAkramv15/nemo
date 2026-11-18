@@ -725,6 +725,8 @@ pub fn run() {
     app.sleep_ack = Some(crate::sleep::spawn(tx.clone()));
     app.write_palette();
     crate::prefs::write_style(&app.st.set);
+    // экрану входа — вид сейчас: после обновления шелла файл иначе ждал бы первой смены настроек
+    crate::login::publish(&app.st.set);
     // кто отвечает за порталы, зависит от поставленных модулей
     crate::agents::write_portals(&app.st.set);
     // обои: при старте палитра обычно та же, recolor не запускается — готовим картинку сами

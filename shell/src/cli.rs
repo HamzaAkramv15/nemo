@@ -42,6 +42,13 @@ fn tidy(v: &Value) -> Value {
     }
 }
 
+/// шелл перечитывает настройки сразу, а не когда заметит новый файл: иначе следующая команда
+/// (`yami night …`, любая, что сохраняет настройки шелла) успела бы записать поверх правки его
+/// прежнее состояние. Шелла нет — молча
+fn tell_shell() {
+    let _ = crate::ipc::send("reload");
+}
+
 fn save(s: &Settings) -> bool {
     crate::config::write_atomic(&settings_path(), &s.to_json()).is_ok()
 }
@@ -136,6 +143,7 @@ pub fn config(args: &[String]) -> i32 {
                         eprintln!("cannot write {}", settings_path().display());
                         return 1;
                     }
+                    tell_shell();
                 }
                 Err(e) => {
                     eprintln!("bad value for {k}: {e}");
@@ -149,6 +157,7 @@ pub fn config(args: &[String]) -> i32 {
             if !save(&Settings::default()) {
                 return 1;
             }
+            tell_shell();
             println!("defaults written; the old file is {}", p.with_extension("json.bak").display());
         }
         ["reset", k] => {
@@ -162,6 +171,7 @@ pub fn config(args: &[String]) -> i32 {
             if !serde_json::from_value::<Settings>(cur).map(|s| save(&s)).unwrap_or(false) {
                 return 1;
             }
+            tell_shell();
         }
         ["kdl"] | ["kdl", _] => {
             // что шелл пишет в ~/.config/yami/niri/rules.kdl; `kdl yami` — как для yami-niri
