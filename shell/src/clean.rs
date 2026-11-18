@@ -61,7 +61,7 @@ fn dev_tree(src: &Path) -> bool {
 pub fn run(y: &Sty, a: &[&str]) -> i32 {
     let (dry, force) = (a.contains(&"--dry-run") || a.contains(&"-n"), a.contains(&"--force"));
     if let Some(bad) = a.iter().find(|x| !["--dry-run", "-n", "--force"].contains(x)) {
-        eprintln!(" {} {}", y.bad("✕"), crate::tf!("не понял: {} (yami clean [--dry-run] [--force])", "unknown option: {} (yami clean [--dry-run] [--force])", "opção desconhecida: {} (yami clean [--dry-run] [--force])", bad));
+        eprintln!(" {} {}", y.bad("✕"), crate::tf!("не понял: {} (nemo clean [--dry-run] [--force])", "unknown option: {} (nemo clean [--dry-run] [--force])", "opção desconhecida: {} (nemo clean [--dry-run] [--force])", bad));
         return 2;
     }
     // обновление собирает прямо в этих папках

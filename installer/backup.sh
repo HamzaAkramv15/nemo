@@ -25,7 +25,7 @@ snapshot_list() {
     "$data/dbus-1/services/org.freedesktop.FileManager1.service"
   printf 'U %s\n' "$CFG/yami/shell.json" "$CFG/yami-shell.json" "$CFG/mimeapps.list" "$CFG/yami/niri/outputs.kdl" "$CFG/niri/yami-outputs.kdl" "$CFG/niri/user.kdl"
   # niri's config.kdl is the person's (only the restore right after a failed run touches it), except the
-  # one yami before 3.0 wrote whole: a rollback to that version needs it back
+  # one Nemo before 3.0 wrote whole: a rollback to that version needs it back
   if grep -q '"yami-binds.kdl"' "$CFG/niri/config.kdl" 2>/dev/null; then n=G; else n=U; fi
   printf '%s %s\n' "$n" "$CFG/niri/config.kdl"
 }
@@ -67,5 +67,5 @@ snapshot_restore() {
   rm -rf -- "$d"
 }
 
-# only over an installed yami: there is something to go back to
+# only over an installed Nemo: there is something to go back to
 plan_snapshot() { [[ -f $INSTALLED && -x $BIN/yami-shell ]] && add "$(t "точка отката" "rollback point" "ponto de restauração")" do_snapshot; return 0; }

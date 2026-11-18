@@ -151,7 +151,7 @@ pub fn cli(y: &crate::cmd::Sty, args: &[&str]) -> i32 {
             c.arg("--force").arg(name);
         }
         _ => {
-            eprintln!(" {} yami templates [force {}]", y.bad("✕"), crate::tf!("ИМЯ", "NAME", "NOME"));
+            eprintln!(" {} nemo templates [force {}]", y.bad("✕"), crate::tf!("ИМЯ", "NAME", "NOME"));
             return 2;
         }
     }

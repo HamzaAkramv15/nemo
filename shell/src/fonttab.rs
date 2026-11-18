@@ -80,7 +80,7 @@ pub fn tab(ui: &mut Ui, st: &State, b: R) {
     let s = &st.set;
     let t = ui.t;
     let half = (b.w - 20) / 2;
-    let mut y = title(ui, b.x, b.y, b.w, "шелл и приложения yami");
+    let mut y = title(ui, b.x, b.y, b.w, "шелл и приложения Nemo");
     // строки модулей, которых нет, не показываются
     let here = st.mods_here;
     let rows = [("font_shell", "шелл", &s.font_shell, true), ("font_files", "файлы", &s.font_files, here.files), ("font_view", "просмотр картинок", &s.font_view, here.view)];

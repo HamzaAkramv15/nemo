@@ -515,7 +515,7 @@ pub const THEME_APPS: &[(&str, &str, &str)] = &[
     ("qt", "Qt и KDE", "qt6ct, kdeglobals"),
     ("kitty", "kitty", "строка include в kitty.conf"),
     ("fastfetch", "fastfetch", "свой конфиг с логотипом"),
-    ("btop", "btop", "тема yami"),
+    ("btop", "btop", "тема Nemo"),
     ("firefox", "Firefox", "меню: userChrome.css"),
     ("mangohud", "MangoHud", "только наш конфиг"),
     ("foot", "foot", "include в foot.ini"),

@@ -5,7 +5,7 @@
 uninstall() {
   printf '\e[H\e[J'
   banner 1
-  say "$(t "удаляю YAMI" "removing YAMI" "removendo YAMI")"
+  say "$(t "удаляю NEMO" "removing NEMO" "removendo NEMO")"
   ((DRY)) && { note "--dry-run"; return; }
   if ((!YES)); then
     printf '  %s%s%s %s[%s]%s ' "$T" "$(t "Удалить yami с этой машины? Из конфига niri уйдёт только строка yami, настройки останутся в ~/.config/yami." "Remove yami from this machine? Only yami's line leaves the niri config, the settings stay in ~/.config/yami." "Remover o yami desta máquina? Só a linha do yami sai da configuração do niri; as configurações ficam em ~/.config/yami.")" "$R" "$F" "$(t "y — да, enter — нет" "y yes, enter no" "y sim, enter não")" "$R"
@@ -15,7 +15,7 @@ uninstall() {
   fi
   # первым: скрипт экрана входа лежит в том, что удаляется ниже
   uninstall_login
-  # строки yami из конфига niri (всё остальное в нём — твоё и остаётся), пока бинарь ещё есть
+  # строки Nemo из конфига niri (всё остальное в нём — твоё и остаётся), пока бинарь ещё есть
   [[ -x $BIN/yami-shell ]] && "$BIN/yami-shell" niri disconnect
   pgrep -x yami-shell >/dev/null && "$BIN/yami-shell" msg quit 2>/dev/null
   [[ -x $HOME/.local/lib/yami-niri/yami-niri.sh ]] && "$HOME/.local/lib/yami-niri/yami-niri.sh" off
@@ -59,7 +59,7 @@ uninstall() {
   for g in "$CFG/gtk-3.0" "$CFG/gtk-4.0"; do
     rm -f "$g/yami.css"
     [[ -f $g/gtk.css ]] || continue
-    if head -1 "$g/gtk.css" | grep -q '^/\* YAMI'; then rm -f "$g/gtk.css"
+    if head -1 "$g/gtk.css" | grep -q '^/\* NEMO'; then rm -f "$g/gtk.css"
     else sed -i '/^@import url("yami.css");$/d; /^\/\* yami: its colours live in yami.css/d' "$g/gtk.css"; fi
   done
   fc-cache -f >/dev/null 2>&1
@@ -71,7 +71,7 @@ uninstall() {
   local b
   b="$(ls -d "$CFG"/niri.bak-* 2>/dev/null | sort | tail -n1)"
   # (only while config.kdl is still yami's, the old one or its starting one: not a config you made since)
-  if [[ -n $b ]] && grep -qE '"yami-binds.kdl"|^// niri.s config: yours. yami adds itself' "$CFG/niri/config.kdl" 2>/dev/null; then
+  if [[ -n $b ]] && grep -qE '"yami-binds.kdl"|^// niri.s config: yours. Nemo adds itself' "$CFG/niri/config.kdl" 2>/dev/null; then
     mv "$CFG/niri" "$CFG/niri.yami-$STAMP" && mv "$b" "$CFG/niri"
     say "$(t "niri: вернул" "niri: restored" "niri: restaurado") $b"
   fi

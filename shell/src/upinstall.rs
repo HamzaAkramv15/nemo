@@ -211,7 +211,7 @@ pub(crate) fn ensure_shell() {
     println!("  {}", crate::tf!("шелл не ответил — запускаю его снова", "the shell did not answer: starting it again", "o shell não respondeu: iniciando novamente"));
     let _ = Command::new("niri").args(["msg", "action", "spawn-sh", "--", &format!("until '{bin}'; do sleep 1; done")]).stdin(Stdio::null()).stdout(Stdio::null()).status();
     if !up() {
-        println!("  {}", crate::tf!("шелл так и не запустился: yami run в терминале покажет почему", "the shell did not start: yami run in a terminal shows why", "o shell não iniciou: yami run no terminal mostra o motivo"));
+        println!("  {}", crate::tf!("шелл так и не запустился: nemo run в терминале покажет почему", "the shell did not start: nemo run in a terminal shows why", "o shell não iniciou: nemo run no terminal mostra o motivo"));
     }
 }
 
@@ -393,7 +393,7 @@ pub fn rollback() -> Result<String, String> {
 /// inode) и отвечает. Не дождались за ~8 с — ensure_shell. При игре не трогаем
 pub fn restart_shell() {
     if crate::niri::game_focused() {
-        println!("{}", crate::tf!("  игра в фокусе — шелл перезапустится сам при следующем входе (или: yami restart)", "  a game has focus: the shell restarts at the next login (or: yami restart)", "  um jogo está em foco: o shell reinicia no próximo login (ou: yami restart)"));
+        println!("{}", crate::tf!("  игра в фокусе — шелл перезапустится сам при следующем входе (или: nemo restart)", "  a game has focus: the shell restarts at the next login (or: nemo restart)", "  um jogo está em foco: o shell reinicia no próximo login (ou: nemo restart)"));
         return;
     }
     use std::os::unix::fs::MetadataExt;

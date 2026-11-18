@@ -23,7 +23,7 @@ pub use crate::recolor_math::*;
 pub type Res = io::Result<()>;
 
 /// кто пишет файлы: в заголовках того, что мы создаём
-pub const WHO: &str = "yami recolor";
+pub const WHO: &str = "nemo recolor";
 
 /// подставляет в заготовку {p['ключ']} и {выражение} (ev), {{ и }} — обычные скобки
 pub fn pyf(t: &str, p: &P, ev: &dyn Fn(&str) -> String) -> String {

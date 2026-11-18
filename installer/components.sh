@@ -1,6 +1,6 @@
 # What can be installed, each part on its own: a default for this machine (detect.sh), a flag
 # (--no-ID / --ID, --shell-only), the first-run setup. An update repeats the choice of
-# the first install (install.json, written by `yami update stamp`). What yami restyles in other
+# the first install (install.json, written by `yami update stamp`). What Nemo restyles in other
 # programs is the other half of the choice (restyle.sh); `look` (the Qt/GTK theme packages) follows it.
 # shellcheck shell=bash
 

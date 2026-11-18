@@ -3,7 +3,7 @@
 #
 #   bash <(curl -fsSL https://raw.githubusercontent.com/Trendorin/yami/main/install.sh)
 #
-# It puts in niri, the yami shell and what the desktop cannot start without. Everything else (files,
+# It puts in niri, the Nemo shell and what the desktop cannot start without. Everything else (files,
 # player, screenshots, login screen, themes) is chosen in the graphical setup at the first login.
 #
 # A release installs ready binaries (x86_64, glibc 2.34 or newer) and asks for no compiler; otherwise it
@@ -12,7 +12,7 @@
 #   ./install.sh --full           the old way: everything now, no first-run setup
 #   ./install.sh --yes            no questions
 #   ./install.sh --dry-run        show the plan, change nothing
-#   ./install.sh --uninstall      remove yami, restore what it replaced
+#   ./install.sh --uninstall      remove Nemo, restore what it replaced
 #   ./install.sh --update         rebuild from this tree, keep every setting, no sudo (`yami update`)
 #   ./install.sh --apply "files view …"   install exactly these modules (what the first-run setup runs)
 #
@@ -23,7 +23,7 @@
 #   --no-ID leaves one out, --ID takes it. --no-sudo: the home folder only, no packages.
 # Rarely needed: --no-monocraft, --no-count, --keep-build, --no-anim, --print-packages,
 #   --prebuilt DIR|URL  (a folder or address with the release's archive and SHA256SUMS).
-# Run again over an installed yami: it updates and repairs, your choices and settings stay.
+# Run again over an installed Nemo: it updates and repairs, your choices and settings stay.
 #
 # Families: Arch, Fedora (incl. atomic), Debian/Ubuntu, openSUSE, Void, Alpine, Gentoo. NixOS: the
 # flake (docs/PACKAGING.md). Anything replaced is kept next to itself as *.bak-DATE.
@@ -139,7 +139,7 @@ while (($#)); do
 done
 [[ -t 0 && -t 1 ]] || { YES=1; ANIM=0; }
 # the first install is the base alone; the rest comes from the first-run setup. Run again over an
-# installed yami it is a repair: the same choice, nothing is dropped and no first-run setup
+# installed Nemo it is a repair: the same choice, nothing is dropped and no first-run setup
 if ((!UPDATE && !FULL && !APPLY && !UNINSTALL)) && [[ -f $STATE/install.json && -x $BIN/yami-shell ]]; then
   REPAIR=1
 fi
@@ -243,7 +243,7 @@ paint
 [[ -t 1 ]] && printf '\e[H\e[J'
 banner $((YES))
 root_begin      # root.sh: the password once
-plan_snapshot   # backup.sh: only over an installed yami
+plan_snapshot   # backup.sh: only over an installed Nemo
 
 # root steps first: the root shell closes before the build (run_steps, root.sh)
 plan_packages   # packages.sh (git and ssh-keygen too: the next step needs them)

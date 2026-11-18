@@ -253,5 +253,5 @@ pub fn tab(ui: &mut Ui, st: &State, b: R) {
     ui.button(R::new(b.x + bw + 6, by, bw, 28), "обновить", "down", Tone::Primary, false, can && !busy, Act::SCycle("update_apply"));
     let any = u.rollback || u.info.as_ref().map(|i| !i.releases.is_empty()).unwrap_or(true);
     ui.button(R::new(b.x + 2 * (bw + 6), by, bw, 28), "откатить", "redo", Tone::Plain, u.pick, any && !busy, Act::SCycle("update_rollback"));
-    ui.text_in(px, R::new(b.x, by + 36, b.w, 20), "или в терминале: yami update", t.text_faint);
+    ui.text_in(px, R::new(b.x, by + 36, b.w, 20), "или в терминале: nemo update", t.text_faint);
 }

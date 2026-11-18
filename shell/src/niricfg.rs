@@ -109,7 +109,7 @@ fn our_include(cfg: &Path) -> String {
     }
 }
 
-const BLOCK_HEAD: &str = "// yami: its niri look, keys, window rules, colours and screens (~/.config/yami/niri).\n// What you write below wins. `yami niri disconnect` takes these lines out.\n";
+const BLOCK_HEAD: &str = "// yami: its niri look, keys, window rules, colours and screens (~/.config/yami/niri).\n// What you write below wins. `nemo niri disconnect` takes these lines out.\n";
 
 fn is_our_include(l: &str) -> bool {
     let t = l.trim_start();
@@ -370,7 +370,7 @@ pub fn status() -> Status {
 pub fn connect(mode: Mode) -> Result<String, String> {
     if too_old() {
         let (a, b) = version().unwrap_or_default();
-        return Err(crate::tf!("niri {}.{:02} не умеет include: нужен niri 25.11 или новее", "niri {}.{:02} has no include: yami needs niri 25.11 or newer", "o niri {}.{:02} não tem include: o yami precisa do niri 25.11 ou mais novo", a, b));
+        return Err(crate::tf!("niri {}.{:02} не умеет include: нужен niri 25.11 или новее", "niri {}.{:02} has no include: Nemo needs niri 25.11 or newer", "o niri {}.{:02} não tem include: o Nemo precisa do niri 25.11 ou mais novo", a, b));
     }
     crate::dirs::migrate();
     write_yami(&Settings::load());
@@ -419,7 +419,7 @@ pub fn disconnect() -> Result<String, String> {
     let cfg = real_config(&config_path())?;
     let Ok(text) = std::fs::read_to_string(&cfg) else { return Ok(crate::tf!("конфига niri нет", "no niri config", "sem configuração do niri")) };
     if !connected(&text) {
-        return Ok(crate::tf!("yami и так не подключён", "yami is not connected", "o yami não está conectado"));
+        return Ok(crate::tf!("yami и так не подключён", "yami is not connected", "o Nemo não está conectado"));
     }
     let lines: Vec<&str> = text.lines().collect();
     let mut drop = vec![false; lines.len()];
@@ -494,13 +494,13 @@ pub fn cli(y: &crate::cmd::Sty, args: &[&str]) -> i32 {
             println!("{} {}", y.dim("niri"), v);
             println!("{} {}", y.dim(&crate::tf!("конфиг", "config", "configuração")), yami_px::paths::pretty(&s.path));
             let state = if !s.exists {
-                crate::tf!("нет: `yami niri connect` положит стартовый", "missing: `yami niri connect` writes a starting one", "ausente: `yami niri connect` cria uma inicial")
+                crate::tf!("нет: `nemo niri connect` положит стартовый", "missing: `nemo niri connect` writes a starting one", "ausente: `nemo niri connect` cria uma inicial")
             } else if s.connected {
-                crate::tf!("yami подключён", "yami is connected", "o yami está conectado")
+                crate::tf!("yami подключён", "yami is connected", "o Nemo está conectado")
             } else if s.niri_default {
-                crate::tf!("стартовый конфиг niri, yami не подключён: `yami niri connect`", "niri's starting config, yami not connected: `yami niri connect`", "configuração inicial do niri, o yami não está conectado: `yami niri connect`")
+                crate::tf!("стартовый конфиг niri, Nemo не подключён: `nemo niri connect`", "niri's starting config, Nemo not connected: `nemo niri connect`", "configuração inicial do niri, o Nemo não está conectado: `nemo niri connect`")
             } else {
-                crate::tf!("твой конфиг, yami не подключён: `yami niri connect` добавит одну строку", "your config, yami not connected: `yami niri connect` adds one line", "sua configuração, o yami não está conectado: `yami niri connect` adiciona uma linha")
+                crate::tf!("твой конфиг, Nemo не подключён: `nemo niri connect` добавит одну строку", "your config, Nemo not connected: `nemo niri connect` adds one line", "sua configuração, o Nemo não está conectado: `nemo niri connect` adiciona uma linha")
             };
             println!("{} {}", y.dim(&crate::tf!("состояние", "state", "estado")), state);
             let set = Settings::load();
@@ -511,7 +511,7 @@ pub fn cli(y: &crate::cmd::Sty, args: &[&str]) -> i32 {
         "connect" => {
             // обновление и починка (`--update`): если yami убрали из конфига нарочно, так и остаётся
             if args.contains(&"--unless-off") && off_mark().exists() {
-                println!("{}", crate::tf!("yami убран из конфига niri, оставляю так (yami niri connect вернёт)", "yami was taken out of niri's config, leaving it so (yami niri connect brings it back)", "o yami foi removido da configuração do niri, deixando assim (yami niri connect o traz de volta)"));
+                println!("{}", crate::tf!("yami убран из конфига niri, оставляю так (nemo niri connect вернёт)", "yami was taken out of niri's config, leaving it so (nemo niri connect brings it back)", "o Nemo foi removido da configuração do niri, deixando assim (nemo niri connect o traz de volta)"));
                 return 0;
             }
             let mode = if args.contains(&"--replace") {
@@ -538,7 +538,7 @@ pub fn cli(y: &crate::cmd::Sty, args: &[&str]) -> i32 {
             0
         }
         _ => {
-            eprintln!("yami niri status | connect [--replace|--insert|--unless-off] | disconnect | write");
+            eprintln!("nemo niri status | connect [--replace|--insert|--unless-off] | disconnect | write");
             2
         }
     }

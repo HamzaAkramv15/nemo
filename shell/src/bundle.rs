@@ -347,7 +347,7 @@ fn import_value(y: &Sty, b: &Value, theme_only: bool, yes: bool, dry: bool) -> i
     match commit(b, p, yes, Some(y)) {
         Ok(backup) => {
             println!("\n {} {}", y.ok("✓"), crate::tf!("готово — шелл перечитает сам", "done; the shell reloads by itself", "concluído; o shell recarrega automaticamente"));
-            println!("   {}\n", y.dim(&crate::tf!("вернуть как было: yami import {} --yes", "to undo: yami import {} --yes", "para desfazer: yami import {} --yes", backup.display())));
+            println!("   {}\n", y.dim(&crate::tf!("вернуть как было: nemo import {} --yes", "to undo: nemo import {} --yes", "para desfazer: nemo import {} --yes", backup.display())));
             0
         }
         Err(e) => {
@@ -636,7 +636,7 @@ pub fn run(y: &Sty, cmd: &str, args: &[&str]) -> i32 {
             y.section(&crate::tf!("темы", "themes", "temas"));
             println!("   {}", y.dim(&themes_dir().display().to_string()));
             if list.is_empty() {
-                println!("   {}", y.dim(&crate::tf!("пусто: yami theme save ИМЯ сохранит текущий вид", "empty: yami theme save NAME keeps the current look", "vazio: yami theme save NOME salva a aparência atual")));
+                println!("   {}", y.dim(&crate::tf!("пусто: nemo theme save ИМЯ сохранит текущий вид", "empty: nemo theme save NAME keeps the current look", "vazio: nemo theme save NOME salva a aparência atual")));
             }
             for c in &list {
                 println!("   {} {}{}", y.bold(&c.name), y.dim(&format!("#{:06x} {}", c.accent, if c.light { "light" } else { "dark" })), if c.wall { y.dim(&crate::tf!(" + обои", " + wallpaper", " + papel de parede")) } else { String::new() });
@@ -669,7 +669,7 @@ pub fn run(y: &Sty, cmd: &str, args: &[&str]) -> i32 {
         ("theme-import", Some(f)) => theme_import(y, f, flags("--dry-run")),
         ("import", Some(f)) => import(y, f, false, flags("--yes"), flags("--dry-run")),
         _ => {
-            y.section("yami theme / export / import");
+            y.section("nemo theme / export / import");
             y.row("theme export FILE", &crate::tf!("вид в один файл: палитра, эффекты, шрифты, бар, виджеты, обои", "the look in one file: palette, effects, fonts, bar, widgets, wallpaper", "o visual num arquivo: paleta, efeitos, fontes, barra, widgets e papel de parede"));
             y.row("theme import FILE|URL [--dry-run]", &crate::tf!("применить чужую тему (файл или https-ссылка): только вид, без команд; остаётся в темах", "apply someone's theme (a file or an https link): the look only, no commands; kept in your themes", "aplicar um tema de outra pessoa (arquivo ou link https): só a aparência, sem comandos; salvo nos seus temas"));
             y.row("theme save [NAME]", &crate::tf!("текущий вид — в свои темы (~/.config/yami/themes)", "keep the current look in your themes (~/.config/yami/themes)", "salvar a aparência atual nos seus temas (~/.config/yami/themes)"));

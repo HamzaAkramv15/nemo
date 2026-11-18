@@ -77,13 +77,13 @@ fn parse(args: &[String]) -> Result<Opts, String> {
             "--all" => o.all = true,
             "--look" => match it.next().map(String::as_str) {
                 Some(v @ ("plain" | "yami")) => o.look = Some(v.to_string()),
-                _ => return Err("--look plain|yami".into()),
+                _ => return Err("--look plain|Nemo".into()),
             },
             "--lang" => match it.next().map(|v| i18n::normalize(v)) {
                 Some(v) if !v.is_empty() => o.lang = Some(v.to_string()),
                 _ => return Err("--lang ru|en|pt-BR".into()),
             },
-            other => return Err(format!("unknown option: {other} (--yes, --all, --look plain|yami, --lang ru|en|pt-BR)")),
+            other => return Err(format!("unknown option: {other} (--yes, --all, --look plain|Nemo, --lang ru|en|pt-BR)")),
         }
     }
     Ok(o)
@@ -212,7 +212,7 @@ fn install(spec: &Spec, o: &Opts) -> i32 {
         let look = match (&o.look, ask) {
             (Some(l), _) => l.clone(),
             (None, false) => "plain".to_string(),
-            (None, true) => ask_pick(tr(&["Вид:", "Look:", "Aparência:"]), &[("plain", ["нейтральный", "neutral", "neutra"]), ("yami", ["пиксельный yami", "the yami pixel look", "o visual em pixels do yami"])]).to_string(),
+            (None, true) => ask_pick(tr(&["Вид:", "Look:", "Aparência:"]), &[("plain", ["нейтральный", "neutral", "neutra"]), ("yami", ["пиксельный Nemo", "the Nemo pixel look", "o visual em pixels do Nemo"])]).to_string(),
         };
         let mut v = serde_json::json!({ "preset": look });
         if look == "yami" {

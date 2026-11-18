@@ -142,7 +142,7 @@ do_count() {
   count_wanted || return 99
   local mark="$STATE/counted"
   mkdir -p "$STATE"
-  ( curl -fsSL -A yami --connect-timeout 4 --max-time 8 -o /dev/null "$COUNT_URL" && : >"$mark" ) >/dev/null 2>&1 &
+  ( curl -fsSL -A Nemo --connect-timeout 4 --max-time 8 -o /dev/null "$COUNT_URL" && : >"$mark" ) >/dev/null 2>&1 &
   return 0
 }
 # what is installed and from where: `yami update` compares against it

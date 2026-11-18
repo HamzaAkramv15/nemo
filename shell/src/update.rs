@@ -564,7 +564,7 @@ impl App {
                 id: NOTE_ID,
                 app: "yami-update".into(),
                 icon: String::new(),
-                summary: crate::tf!("доступно обновление yami {}", "yami {} is available", "yami {} está disponível", i.latest),
+                summary: crate::tf!("доступно обновление Nemo {}", "yami {} is available", "yami {} está disponível", i.latest),
                 body,
                 actions: vec![("default".into(), crate::i18n::tr("подробнее").to_string())],
                 urgency: 1,

@@ -123,7 +123,7 @@ fn app_themes(ui: &mut Ui, st: &State, b: R, tw: i32) {
         ui.toggle(R::new(b.x, y, b.w, 40), "GTK 4 тоже", "libadwaita: Nautilus, приложения GNOME; выкл — их собственный вид", s.theme_gtk4, Act::SBool("theme_gtk4"));
         y += 46;
     }
-    ui.wrap(PX, R::new(b.x, y, b.w, 40), "выключенную программу yami не трогает; всегда в палитре: шелл, экран входа, рамки niri, свои шаблоны. Курсор — окна → курсор", t.text_faint, 2);
+    ui.wrap(PX, R::new(b.x, y, b.w, 40), "выключенную программу Nemo не трогает; всегда в палитре: шелл, экран входа, рамки niri, свои шаблоны. Курсор — окна → курсор", t.text_faint, 2);
     y += 48;
     // свой конфиг fastfetch, своя палитра starship (#27): yami их не перезаписывает и говорит об этом
     for n in crate::restyle::app_notes(&st.restyle) {
@@ -142,7 +142,7 @@ fn app_themes(ui: &mut Ui, st: &State, b: R, tw: i32) {
     y = crate::restyle::draw(ui, st, b, y);
     // готовые шаблоны (#31): вшиты в шелл, «добавить» кладёт копию к своим
     y = title(ui, b.x, y + 6, b.w, "готовые шаблоны");
-    ui.wrap(PX, R::new(b.x, y, b.w, 40), "для программ, которых yami не знает: копия ляжет к твоим шаблонам, а программе нужна одна строка справа", t.text_dim, 2);
+    ui.wrap(PX, R::new(b.x, y, b.w, 40), "для программ, которых Nemo не знает: копия ляжет к твоим шаблонам, а программе нужна одна строка справа", t.text_dim, 2);
     y += 44;
     for (i, (file, name, hint, _)) in crate::catalog::ALL.iter().enumerate() {
         let have = st.restyle.tpls.iter().any(|tp| tp.file == *file);
@@ -273,7 +273,7 @@ pub(crate) fn tab_widgets(ui: &mut Ui, st: &State, b: R) {
 }
 
 /// пиксельность одним ползунком: 0 — гладко, 1 — мягче, 2 — только yami, 3 — всё пиксельное (по умолчанию)
-pub(crate) const PIXEL_LEVELS: [&str; 4] = ["гладко", "мягче", "только yami", "всё пиксельное"];
+pub(crate) const PIXEL_LEVELS: [&str; 4] = ["гладко", "мягче", "только Nemo", "всё пиксельное"];
 
 /// где сейчас ползунок пиксельности: по шрифтам, значкам и курсору (свои сочетания — ближайшее)
 pub(crate) fn pixel_level(s: &crate::config::Settings) -> usize {
@@ -405,7 +405,7 @@ pub(crate) fn tab_system(ui: &mut Ui, st: &State, b: R) {
     ui.toggle(R::new(rx, y, half, 26), "вернуть программы при входе", "", s.session_restore, Act::SBool("session_restore"));
     y += 40;
     // конфиг niri — человека: yami только строка include в его начале, части включаются здесь
-    y = title(ui, b.x, y, b.w, "niri: что приносит yami");
+    y = title(ui, b.x, y, b.w, "niri: что приносит Nemo");
     let nl = &st.niri_link;
     let (state, c) = if nl.connected {
         (crate::tf!("подключён: {}", "connected: {}", "conectado: {}", yami_px::paths::pretty(&nl.path)), ui.t.ok)
@@ -416,7 +416,7 @@ pub(crate) fn tab_system(ui: &mut Ui, st: &State, b: R) {
     };
     ui.text_in(PX, R::new(lx, y, half, 28), &state, c);
     if nl.connected {
-        ui.button(R::new(rx, y, half, 28), "убрать строку yami", "close", Tone::Plain, false, true, Act::SCycle("niri_disconnect"));
+        ui.button(R::new(rx, y, half, 28), "убрать строку Nemo", "close", Tone::Plain, false, true, Act::SCycle("niri_disconnect"));
     } else {
         ui.button(R::new(rx, y, half, 28), "подключить одной строкой", "plus", Tone::Primary, false, true, Act::SCycle("niri_connect"));
     }
@@ -442,8 +442,8 @@ pub(crate) fn niri_parts(ui: &mut Ui, st: &State, b: R, mut y: i32) -> i32 {
     let half = (b.w - 20) / 2;
     let (lx, rx) = (b.x, b.x + half + 20);
     for (i, (k, name, hint, on)) in [
-        ("niri_look", "вид niri от yami", "ввод, окна, анимации", s.niri_look),
-        ("niri_keys", "клавиши yami", "настройки → клавиши", s.niri_keys),
+        ("niri_look", "вид niri от Nemo", "ввод, окна, анимации", s.niri_look),
+        ("niri_keys", "клавиши Nemo", "настройки → клавиши", s.niri_keys),
         ("niri_rules", "правила окон", "размытие, игры, плавающие окна", s.niri_rules),
         ("niri_colors", "цвета и курсор", "рамки окон в палитре", s.niri_colors),
         ("niri_screens", "экраны", "настройки → экраны", s.niri_screens),
@@ -458,7 +458,7 @@ pub(crate) fn niri_parts(ui: &mut Ui, st: &State, b: R, mut y: i32) -> i32 {
         }
     }
     y += 46;
-    y += ui.wrap(PX, R::new(lx, y, b.w, 40), "что написано в config.kdl ниже строки yami — главнее любой части", ui.t.text_faint, 2) + 12;
+    y += ui.wrap(PX, R::new(lx, y, b.w, 40), "что написано в config.kdl ниже строки Nemo — главнее любой части", ui.t.text_faint, 2) + 12;
     y
 }
 
@@ -494,7 +494,7 @@ pub(crate) fn tab_notif(ui: &mut Ui, st: &State, b: R) {
     ui.toggle(R::new(rx, y, half, 40), "яркость на экране", "при смене подсветки ноутбука", s.osd_bright, Act::SBool("osd_bright"));
     y += 50;
     y = title(ui, b.x, y, b.w, "сервер");
-    ui.toggle(R::new(lx, y, b.w, 40), "сервер уведомлений yami", "выкл — mako, dunst и т.п. (после перезапуска шелла)", s.agent_notif, Act::SBool("agent_notif"));
+    ui.toggle(R::new(lx, y, b.w, 40), "сервер уведомлений Nemo", "выкл — mako, dunst и т.п. (после перезапуска шелла)", s.agent_notif, Act::SBool("agent_notif"));
 }
 
 pub(crate) fn tab_dock(ui: &mut Ui, st: &State, b: R) {

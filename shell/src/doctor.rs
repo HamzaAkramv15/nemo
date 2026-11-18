@@ -95,12 +95,12 @@ fn login(y: &Sty) {
     }
     y.section(&crate::tf!("экран входа", "login screen", "tela de login"));
     if !greet {
-        line(y, &y.warn("·"), "SDDM", &crate::tf!("тема yami до 2.6; свой экран входа: yami setup", "the yami theme of before 2.6; our own login screen: yami setup", "o tema yami de antes da 2.6; nossa própria tela de login: yami setup"));
+        line(y, &y.warn("·"), "SDDM", &crate::tf!("тема Nemo до 2.6; свой экран входа: nemo setup", "the Nemo theme of before 2.6; our own login screen: nemo setup", "o tema Nemo de antes da 2.6; nossa própria tela de login: nemo setup"));
         return;
     }
     line(y, &y.ok("✓"), "yami-greet", &crate::login::greet_bin().map(|p| p.display().to_string()).unwrap_or_default());
     match crate::login::dm() {
-        Some(false) => line(y, &y.warn("·"), "greetd", &crate::tf!("не менеджер входа: yami setup", "not the login manager: yami setup", "não é o gerenciador de login: yami setup")),
+        Some(false) => line(y, &y.warn("·"), "greetd", &crate::tf!("не менеджер входа: nemo setup", "not the login manager: nemo setup", "não é o gerenciador de login: nemo setup")),
         _ => line(y, &y.ok("✓"), "greetd", &crate::tf!("менеджер входа", "the login manager", "o gerenciador de login")),
     }
     if crate::login::writable() {
@@ -112,7 +112,7 @@ fn login(y: &Sty) {
     if !last.is_empty() {
         let bad = last.split(' ').nth(2).is_some_and(|w| w == "fail" || w == "text");
         let mark = if bad { y.warn("·") } else { y.ok("✓") };
-        line(y, &mark, &crate::tf!("последний запуск", "last start", "última inicialização"), &format!("{last} · yami login log"));
+        line(y, &mark, &crate::tf!("последний запуск", "last start", "última inicialização"), &format!("{last} · nemo login log"));
     }
     if let Some(cmd) = sddm_unused(&last) {
         line(y, &y.warn("·"), "SDDM", &crate::tf!("стоит, но не нужен: убери, если им не пользуется KDE или другой стол", "installed but unused: remove it unless KDE or another desktop uses it", "instalado, mas sem uso: remova se o KDE ou outra área de trabalho não o usar"));
@@ -197,6 +197,48 @@ fn services(y: &Sty, problems: &mut u32) {
     }
 }
 
+/// путь программы из PATH
+fn path_of(c: &str) -> Option<std::path::PathBuf> {
+    std::env::split_paths(&std::env::var_os("PATH")?).map(|d| d.join(c)).find(|p| p.is_file())
+}
+
+/// собственные части Nemo: команда `nemo`, fish для kitty, место по часовому поясу, файл экрана входа.
+/// Только предупреждения: ничего из этого не мешает работать, но подсказывает, что не договорено
+fn nemo_parts(y: &Sty) {
+    y.section("Nemo");
+    // команда nemo: наша ссылка, чужая программа с тем же именем (файловый менеджер Cinnamon) или нет вовсе
+    let me = std::fs::canonicalize(yami_px::paths::self_exe()).ok();
+    match path_of("nemo") {
+        Some(p) if std::fs::canonicalize(&p).ok() == me => line(y, &y.ok("✓"), "nemo", &crate::tf!("команда: {}", "the command: {}", "o comando: {}", p.display())),
+        Some(p) => line(y, &y.warn("·"), "nemo", &crate::tf!("это другая программа ({}): команда шелла — yami", "another program owns the name ({}): the shell's command is yami", "outro programa usa o nome ({}): o comando do shell é yami", p.display())),
+        None => line(y, &y.warn("·"), "nemo", &crate::tf!("нет ссылки: ln -s yami-shell ~/.local/bin/nemo", "no link: ln -s yami-shell ~/.local/bin/nemo", "sem link: ln -s yami-shell ~/.local/bin/nemo")),
+    }
+    // fish: kitty запускает его ради подсказок, если он стоит и включён
+    let conf = std::fs::read_to_string(crate::config::config_dir().join("kitty/yami-shell.conf")).unwrap_or_default();
+    if !which("fish") {
+        line(y, &y.dim("·"), "fish", &crate::tf!("нет: подсказок команд в kitty не будет", "missing: no command suggestions in kitty", "ausente: sem sugestões de comandos no kitty"));
+    } else if conf.lines().any(|l| l.trim() == "shell fish") {
+        line(y, &y.ok("✓"), "fish", &crate::tf!("kitty запускает fish", "kitty starts fish", "o kitty abre o fish"));
+    } else {
+        line(y, &y.warn("·"), "fish", &crate::tf!("стоит, но kitty его не запускает (терминал → подсказки как в fish)", "installed, but kitty does not start it (settings → fonts → terminal)", "instalado, mas o kitty não o abre (configurações → fontes → terminal)"));
+    }
+    // место: часовой пояс называет город
+    match (crate::locate::tz_id(), crate::locate::cached()) {
+        (Some(tz), Some((la, lo, name))) => line(y, &y.ok("✓"), &crate::tf!("место", "place", "lugar"), &format!("{tz} → {name} ({la:.2}, {lo:.2})")),
+        (Some(tz), None) => line(y, &y.dim("·"), &crate::tf!("место", "place", "lugar"), &crate::tf!("{}: город ещё не определён (нужен погодный виджет или ночной свет в режиме auto)", "{}: no city resolved yet (the weather widget or night light on auto asks)", "{}: cidade ainda não resolvida (o widget de clima ou a luz noturna em auto pergunta)", tz)),
+        (None, _) => line(y, &y.dim("·"), &crate::tf!("место", "place", "lugar"), &crate::tf!("часовой пояс системы не называет город", "the system time zone names no city", "o fuso horário do sistema não indica uma cidade")),
+    }
+    // экран входа: файл вида должен нести часы и ночной свет
+    if crate::login::installed() {
+        let look = std::fs::read_to_string(crate::login::dir().join("look.json")).unwrap_or_default();
+        if look.contains("\"clock12\"") && look.contains("\"nightOn\"") {
+            line(y, &y.ok("✓"), &crate::tf!("экран входа", "login screen", "tela de login"), &crate::tf!("часы и ночной свет — как на столе", "clock and night light follow the desktop", "relógio e luz noturna seguem a área de trabalho"));
+        } else {
+            line(y, &y.warn("·"), &crate::tf!("экран входа", "login screen", "tela de login"), &crate::tf!("файл вида без часов и ночного света: nemo login sync (и свежий экран входа)", "its look file lacks the clock and night light: nemo login sync (and a current login screen)", "o arquivo de aparência não tem relógio nem luz noturna: nemo login sync (e uma tela de login atual)"));
+        }
+    }
+}
+
 pub fn run(y: &Sty) -> i32 {
     let mut problems = 0u32;
     y.section(&crate::tf!("программы", "programs", "programas"));
@@ -212,11 +254,12 @@ pub fn run(y: &Sty) -> i32 {
         }
     }
     services(y, &mut problems);
+    nemo_parts(y);
     // новым функциям не хватает пакетов (установщик записал, обновление без sudo не поставило)
     if let Some(n) = crate::need::load() {
         y.section(&crate::tf!("не поставлено из выбранного при установке", "not installed of what the install chose", "não instalado do que a instalação escolheu"));
         line(y, &y.warn("·"), &n.what(), "");
-        println!("   {}  {}", y.bold(&n.line()), y.dim("yami update need --run"));
+        println!("   {}  {}", y.bold(&n.line()), y.dim("nemo update need --run"));
     }
     y.section(&crate::tf!("настройки", "config", "configuração"));
     let (bad, unknown) = crate::config::Settings::problems(&crate::cli::file_json());
@@ -245,7 +288,7 @@ pub fn run(y: &Sty) -> i32 {
             line(y, &y.ok("✓"), "yami ↔ niri", &crate::tf!("часть yami подключена", "yami's part is connected", "a parte do yami está conectada"));
         } else {
             problems += 1;
-            line(y, &y.warn("·"), "yami ↔ niri", &crate::tf!("не подключён: yami niri connect (клавиш шелла пока нет)", "not connected: yami niri connect (the shell's keys are missing)", "não conectado: yami niri connect (faltam os atalhos do shell)"));
+            line(y, &y.warn("·"), "yami ↔ niri", &crate::tf!("не подключён: nemo niri connect (клавиш шелла пока нет)", "not connected: nemo niri connect (the shell's keys are missing)", "não conectado: nemo niri connect (faltam os atalhos do shell)"));
         }
     }
     login(y);
@@ -253,17 +296,17 @@ pub fn run(y: &Sty) -> i32 {
     if let Some(why) = crate::lite::reason() {
         let set = crate::config::Settings::load();
         y.section(&crate::tf!("машина", "machine", "máquina"));
-        let note = if set.lite { crate::tf!("лёгкий режим включён", "lite mode is on", "o modo leve está ativado") } else { crate::tf!("включи лёгкий режим: yami config set lite true (настройки → вид)", "turn on lite mode: yami config set lite true (settings → look)", "ative o modo leve: yami config set lite true (configurações → visual)") };
+        let note = if set.lite { crate::tf!("лёгкий режим включён", "lite mode is on", "o modo leve está ativado") } else { crate::tf!("включи лёгкий режим: nemo config set lite true (настройки → вид)", "turn on lite mode: nemo config set lite true (settings → look)", "ative o modo leve: nemo config set lite true (configurações → visual)") };
         line(y, &if set.lite { y.ok("✓") } else { y.warn("·") }, &why, &note);
     }
     // кеш сборки лежит на диске, пока его не уберут: не проблема, но гигабайты стоит показать
     let cache = crate::clean::total();
     if cache >= 100 << 20 {
         y.section(&crate::tf!("диск", "disk", "disco"));
-        line(y, &y.dim("·"), &crate::tf!("кеш сборки", "build cache", "cache de compilação"), &crate::tf!("{} — yami clean убирает (нужен только следующей сборке)", "{}: yami clean removes it (only the next build needs it)", "{}: yami clean remove (necessário apenas na próxima compilação)", crate::clean::human(cache)));
+        line(y, &y.dim("·"), &crate::tf!("кеш сборки", "build cache", "cache de compilação"), &crate::tf!("{} — nemo clean убирает (нужен только следующей сборке)", "{}: nemo clean removes it (only the next build needs it)", "{}: nemo clean remove (necessário apenas na próxima compilação)", crate::clean::human(cache)));
     }
     snapshots(y);
-    println!("   {}", y.dim(&crate::tf!("игры: yami doctor games", "games: yami doctor games", "jogos: yami doctor games")));
+    println!("   {}", y.dim(&crate::tf!("игры: nemo doctor games", "games: nemo doctor games", "jogos: nemo doctor games")));
     println!();
     if problems == 0 {
         println!(" {} {}\n", y.ok("✓"), crate::tf!("всё в порядке", "all good", "tudo certo"));
@@ -298,7 +341,7 @@ pub fn status(y: &Sty) {
     let last = crate::update::last();
     let upd = match last {
         Some(i) if !i.err.is_empty() => y.warn(&i.err),
-        Some(i) if i.available => y.acc(&crate::tf!("доступно {} (yami update)", "{} available (yami update)", "{} disponível (yami update)", i.latest)),
+        Some(i) if i.available => y.acc(&crate::tf!("доступно {} (nemo update)", "{} available (nemo update)", "{} disponível (nemo update)", i.latest)),
         Some(i) if i.reference.is_empty() => crate::tf!("выпусков ещё нет", "no releases yet", "ainda sem versões publicadas"),
         Some(_) => crate::tf!("свежее", "up to date", "atualizado"),
         None => crate::tf!("не проверялось", "never checked", "nunca verificado"),
@@ -316,8 +359,8 @@ fn snapshots(y: &Sty) {
     y.section(&crate::tf!("снимки системы", "system snapshots", "instantâneos do sistema"));
     let tool = ["snapper", "timeshift", "zfs"].into_iter().find(|t| which(t));
     let (mark, note) = match tool {
-        Some("snapper") => (y.ok("✓"), crate::tf!("перед большим обновлением: sudo snapper create -d 'before yami update'", "before a big update: sudo snapper create -d 'before yami update'", "antes de uma atualização grande: sudo snapper create -d 'before yami update'")),
-        Some("timeshift") => (y.ok("✓"), crate::tf!("перед большим обновлением: sudo timeshift --create --comments 'before yami update'", "before a big update: sudo timeshift --create --comments 'before yami update'", "antes de uma atualização grande: sudo timeshift --create --comments 'before yami update'")),
+        Some("snapper") => (y.ok("✓"), crate::tf!("перед большим обновлением: sudo snapper create -d 'before nemo update'", "before a big update: sudo snapper create -d 'before nemo update'", "antes de uma atualização grande: sudo snapper create -d 'before nemo update'")),
+        Some("timeshift") => (y.ok("✓"), crate::tf!("перед большим обновлением: sudo timeshift --create --comments 'before nemo update'", "before a big update: sudo timeshift --create --comments 'before nemo update'", "antes de uma atualização grande: sudo timeshift --create --comments 'before nemo update'")),
         Some(_) => (y.ok("✓"), crate::tf!("перед большим обновлением: sudo zfs snapshot <пул>/ROOT@yami", "before a big update: sudo zfs snapshot <pool>/ROOT@yami", "antes de uma atualização grande: sudo zfs snapshot <pool>/ROOT@yami")),
         None => (y.dim("·"), crate::tf!("корень на {}, но нет snapper или timeshift: систему откатить нечем", "the root is {} but there is no snapper or timeshift: nothing rolls the system back", "a raiz é {}, mas não há snapper nem timeshift: não é possível reverter o sistema", fs)),
     };

@@ -138,7 +138,7 @@ impl crate::app::App {
                     return;
                 }
                 if !crate::proc::have("yami-shot") {
-                    self.toast_note("скриншоты не установлены", "модуль yami-shot ставится из первой настройки: yami setup");
+                    self.toast_note("скриншоты не установлены", "модуль yami-shot ставится из первой настройки: nemo setup");
                     return;
                 }
                 self.close_all();

@@ -2,7 +2,7 @@
 
 English · [Русский](SECURITY.ru.md)
 
-What yami trusts, what it exposes, and what was checked (audits of 2026-11-03, 2026-11-04, 2026-11-07 and 2026-11-09).
+What Nemo trusts, what it exposes, and what was checked (audits of 2026-11-03, 2026-11-04, 2026-11-07 and 2026-11-09).
 
 ## Reporting a vulnerability
 
@@ -29,7 +29,7 @@ Please do not post it in public issues: send a [private report on GitHub](https:
 | lyrics | the player (MPRIS `xesam:asText`, `xesam:url`), lrclib.net | the player's text and a `.lrc`/`.txt` next to a local track are read as text (regular files, ≤ 256 KB); lrclib.net gets artist, title and length over `curl -q`, https only, 8 s, ≤ 2 MB, parsed as JSON and shown as text; asked only while the music popup shows lyrics; `lyricsNet` off keeps it offline |
 | weather | open-meteo.com | only the city (or the coordinates) from `weatherCity` and the units go out (with `auto` the city is the one the system time zone names, a single word such as «Cairo»), over `curl -q`, https only (redirects too), 10 s, ≤ 1 MB; the answer is parsed as JSON and shown as numbers and text; asked only while the `weather` module or widget is shown, and not at all with `weatherCity` empty |
 | file manager | removable media | a trash folder on a removable disk counts only when it and its `files` are real folders of your own, never links: a disk whose trash points at the home folder is neither shown nor emptied; a `.trashinfo` there cannot point outside that disk (`..` and absolute paths elsewhere are refused); archives go through `bsdtar`, which refuses absolute paths and `..` (file names to compress follow `--`, never read as options); FileManager1 opens at most 16 folders per call |
-| automount (`automount`) | whoever plugs a device in | only volumes udisks/gvfs mark for automounting (removable disks, phones, cameras; never internal partitions), mounted by them with their own options (`nosuid`, `nodev`); nothing is mounted while the screen is locked (the yami shell's mark, or logind's `LockedHint` for other lockers): the drives plugged then wait for the unlock; encrypted drives only ask for the password in yami-agents, which hands it to `udisksctl` over a pipe and never stores it |
+| automount (`automount`) | whoever plugs a device in | only volumes udisks/gvfs mark for automounting (removable disks, phones, cameras; never internal partitions), mounted by them with their own options (`nosuid`, `nodev`); nothing is mounted while the screen is locked (the Nemo shell's mark, or logind's `LockedHint` for other lockers): the drives plugged then wait for the unlock; encrypted drives only ask for the password in yami-agents, which hands it to `udisksctl` over a pipe and never stores it |
 | image viewer | files you open | animations are capped at 600 frames and 1 GB of decoded frames |
 | wallpaper picker | pictures in the wallpaper folder | only regular, not hidden png/jpg/webp files, at most 500 per folder; decoded in a background thread of the shell with the same limits as yami-files (nothing over 40 Mpx, a 256 MB decode cap), thumbnails cached in `~/.cache/yami/thumbs`; only the rows on screen stay in memory and everything is freed when it closes |
 | opening files | the user's clicks | `Exec=` lines are split into argv without a shell, file names are never interpolated into a command line |
@@ -37,9 +37,9 @@ Please do not post it in public issues: send a [private report on GitHub](https:
 | bar scripts (`~/.config/yami/scripts`) | the user's own executables | run only while their module is on the bar, each in its own process group led by a small `sh`: the whole group (the script and what it started) gets SIGTERM when the module leaves the bar or the shell dies (`PR_SET_PDEATHSIG` on the leader); output read line by line (a line over 4 KB is skipped); a module's `click` runs with `sh -c` like a custom key |
 | launcher `>` and `/` | what the user types | `>` runs the typed command in a terminal (like typing it there); `/` only walks the home folder (no hidden folders, no symlinked folders, ≤ 8 levels, ≤ 60 000 entries) and opens the choice with `xdg-open` |
 | inline reply | the notifying app | the text goes back only as `NotificationReplied` to that notification; the field is wiped after sending, nothing is stored or copied |
-| `yami theme import` | a file or an https link from anyone | a link is fetched with `curl -q`, https only (redirects too), ≤ 3 redirects, ≤ 64 MB, 30 s, into a fresh 0700 folder, and must be a theme (`kind: theme`), never a full file; only look keys (palette, effects, fonts, bar, widgets, dock look, gaps, cursor) and the wallpaper picture (saved as a plain file under `~/.local/share/yami/wallpapers`, name stripped of any path); never keybindings, commands, scripts or the update source. Before any import everything it may replace is copied to `~/.local/state/yami/before-import-*.json` (the same format, the last five kept; `yami import FILE --yes` puts it back) |
-| `yami import` | your own backup | as above plus every other setting; custom keybindings, `niri/user.kdl` and bar scripts are listed and written only with `--yes`; paths must be plain and relative inside `~/.config` (`..` and absolute paths refused); `updateRepo` and `updateVerify` are never imported |
-| `yami report` | you, for an issue | nothing is sent; lines with password, token, secret or key names are blanked, the home path, user and host name replaced, where you live (night light, weather), your servers and device names hidden; the archive is meant to be read before it is attached |
+| `nemo theme import` | a file or an https link from anyone | a link is fetched with `curl -q`, https only (redirects too), ≤ 3 redirects, ≤ 64 MB, 30 s, into a fresh 0700 folder, and must be a theme (`kind: theme`), never a full file; only look keys (palette, effects, fonts, bar, widgets, dock look, gaps, cursor) and the wallpaper picture (saved as a plain file under `~/.local/share/yami/wallpapers`, name stripped of any path); never keybindings, commands, scripts or the update source. Before any import everything it may replace is copied to `~/.local/state/yami/before-import-*.json` (the same format, the last five kept; `nemo import FILE --yes` puts it back) |
+| `nemo import` | your own backup | as above plus every other setting; custom keybindings, `niri/user.kdl` and bar scripts are listed and written only with `--yes`; paths must be plain and relative inside `~/.config` (`..` and absolute paths refused); `updateRepo` and `updateVerify` are never imported |
+| `nemo report` | you, for an issue | nothing is sent; lines with password, token, secret or key names are blanked, the home path, user and host name replaced, where you live (night light, weather), your servers and device names hidden; the archive is meant to be read before it is attached |
 | shell-owned processes | the user's settings | wlsunset (night light) is started with fixed arguments; it and the music, sound and visualizer helpers (playerctl, pactl, parec) carry `PR_SET_PDEATHSIG`, so none outlives the shell or a restart |
 
 ## Installer
@@ -79,7 +79,7 @@ Please do not post it in public issues: send a [private report on GitHub](https:
   `keys/allowed_signers` of the tag being installed (namespace `yami-release`) and the archive
   matches its own line in `SHA256SUMS`; a missing or foreign signature stops the install before anything changes.
 - Installing: `install.sh --update` from the new tree as the user, no sudo; the previous binaries
-  are kept for `yami update rollback`. A game in focus postpones the shell restart.
+  are kept for `nemo update rollback`. A game in focus postpones the shell restart.
 - Private or public repository: the same HTTPS URL. While it is private, git uses the user's
   credential helper (`gh auth login`); publishing the repository needs no change on clients.
 
@@ -98,7 +98,7 @@ Please do not post it in public issues: send a [private report on GitHub](https:
 
 ## Install count
 
-yami has no telemetry: the shell never reports anything, and updates are a `git fetch` of the
+Nemo has no telemetry: the shell never reports anything, and updates are a `git fetch` of the
 public repository. The «installs» badge in the README counts one thing: after an install has finished, the
 installer asks GitHub for a one-line file, `yami-installs.txt`, on the fixed `installs` release, **once per machine**,
 and throws the answer away. GitHub counts downloads of release files; `.github/workflows/stats.yml` adds those

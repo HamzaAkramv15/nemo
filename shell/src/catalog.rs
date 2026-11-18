@@ -6,12 +6,12 @@
 
 /// (имя файла шаблона, программа, что вписать в её конфиг, текст)
 pub const ALL: &[(&str, &str, &str, &str)] = &[
-    ("ghostty", "Ghostty", "theme = yami", include_str!("../../config/templates/ghostty")),
+    ("ghostty", "Ghostty", "theme = Nemo", include_str!("../../config/templates/ghostty")),
     ("alacritty", "Alacritty", "import = [\"~/.config/alacritty/yami.toml\"]", include_str!("../../config/templates/alacritty")),
     ("wezterm", "WezTerm", "config.color_scheme = \"yami\"", include_str!("../../config/templates/wezterm")),
     ("helix", "Helix", "theme = \"yami\"", include_str!("../../config/templates/helix")),
-    ("neovim", "Neovim", ":colorscheme yami", include_str!("../../config/templates/neovim")),
-    ("zathura", "zathura", "include yami", include_str!("../../config/templates/zathura")),
+    ("neovim", "Neovim", ":colorscheme Nemo", include_str!("../../config/templates/neovim")),
+    ("zathura", "zathura", "include Nemo", include_str!("../../config/templates/zathura")),
     ("tmux", "tmux", "source-file ~/.config/tmux/yami.conf", include_str!("../../config/templates/tmux")),
     ("fuzzel", "fuzzel", "include=~/.config/fuzzel/yami.ini", include_str!("../../config/templates/fuzzel")),
     ("vesktop", "Vesktop", "themes → yami.theme.css", include_str!("../../config/templates/vesktop")),

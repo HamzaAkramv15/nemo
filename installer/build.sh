@@ -105,7 +105,7 @@ do_install_bins() {
   # the separate setup program of the development tree is part of the shell now (`yami setup`)
   rm -f "$BIN/yami-setup" "$STATE/built/yami-setup"
   # `yami <command>`: the same binary, help instead of the shell when started without a command
-  [[ -x $BIN/yami-shell ]] && ln -sfn yami-shell "$BIN/yami"
+  [[ -x $BIN/yami-shell ]] && ln -sfn yami-shell "$BIN/yami" && ln -sfn yami-shell "$BIN/nemo"
   mkdir -p "$STATE/built"
   for b in yami-shell yami-files yami-view yami-play yami-shot yami-agents; do
     [[ -f $CACHE/built-$b ]] || continue

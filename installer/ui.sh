@@ -172,7 +172,7 @@ welcome() {
     printf '\e[H\e[J'
     banner 1
     if ((REPAIR)); then
-      printf '  %s%s%s\n' "$T" "$(t "yami уже стоит: обновлю и починю, твой выбор и настройки останутся." "yami is already here: I will update and repair it, your choices and settings stay." "o yami já está instalado: vou atualizar e reparar, suas escolhas e configurações ficam.")" "$R"
+      printf '  %s%s%s\n' "$T" "$(t "yami уже стоит: обновлю и починю, твой выбор и настройки останутся." "yami is already here: I will update and repair it, your choices and settings stay." "o Nemo já está instalado: vou atualizar e reparar, suas escolhas e configurações ficam.")" "$R"
       printf '  %s%s%s\n\n' "$D" "$(t "Перед изменениями сохраню точку отката." "A rollback point is saved before any change." "Um ponto de restauração é salvo antes de qualquer mudança.")" "$R"
     elif ((FULL)); then
       printf '  %s%s%s\n\n' "$T" "$(t "Поставлю всё сразу: niri, шелл и все модули." "I will install everything at once: niri, the shell and all modules." "Vou instalar tudo de uma vez: niri, o shell e todos os módulos.")" "$R"

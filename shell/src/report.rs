@@ -88,7 +88,7 @@ pub fn run(y: &Sty, args: &[&str]) -> i32 {
         Some(i) => match args.get(i + 1) {
             Some(p) => PathBuf::from(p),
             None => {
-                eprintln!(" {} yami report [-o FILE.tar.gz]", y.bad("✕"));
+                eprintln!(" {} nemo report [-o FILE.tar.gz]", y.bad("✕"));
                 return 2;
             }
         },

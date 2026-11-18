@@ -128,10 +128,10 @@ pub fn start(modules: Vec<String>, lang: String, mut password: String, tx: callo
         let script = src.join("install.sh");
         // первая установка шла из папки, которой уже нет (/tmp после перезагрузки): своя копия заново
         if !script.exists() {
-            send(Ev::Line("git clone yami".into()));
+            send(Ev::Line("git clone Nemo".into()));
             let ok = Command::new("git").args(["clone", "-q", "--filter=blob:none", REPO]).arg(&src).stdin(Stdio::null()).stdout(Stdio::null()).stderr(Stdio::null()).status().is_ok_and(|s| s.success());
             if !ok {
-                return send(Ev::Done(Err(crate::tf!("нет исходников yami и не удалось их скачать: проверь интернет", "the yami sources are gone and could not be downloaded: check the internet", "os fontes do yami sumiram e não foi possível baixá-los: verifique a internet"))));
+                return send(Ev::Done(Err(crate::tf!("нет исходников Nemo и не удалось их скачать: проверь интернет", "the Nemo sources are gone and could not be downloaded: check the internet", "os fontes do Nemo sumiram e não foi possível baixá-los: verifique a internet"))));
             }
             // свежий клон стоит на main: модули ставятся от той версии, что стоит (её коммит, иначе её тег),
             // а не от новее — её modules.lock и установщик могут ждать другой шелл

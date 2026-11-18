@@ -8,20 +8,20 @@ of the file is kept), unknown keys are ignored: `yami-shell config check` lists 
 
 | File | Owner | Edit by hand |
 |---|---|---|
-| `~/.config/yami/shell.json` | the shell; yami-files, yami-view and `yami recolor` read the look from it | yes, live |
+| `~/.config/yami/shell.json` | the shell; yami-files, yami-view and `nemo recolor` read the look from it | yes, live |
 | `~/.config/yami/files.json` | yami-files | yes (read at start) |
 | `~/.config/yami/style.json`, `style.<module>.json` | the look of every module (the shell writes it from settings → look) | yes |
 | `~/.config/yami/scripts/` | **you**: bar modules and widgets from scripts | yes |
 | `~/.config/yami/themes/`, `templates/` | **you**: saved themes, recolouring templates | yes |
-| `~/.config/niri/config.kdl` | **you**: yami only adds one include line at its top (`yami niri connect`), what you write below it wins | yes |
+| `~/.config/niri/config.kdl` | **you**: Nemo only adds one include line at its top (`nemo niri connect`), what you write below it wins | yes |
 | `~/.config/yami/niri/yami.kdl` | the shell: what that line brings, the parts below that are on in settings → system → niri | no, rewritten |
 | `~/.config/yami/niri/base.kdl` | the shell: yami's niri look (input, layout, animations, window rules, environment) | no, rewritten |
 | `~/.config/yami/niri/binds.kdl` | the shell (settings → keys) | no, rewritten |
 | `~/.config/yami/niri/rules.kdl` | the shell (windows, look, games) | no, rewritten |
-| `~/.config/yami/niri/colors.kdl`, `cursor.kdl` | `yami recolor` | no, rewritten |
+| `~/.config/yami/niri/colors.kdl`, `cursor.kdl` | `nemo recolor` | no, rewritten |
 | `~/.config/yami/niri/outputs.kdl` | the shell (settings → screens) | no, rewritten |
 | `/var/lib/yami-greet/look/` | the shell: what the login screen is drawn from (`look.json`: palette, language, monitors, layouts; `wall.png`: the wallpaper), yours since the install | no, rewritten |
-| `/var/lib/yami-greet/log/` | the login screen: `greet.log` (its starts, niri's messages), `last` (how the last start went) | no, read with `yami login status` / `log` |
+| `/var/lib/yami-greet/log/` | the login screen: `greet.log` (its starts, niri's messages), `last` (how the last start went) | no, read with `nemo login status` / `log` |
 | `~/.local/state/yami/palette.json` | the shell: the derived palette other apps are coloured from | no |
 | `~/.config/xdg-desktop-portal/niri-portals.conf` | the shell (settings → services); kept as is once it no longer starts with `# yami:` | through the settings |
 | `~/.local/state/yami/install.json` | the installer and `tools/deploy.sh`: version, commit, source, components | no |
@@ -30,35 +30,35 @@ of the file is kept), unknown keys are ignored: `yami-shell config check` lists 
 ## The terminal
 
 `yami` is the same binary as `yami-shell` (a link in `~/.local/bin`): without a command it
-prints the help instead of starting the shell. `yami help <command>` explains one command.
+prints the help instead of starting the shell. `nemo help <command>` explains one command.
 
 ```sh
-yami open settings:updates                # a panel: launcher clipboard settings[:tab] power lock walls screenshot cal sound media net bt sys profile tray weather privacy
-yami palette | yami palette ash | yami palette '#3a9fd0' | yami palette wallpaper
-yami palette show | yami palette export NAME   # every colour with its hex (the {{names}} of templates); the palette as a saved theme
-yami wallpaper ~/Pictures/x.png           # no path: the palette's pixel wallpaper
-yami restart                              # restart the shell (refuses while a game has focus; --force)
-yami caffeine [on|off|toggle|MINUTES|Nh]            # caffeine: no idle lock, no dimming, no sleep by itself, for N minutes or until you turn it off
-yami night [on|off|toggle|always|schedule|temp K]   # night light: switch it, keep it on all day (always) or back on its schedule, set the temperature (2500-6000 K); saved in shell.json, so it survives restarts and reboots
-yami status                               # shell, portal, niri, last update check
-yami doctor                               # programs, D-Bus services, config: what is missing and what it costs
-yami doctor games                         # ntsync, gamemode, MangoHud: what is there, one command for the rest
-yami report [-o FILE]                     # versions, doctor, this boot's journal, configs in a tar.gz for an issue (secrets scrubbed)
-yami setup [STEP]                         # the first-run setup again: language, look, bar, keys, niri, modules (STEP: niri, modules…)
-yami ocr FILE                             # text from an image, the same recognition as «text» in the screenshot overlay (needs tesseract)
-yami theme export FILE | import FILE|URL  # the look as one file: palette, effects, fonts, bar, widgets, wallpaper (never commands); an imported theme is kept in your themes, a URL must be https
-yami theme save [NAME] | list | apply NAME | remove NAME   # your themes in ~/.config/yami/themes; `Nemo` is built in (the pixel/normal balance, keeps your palette and wallpaper) (settings → color → themes); save with no name names it after the palette
-yami templates [force NAME]                # render your templates and print what came out of each (force overwrites one changed by hand)
-yami icons [NAME | auto | add PATH]        # icon sets: list them, switch (auto: the system's), install your own from an archive or a folder into ~/.local/share/icons
-yami cursor [NAME | yami | system | size N | add PATH]   # cursors: the yami pixel one, any installed set, system (leave alone); the size; your own set
-yami export FILE | import FILE [--yes]    # every setting as one file; niri/user.kdl, custom keys and bar scripts only with --yes; before an import the current state goes to ~/.local/state/yami/before-import-*.json (undo: yami import that file --yes)
-yami login sync                           # give the login screen the shell's look now (the shell does it on every change)
-yami login status | log | preview         # the login screen: installed, greetd enabled, its last start; its log; it over the desktop (password yami or Esc)
-yami clean [--dry-run]                    # remove the build cache (yami-niri sources, the shell's target: gigabytes); --force also drops a tree with your patch work
-yami version                              # every part with the installed commit
-yami update [check|apply|list|to X.Y.Z|rollback|status|log|need]
-yami msg <command>                        # raw shell command (yami help msg)
-yami msg launcher TEXT                    # the launcher with the text typed in: ?setting, /file, >command (for a key)
+nemo open settings:updates                # a panel: launcher clipboard settings[:tab] power lock walls screenshot cal sound media net bt sys profile tray weather privacy
+nemo palette | nemo palette ash | nemo palette '#3a9fd0' | nemo palette wallpaper
+nemo palette show | nemo palette export NAME   # every colour with its hex (the {{names}} of templates); the palette as a saved theme
+nemo wallpaper ~/Pictures/x.png           # no path: the palette's pixel wallpaper
+nemo restart                              # restart the shell (refuses while a game has focus; --force)
+nemo caffeine [on|off|toggle|MINUTES|Nh]            # caffeine: no idle lock, no dimming, no sleep by itself, for N minutes or until you turn it off
+nemo night [on|off|toggle|always|schedule|temp K]   # night light: switch it, keep it on all day (always) or back on its schedule, set the temperature (2500-6000 K); saved in shell.json, so it survives restarts and reboots
+nemo status                               # shell, portal, niri, last update check
+nemo doctor                               # programs, D-Bus services, config: what is missing and what it costs
+nemo doctor games                         # ntsync, gamemode, MangoHud: what is there, one command for the rest
+nemo report [-o FILE]                     # versions, doctor, this boot's journal, configs in a tar.gz for an issue (secrets scrubbed)
+nemo setup [STEP]                         # the first-run setup again: language, look, bar, keys, niri, modules (STEP: niri, modules…)
+nemo ocr FILE                             # text from an image, the same recognition as «text» in the screenshot overlay (needs tesseract)
+nemo theme export FILE | import FILE|URL  # the look as one file: palette, effects, fonts, bar, widgets, wallpaper (never commands); an imported theme is kept in your themes, a URL must be https
+nemo theme save [NAME] | list | apply NAME | remove NAME   # your themes in ~/.config/yami/themes; `Nemo` is built in (the pixel/normal balance, keeps your palette and wallpaper) (settings → color → themes); save with no name names it after the palette
+nemo templates [force NAME]                # render your templates and print what came out of each (force overwrites one changed by hand)
+nemo icons [NAME | auto | add PATH]        # icon sets: list them, switch (auto: the system's), install your own from an archive or a folder into ~/.local/share/icons
+nemo cursor [NAME | Nemo | system | size N | add PATH]   # cursors: the Nemo pixel one, any installed set, system (leave alone); the size; your own set
+nemo export FILE | import FILE [--yes]    # every setting as one file; niri/user.kdl, custom keys and bar scripts only with --yes; before an import the current state goes to ~/.local/state/yami/before-import-*.json (undo: nemo import that file --yes)
+nemo login sync                           # give the login screen the shell's look now (the shell does it on every change)
+nemo login status | log | preview         # the login screen: installed, greetd enabled, its last start; its log; it over the desktop (password yami or Esc)
+nemo clean [--dry-run]                    # remove the build cache (yami-niri sources, the shell's target: gigabytes); --force also drops a tree with your patch work
+nemo version                              # every part with the installed commit
+nemo update [check|apply|list|to X.Y.Z|rollback|status|log|need]
+nemo msg <command>                        # raw shell command (nemo help msg)
+nemo msg launcher TEXT                    # the launcher with the text typed in: ?setting, /file, >command (for a key)
 yami-shell config list                    # every key = value; * marks what differs from the default
 yami-shell config get dockPins
 yami-shell config set dockSide '"left"'   # VALUE is JSON; a bare word is taken as a string
@@ -73,7 +73,7 @@ yami-shell binds list | print | write     # keybindings
 
 ## The look of every module
 
-Every module reads `~/.config/yami/style.json`; the yami shell writes that file from its settings
+Every module reads `~/.config/yami/style.json`; the Nemo shell writes that file from its settings
 (settings → look), without the shell it is yours. `~/.config/yami/style.<module>.json` (`files`
 `view` `play` `shot` `agents` `setup`) holds only what one module does differently. Without any of
 them a module is neutral and follows the system's light or dark theme. `YAMI_STYLE` names another
@@ -91,7 +91,7 @@ file for one run. The files are reread when they change.
 | `font` | a font family | empty: `sans` with `plain`, Tiny5 with `yami` |
 | `iconPixel`, `iconTheme` | `true`, `false`; a theme name | app icons |
 | `animations`, `animSpeed` | `true`, `false`; a number | on or off, speed |
-| `wallpaperCmd` | a command with `{}` | «set as wallpaper» outside the yami shell, e.g. `swww img {}` |
+| `wallpaperCmd` | a command with `{}` | «set as wallpaper» outside the Nemo shell, e.g. `swww img {}` |
 | `lang` | `ru`, `en`, `pt-BR`, `es`, `de`, `fr`, `uk`, `pl` | empty: as the system |
 | `colors` | an object of `#rrggbb` | any of `bg` `panel` `surface` `surfaceHi` `codeBg` `border` `dim` `accent` `deep` `glow` `bright` `selection` `text` `textDim` `textFaint` `onAccent` `textHi` `ok` `warn` |
 
@@ -117,33 +117,33 @@ file for one run. The files are reread when they change.
 | `blurXray` | `true` | niri's default: blur only the wallpaper behind a panel, so an app window behind it stays sharp (cheap). `false` blurs everything behind panels and terminals, windows too, so a panel looks the same with or without an app behind it (heavier for the GPU). Settings → look |
 | `blurStrength` | `3` | how strong that blur is, 1–8 (niri `passes` and `offset`: 1 is a light haze, 8 is frosted glass and costs the GPU more); 3 is what it was before this setting. Settings → look |
 | `animations` | `true` | Bayer dissolve, panel motion; off everywhere when false |
-| `lite` | `false` | lite mode for weak and virtual machines (old laptops, VMs, software rendering): no blur, no shell or niri animations, opaque inactive windows; the settings above stay as they are and come back when it is off. A fresh install turns it on by itself on a VM, without GPU acceleration, on pre-2011 Intel graphics or with ≤ 4 GB and ≤ 4 threads (`config lite-auto`); `yami doctor` says why |
+| `lite` | `false` | lite mode for weak and virtual machines (old laptops, VMs, software rendering): no blur, no shell or niri animations, opaque inactive windows; the settings above stay as they are and come back when it is off. A fresh install turns it on by itself on a VM, without GPU acceleration, on pre-2011 Intel graphics or with ≤ 4 GB and ≤ 4 threads (`config lite-auto`); `nemo doctor` says why |
 | `animSpeed` | `1.0` | duration multiplier: 0.5 faster, 2 slower |
-| `light` | `false` | light theme: paper instead of graphite, the accent deepened until it reads; `yami recolor` switches GTK (adw-gtk3, `prefer-light`), Qt, KDE, kitty, btop, the cursor and the light icon variant with it |
+| `light` | `false` | light theme: paper instead of graphite, the accent deepened until it reads; `nemo recolor` switches GTK (adw-gtk3, `prefer-light`), Qt, KDE, kitty, btop, the cursor and the light icon variant with it |
 | `reveal` | `"dither"` | how panels appear: `dither` (Bayer 4×4), `scan` (interlaced lines), `noise`, `wipe` (diagonal with a dithered edge), `blocks` (Bayer, double cells) |
 | `revealGrain` | `1` | cell size of the reveal, 1–4 |
 | `animClose` | `true` | panels close with the reveal backwards; off: they vanish at once |
 | `anims` | `{}` | each group of panels its own animation (settings → animations): keys `windows`, `popups`, `menus`, `notifs`, `widgets`, `dock`, each `{"open": "", "close": "", "speed": 1.0, "motion": true}`; `open`/`close` = a `reveal` pattern or `none`, empty = as everywhere |
 | `scanlines` | `false` | every second line of the shell's panels a little darker, like an old monitor |
 | `wallpaper` | `""` | path to your own image (PNG, JPEG, WebP); empty: the generated pixel wallpaper |
-| `wallDir` | `""` | the folder the wallpaper picker shows as a grid (settings → wallpaper → pick, `yami open walls`; set by settings → wallpaper → folder, by a folder typed into the path field or by the picker's «folder…» button); empty: `~/Pictures/Wallpapers` (or `wallpapers`), else the folder of the current wallpaper, else `~/Pictures`. Thumbnails share yami-files' cache `~/.cache/yami/thumbs` |
+| `wallDir` | `""` | the folder the wallpaper picker shows as a grid (settings → wallpaper → pick, `nemo open walls`; set by settings → wallpaper → folder, by a folder typed into the path field or by the picker's «folder…» button); empty: `~/Pictures/Wallpapers` (or `wallpapers`), else the folder of the current wallpaper, else `~/Pictures`. Thumbnails share yami-files' cache `~/.cache/yami/thumbs` |
 | `wallFit` | `"fill"` | `fill`: cover the screen, crop the rest; `fit`: the whole image, margins in the background colour |
 | `wallPixel` | `1` | pixel cells of your image: 1 as is, 2…8 → cells of 2, 3, 4, 6, 8, 12, 16 px |
 | `wallTone` | `""` | colouring of your image: `""` as is, `tint` the accent's shades, `palette` palette tones with Bayer dithering |
 | `wallDim` | `0.0` | darken the wallpaper towards the background colour, 0…0.8 |
-| `wallAccent` | `false` | take the accent from your image, again with every new one; the whole palette follows it (background, panels, borders, the 16 terminal colours, every recoloured program and template). Settings → color → «palette from the wallpaper» or `yami palette wallpaper`; picking a colour by hand (also `yami config set accent`) turns it off |
+| `wallAccent` | `false` | take the accent from your image, again with every new one; the whole palette follows it (background, panels, borders, the 16 terminal colours, every recoloured program and template). Settings → color → «palette from the wallpaper» or `nemo palette wallpaper`; picking a colour by hand (also `nemo config set accent`) turns it off |
 | `wallScheme` | `tonal` | how the wallpaper's colour becomes the accent: `tonal`, `vibrant` (the most saturated hue), `content` (as in the picture), `muted`, `mono` |
 | `templatesOff` | `[]` | your templates that are switched off (file names in `~/.config/yami/templates`) |
 | `themeGtk4` | `true` | GTK 4 / libadwaita apps (Nautilus, GNOME apps) in the palette too; off: their own look, the rest of GTK still recoloured |
 | `wallKanji` | `true` | the 闇 glyph in the wallpaper corner |
 | `wallSkwd` | `false` | the wallpaper comes from [skwd-wall](https://github.com/liixini/skwd-wall): the shell reads what it writes (`~/.cache/skwd-wall-v2/last-wallpaper.json`, `colors.json`; `SKWD_WALL_V2_CACHE` and `paths.cache` respected) and changes nothing in its config. On a monitor where skwd-wall draws (pictures by skwd-paper, videos and scenes by skwd-wall-vk, transitions; seen from its niri layer) the shell hides its own wallpaper; otherwise (skwd-wall's pick-only mode) the shell draws the picked image itself in its cells and tones, a video or scene by its preview frame. The lock and login screens show the same picture. `rules.kdl` gets the layer rule that puts skwd-paper's overview backdrop behind the workspaces |
 | `wallSkwdColors` | `true` | with `wallSkwd`: the accent is skwd-wall's `primary` and the theme follows its background (light or dark), so a palette made in its theme designer recolours the whole rice |
-| `iconTheme` | `""` | the icon set (settings → look → app icons, `yami icons`): the shell and yami's apps use it, and so do GTK and Qt when they are restyled; empty: the one the system already uses |
+| `iconTheme` | `""` | the icon set (settings → look → app icons, `nemo icons`): the shell and yami's apps use it, and so do GTK and Qt when they are restyled; empty: the one the system already uses |
 | `iconPixel` | `true` | app icons as clean pixel art: the icon is drawn large, averaged down to a grid of 16–30 cells (2 px cells in the dock), in 5–10 of its own colours with a dark outline, no dithering |
 | `iconTint` | `false` | pixel icons in four tones of the palette instead of their own colours |
 | `fetchFull` | `false` | fastfetch with the hardware (kernel, packages, CPU, GPU, memory, disk, display); off: who, OS, wm, shell, terminal, uptime |
 | `lang` | `""` | `ru`, `en`, `pt-BR`, `es`, `de`, `fr`, `uk`, `pl`, or empty to follow `LC_ALL`, `LC_MESSAGES`, then `$LANG`; locale names such as `pt_BR.UTF-8`, `pt` or `de_AT` are also accepted; a line not translated yet shows in English |
-| `themeApps` | all of them | the other programs `yami recolor` recolours (settings → color → apps, the installer's `--restyle`): `gtk` (gtk.css, settings.ini, gsettings), `qt` (qt6ct, the KDE colour scheme, kdeglobals), `kitty` (its colours and font; off takes the `include yami.conf` line out of `kitty.conf`), `fastfetch` (its `config.jsonc` while that is yami's; your own one is kept and yami's look goes to `yami.jsonc` next to it), `btop`, `firefox` (menus), `mangohud` (only a config yami wrote), `foot` (`foot/yami-colors.ini` and an `include=~/…` line at the end of `foot.ini` under its own `[main]`, so it wins over colours set above; new windows), `cava` (a gradient in the `[color]` section of its config, open cava reloads at once), `starship` (a `[palettes.yami]` table that also retints `red`, `green` and the other names, and `palette = "yami"` unless you chose another palette). A program left out is not touched. Up to 2.6 it was `appThemes` (foot, cava and starship only), read once and carried over |
+| `themeApps` | all of them | the other programs `nemo recolor` recolours (settings → color → apps, the installer's `--restyle`): `gtk` (gtk.css, settings.ini, gsettings), `qt` (qt6ct, the KDE colour scheme, kdeglobals), `kitty` (its colours and font; off takes the `include yami.conf` line out of `kitty.conf`), `fastfetch` (its `config.jsonc` while that is yami's; your own one is kept and yami's look goes to `yami.jsonc` next to it), `btop`, `firefox` (menus), `mangohud` (only a config yami wrote), `foot` (`foot/yami-colors.ini` and an `include=~/…` line at the end of `foot.ini` under its own `[main]`, so it wins over colours set above; new windows), `cava` (a gradient in the `[color]` section of its config, open cava reloads at once), `starship` (a `[palettes.yami]` table that also retints `red`, `green` and the other names, and `palette = "yami"` unless you chose another palette). A program left out is not touched. Up to 2.6 it was `appThemes` (foot, cava and starship only), read once and carried over |
 
 ### Apps in the palette colours
 
@@ -166,8 +166,8 @@ your templates, and the app needs one line of its own config that the list shows
 
 Settings → color → apps lists what came out of each template: written, changed by hand (an
 «overwrite» button renders it over your edit and keeps that as `*.bak-yami`), an unknown colour, no
-`yami-output` line or a target outside those folders. In a terminal, `yami templates` renders them
-and prints the same, `yami templates force NAME` overwrites one; the record is
+`yami-output` line or a target outside those folders. In a terminal, `nemo templates` renders them
+and prints the same, `nemo templates force NAME` overwrites one; the record is
 `~/.local/state/yami/restyle.json`.
 
 ```ini
@@ -180,7 +180,7 @@ text-color={{text}}
 
 ### Fonts
 
-Settings → look → «pixel look» moves these keys, `iconPixel` and `cursor` (unless it names a cursor set of your own) together in four steps: smooth (the system sans and cursor everywhere), softer (pixel shell panels only), yami only (GTK and Qt apps smooth, the installer's default) and all pixel.
+Settings → look → «pixel look» moves these keys, `iconPixel` and `cursor` (unless it names a cursor set of your own) together in four steps: smooth (the system sans and cursor everywhere), softer (pixel shell panels only), Nemo only (GTK and Qt apps smooth, the installer's default) and all pixel.
 
 | Key | Default | Meaning |
 |---|---|---|
@@ -204,7 +204,7 @@ Settings → look → «pixel look» moves these keys, `iconPixel` and `cursor` 
 | `trayMode` | `"icons"` | `icons`: every tray icon on the bar; `arrow`: one arrow that opens them as a list (clicks work as on the bar; a dot when an app asks for attention). A network applet (`nm-applet` and the like) is left out while the bar has `net` |
 | `trayPixel` | `false` | tray icons (on the bar and in the arrow's list) redrawn in pixel cells like the dock and the launcher with `iconPixel`: own colours, or palette tones with `iconTint` (#19) |
 | `batHideFull` | `false` | the `bat` module hides while the laptop is on power and not charging: full, or held at a charge limit (#21) |
-| `controlTiles` | `["wifi", "bt", "dnd", "night", "mic", "theme"]` | the tiles of the control panel (right-click an empty spot on the bar, `yami msg popup control`), in order, up to 6: `wifi` `bt` `dnd` `night` `mic` `mute` `theme` `curtain` `settings` `lock` `power`. The panel also has the clock on the wallpaper (click: the wallpaper picker), upright volume and brightness sliders, what is playing (with back, play and next) and a bar row: the screen edge in one click and «bar settings» |
+| `controlTiles` | `["wifi", "bt", "dnd", "night", "mic", "theme"]` | the tiles of the control panel (right-click an empty spot on the bar, `nemo msg popup control`), in order, up to 6: `wifi` `bt` `dnd` `night` `mic` `mute` `theme` `curtain` `settings` `lock` `power`. The panel also has the clock on the wallpaper (click: the wallpaper picker), upright volume and brightness sliders, what is playing (with back, play and next) and a bar row: the screen edge in one click and «bar settings» |
 | `privacyMic`, `privacyCam`, `privacyScreen` | `true` | what the `privacy` module watches: the microphone (PulseAudio/PipeWire recordings that are not of a sound output), the camera (who holds `/dev/video*`), screen sharing (niri's casts; the shell's own screenshots do not count); watched only while the module is on the bar |
 | `mediaViz` | `"bars"` | the equalizer of the `media` module and the music popup: `bars` `line` `blocks` `wave` `dots`, or `off` (no equalizer, and no audio capture for it) |
 | `mediaView` | `"cover"` | what the music popup shows (the button in its header switches it): `cover` (cover, buttons, equalizer), `both` (cover and lyrics), `lyrics`, `minimal` (title and buttons) |
@@ -234,13 +234,13 @@ Settings → look → «pixel look» moves these keys, `iconPixel` and `cursor` 
 | `titlebars` | `true` | title bars and the resize corner in desk mode. Desk mode focuses a window on click (and raises it); focus follows the mouse only in tiling |
 | `floatMedia`, `floatPip` | `true` | photo/video viewers and picture-in-picture open floating |
 | `floatApps` | `""` | more app-ids to open floating, comma separated |
-| `castHide` | `""` | app-ids that viewers of a screen share never see: niri paints them black in the stream (`block-out-from "screencast"`), on your screen they stay as they are; screenshots still show them. Settings → windows, or `yami msg cast-hide` and a click on the window |
+| `castHide` | `""` | app-ids that viewers of a screen share never see: niri paints them black in the stream (`block-out-from "screencast"`), on your screen they stay as they are; screenshots still show them. Settings → windows, or `nemo msg cast-hide` and a click on the window |
 | `floatW`, `floatH` | `0.62`, `0.78` | their size, share of the screen |
 | `winGap` | `8` | gap between tiled windows, px (0–64): niri `gaps` in `rules.kdl` |
 | `winLeft`, `winRight`, `winTop`, `winBottom` | `8` each | from the screen edge to the windows, px (0–128; the top one from the bar): niri `struts` = edge − gap. Struts in your niri `config.kdl` replace these whole |
 | `winRadius` | `0` | window corner radius, px (0–24; 0 square, like pixels): niri `geometry-corner-radius` with `clip-to-geometry`, the border follows it. Games stay square; fullscreen and maximized windows are square anyway; in desk mode with title bars only the bottom corners of floating windows round, so the shell's title bar joins without a gap |
 | `winBorder` | `2` | window border width, px (0–8; 0: none); its colours come from the palette |
-| `cursor`, `cursorSize` | `"yami"`, `24` | `yami` (pixel, in the palette), the name of any installed cursor set (settings → look → cursor, `yami cursor`), or `system` (yami leaves the cursor alone) |
+| `cursor`, `cursorSize` | `"yami"`, `24` | `yami` (pixel, in the palette), the name of any installed cursor set (settings → look → cursor, `nemo cursor`), or `system` (Nemo leaves the cursor alone) |
 | `dock` | `true` | show the dock |
 | `dockSide` | `"bottom"` | `bottom` `top` `left` `right` |
 | `dockHide` | `"smart"` | `never` `smart` (visible on an empty desk) `always` |
@@ -253,10 +253,10 @@ Settings → look → «pixel look» moves these keys, `iconPixel` and `cursor` 
 | `lockSleep` | `true` | lock the screen before any sleep: the lid, `systemctl suspend`, the system's own timer; the shell holds a logind delay lock and lets the sleep go on once niri confirms the lock (at most 3 s) |
 | `sessionRestore` | `false` | at login, start the programs that were open last time and put their first window back on its monitor and workspace (snapshot in `~/.local/state/yami/session.json`; games stay out) |
 | `night` | `false` | night light through wlsunset |
-| `caffeineMinutes` | `0` | how many minutes caffeine (the coffee cup in the bar, a control-panel tile, `yami caffeine`) lasts after a click; 0 until you turn it off. While it is on the screen is not dimmed or locked by idle and logind does not suspend the machine on its own; closing the lid still does. Settings → system |
+| `caffeineMinutes` | `0` | how many minutes caffeine (the coffee cup in the bar, a control-panel tile, `nemo caffeine`) lasts after a click; 0 until you turn it off. While it is on the screen is not dimmed or locked by idle and logind does not suspend the machine on its own; closing the lid still does. Settings → system |
 | `fetchLogo` | `"auto"` | the fastfetch logo: `image` (the fish as a picture, in kitty), `blocks` (terminal half-blocks, any terminal), `auto` (image when kitty is installed) |
 | `nightTemp` | `4000` | evening colour temperature, K (2500–6000, steps of 250) |
-| `nightAlways` | `false` | night light with no schedule: warm colours all day while `night` is on (wlsunset is run with the temperature and one Kelvin more, since it refuses equal ones). `yami night always` / `schedule` |
+| `nightAlways` | `false` | night light with no schedule: warm colours all day while `night` is on (wlsunset is run with the temperature and one Kelvin more, since it refuses equal ones). `nemo night always` / `schedule` |
 | `nightGeo` | `""` | `"lat, lon"`: from sunset to sunrise there; `"auto"`: the same for the place the system time zone names (see `weatherCity`); empty: by the clock |
 | `nightOnH`, `nightOffH` | `20`, `7` | the clock: warm from / until this hour |
 | `dnd`, `notifTimeout` | `false`, `7` | do not disturb; seconds a notification stays |
@@ -293,13 +293,13 @@ monitors to `/var/lib/yami-greet/look`; the login screen reads them at its next 
 | `gameGamemode` | `true` | the focused game is registered with gamemoded (no `gamemoderun %command%` needed) |
 
 MangoHud gets a config in the palette and the pixel font (`~/.config/MangoHud/MangoHud.conf`) as
-long as its first line is yami's; delete that line and `yami recolor` never touches it again.
+long as its first line is yami's; delete that line and `nemo recolor` never touches it again.
 
 ### Services
 
-What on D-Bus and in the portals yami does itself. Turned off, it is left to another program
+What on D-Bus and in the portals Nemo does itself. Turned off, it is left to another program
 (mako or dunst, waybar's tray, polkit-gnome, the GTK/GNOME portals). Notifications and the
-tray change after a shell restart (`yami restart`), portals from the next login. The polkit window,
+tray change after a shell restart (`nemo restart`), portals from the next login. The polkit window,
 the screen-share picker and automount belong to [yami-agents](#yami-agents).
 
 | Key | Default | Meaning |
@@ -322,15 +322,15 @@ the screen-share picker and automount belong to [yami-agents](#yami-agents).
 
 ### Updates
 
-`yami update` and settings → updates work on their own clone, `~/.local/share/yami/src` (your
+`nemo update` and settings → updates work on their own clone, `~/.local/share/yami/src` (your
 working copy is never touched). A release is the newest `vX.Y.Z` tag; with `updateChannel`
 `main` every commit of the branch is offered. Installing runs `install.sh --update` from the
 new tree: it rebuilds from source, keeps every setting and needs no sudo. Nothing is replaced until every part has
 built, and a module whose source did not change is not rebuilt. Before it starts, a rollback point goes to
-`~/.local/state/yami/snapshots` (the last three are kept, `yami update snapshots` lists them): the programs and every
+`~/.local/state/yami/snapshots` (the last three are kept, `nemo update snapshots` lists them): the programs and every
 file the installer rewrites. A run that fails after it began changing things puts it all back by itself;
-`yami update rollback` goes back to the newest point (your settings, screens and niri config are left as they are now). `yami update list` shows the last
-eight releases with their signatures, `yami update to X.Y.Z` builds and installs one of them (only
+`nemo update rollback` goes back to the newest point (your settings, screens and niri config are left as they are now). `nemo update list` shows the last
+eight releases with their signatures, `nemo update to X.Y.Z` builds and installs one of them (only
 what passes `updateVerify`). Before switching to an older version the settings are copied to
 `~/.local/state/yami/settings-newer.json`; keys the older version dropped come back from it on the
 next switch to a version at least as new. A switch to a whole version also rebuilds yami-niri at
@@ -338,8 +338,8 @@ that version's level (from the next login).
 
 An update runs without sudo. When the components chosen at install time (`shot`, `games`, …)
 want packages the system lacks — a new version brought a feature with a helper program — the
-installer writes them to `~/.local/state/yami/packages-needed`; `yami update need` prints one
-`sudo` command (`--run` runs it), `yami doctor` and settings → updates show it too, the tab with an
+installer writes them to `~/.local/state/yami/packages-needed`; `nemo update need` prints one
+`sudo` command (`--run` runs it), `nemo doctor` and settings → updates show it too, the tab with an
 **install** button that opens it in a terminal. Only package names the repositories have go there.
 
 | Key | Default | Meaning |
@@ -377,7 +377,7 @@ t=$(curl -fs 'https://wttr.in/?format=%t' || echo '?')
 printf '{"text":"%s","icon":"temp","color":"accent","click":"xdg-open https://wttr.in","interval":600}\n' "$t"
 ```
 
-Twenty ready scripts come with the shell (settings → widgets has a «ready scripts: add them all» button; `yami scripts` lists them, `yami scripts add NAME` or
+Twenty ready scripts come with the shell (settings → widgets has a «ready scripts: add them all» button; `nemo scripts` lists them, `nemo scripts add NAME` or
 `add all` puts a copy in your folder; yours are never overwritten): `uptime` `load` `disk`
 `memtop` `cpufreq` `power` `kernel` `vpn` `docker` `flatpak` `swap` `cputemp` `ipaddr` `wifi`
 `yearprogress` `utc` `processes` `fan` `gitdir` `moon`. They use no network and no account (they

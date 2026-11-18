@@ -163,7 +163,7 @@ pub fn cli(y: &crate::cmd::Sty, args: &[&str]) -> i32 {
     }
     y.section(&crate::tf!("не поставлено", "not installed", "não instalado"));
     println!("   {}", n.what());
-    println!("\n   {}  {}", y.bold(&n.line()), y.dim(&crate::tf!("(или: yami update need --run)", "(or: yami update need --run)", "(ou: yami update need --run)")));
+    println!("\n   {}  {}", y.bold(&n.line()), y.dim(&crate::tf!("(или: nemo update need --run)", "(or: nemo update need --run)", "(ou: nemo update need --run)")));
     println!();
     0
 }

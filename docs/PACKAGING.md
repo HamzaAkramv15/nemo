@@ -2,7 +2,7 @@
 
 English · [Русский](PACKAGING.ru.md)
 
-Notes for Nix users and distribution packagers: the ready binaries and the packages made from them, the flake, where yami looks for system files, and how to hand upgrades to the package manager.
+Notes for Nix users and distribution packagers: the ready binaries and the packages made from them, the flake, where Nemo looks for system files, and how to hand upgrades to the package manager.
 
 ## Ready binaries
 
@@ -23,7 +23,7 @@ Inside the archive `stage.sh` puts the programs where a package wants them:
 | Fedora, openSUSE | `packaging/fedora/yami.spec` |
 | Gentoo | `packaging/gentoo/yami-bin-*.ebuild`, a USE flag per module |
 
-Ubuntu 26.04 has no niri package: `install.sh` builds niri there, a `.deb` needs niri from elsewhere. A package also installs `/etc/xdg/autostart/yami-shell.desktop`. It starts the shell (`yami-shell autostart`) at the first login, when niri's config does not start it yet; the first-run setup opens by itself and its niri step connects yami with one include line. After that the config starts the shell and the autostart entry does nothing. Without systemd niri runs no autostart entries: `yami niri connect` once from a terminal does the same.
+Ubuntu 26.04 has no niri package: `install.sh` builds niri there, a `.deb` needs niri from elsewhere. A package also installs `/etc/xdg/autostart/yami-shell.desktop`. It starts the shell (`yami-shell autostart`) at the first login, when niri's config does not start it yet; the first-run setup opens by itself and its niri step connects Nemo with one include line. After that the config starts the shell and the autostart entry does nothing. Without systemd niri runs no autostart entries: `nemo niri connect` once from a terminal does the same.
 
 ## Nix
 
@@ -57,7 +57,7 @@ NixOS options:
 | `programs.yami.tools` | `true` | night light, text and QR codes from screenshots |
 | `programs.yami.appTheme` | `true` | qt6ct and adw-gtk3 for Qt and GTK apps in the palette |
 
-Home Manager options: `settings` (keys of `~/.config/yami/shell.json`, merged on every activation: these win, the rest set in the settings panel stays), `niriConfig` (connects yami to niri's `config.kdl` with one include line, `yami niri connect`; a config that is a link into the Nix store is left alone, add `include optional=true "~/.config/yami/niri/yami.kdl"` to it yourself), `kitty`, `defaultApplications`, `extraPackages`.
+Home Manager options: `settings` (keys of `~/.config/yami/shell.json`, merged on every activation: these win, the rest set in the settings panel stays), `niriConfig` (connects yami to niri's `config.kdl` with one include line, `nemo niri connect`; a config that is a link into the Nix store is left alone, add `include optional=true "~/.config/yami/niri/yami.kdl"` to it yourself), `kitty`, `defaultApplications`, `extraPackages`.
 
 The shell writes its own files at run time (settings, keys, screens, portals), so the modules seed them once and leave them writable. yami-niri, the patched niri in its own repository, is not packaged: the packaged niri is the same desktop without tearing in games, the realtime main thread and the stream curtain's layer rules. `nix flake check` builds the package and evaluates the NixOS module; CI runs it on every push. The modules started from the work of TheCodedKid in #1.
 
@@ -75,6 +75,6 @@ Ready binaries: `--managed` of `stage.sh` (above). From source: build with the C
 cargo build --release --locked --workspace --features yami-shell/package-managed --manifest-path shell/Cargo.toml
 ```
 
-Such a build never checks for updates on a schedule, the updates tab shows a note instead of its buttons, and `yami update` (with any subcommand) prints «Updates are managed by your package manager.» and exits with 1. Update, release switch and rollback refuse before they touch the source clone or the installed binaries. Upgrade and roll back with the package manager. A build without the feature keeps the updater.
+Such a build never checks for updates on a schedule, the updates tab shows a note instead of its buttons, and `nemo update` (with any subcommand) prints «Updates are managed by your package manager.» and exits with 1. Update, release switch and rollback refuse before they touch the source clone or the installed binaries. Upgrade and roll back with the package manager. A build without the feature keeps the updater.
 
 In the first-run setup the modules page then only says what is installed. Do not run `install.sh` over an installation that the package manager owns.

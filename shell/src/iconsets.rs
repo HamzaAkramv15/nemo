@@ -454,7 +454,7 @@ pub fn cli(y: &crate::cmd::Sty, cursor: bool, args: &[&str]) -> i32 {
                     row(&f.name, &f.dir.display().to_string());
                 }
                 row("system", &crate::tf!("не трогать", "leave alone", "não mexer"));
-                println!("\n   {}\n", y.dim(&crate::tf!("сменить: yami cursor ИМЯ  ·  размер: yami cursor size 32  ·  свой: yami cursor add АРХИВ", "switch: yami cursor NAME  ·  size: yami cursor size 32  ·  your own: yami cursor add ARCHIVE", "trocar: yami cursor NOME  ·  tamanho: yami cursor size 32  ·  o seu: yami cursor add ARQUIVO")));
+                println!("\n   {}\n", y.dim(&crate::tf!("сменить: nemo cursor ИМЯ  ·  размер: nemo cursor size 32  ·  свой: nemo cursor add АРХИВ", "switch: nemo cursor NAME  ·  size: nemo cursor size 32  ·  your own: nemo cursor add ARCHIVE", "trocar: nemo cursor NOME  ·  tamanho: nemo cursor size 32  ·  o seu: nemo cursor add ARQUIVO")));
             } else {
                 y.section(&crate::tf!("наборы значков", "icon sets", "conjuntos de ícones"));
                 let row = |name: &str, shown: &str, note: &str| println!("   {} {}  {}", if name == s.icon_theme { y.acc("●") } else { " ".into() }, y.bold(&format!("{shown:<24}")), y.dim(note));
@@ -462,7 +462,7 @@ pub fn cli(y: &crate::cmd::Sty, cursor: bool, args: &[&str]) -> i32 {
                 for f in all.iter().filter(|f| f.icons) {
                     row(&f.name, &f.name, &f.dir.display().to_string());
                 }
-                println!("\n   {}\n", y.dim(&crate::tf!("сменить: yami icons ИМЯ  ·  как в системе: yami icons auto  ·  свой: yami icons add АРХИВ", "switch: yami icons NAME  ·  as the system: yami icons auto  ·  your own: yami icons add ARCHIVE", "trocar: yami icons NOME  ·  como no sistema: yami icons auto  ·  o seu: yami icons add ARQUIVO")));
+                println!("\n   {}\n", y.dim(&crate::tf!("сменить: nemo icons ИМЯ  ·  как в системе: nemo icons auto  ·  свой: nemo icons add АРХИВ", "switch: nemo icons NAME  ·  as the system: nemo icons auto  ·  your own: nemo icons add ARCHIVE", "trocar: nemo icons NOME  ·  como no sistema: nemo icons auto  ·  o seu: nemo icons add ARQUIVO")));
             }
             0
         }
@@ -482,7 +482,7 @@ pub fn cli(y: &crate::cmd::Sty, cursor: bool, args: &[&str]) -> i32 {
                 save(&s, "--cursor")
             }
             _ => {
-                eprintln!(" {} yami cursor size 16…96", y.bad("✕"));
+                eprintln!(" {} nemo cursor size 16…96", y.bad("✕"));
                 2
             }
         },
@@ -502,7 +502,7 @@ pub fn cli(y: &crate::cmd::Sty, cursor: bool, args: &[&str]) -> i32 {
             }
         }
         _ => {
-            eprintln!(" {} yami {} [{}]", y.bad("✕"), if cursor { "cursor" } else { "icons" }, if cursor { "NAME | yami | system | size N | add PATH" } else { "NAME | auto | add PATH" });
+            eprintln!(" {} Nemo {} [{}]", y.bad("✕"), if cursor { "cursor" } else { "icons" }, if cursor { "NAME | Nemo | system | size N | add PATH" } else { "NAME | auto | add PATH" });
             2
         }
     }

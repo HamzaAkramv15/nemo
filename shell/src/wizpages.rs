@@ -434,9 +434,9 @@ pub fn niri(ui: &mut Ui, st: &State, b: R) {
     let half = (b.w - 20) / 2;
     let (lx, rx) = (b.x, b.x + half + 20);
     let mut y = b.y;
-    y += ui.wrap(PX, R::new(b.x, y, b.w, 60), "yami не переписывает конфиг niri: в его начало встаёт одна строка include, и всё, что ниже неё, главнее. Конфига нет — yami положит свой стартовый.", t.text_dim, 3) + 12;
+    y += ui.wrap(PX, R::new(b.x, y, b.w, 60), "yami не переписывает конфиг niri: в его начало встаёт одна строка include, и всё, что ниже неё, главнее. Конфига нет — Nemo положит свой стартовый.", t.text_dim, 3) + 12;
     let ver = match crate::niricfg::version() {
-        Some((a, v)) if crate::niricfg::too_old() => (crate::tf!("niri {}.{:02}: слишком старый, нужен 25.11 или новее", "niri {}.{:02}: too old, yami needs 25.11 or newer", "niri {}.{:02}: antigo demais, o yami precisa do 25.11 ou mais novo", a, v), t.warn),
+        Some((a, v)) if crate::niricfg::too_old() => (crate::tf!("niri {}.{:02}: слишком старый, нужен 25.11 или новее", "niri {}.{:02}: too old, Nemo needs 25.11 or newer", "niri {}.{:02}: antigo demais, o Nemo precisa do 25.11 ou mais novo", a, v), t.warn),
         Some((a, v)) => (format!("niri {a}.{v:02}"), t.text_faint),
         None => ("niri ?".to_string(), t.text_faint),
     };
@@ -451,11 +451,11 @@ pub fn niri(ui: &mut Ui, st: &State, b: R) {
     ui.cv.text_in(ui.f, PX, R::new(b.right() - 110, y, 110, 22), &ver.0, ver.1);
     y += 32;
     if nl.connected {
-        ui.button(R::new(lx, y, half, 32), "убрать строку yami", "close", Tone::Plain, false, true, Act::WNiri("disconnect"));
+        ui.button(R::new(lx, y, half, 32), "убрать строку Nemo", "close", Tone::Plain, false, true, Act::WNiri("disconnect"));
     } else {
         ui.button(R::new(lx, y, half, 32), "подключить одной строкой", "plus", Tone::Primary, false, true, Act::WNiri("connect"));
         if nl.exists && !nl.niri_default {
-            ui.button(R::new(rx, y, half, 32), "заменить стартовым yami", "reboot", Tone::Plain, false, true, Act::WNiri("replace"));
+            ui.button(R::new(rx, y, half, 32), "заменить стартовым Nemo", "reboot", Tone::Plain, false, true, Act::WNiri("replace"));
         }
     }
     y += 40;
@@ -468,7 +468,7 @@ pub fn niri(ui: &mut Ui, st: &State, b: R) {
     y += 6;
     y = title(ui, b.x, y, b.w, "другие программы в конфиге niri");
     if w.others.is_empty() {
-        ui.wrap(PX, R::new(b.x, y, b.w, 20), "ничего, что спорило бы с yami: ни второго бара, ни своих уведомлений", t.text_faint, 1);
+        ui.wrap(PX, R::new(b.x, y, b.w, 20), "ничего, что спорило бы с Nemo: ни второго бара, ни своих уведомлений", t.text_faint, 1);
         return;
     }
     for (i, o) in w.others.iter().enumerate() {
@@ -485,7 +485,7 @@ pub fn niri(ui: &mut Ui, st: &State, b: R) {
         ui.button(R::new(b.right() - 140, y, 140, 26), "не запускать", "stop", Tone::Plain, false, true, Act::WOther(i));
         y += 32;
     }
-    ui.wrap(PX, R::new(b.x, y + 4, b.w, 40), "строка в конфиге станет комментарием с пометкой yami, сам файл — копией рядом", t.text_faint, 2);
+    ui.wrap(PX, R::new(b.x, y + 4, b.w, 40), "строка в конфиге станет комментарием с пометкой Nemo, сам файл — копией рядом", t.text_faint, 2);
 }
 
 pub fn modules(ui: &mut Ui, st: &State, b: R) {
@@ -540,7 +540,7 @@ fn install_row(ui: &mut Ui, st: &State, w: &Welcome, b: R, mut y: i32, half: i32
         return;
     }
     if !crate::wizinst::can_install() {
-        ui.wrap(PX, R::new(b.x, y, b.w, 60), "ставить нечем: нет ни исходников yami, ни git. Каждый модуль ставится и сам: yami-files install", t.warn, 3);
+        ui.wrap(PX, R::new(b.x, y, b.w, 60), "ставить нечем: нет ни исходников Nemo, ни git. Каждый модуль ставится и сам: yami-files install", t.warn, 3);
         return;
     }
     let inst = &w.inst;
@@ -581,7 +581,7 @@ fn install_row(ui: &mut Ui, st: &State, w: &Welcome, b: R, mut y: i32, half: i32
     } else {
         ui.button(R::new(b.x, y, half, 30), go, "down", Tone::Primary, false, true, Act::WInstall);
         if !inst.sudo {
-            ui.wrap(PX, R::new(b.x + half + 20, y, half, 40), "sudo нет: пакеты потом одной командой — yami update need", t.text_faint, 2);
+            ui.wrap(PX, R::new(b.x + half + 20, y, half, 40), "sudo нет: пакеты потом одной командой — nemo update need", t.text_faint, 2);
         }
     }
 }
@@ -590,7 +590,7 @@ pub fn services(ui: &mut Ui, st: &State, b: R) {
     let s = &st.set;
     let w = b.w;
     let mut y = b.y;
-    ui.toggle(R::new(b.x, y, w, 40), "уведомления yami", "выкл — mako, dunst и т.п. (после перезапуска шелла)", s.agent_notif, Act::SBool("agent_notif"));
+    ui.toggle(R::new(b.x, y, w, 40), "уведомления Nemo", "выкл — mako, dunst и т.п. (после перезапуска шелла)", s.agent_notif, Act::SBool("agent_notif"));
     y += 50;
     ui.toggle(R::new(b.x, y, w, 40), "трей", "значки программ в баре", s.agent_tray, Act::SBool("agent_tray"));
     y += 50;

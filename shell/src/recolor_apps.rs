@@ -187,7 +187,7 @@ fn gtk_attach(dir: &Path, css: &str) -> Res {
     if cur.lines().any(|l| l.trim() == GTK_IMPORT) {
         return Ok(());
     }
-    let text = if cur.trim().is_empty() || cur.starts_with("/* YAMI") {
+    let text = if cur.trim().is_empty() || cur.starts_with("/* NEMO") {
         format!("/* yami: its colours live in yami.css; write your own rules below. */\n{GTK_IMPORT}\n")
     } else {
         // @import — до остальных правил
@@ -206,7 +206,7 @@ fn gtk_detach(dir: &Path) -> Res {
     let _ = std::fs::remove_file(dir.join("yami.css"));
     let f = dir.join("gtk.css");
     let Ok(cur) = std::fs::read_to_string(&f) else { return Ok(()) };
-    if cur.starts_with("/* YAMI") {
+    if cur.starts_with("/* NEMO") {
         let _ = std::fs::remove_file(&f);
         return Ok(());
     }
@@ -601,7 +601,7 @@ fn cava_merge(text: &str, ours: &[(&str, String)]) -> String {
         }
         // тема cava 0.10 (`theme = …`) главнее градиента: строку не стираем, а гасим, вернуть — убрать «;» (#34)
         if in_color && key_word(line) == Some("theme") {
-            out.push(format!("; {}  ; yami: off, the palette gradient of this section wins", line.trim()));
+            out.push(format!("; {}  ; Nemo: off, the palette gradient of this section wins", line.trim()));
             continue;
         }
         out.push(line.to_string());
@@ -695,7 +695,7 @@ pub fn btop(cx: &Cx, p: &P) -> Res {
         let t = if t.split('\n').any(is_key) { set_lines(&t, is_key, "color_theme = \"yami\"") } else { t + "\ncolor_theme = \"yami\"\n" };
         write(&conf, &t)
     } else {
-        write(&conf, "#? Config file for btop (YAMI: only the theme is set, btop fills the rest)\ncolor_theme = \"yami\"\ntheme_background = false\n")
+        write(&conf, "#? Config file for btop (NEMO: only the theme is set, btop fills the rest)\ncolor_theme = \"yami\"\ntheme_background = false\n")
     }
 }
 
@@ -765,14 +765,14 @@ pub fn firefox(cx: &Cx, p: &P) -> Res {
     }
     if font {
         if css.is_empty() {
-            css = format!("/* YAMI: written by {WHO} (settings → fonts → browser). Delete the file to drop it. */\n");
+            css = format!("/* NEMO: written by {WHO} (settings → fonts → browser). Delete the file to drop it. */\n");
         }
         css += &pyf(FF_FONT, p, &ev);
     }
     for prof in firefox_profiles(cx) {
         let f = prof.join("chrome/userChrome.css");
         // свой userChrome.css пользователя не трогаем
-        if f.exists() && !read_lossy(&f)?.starts_with("/* YAMI:") {
+        if f.exists() && !read_lossy(&f)?.starts_with("/* NEMO:") {
             continue;
         }
         if css.is_empty() {
@@ -945,7 +945,7 @@ pub fn niri(cx: &Cx, p: &P) -> Res {
 }
 
 // ── MangoHud ────────────────────────────────────────────────────────────────
-const MANGO_MARKS: [&str; 2] = ["# yami: written by yami recolor", "# yami: written by tools/theme.py"];
+const MANGO_MARKS: [&str; 2] = ["# yami: written by nemo recolor", "# yami: written by tools/theme.py"];
 
 /// ~/.config/MangoHud/MangoHud.conf в цветах палитры, шрифт Tiny5 по сетке; свой конфиг не трогаем
 pub fn mangohud(cx: &Cx, p: &P) -> Res {
@@ -1027,7 +1027,7 @@ mod tests {
         let ours = [("gradient", "1".to_string()), ("gradient_color_1", "'#000000'".to_string())];
         let t = "[general]\nbars = 0\n\n[color]\ntheme = 'tricolor'\ngradient = 0\nbackground = default\n";
         let once = cava_merge(t, &ours);
-        assert_eq!(once, "[general]\nbars = 0\n\n[color]\ngradient = 1\ngradient_color_1 = '#000000'\n; theme = 'tricolor'  ; yami: off, the palette gradient of this section wins\nbackground = default\n");
+        assert_eq!(once, "[general]\nbars = 0\n\n[color]\ngradient = 1\ngradient_color_1 = '#000000'\n; theme = 'tricolor'  ; Nemo: off, the palette gradient of this section wins\nbackground = default\n");
         assert_eq!(cava_merge(&once, &ours), once, "a second run changes nothing");
         assert!(cava_merge("[general]\n", &ours).ends_with("[color]\ngradient = 1\ngradient_color_1 = '#000000'\n"));
     }

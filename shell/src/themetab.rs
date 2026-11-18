@@ -42,14 +42,14 @@ pub fn tab(ui: &mut Ui, st: &State, b: R, head_w: i32) {
         ui.zone(x, Act::SThemeDel(i), Cur::Pointer);
     }
     if st.themes.len() > shown {
-        let more = crate::tf!("ещё {} — yami theme list", "{} more: yami theme list", "mais {}: yami theme list", st.themes.len() - shown);
+        let more = crate::tf!("ещё {} — nemo theme list", "{} more: nemo theme list", "mais {}: nemo theme list", st.themes.len() - shown);
         ui.cv.text_in(ui.f, PX, R::new(b.x, y + rows * (CARD_H + 8), b.w, 18), &more, t.text_faint);
     }
     y = b.bottom() - 80;
     ui.button(R::new(b.x, y, 220, 28), "сохранить текущий вид", "save", Tone::Primary, false, true, Act::SCycle("theme_save"));
     ui.cv.text_in(ui.f, PX, R::new(b.x + 232, y, b.w - 232, 28), &st.theme_note, t.text_dim);
-    ui.text_in(PX, R::new(b.x, y + 36, b.w, 20), "поделиться своей: yami theme export ФАЙЛ", t.text_faint);
-    ui.text_in(PX, R::new(b.x, y + 56, b.w, 20), "поставить чужую: yami theme import ФАЙЛ или ССЫЛКА", t.text_faint);
+    ui.text_in(PX, R::new(b.x, y + 36, b.w, 20), "поделиться своей: nemo theme export ФАЙЛ", t.text_faint);
+    ui.text_in(PX, R::new(b.x, y + 56, b.w, 20), "поставить чужую: nemo theme import ФАЙЛ или ССЫЛКА", t.text_faint);
 }
 
 impl App {

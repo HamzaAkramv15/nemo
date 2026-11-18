@@ -33,7 +33,7 @@ const fn step(id: &'static str, chapter: &'static str, title: &'static str, sub:
 
 const ALL: &[Step] = &[
     step("hello", "начало", "добро пожаловать в Nemo", "пара минут — и стол будет твоим. Всё применяется сразу, и всё потом можно поменять.", page::hello, &[]),
-    step("style", "начало", "какой стиль?", "панели, окна и программы yami будут выглядеть так", page::style, &["look"]),
+    step("style", "начало", "какой стиль?", "панели, окна и программы Nemo будут выглядеть так", page::style, &["look"]),
     step("color", "вид", "твой цвет", "весь стол и программы перекрасятся сразу", page::color, &["color"]),
     step("wall", "вид", "обои", "своя картинка или узор в цвет палитры", page::wall, &["wall"]),
     step("look", "вид", "пиксели и стекло", "насколько всё пиксельное и как выглядят панели", page::look, &["look", "fonts"]),
@@ -48,7 +48,7 @@ const ALL: &[Step] = &[
     step("services", "система", "уведомления и службы", "что шелл берёт на себя", page::services, &["notif", "agents"]),
     step("games", "система", "игры", "окна на весь экран, VRR и режим игры", crate::games::tab, &[]),
     step("login", "система", "экран входа", "как выглядит вход в систему", crate::login::tab, &[]),
-    step("done", "готово", "готово", "Nemo настроен. Всё это живёт в настройках (Mod+S), а мастер снова откроет команда yami setup.", page::done, &[]),
+    step("done", "готово", "готово", "Nemo настроен. Всё это живёт в настройках (Mod+S), а мастер снова откроет команда nemo setup.", page::done, &[]),
 ];
 
 /// такой шаг есть (`yami setup STEP`)
@@ -360,7 +360,7 @@ fn leave_sheet(ui: &mut Ui, fr: R) {
     let half = (bw - 10) / 2;
     ui.button(R::new(b, r.y + 146, half, 30), "вернусь позже", "close", Tone::Plain, false, true, Act::WLeave(1));
     ui.button(R::new(b + half + 10, r.y + 146, half, 30), "больше не показывать", "", Tone::Ghost, false, true, Act::WLeave(2));
-    ui.wrap(PX, R::new(b, r.y + 184, bw, 22), "позже: кнопка настроек на баре или команда yami setup", t.text_faint, 1);
+    ui.wrap(PX, R::new(b, r.y + 184, bw, 22), "позже: кнопка настроек на баре или команда nemo setup", t.text_faint, 1);
 }
 
 impl App {

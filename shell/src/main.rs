@@ -118,7 +118,7 @@ fn main() {
     let args: Vec<String> = std::env::args().collect();
     // `yami` (ссылка на этот бинарь) без команды — справка; `yami-shell` без команды — шелл
     let me = args.first().map(|a| a.rsplit('/').next().unwrap_or(a).to_string()).unwrap_or_default();
-    if args.len() == 1 && me != "yami" {
+    if args.len() == 1 && me != "yami" && me != "nemo" {
         app::run();
         return;
     }

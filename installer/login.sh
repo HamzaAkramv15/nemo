@@ -132,7 +132,7 @@ uninstall_login() {
         $SU mv -f /etc/greetd/config.toml.new /etc/greetd/config.toml
     fi
   fi
-  say "$(t "экран входа yami убран" "the yami login screen is removed" "a tela de login do yami foi removida")"
+  say "$(t "экран входа Nemo убран" "the Nemo login screen is removed" "a tela de login do Nemo foi removida")"
   if [[ -n $dm ]] && ((SYSTEMD)); then
     if $SU systemctl enable -f "$dm.service"; then
       say "$(t "менеджер входа: снова {} со следующей загрузки" "login manager: {} again from the next boot" "gerenciador de login: {} novamente a partir da próxima inicialização" "$dm")"

@@ -60,7 +60,7 @@ pub fn cli(y: &crate::cmd::Sty, args: &[&str]) -> i32 {
                 let mark = if have.iter().any(|h| h == n) { y.ok("✓") } else { y.dim("·") };
                 println!(" {mark} {n:<13} {}", y.dim(crate::i18n::tr(about(body))));
             }
-            println!("   {}", y.dim(&crate::tf!("yami scripts add ИМЯ | all; потом: настройки → бар (x:ИМЯ) или виджеты → скрипт", "yami scripts add NAME | all; then settings → bar (x:NAME) or widgets → script", "yami scripts add NOME | all; depois: configurações → barra (x:NOME) ou widgets → script")));
+            println!("   {}", y.dim(&crate::tf!("nemo scripts add ИМЯ | all; потом: настройки → бар (x:ИМЯ) или виджеты → скрипт", "nemo scripts add NAME | all; then settings → bar (x:NAME) or widgets → script", "nemo scripts add NOME | all; depois: configurações → barra (x:NOME) ou widgets → script")));
             0
         }
         ["add", names @ ..] if !names.is_empty() => {
@@ -78,7 +78,7 @@ pub fn cli(y: &crate::cmd::Sty, args: &[&str]) -> i32 {
             rc
         }
         _ => {
-            eprintln!(" {} yami scripts [list | add {} | add all]", y.bad("✕"), crate::tf!("ИМЯ", "NAME", "NOME"));
+            eprintln!(" {} nemo scripts [list | add {} | add all]", y.bad("✕"), crate::tf!("ИМЯ", "NAME", "NOME"));
             2
         }
     }

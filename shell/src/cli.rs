@@ -11,10 +11,10 @@ const HELP: &str = "yami-shell config [list | get KEY | set KEY VALUE | reset [K
   reset [KEY]     back to the default: one key, or the whole file (a .bak copy is kept)
   check           keys with a bad value (ignored, default used) and unknown keys
   path            where the file is
-  kdl [yami]      what the shell writes to ~/.config/yami/niri/rules.kdl (yami: as for yami-niri)
+  kdl [Nemo]      what the shell writes to ~/.config/yami/niri/rules.kdl (Nemo: as for yami-niri)
   lite-auto       lite mode on when this machine is weak or virtual and the file has no `lite` yet
   seed K=V …      (the installer) set keys in the file as they are: true/false or a string; look=\"78 0 100 50\"
-  restyle \"LIST\" C  (the installer) what to restyle: themeApps = LIST, cursor = yami or system
+  restyle \"LIST\" C  (the installer) what to restyle: themeApps = LIST, cursor = Nemo or system
   portals         write niri-portals.conf for the modules that are installed
 Keys are camelCase, as in ~/.config/yami/shell.json. Reference: docs/CONFIG.md.
 

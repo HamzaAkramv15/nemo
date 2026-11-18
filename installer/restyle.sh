@@ -1,7 +1,7 @@
-# What yami restyles in other programs: GTK, Qt and KDE, the cursor, kitty, fastfetch, btop, Firefox,
+# What Nemo restyles in other programs: GTK, Qt and KDE, the cursor, kitty, fastfetch, btop, Firefox,
 # MangoHud, foot, cava, starship. The choice lives in the shell's settings (themeApps, cursor), so an
 # update, a palette change and recolor all keep to it; settings → color → apps changes it later. Off
-# means yami leaves that program's files alone (kitty: the include line it added goes). Flags:
+# means Nemo leaves that program's files alone (kitty: the include line it added goes). Flags:
 # --restyle LIST|all|none, --shell-only. The Qt/GTK theme packages (component look) follow GTK or Qt.
 # shellcheck shell=bash
 
@@ -86,14 +86,14 @@ t_desc() {
     cursor) t "пиксельный курсор в палитре: niri, GTK, X11-программы; выкл — системный" "the pixel cursor in the palette: niri, GTK, X11 apps; off: the system one" "o cursor em pixel na paleta: niri, GTK, apps X11; desligado: o do sistema" ;;
     kitty) t "цвета, шрифт и стекло: одна строка include yami.conf в конце kitty.conf, остальное твоё не трогается" "colours, font and glass: one line include yami.conf at the end of kitty.conf, the rest of yours stays" "cores, fonte e vidro: uma linha include yami.conf no fim do kitty.conf, o resto continua seu" ;;
     fastfetch) t "свой конфиг с логотипом Nemo (прежний — в .bak)" "its own config with the Nemo logo (the old one kept as .bak)" "uma configuração própria com o logo Nemo (a antiga fica como .bak)" ;;
-    btop) t "тема yami в btop" "the yami theme in btop" "o tema yami no btop" ;;
-    firefox) t "меню и шрифт: userChrome.css, только если он наш" "menus and font: userChrome.css, only one yami wrote" "menus e fonte: userChrome.css, só um escrito pelo yami" ;;
-    mangohud) t "цвета и шрифт оверлея, только если конфиг наш" "the overlay's colours and font, only a config yami wrote" "cores e fonte do overlay, só uma configuração escrita pelo yami" ;;
+    btop) t "тема Nemo в btop" "the Nemo theme in btop" "o tema Nemo no btop" ;;
+    firefox) t "меню и шрифт: userChrome.css, только если он наш" "menus and font: userChrome.css, only one Nemo wrote" "menus e fonte: userChrome.css, só um escrito pelo Nemo" ;;
+    mangohud) t "цвета и шрифт оверлея, только если конфиг наш" "the overlay's colours and font, only a config Nemo wrote" "cores e fonte do overlay, só uma configuração escrita pelo Nemo" ;;
     foot) t "терминал: include первой строкой foot.ini" "the terminal: an include as the first line of foot.ini" "o terminal: um include na primeira linha do foot.ini" ;;
     cava) t "градиент полос в его конфиге" "a gradient of the bars in its config" "um gradiente das barras na configuração dele" ;;
-    starship) t "палитра yami в starship.toml" "the yami palette in starship.toml" "a paleta yami no starship.toml" ;;
+    starship) t "палитра Nemo в starship.toml" "the yami palette in starship.toml" "a paleta Nemo no starship.toml" ;;
   esac
 }
 
 # settings → ~/.config/yami/shell.json (do_dotfiles): themeApps and the cursor
-restyle_json() { "$BIN/yami-shell" config restyle "$(t_list)" "$(t_on cursor && echo yami || echo system)"; }
+restyle_json() { "$BIN/yami-shell" config restyle "$(t_list)" "$(t_on cursor && echo Nemo || echo system)"; }

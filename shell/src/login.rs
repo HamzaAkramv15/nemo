@@ -230,14 +230,14 @@ pub fn tab(ui: &mut Ui, st: &State, b: R) {
     let (lx, rx) = (b.x, b.x + half + 20);
     let mut y = title(ui, b.x, b.y, b.w, "экран входа: greetd + yami-greet");
     if !p.installed {
-        ui.text_in(PX, R::new(b.x, y, b.w, 20), "не установлен: модуль yami-greet ставится из yami setup", t.warn);
+        ui.text_in(PX, R::new(b.x, y, b.w, 20), "не установлен: модуль yami-greet ставится из nemo setup", t.warn);
         y += 22;
         ui.text_in(PX, R::new(b.x, y, b.w, 20), "настройки ниже применятся, когда он появится", t.text_faint);
         y += 30;
     } else {
         let (dm, dc) = match p.dm {
             Some(true) => ("greetd — менеджер входа", t.text_dim),
-            Some(false) => ("greetd не включён: yami setup", t.warn),
+            Some(false) => ("greetd не включён: nemo setup", t.warn),
             None => ("стоит; служба greetd — в твоей системе инициализации", t.text_dim),
         };
         ui.text_in(PX, R::new(b.x, y, b.w, 20), dm, dc);
@@ -346,14 +346,14 @@ pub fn cli(a: &[&str]) -> i32 {
         }
         Some("preview") => {
             if !installed() {
-                eprintln!("{}", crate::tf!("экран входа yami не установлен", "the yami login screen is not installed", "a tela de login do yami não está instalada"));
+                eprintln!("{}", crate::tf!("экран входа Nemo не установлен", "the Nemo login screen is not installed", "a tela de login do Nemo não está instalada"));
                 return 1;
             }
             publish(&Settings::load());
             std::process::Command::new(greet_bin().unwrap_or_else(|| GREET.into())).arg("--demo").status().map(|s| s.code().unwrap_or(1)).unwrap_or(1)
         }
         _ => {
-            eprintln!("yami login [sync|status|log|preview]");
+            eprintln!("nemo login [sync|status|log|preview]");
             2
         }
     }
@@ -376,7 +376,7 @@ fn status() -> i32 {
         let (when, what, good) = describe(&p.last);
         println!("{} {when}  {what}", yes(good));
     }
-    println!("  {}", crate::tf!("журнал: yami login log ({}/greet.log)", "log: yami login log ({}/greet.log)", "log: yami login log ({}/greet.log)", LOG_DIR));
+    println!("  {}", crate::tf!("журнал: nemo login log ({}/greet.log)", "log: nemo login log ({}/greet.log)", "log: nemo login log ({}/greet.log)", LOG_DIR));
     i32::from(!p.installed)
 }
 
@@ -384,7 +384,7 @@ fn status() -> i32 {
 /// Обои — под размер первого монитора niri
 fn sync() -> i32 {
     if !writable() {
-        eprintln!("{}", crate::tf!("экран входа yami не установлен: {} не открыта на запись", "the yami login screen is not installed: {} is not writable", "a tela de login do yami não está instalada: {} não é gravável", dir().display()));
+        eprintln!("{}", crate::tf!("экран входа Nemo не установлен: {} не открыта на запись", "the Nemo login screen is not installed: {} is not writable", "a tela de login do Nemo não está instalada: {} não é gravável", dir().display()));
         return 1;
     }
     let set = Settings::load();
