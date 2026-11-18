@@ -51,26 +51,9 @@ pub fn geo(s: &str) -> Option<(f64, f64)> {
 
 /// аргументы wlsunset по настройкам
 pub fn args(set: &crate::config::Settings) -> Vec<String> {
-    let temp = set.num("night_temp");
-    if set.night_always {
-        // без расписания: wlsunset отвергает равные температуры, а разница в 1 K глазу не видна
-        return vec!["-t".to_string(), temp.to_string(), "-T".into(), (temp + 1).to_string()];
-    }
-    // ночная температура всегда ниже дневной (6500): иначе wlsunset не запустится
-    let mut a = vec!["-t".to_string(), temp.to_string(), "-T".into(), "6500".into()];
     // auto: координаты из locate.rs (часовой пояс системы); пока их нет — по часам
     let place = if crate::locate::is_auto(&set.night_geo) { crate::locate::cached().map(|(la, lo, _)| (la, lo)) } else { geo(&set.night_geo) };
-    match place {
-        Some((lat, lon)) => a.extend(["-l".into(), format!("{lat}"), "-L".into(), format!("{lon}")]),
-        None => {
-            let (on, off) = (set.num("night_on_h"), set.num("night_off_h"));
-            // одинаковые часы — ночь в один час: включить на час позже, чем выключить
-            let on = if on == off { (off + 1) % 24 } else { on };
-            let h = |x: i32| format!("{x:02}:00");
-            a.extend(["-S".into(), h(off), "-s".into(), h(on)]);
-        }
-    }
-    a
+    yami_px::night::args(set.num("night_temp"), set.night_always, place, set.num("night_on_h"), set.num("night_off_h"))
 }
 
 impl App {

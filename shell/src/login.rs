@@ -59,6 +59,18 @@ pub fn look(set: &Settings) -> String {
             o.insert(k.into(), x.clone());
         }
     }
+    // часы и ночной свет: решено здесь, экрану входа — готовые значения (он читает их как чужие)
+    o.insert("clock12".into(), match set.greet_hour.as_str() { "12" => true, "24" => false, _ => set.clock12 }.into());
+    o.insert("nightOn".into(), (set.night && set.greet_night).into());
+    o.insert("nightTemp".into(), set.num("night_temp").into());
+    o.insert("nightAlways".into(), set.night_always.into());
+    o.insert("nightOnH".into(), set.num("night_on_h").into());
+    o.insert("nightOffH".into(), set.num("night_off_h").into());
+    let place = if crate::locate::is_auto(&set.night_geo) { crate::locate::cached().map(|(la, lo, _)| (la, lo)) } else { crate::night::geo(&set.night_geo) };
+    if let Some((la, lo)) = place {
+        o.insert("nightLat".into(), la.into());
+        o.insert("nightLon".into(), lo.into());
+    }
     o.insert("kbLayout".into(), crate::keys::layouts(set).into());
     o.insert("kbSwitch".into(), set.kb_switch.clone().into());
     let outs = std::fs::read_to_string(crate::dirs::niri_dir().join("outputs.kdl")).unwrap_or_default();
@@ -198,6 +210,7 @@ pub fn toggle(s: &mut Settings, k: &str) -> bool {
     let v = match k {
         "greet_clock" => &mut s.greet_clock,
         "greet_host" => &mut s.greet_host,
+        "greet_night" => &mut s.greet_night,
         "greet_power" => &mut s.greet_power,
         "greet_numlock" => &mut s.greet_numlock,
         _ => return false,
@@ -251,6 +264,15 @@ pub fn tab(ui: &mut Ui, st: &State, b: R) {
     ui.toggle(R::new(lx, y, half, 40), "часы и дата", "большие, как на блокировке", s.greet_clock, Act::SBool("greet_clock"));
     ui.toggle(R::new(rx, y, half, 40), "имя машины", "в левом верхнем углу", s.greet_host, Act::SBool("greet_host"));
     y += 52;
+    // часы и ночной свет — как на столе, пока не выбрано другое
+    let hour = match s.greet_hour.as_str() {
+        "12" => "12 ч, AM/PM",
+        "24" => "24 ч",
+        _ => "как на столе",
+    };
+    opt_btn(ui, R::new(lx, y + 7, half, 26), "часы", hour, Act::SCycle("greet_hour"));
+    ui.toggle(R::new(rx, y, half, 40), "ночной свет", "как на столе", s.greet_night, Act::SBool("greet_night"));
+    y += 52;
     y = title(ui, b.x, y, b.w, "кто и как входит");
     let users = if s.greet_users == "name" { "ввод имени" } else { "списком" };
     opt_btn(ui, R::new(lx, y + 7, half, 26), "пользователи", users, Act::SCycle("greet_users"));
@@ -274,6 +296,7 @@ impl App {
         let s = &mut self.st.set;
         match k {
             "greet_wall" => s.greet_wall = crate::settings::cycle(WALLS, wall_mode(s)).into(),
+            "greet_hour" => s.greet_hour = match s.greet_hour.as_str() { "" => "12", "12" => "24", _ => "" }.into(),
             "greet_users" => s.greet_users = if s.greet_users == "name" { "list" } else { "name" }.into(),
             "login_sync" => {
                 std::thread::spawn(|| {

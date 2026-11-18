@@ -10,6 +10,7 @@ pub mod i18n;
 pub mod icons;
 pub mod install;
 pub mod look;
+pub mod night;
 pub mod paths;
 pub mod style;
 pub mod theme;

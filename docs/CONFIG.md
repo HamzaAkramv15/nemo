@@ -275,6 +275,8 @@ monitors to `/var/lib/yami-greet/look`; the login screen reads them at its next 
 | `greetPower` | `true` | sleep, reboot and power off buttons (where logind or elogind allows them) |
 | `greetOff` | `2` | minutes before the screens go off; 0: never |
 | `greetNumlock` | `true` | numlock on |
+| `greetHour` | `""` | the clock format on the login screen: empty follows the desktop (`clock12`), `12` or `24` |
+| `greetNight` | `true` | night light on the login screen too, with the desktop's settings (`night`, `nightTemp`, `nightAlways`, the place or hours), when it is on there |
 
 ### Games
 

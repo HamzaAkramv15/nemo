@@ -271,6 +271,10 @@ pub struct Settings {
     /// плотность вуали над обоями экрана входа (0.2–0.9)
     pub greet_dim: f32,
     pub greet_clock: bool,
+    /// формат часов на экране входа: "" — как на столе (clock12), "12" или "24"
+    pub greet_hour: String,
+    /// ночной свет и на экране входе, если он включён на столе
+    pub greet_night: bool,
     pub greet_host: bool,
     /// кнопки сна, перезагрузки и выключения (там, где их пускает logind)
     pub greet_power: bool,
@@ -642,6 +646,8 @@ impl Default for Settings {
             greet_wall: "desktop".into(),
             greet_dim: 0.55,
             greet_clock: true,
+            greet_hour: String::new(),
+            greet_night: true,
             greet_host: true,
             greet_power: true,
             greet_off: 2,
@@ -838,6 +844,9 @@ impl Settings {
             self.tray_mode = "icons".into();
         }
         self.blur_strength = self.blur_strength.clamp(1, 8);
+        if !["", "12", "24"].contains(&self.greet_hour.as_str()) {
+            self.greet_hour.clear();
+        }
         if !["auto", "image", "blocks"].contains(&self.fetch_logo.as_str()) {
             self.fetch_logo = "auto".into();
         }
