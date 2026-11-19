@@ -403,4 +403,6 @@ const AR: &[(&str, &str)] = &[
     ("wrong password", "كلمة المرور خاطئة"),
     ("wrong password, again", "كلمة المرور خاطئة، حاول مجددًا"),
     ("wrong ×{}", "خطأ ×{}"),
+    ("Nemo's fish", "سمكة Nemo"),
+    ("one short line about charger, coffee, updates", "جملة قصيرة عن الشاحن والقهوة والتحديثات"),
 ];

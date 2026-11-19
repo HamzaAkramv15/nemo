@@ -424,7 +424,7 @@ impl App {
                     self.settings_changed();
                 }
                 "personality" => {
-                    s.personality = cycle(&[("quiet", ""), ("playful", ""), ("off", "")], &s.personality).into();
+                    s.personality = cycle(&[("quiet", ""), ("off", "")], &s.personality).into();
                 }
                 "date_style" => {
                     s.date_style = cycle(&[("dm", ""), ("md", ""), ("iso", "")], &s.date_style).into();

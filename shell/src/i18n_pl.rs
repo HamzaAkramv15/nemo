@@ -1473,4 +1473,6 @@ const PL: &[(&str, &str)] = &[
     ("weekend", "weekend"),
     ("Fri and Sat", "pt i sob"),
     ("Sat and Sun", "sob i niedz"),
+    ("Nemo's fish", "rybka Nemo"),
+    ("one short line about charger, coffee, updates", "jedno zdanie o ładowarce, kawie, aktualizacjach"),
 ];

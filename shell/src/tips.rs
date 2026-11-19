@@ -100,8 +100,12 @@ impl App {
     }
 
     pub fn tip_off(&mut self) {
+        // подсказка не «проявляется» и не «растворяется»: появилась — есть, ушла — нет (иначе узор появления
+        // и всплытие на маленькой надписи выглядят как сбой)
         if self.st.tip.take().is_some() {
-            self.close_kind(&SKind::Tip);
+            for id in self.find(&SKind::Tip) {
+                self.destroy(id);
+            }
         }
     }
 

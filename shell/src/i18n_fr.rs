@@ -1473,4 +1473,6 @@ const FR: &[(&str, &str)] = &[
     ("weekend", "week-end"),
     ("Fri and Sat", "ven et sam"),
     ("Sat and Sun", "sam et dim"),
+    ("Nemo's fish", "le poisson de Nemo"),
+    ("one short line about charger, coffee, updates", "une phrase sur chargeur, café, mises à jour"),
 ];

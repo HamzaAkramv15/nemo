@@ -1473,4 +1473,6 @@ const UK: &[(&str, &str)] = &[
     ("weekend", "вихідні"),
     ("Fri and Sat", "пт і сб"),
     ("Sat and Sun", "сб і нд"),
+    ("Nemo's fish", "рибка Nemo"),
+    ("one short line about charger, coffee, updates", "одна фраза про зарядку, каву, оновлення"),
 ];

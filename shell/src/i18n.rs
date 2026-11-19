@@ -1111,4 +1111,6 @@ const PAIRS: &[(&str, &str)] = &[
     ("выходные", "weekend"),
     ("пт и сб", "Fri and Sat"),
     ("сб и вс", "Sat and Sun"),
+    ("рыбка Nemo", "Nemo's fish"),
+    ("одна короткая фраза о зарядке, кофе и обновлениях", "one short line about charger, coffee, updates"),
 ];

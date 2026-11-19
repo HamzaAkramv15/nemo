@@ -101,7 +101,7 @@ impl App {
             let group = anim_group(&s.kind);
             let style = yami_px::gfx::Reveal::from_id(st.set.reveal_for(group, s.closing));
             let (k, finished) = match s.kind {
-                SKind::Modal | SKind::Popup | SKind::Menu | SKind::Dim | SKind::Catcher | SKind::Osd | SKind::Tip | SKind::EditBar | SKind::Widget(_) | SKind::Dock | SKind::CurtainBadge => reveal_of(st, &s, group),
+                SKind::Modal | SKind::Popup | SKind::Menu | SKind::Dim | SKind::Catcher | SKind::Osd | SKind::EditBar | SKind::Widget(_) | SKind::Dock | SKind::CurtainBadge => reveal_of(st, &s, group),
                 _ => (1.0, true),
             };
             if !finished {
@@ -113,7 +113,7 @@ impl App {
             let rise = match s.kind {
                 SKind::Modal | SKind::Popup => 12,
                 SKind::Widget(_) => crate::widgets::RISE,
-                SKind::Osd | SKind::Tip | SKind::EditBar | SKind::Dock | SKind::CurtainBadge => 8,
+                SKind::Osd | SKind::EditBar | SKind::Dock | SKind::CurtainBadge => 8,
                 SKind::Menu => 4,
                 _ => 0,
             };
@@ -268,7 +268,7 @@ fn frame_hash(px: &[u32], dims: [i32; 4]) -> u64 {
 /// группа анимаций поверхности (config::ANIM_GROUPS); шторка — как окна
 pub fn anim_group(k: &SKind) -> &'static str {
     match k {
-        SKind::Popup | SKind::Catcher | SKind::Tip => "popups",
+        SKind::Popup | SKind::Catcher => "popups",
         SKind::Menu => "menus",
         SKind::Osd => "notifs",
         SKind::Widget(_) | SKind::EditBar => "widgets",

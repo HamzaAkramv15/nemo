@@ -379,8 +379,11 @@ pub(crate) fn tab_system(ui: &mut Ui, st: &State, b: R) {
         "playful" => "игривая",
         _ => "тихая",
     };
+    y = title(ui, b.x, y, b.w, "рыбка Nemo");
     opt_btn(ui, R::new(lx, y, half, 26), "характер рыбки", who, Act::SCycle("personality"));
-    y += 40;
+    y += 30;
+    ui.text_in(PX, R::new(lx, y, b.w, 20), "одна короткая фраза о зарядке, кофе и обновлениях", ui.t.text_faint);
+    y += 30;
     // ночной свет: wlsunset; по координатам — от заката до восхода, иначе по часам
     y = title(ui, b.x, y, b.w, "ночной свет: по солнцу или по часам");
     let has = crate::doctor::which("wlsunset");
