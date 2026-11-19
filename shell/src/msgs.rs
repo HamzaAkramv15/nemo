@@ -159,6 +159,12 @@ impl App {
             Msg::PrepareSleep => self.prepare_sleep(),
             Msg::Pam(ok) => self.on_pam(ok),
             Msg::Prof(p) => self.on_prof(p),
+            Msg::SysUpd(f) => {
+                self.st.sys_upd.found = Some(f);
+                self.st.sys_upd.checking = false;
+                self.st.sys_upd.at = yami_px::time::unix_now();
+                self.dirty(&SKind::Modal);
+            }
             Msg::Clip(lines) => {
                 self.st.launcher.clip_lines = lines;
                 self.st.launcher.refresh(&self.st.apps, &self.st.niri.wins);

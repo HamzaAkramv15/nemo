@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src=".github/assets/nemo-logo.svg" width="128" alt="Nemo: a pixel fish">
+<img src=".github/assets/nemo-logo.svg" width="128" alt="Nemo: a fish">
 
 # Nemo
 

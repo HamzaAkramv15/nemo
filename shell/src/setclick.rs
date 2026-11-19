@@ -396,6 +396,20 @@ impl App {
                     self.st.widget_scripts = !self.st.widget_scripts;
                     self.dirty(&SKind::Modal);
                 }
+                "sysupd_check" => {
+                    let tx = self.tx.clone();
+                    crate::sysupd::start(&mut self.st, tx, true);
+                    self.dirty(&SKind::Modal);
+                }
+                "sysupd_run" => {
+                    if let Some(cmd) = self.st.sys_upd.fam.as_ref().and_then(|f| crate::sysupd::update_command(f.0)) {
+                        // окно не закрывается само: итог виден, Enter закрывает; sudo спросит пароль там
+                        let line = format!("{cmd}; printf '\\n[Enter]'; read _");
+                        App::spawn(&crate::launcher::in_term(vec!["sh".into(), "-c".into(), line]));
+                        // после обновления список устарел: следующая проверка — заново
+                        self.st.sys_upd.found = None;
+                    }
+                }
                 "prof_battery" | "prof_ac" => {
                     let opts = [("", ""), ("power-saver", ""), ("balanced", ""), ("performance", "")];
                     if *k == "prof_battery" {

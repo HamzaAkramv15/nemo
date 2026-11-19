@@ -81,6 +81,7 @@ pub const GROUPS: &[(&str, &[Tab])] = &[
             tab("login", "экран входа", "lock", "экран входа вход логин greetd пользователи пароль numlock вуаль менеджер входа login screen greeter display manager users password numlock veil tela de login entrada greetd usuários senha numlock véu gerenciador de login", crate::login::tab), // i18n-ok
             tab("bt", "bluetooth", "bt", "bluetooth блютуз наушники колонки мышь клавиатура сопряжение подключить забыть заряд bluetooth headphones speaker mouse keyboard pair connect forget battery fones caixa de som mouse teclado parear conectar esquecer bateria", crate::bttab::tab), // i18n-ok
             tab("agents", "службы", "bolt", "службы трей polkit порталы флешки телефоны автоподключение обложки тексты погода services tray portals automount drives phones covers lyrics weather serviços serviço bandeja portais discos telefones montagem capas letras clima", crate::agents::tab), // i18n-ok
+            tab("sysupd", "пакеты", "down", "обновления системы дистрибутив пакеты fedora dnf arch pacman debian ubuntu apt opensuse zypper безопасные удержано ядро system updates distribution packages upgrade held back kernel safe atualizações do sistema distribuição pacotes", crate::sysupd::tab), // i18n-ok
             tab("updates", "обновления", "down", "обновления версия откат updates version rollback atualizações atualizar versão reverter", crate::update::tab), // i18n-ok
             tab("about", "о шелле", "about", "о шелле версия память about version memory sobre versão memória", tab_about), // i18n-ok
         ],
@@ -313,6 +314,10 @@ impl App {
             "games" => self.st.game_probe = crate::gameboost::probe(),
             "system" => self.st.niri_link = crate::niricfg::status(),
             "wall" => self.st.skwd_here = crate::skwd::installed(),
+            "sysupd" => {
+                let tx = self.tx.clone();
+                crate::sysupd::start(&mut self.st, tx, false);
+            }
             "login" => self.st.login_probe = crate::login::probe(),
             "look" if self.st.sets.is_none() => self.sets_load(),
             _ => {}

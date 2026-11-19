@@ -82,6 +82,7 @@ mod hijri;
 mod emoji;
 mod popups;
 mod setindex;
+mod sysupd;
 mod tips;
 mod power;
 mod session;

@@ -129,6 +129,7 @@ mod tests {
             ("fonttab.rs", include_str!("fonttab.rs")),
             ("animtab.rs", include_str!("animtab.rs")),
             ("updtab.rs", include_str!("updtab.rs")),
+            ("sysupd.rs", include_str!("sysupd.rs")),
         ];
         let mut missing = vec![];
         for (f, src) in files {

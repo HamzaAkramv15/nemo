@@ -48,6 +48,7 @@ const TARGETS: &[&str] = &[
     "settings:startup",
     "settings:search",
     "settings:comfort",
+    "settings:sysupd",
     "settings:region",
     "settings:look",
     "settings:anim",
@@ -438,6 +439,10 @@ fn shoot(st: &mut State, res: &mut Res, target: &str, path: &Path) {
             }
             if arg == "screens" {
                 st.disp.outs = crate::displays::mock();
+            }
+            if arg == "sysupd" {
+                st.sys_upd.fam = Some((crate::sysupd::Family::Fedora, "Fedora Linux 45".to_string()));
+                st.sys_upd.found = Some(crate::sysupd::Found { total: 383, safe: Some(357), held: vec![("the base of the system".into(), 9), ("graphics drivers".into(), 8), ("boot and kernel".into(), 7), ("our own session".into(), 1), ("major version 0 -> 1".into(), 1)], err: String::new() });
             }
             if arg == "search" {
                 st.search_field.set("caff");

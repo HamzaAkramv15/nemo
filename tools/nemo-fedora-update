@@ -6,6 +6,7 @@
   nemo-fedora-update --apply --yes     the same without asking
   nemo-fedora-update --hold NAME ...   hold more packages back for this run (shell patterns: 'python3*')
   nemo-fedora-update --held     list the rules that hold packages back
+  nemo-fedora-update --json     the check as one line of JSON (for the settings page): safe, held, total, held_by
 
 What is held back, and why (a held package is not skipped for good: update it yourself when you can reboot):
   boot and kernel      kernel*, kmod-*, akmod-*, grub2*, shim*, dracut*, linux-firmware*, microcode_ctl
@@ -130,8 +131,18 @@ def main(argv):
     extra = []
     if "--hold" in argv:
         extra = [a for a in argv[argv.index("--hold") + 1:] if not a.startswith("--")]
-    print("asking the repositories what is new…")
+    as_json = "--json" in argv
+    if not as_json:
+        print("asking the repositories what is new…")
     rows = upgrades()
+    if as_json:
+        import json
+        safe, held = classify(rows, extra)
+        by = {}
+        for _, (_, _, why) in held.items():
+            by[why] = by.get(why, 0) + 1
+        print(json.dumps({"safe": len(safe), "held": len(held), "total": len(safe) + len(held), "held_by": by}))
+        return 0
     if not rows:
         print("nothing to update.")
         log("check: nothing to update")

@@ -1,6 +1,9 @@
 // Сгенерировано из подписей вкладок настроек (см. тест the_index_covers_every_setting_label); руками правят только слова-синонимы kw.
 #[rustfmt::skip]
 pub const INDEX: &[Entry] = &[
+    Entry { tab: "sysupd", label: "обновления системы", kw: "system updates distro distribution packages dnf pacman apt zypper upgrade fedora arch debian ubuntu safe held back kernel" },
+    Entry { tab: "sysupd", label: "дистрибутив", kw: "distro distribution os fedora arch debian ubuntu opensuse" },
+    Entry { tab: "sysupd", label: "обновить в терминале", kw: "update upgrade packages terminal sudo dnf" },
     Entry { tab: "comfort", label: "питание", kw: "power profile battery ac plugged saver performance balanced charge limit" },
     Entry { tab: "comfort", label: "от батареи", kw: "power profile on battery power saver unplugged" },
     Entry { tab: "comfort", label: "от сети", kw: "power profile plugged in ac charger performance" },

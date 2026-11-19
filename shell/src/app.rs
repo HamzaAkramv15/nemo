@@ -143,6 +143,8 @@ pub struct LockSurf {
 }
 
 pub enum Msg {
+    /// итог проверки обновлений дистрибутива (sysupd.rs)
+    SysUpd(crate::sysupd::Found),
     Niri(serde_json::Value),
     /// logind: система засыпает (sleep.rs)
     PrepareSleep,
@@ -264,6 +266,8 @@ pub struct State {
     pub tip: Option<crate::tips::Tip>,
     /// характер (personality.rs): лимиты реплик, последнее известное «от сети», «полная» уже сказана
     pub quip: crate::personality::Gate,
+    /// обновления самого дистрибутива (sysupd.rs)
+    pub sys_upd: crate::sysupd::Sys,
     pub ac_prev: Option<bool>,
     /// питание в прошлый раз для правил профиля (profile.rs); None — ещё не смотрели
     pub pol_prev: Option<bool>,
@@ -512,6 +516,7 @@ impl State {
             osd: None,
             tip: None,
             quip: Default::default(),
+            sys_upd: Default::default(),
             ac_prev: None,
             pol_prev: None,
             full_said: false,

@@ -9,11 +9,14 @@ has its Russian line in CHANGELOG.ru.md: `tools/check.sh` checks that.
 
 ## Unreleased
 
+- The Nemo fish is now the minimal one: a single smooth silhouette (lens body, forked tail, one round eye that is a hole) in the accent colour, drawn by the shell itself with soft edges (`yami_px::brand::mask`), on the about page, the wallpaper mark and in fastfetch. The logo kit (black, white, lavender, app icon, favicon and web icons, a usage guide) is in `.github/assets/logo/`.
+- System updates in settings: a new page (settings → system → system updates) shows how many packages wait on your distribution (Fedora, Arch, Debian/Ubuntu, openSUSE) and a button to update them in a terminal, where sudo asks for the password. On Fedora it uses `nemo-fedora-update` and shows the safe set and what is held back and why. It checks only while the page is open, at most every six hours.
+
 - Emoji and symbols in the launcher: type `:fish`, `:flag egypt` or `:سمكة` (English and Arabic names and keywords from Unicode CLDR, about 2,300 entries, offline); Enter copies it. The black-and-white Noto Emoji font is bundled so they draw. `?caffeine` in the launcher now finds the individual setting.
 - Power profile on plug and unplug: settings → comfort → power sets the profile for battery and for AC (`profileBattery`, `profileAc`; empty leaves it alone); a game in focus keeps its own, a missing profile is skipped; the charge limit shows when the laptop reports one.
 - A snapshot before each update: when snapper is installed and the root is btrfs, `nemo update` takes one first (best effort: without permission the update goes on and says so).
 - A built-in "High contrast" theme (`nemo theme apply "High contrast"`, or settings → color → themes): square corners, no blur or shadow, opaque panels, a yellow accent, sans fonts, no animations; a test measures it at 7:1 or better for text and 4.5:1 for dim text and the accent. A global text-size control is not added: fixed layouts would clip, so it waits for the layout work; the font size control in settings → fonts is unchanged.
-- Screenshots, simpler and working: the colour picker and numbered dots are gone (tools: select, pen, frame, arrow, marker, mosaic); full screen is instant with no overlay; window mode uses niri's own capture because niri 26.04 reports no window positions, so the old window picking never found a window; the default file name starts with `nemo`.
+- Screenshots that work: full screen is instant with no overlay; window mode uses niri's own capture because niri 26.04 reports no window positions, so the old window picking never found a window; the default file name starts with `nemo`. (The colour picker, numbered dots and the loupe's colour read-out stay.)
 
 - `nemo-fedora-update` (Fedora, installed with the shell): checks what dnf would upgrade and splits it into a safe set and a held-back set (kernel and boot, graphics, the base of the system, your session, major version jumps); `--apply` updates only the safe set in one transaction, after a snapper snapshot when there is one. On your machine today: 357 safe, 26 held.
 

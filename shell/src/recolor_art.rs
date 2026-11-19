@@ -317,38 +317,27 @@ pub fn app_icons(cx: &Cx, p: &P) -> Res {
     Ok(())
 }
 
-/// рыбка Nemo полублоками (▀: верхний пиксель — цвет текста, нижний — фон): квадратные пиксели,
-/// одна клетка знака — один пиксель (16 столбцов, 5 строк: рядом с строками fastfetch не громоздко),
-/// цвета — из палитры (px::brand::tones), так что знак
-/// перекрашивается вместе с рабочим столом
+/// рыбка Nemo полублоками (▀: верхний пиксель — цвет текста, нижний — фон): один силуэт, тот же, что в логотипе
+/// (px::brand::mask), цвет — акцент палитры, так что знак перекрашивается вместе с рабочим столом
 pub fn fish_logo(p: &P) -> String {
-    use yami_px::brand::{tone_index, tones, FISH};
     let c = |name: &str| {
         let (r, g, b) = rgb(p.g(name));
-        yami_px::gfx::C::hex((r as u32) << 16 | (g as u32) << 8 | b as u32)
+        (r, g, b)
     };
-    let col = tones(c("accent"), c("deep"), c("bright"), c("bg"));
-    const K: i32 = 1;
-    let (w, h) = (FISH[0].len() as i32 * K, FISH.len() as i32 * K);
-    let px = |x: i32, y: i32| -> Option<(u8, u8, u8)> {
-        if x < 0 || y < 0 || x >= w || y >= h {
-            return None;
-        }
-        let ch = FISH[(y / K) as usize].as_bytes()[(x / K) as usize];
-        tone_index(ch).map(|i| {
-            let v = col[i].0;
-            ((v >> 16) as u8, (v >> 8) as u8, v as u8)
-        })
-    };
+    let (r, g, b) = c("accent");
+    // 22 столбца, 14 пикселей по высоте: 7 строк рядом со строками fastfetch
+    let (w, h) = (22, 14);
+    let m = yami_px::brand::mask(w, h);
+    let on = |x: i32, y: i32| y >= 0 && y < h && m[(y * w + x) as usize] >= 110;
     let mut rows = vec![];
     for y in (0..h).step_by(2) {
         let mut line = String::new();
         for x in 0..w {
-            match (px(x, y), px(x, y + 1)) {
-                (None, None) => line += "\u{1b}[0m ",
-                (Some((r, g, b)), None) => line += &format!("\u{1b}[0m\u{1b}[38;2;{r};{g};{b}m▀"),
-                (None, Some((r, g, b))) => line += &format!("\u{1b}[0m\u{1b}[38;2;{r};{g};{b}m▄"),
-                (Some((r, g, b)), Some((r2, g2, b2))) => line += &format!("\u{1b}[38;2;{r};{g};{b}m\u{1b}[48;2;{r2};{g2};{b2}m▀"),
+            match (on(x, y), on(x, y + 1)) {
+                (false, false) => line += "\u{1b}[0m ",
+                (true, false) => line += &format!("\u{1b}[0m\u{1b}[38;2;{r};{g};{b}m▀"),
+                (false, true) => line += &format!("\u{1b}[0m\u{1b}[38;2;{r};{g};{b}m▄"),
+                (true, true) => line += &format!("\u{1b}[0m\u{1b}[38;2;{r};{g};{b}m█"),
             }
         }
         rows.push(format!("{line}\u{1b}[0m"));
@@ -356,29 +345,15 @@ pub fn fish_logo(p: &P) -> String {
     rows.join("\n") + "\n"
 }
 
-/// рыбка Nemo картинкой: клетка — 16×16 точек, прозрачный фон, цвета палитры (те же роли, что у
-/// полублоков); для fastfetch в kitty, где знак рисуется настоящей картинкой, а не блоками
+/// рыбка Nemo картинкой: гладкая, с прозрачным фоном, цвет акцента; для fastfetch в kitty, где знак
+/// рисуется настоящей картинкой, а не блоками
 pub fn fish_png(p: &P) -> Vec<u8> {
-    use yami_px::brand::{tone_index, tones, FISH};
-    let c = |name: &str| {
-        let (r, g, b) = rgb(p.g(name));
-        yami_px::gfx::C::hex((r as u32) << 16 | (g as u32) << 8 | b as u32)
-    };
-    let col = tones(c("accent"), c("deep"), c("bright"), c("bg"));
-    const K: u32 = 16;
-    let mut img = RgbaImage::new(FISH[0].len() as u32 * K, FISH.len() as u32 * K);
-    for (j, row) in FISH.iter().enumerate() {
-        for (i, ch) in row.bytes().enumerate() {
-            if let Some(t) = tone_index(ch) {
-                let v = col[t].0;
-                let px = Rgba([(v >> 16) as u8, (v >> 8) as u8, v as u8, 255]);
-                for dy in 0..K {
-                    for dx in 0..K {
-                        img.put_pixel(i as u32 * K + dx, j as u32 * K + dy, px);
-                    }
-                }
-            }
-        }
+    let (r, g, b) = rgb(p.g("accent"));
+    let (w, h) = (320u32, 200u32);
+    let m = yami_px::brand::mask(w as i32, h as i32);
+    let mut img = RgbaImage::new(w, h);
+    for (i, a) in m.iter().enumerate() {
+        img.put_pixel(i as u32 % w, i as u32 / w, Rgba([r as u8, g as u8, b as u8, *a]));
     }
     let mut out = std::io::Cursor::new(Vec::new());
     let _ = img.write_to(&mut out, ImageFormat::Png);
