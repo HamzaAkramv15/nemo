@@ -140,7 +140,7 @@ fn inputs(flake: &str) -> Vec<(String, String, String, String)> {
         } else if let Some(u) = l.strip_prefix("url = \"github:").and_then(|u| u.strip_suffix("\";")) {
             let p: Vec<&str> = u.split('/').collect();
             if let [owner, repo, tag] = p[..] {
-                if owner == "Trendorin" && !name.is_empty() {
+                if name.starts_with("yami-") {
                     v.push((name.clone(), owner.into(), repo.into(), tag.into()));
                 }
             }
@@ -160,7 +160,7 @@ pub fn run_lock(a: &[String]) -> i32 {
     };
     let ins = inputs(&flake);
     if ins.is_empty() {
-        eprintln!("flake-lock: no github:Trendorin/… inputs in flake.nix");
+        eprintln!("flake-lock: no github:OWNER/… yami-* inputs in flake.nix");
         return 1;
     }
     for (name, owner, repo, tag) in &ins {

@@ -6,23 +6,23 @@
     # the modules live in their own repositories; the versions are those of modules.lock (the shell's
     # services, yami-agents, and the drawing library yami-px are part of this repository)
     yami-files = {
-      url = "github:Trendorin/yami-files/v3.0.0";
+      url = "github:HamzaAkramv15/nemo-files/nemo-v0.2.0";
       flake = false;
     };
     yami-view = {
-      url = "github:Trendorin/yami-view/v3.0.0";
+      url = "github:HamzaAkramv15/nemo-view/nemo-v0.2.0";
       flake = false;
     };
     yami-play = {
-      url = "github:Trendorin/yami-play/v3.0.0";
+      url = "github:HamzaAkramv15/nemo-play/nemo-v0.2.0";
       flake = false;
     };
     yami-shot = {
-      url = "github:Trendorin/yami-shot/v3.0.0";
+      url = "github:HamzaAkramv15/nemo-shot/nemo-v0.2.0";
       flake = false;
     };
     yami-greet = {
-      url = "github:Trendorin/yami-greet/v3.0.0";
+      url = "github:HamzaAkramv15/nemo-greet/nemo-v0.2.0";
       flake = false;
     };
   };

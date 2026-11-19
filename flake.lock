@@ -29,85 +29,85 @@
     "yami-files": {
       "flake": false,
       "locked": {
-        "lastModified": 1794499345,
-        "narHash": "sha256-tetstsMWDcBenvx0WLzLCAV1BsIZIq7gcHj6TujOxXw=",
-        "owner": "Trendorin",
-        "repo": "yami-files",
-        "rev": "e0406845a55fee698fa1abf6b842eab1aa98f429",
+        "lastModified": 1795104522,
+        "narHash": "sha256-9Eq06Uirv4ZvV+a7knj2i6w3kZwfQjq/tkkf71+rmnM=",
+        "owner": "HamzaAkramv15",
+        "repo": "nemo-files",
+        "rev": "f1b14ee1648bca96fc4f56da3b63bbb385dad251",
         "type": "github"
       },
       "original": {
-        "owner": "Trendorin",
-        "ref": "v3.0.0",
-        "repo": "yami-files",
+        "owner": "HamzaAkramv15",
+        "ref": "nemo-v0.2.0",
+        "repo": "nemo-files",
         "type": "github"
       }
     },
     "yami-greet": {
       "flake": false,
       "locked": {
-        "lastModified": 1794499338,
-        "narHash": "sha256-dQhG7HhBurMca4rjQjnQwIzMGKeCu3ju0hYtrlnKbaY=",
-        "owner": "Trendorin",
-        "repo": "yami-greet",
-        "rev": "d14c6c85efdfcdb3efc4b543d5aced4c391a4475",
+        "lastModified": 1795104530,
+        "narHash": "sha256-BpFMfT746NgcOOex3zOOO/lcwR1koJIsdQP85175H20=",
+        "owner": "HamzaAkramv15",
+        "repo": "nemo-greet",
+        "rev": "b6c8819d36c39989448dec04fb714d6b500c97e0",
         "type": "github"
       },
       "original": {
-        "owner": "Trendorin",
-        "ref": "v3.0.0",
-        "repo": "yami-greet",
+        "owner": "HamzaAkramv15",
+        "ref": "nemo-v0.2.0",
+        "repo": "nemo-greet",
         "type": "github"
       }
     },
     "yami-play": {
       "flake": false,
       "locked": {
-        "lastModified": 1794499338,
-        "narHash": "sha256-ecHWNXbqKQhbN4gZjALu8F6e42Qb2si4vq605AH8/Kk=",
-        "owner": "Trendorin",
-        "repo": "yami-play",
-        "rev": "24548f3ff666c9f143bc121caa6d5e84ddd1ee7f",
+        "lastModified": 1795104526,
+        "narHash": "sha256-QYzHvNyLYd1jZPAaL8QcoRX1QwquMWXX9Da4lo7pMKg=",
+        "owner": "HamzaAkramv15",
+        "repo": "nemo-play",
+        "rev": "46603ab7460526acdb0f94067a2ed22efb0411e6",
         "type": "github"
       },
       "original": {
-        "owner": "Trendorin",
-        "ref": "v3.0.0",
-        "repo": "yami-play",
+        "owner": "HamzaAkramv15",
+        "ref": "nemo-v0.2.0",
+        "repo": "nemo-play",
         "type": "github"
       }
     },
     "yami-shot": {
       "flake": false,
       "locked": {
-        "lastModified": 1794499338,
-        "narHash": "sha256-QJDiSajBzH4tgUILcAFqxueIMQyp7A6RNnsR2Gp38eA=",
-        "owner": "Trendorin",
-        "repo": "yami-shot",
-        "rev": "b9a6f67eec2754b1228c5f5e16d35584be3900a7",
+        "lastModified": 1795104528,
+        "narHash": "sha256-oHXlLiIBD42mN+65D3/6VFg9Wo6LP4H2pcwJTXdSqDs=",
+        "owner": "HamzaAkramv15",
+        "repo": "nemo-shot",
+        "rev": "0fdf224c3bf8afc83e9213107e8f759109173369",
         "type": "github"
       },
       "original": {
-        "owner": "Trendorin",
-        "ref": "v3.0.0",
-        "repo": "yami-shot",
+        "owner": "HamzaAkramv15",
+        "ref": "nemo-v0.2.0",
+        "repo": "nemo-shot",
         "type": "github"
       }
     },
     "yami-view": {
       "flake": false,
       "locked": {
-        "lastModified": 1794499338,
-        "narHash": "sha256-BArN00AvfmnmWEzATvi7BnMeBN7RWH1LKn4m33f88+A=",
-        "owner": "Trendorin",
-        "repo": "yami-view",
-        "rev": "803406b3ec20fb870178dd7b68dde72593d4bc3a",
+        "lastModified": 1795104524,
+        "narHash": "sha256-mm00z8sALCwe5ifEzpQFD1AeMtKstF6bGn5HAfVwrz0=",
+        "owner": "HamzaAkramv15",
+        "repo": "nemo-view",
+        "rev": "d39ddc5deb1fcf145690382ca2097ebf7343fb58",
         "type": "github"
       },
       "original": {
-        "owner": "Trendorin",
-        "ref": "v3.0.0",
-        "repo": "yami-view",
+        "owner": "HamzaAkramv15",
+        "ref": "nemo-v0.2.0",
+        "repo": "nemo-view",
         "type": "github"
       }
     }

@@ -9,6 +9,8 @@ has its Russian line in CHANGELOG.ru.md: `tools/check.sh` checks that.
 
 ## Unreleased
 
+## 3.1.0
+
 - The Nemo look, now the default: pixel character where it is cheap (notched corners, dithered panel reveal, the pixel cursor, pixel app icons, the fish) and normal where you read and click (system sans in the shell and the apps, smooth vector icons, soft shadows). It is also a built-in theme, `yami theme apply Nemo` (or the Nemo card in settings → color → themes), which changes the look only: your palette, wallpaper and bar stay.
 - The fastfetch fish sits in the middle of the info block.
 - Normal icons: settings → look → «bar and panel icons» (`iconStyle`) switches the bar, the control panel and the popups from the pixel bitmaps to smooth vector icons (about forty are drawn: speaker, Wi-Fi, Bluetooth, battery, clock, gear, power and so on; the rest stay pixel). By style: pixel for the pixel look, normal for the neutral one.
