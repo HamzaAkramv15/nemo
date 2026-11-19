@@ -137,6 +137,7 @@ impl App {
             if t.elapsed() > Duration::from_millis(1500) {
                 self.st.osd = None;
                 self.close_kind(&SKind::Osd);
+                self.dirty(&SKind::Bar);
             }
         }
     }

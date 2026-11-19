@@ -245,6 +245,7 @@ impl App {
                 if *k == "island" {
                     self.renew_notif(SKind::Notifs);
                     self.renew_notif(SKind::Osd);
+                    self.dirty(&SKind::Bar);
                 }
                 // превью наборов — в новом виде значков
                 if matches!(*k, "icon_pixel" | "icon_tint") && self.st.sets.is_some() {

@@ -9,6 +9,7 @@ has its Russian line in CHANGELOG.ru.md: `tools/check.sh` checks that.
 
 ## Unreleased
 
+- The island is part of the bar now (settings → notifications → island): a short notification, volume and brightness appear as a pill in the middle of the bar; a notification with a picture, buttons or a long text hangs a card flush under the bar (above it for a bottom bar). Needs a horizontal bar.
 - Launcher unit conversion: type `5 km in miles`, `72 f to c`, `2 gb in mb` or `3 ч в мин` (length, mass, volume, temperature, time, data, speed; offline); Enter copies the answer.
 - Repeated notifications collapse: the same message from the same app within two minutes becomes one card marked `×N` instead of a stack.
 - Muted apps: settings → notifications → muted apps (a list), or middle-click a card: that app's notifications skip the popup and go straight to history.

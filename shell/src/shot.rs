@@ -30,6 +30,10 @@ const TARGETS: &[&str] = &[
     "bar:tasks-right",
     "bar:tasks-crowd",
     "bar:privacy",
+    "bar:island-note",
+    "bar:island-count",
+    "bar:island-vol",
+    "bar:island-bright",
     "bar:left",
     "bar:right",
     "bar:left-float",
@@ -125,10 +129,6 @@ const TARGETS: &[&str] = &[
     "curtain:badge",
     "osd:curtain",
     "osd:bright",
-    "osd:island",
-    "osd:island-bright",
-    "osd:island-curtain",
-    "osd:island-layout",
     "settings:shots",
     "settings:windows",
     "settings:dock",
@@ -287,6 +287,28 @@ fn shoot(st: &mut State, res: &mut Res, target: &str, path: &Path) {
             st.set.bar_center = v(&["clock"]);
             st.set.bar_right = v(&["settings", "net", "vol", "temp"]);
             st.media.title = "a very long track title that pushes the clock".into();
+        } else if arg.starts_with("island") {
+            // остров в баре: таблетка по середине поверх часов
+            st.set.island = true;
+            st.set.bar_width_pc = 100;
+            st.set.bar_left = v(&["workspaces", "sep", "media"]);
+            st.set.bar_center = v(&["clock"]);
+            st.set.bar_right = v(&["tray", "net", "vol", "sep", "settings", "power"]);
+            st.bright = Some(0.65);
+            match arg {
+                "island-vol" => st.osd = Some(("volume", Instant::now())),
+                "island-bright" => st.osd = Some(("bright", Instant::now())),
+                _ => {
+                    let mut n = mock_note();
+                    n.id = 1;
+                    n.app = "mail".into();
+                    n.summary = "New mail".into();
+                    n.body = "From Sam".into();
+                    n.count = if arg == "island-count" { 3 } else { 1 };
+                    st.notifs.history = vec![n];
+                    st.notifs.popups = vec![1];
+                }
+            }
         } else if arg == "compact" {
             // #11: трей стрелкой и короткая температура
             st.set.bar_width_pc = 100;
@@ -348,6 +370,9 @@ fn shoot(st: &mut State, res: &mut Res, target: &str, path: &Path) {
         }
         shoot(st, res, "bar", path);
         st.set = set;
+        st.osd = None;
+        st.notifs.history.clear();
+        st.notifs.popups.clear();
         st.media.title = media;
         st.niri.wins = wins;
         (st.mic, st.camera, st.niri.casts) = (vec![], vec![], vec![]);
@@ -358,7 +383,9 @@ fn shoot(st: &mut State, res: &mut Res, target: &str, path: &Path) {
     st.mods_here = crate::welcome::Here::all();
     st.popup = None;
     st.menu = None;
-    st.osd = None;
+    if !(kind == "bar" && st.set.island) {
+        st.osd = None;
+    }
     st.curtain = None;
     st.locked = false;
     if st.wall.is_none() && (matches!(kind, "bar" | "lock") || target == "settings:wall") {
@@ -801,14 +828,13 @@ fn shoot(st: &mut State, res: &mut Res, target: &str, path: &Path) {
             (1280, 720)
         }
         "osd" => {
-            st.set.island = arg.starts_with("island");
-            let kind_arg = arg.trim_start_matches("island").trim_start_matches('-');
+            let kind_arg = arg;
             st.osd = Some((match kind_arg { "curtain" => "curtain", "bright" => "bright", "layout" => "layout", _ => "volume" }, Instant::now()));
             st.bright = Some(0.65);
             if arg == "curtain" {
                 st.curtain = Some(Default::default());
             }
-            (if st.set.island { crate::notif::OSD_ISLAND_W } else { 308 }, 64)
+            (308, 64)
         }
         "curtain" if arg == "badge" => (crate::curtain::badge_w(&mut res.fonts), 34),
         "curtain" => {

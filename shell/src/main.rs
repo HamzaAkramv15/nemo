@@ -80,6 +80,7 @@ mod report;
 mod personality;
 mod hijri;
 mod emoji;
+mod island;
 mod cheat;
 mod popups;
 mod setindex;

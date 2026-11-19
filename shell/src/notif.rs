@@ -59,6 +59,35 @@ pub struct Notifs {
 }
 
 impl Notifs {
+    /// принять уведомление: повтор схлопывается в одну карточку с ×N, замена по тому же id обновляет на месте,
+    /// история обрезается, а карточка (если `show`) встаёт первой среди всплывающих
+    pub fn add(&mut self, mut note: Note, cap: usize, show: bool, max_popups: usize) {
+        let id = note.id;
+        if !self.history.iter().any(|x| x.id == id) {
+            if let Some((old, c)) = self.history.iter().find(|x| same_message(x, &note)).map(|x| (x.id, x.count)) {
+                note.count = c + 1;
+                self.remove(old, true);
+            }
+        }
+        if let Some(x) = self.history.iter_mut().find(|x| x.id == id) {
+            // замена (replaces_id): обновить на месте, без нового въезда
+            let born = x.born;
+            *x = note;
+            x.born = born;
+        } else {
+            self.history.insert(0, note);
+            self.history.truncate(cap);
+        }
+        if show {
+            self.popups.retain(|x| *x != id);
+            self.leaving.retain(|x| x.0 != id);
+            self.popups.insert(0, id);
+            // лишние уходят в историю
+            self.popups.truncate(max_popups);
+            self.resume();
+        }
+    }
+
     pub fn get(&self, id: u32) -> Option<&Note> {
         self.history.iter().find(|n| n.id == id)
     }
@@ -109,19 +138,29 @@ fn card_h(ui_f: &mut font::Fonts, n: &Note) -> i32 {
 
 pub fn size(st: &State, f: &mut font::Fonts) -> (i32, i32) {
     let mut h = 0;
+    let island = crate::island::on(st);
     for id in &st.notifs.popups {
         if let Some(n) = st.notifs.get(*id) {
+            // остров: короткие уведомления — таблетка в баре, карточкой висят только те, где есть что показать
+            if island && !crate::island::rich(n) {
+                continue;
+            }
             h += card_h(f, n) + 8;
         }
     }
-    (if st.set.island { W + 16 } else { W + 56 }, h.max(1) + 8)
+    (if island { W + 16 } else { W + 56 }, h.max(1) + 8)
 }
 
 pub fn draw(ui: &mut Ui, st: &State, w: i32, _h: i32) {
     let t = ui.t;
     let mut y = 0;
+    let island = crate::island::on(st);
+    let low = crate::bar::low(&st.set);
     for id in &st.notifs.popups {
         let Some(n) = st.notifs.get(*id) else { continue };
+        if island && !crate::island::rich(n) {
+            continue;
+        }
         let ch = card_h(ui.f, n);
         // въезд справа ступенями по 8 px и проявление узором группы «уведомления»; уход — наоборот
         let leaving = st.notifs.leaving_since(n.id);
@@ -143,20 +182,23 @@ pub fn draw(ui: &mut Ui, st: &State, w: i32, _h: i32) {
         let pixel = !matches!(style, "fade" | "none");
         ui.cv.opacity = if pixel { (0.35 + 0.65 * k).min(1.0) } else { step };
         let z0 = ui.zones.len();
-        let island = st.set.island;
-        // остров: по содержимому и по центру поверхности; появляется из середины, а не въезжает сбоку
         let cw = if island { island_w(ui.f, n) } else { W };
+        // остров: карточка висит на баре, вплотную; раскрывается от бара вниз (у нижнего бара — вверх)
         let e = 1.0 - (1.0 - k) * (1.0 - k);
-        let r = if island {
-            let rw = (cw as f32 * (0.55 + 0.45 * e)).round() as i32;
-            R::new((w - rw) / 2, y - ((1.0 - e) * 10.0).round() as i32, rw, ch)
+        let r = if island { R::new((w - cw) / 2, y, cw, ch) } else { R::new(x0, y, W, ch) };
+        let vis = if island {
+            let vh = ((ch as f32 * (0.35 + 0.65 * e)).ceil() as i32).min(ch);
+            if low { R::new(r.x, r.bottom() - vh, r.w, vh) } else { R::new(r.x, r.y, r.w, vh) }
         } else {
-            R::new(x0, y, W, ch)
+            r
         };
         let hov = ui.hover(r);
         let edge = if n.critical { t.ember } else if hov { t.red } else { t.border };
         if island {
-            pill(ui, r, (ch / 2).min(22), t.glass_panel(), edge);
+            // плоская сторона — у бара, скруглена дальняя; плашка бара и карточка читаются одной фигурой
+            ui.cv.push_clip(vis);
+            let (rt, rb) = if low { (14, 0) } else { (0, 14) };
+            pill2(ui, r, rt, rb, t.glass_panel(), edge);
         } else {
             ui.cv.pxbox(r, &BoxStyle::new(t.glass_panel(), edge).shadow(4));
             ui.cv.fill(R::new(r.x + 2, r.y + 2, 3, r.h - 4), if n.critical { t.ember } else { t.red });
@@ -174,11 +216,8 @@ pub fn draw(ui: &mut Ui, st: &State, w: i32, _h: i32) {
         }
         ui.zone(r, Act::NotifClick(n.id), Cur::Pointer);
         if island {
-            // содержимое — в полном размере, открывается из середины плашки
-            ui.cv.push_clip(r);
-            let full_x = (w - cw) / 2;
             // ширина как у карточки (cw - 24): перенос строк тот же, по которому посчитана высота
-            draw_card(ui, n, R::new(full_x + 16, r.y + 8, cw - 24, r.h - 16), true);
+            draw_card(ui, n, R::new(r.x + 14, r.y + 8, cw - 24, r.h - 16), true);
             ui.cv.pop_clip();
         } else {
             draw_card(ui, n, R::new(r.x + 14, r.y + 8, r.w - 24, r.h - 16), true);
@@ -278,58 +317,43 @@ fn island_w(f: &mut font::Fonts, n: &Note) -> i32 {
     ((text + img).max(head).max(acts) + 32).clamp(260, W)
 }
 
-/// поверхность острова громкости: шире обычной, чтобы поместился длинный текст шторки на любом языке
-pub const OSD_ISLAND_W: i32 = 372;
-
-/// ширина острова громкости/яркости/раскладки/шторки
-fn island_osd_w(f: &mut font::Fonts, st: &State) -> i32 {
-    let kind = st.osd.map(|o| o.0).unwrap_or("volume");
-    match kind {
-        "curtain" => {
-            let on = st.curtain.is_some();
-            let a = f.width(PX, crate::i18n::tr(if on { "экран скрыт в трансляции" } else { "экран снова виден" }));
-            let b = f.width(PX, crate::i18n::tr(if on { "зрители видят шторку, ты — экран" } else { "трансляция показывает рабочий стол" }));
-            (a.max(b) + 60).clamp(260, OSD_ISLAND_W - 8)
-        }
-        "volume" | "bright" => 260,
-        _ => {
-            let name = st.niri.kb_names.get(st.niri.kb_idx).cloned().unwrap_or_default();
-            (f.width(PX, &name) + 90).clamp(220, OSD_ISLAND_W - 8)
-        }
-    }
-}
-
-/// закруглённая плашка «острова»: строки с отступом по окружности радиуса `rad` (ступени в пиксель, как всё
-/// в Nemo), заливка и тонкая кромка
-pub fn pill(ui: &mut Ui, r: R, rad: i32, fill: crate::gfx::C, edge: crate::gfx::C) {
-    let spans = pill_spans(r.h, rad);
+/// плашка с разными радиусами сверху (`rt`) и снизу (`rb`): строки с отступом по окружности (ступени в пиксель, как всё
+/// в Nemo), заливка и тонкая кромка. Радиус 0 со стороны бара — плоский край, кромки там нет
+pub fn pill2(ui: &mut Ui, r: R, rt: i32, rb: i32, fill: crate::gfx::C, edge: crate::gfx::C) {
+    let spans = round_spans(r.h, rt, rb);
     for (dy, (a, b)) in spans.iter().enumerate() {
-        let y = r.y + dy as i32;
-        ui.cv.fill(R::new(r.x + a, y, r.w - a - b, 1), fill);
+        ui.cv.fill(R::new(r.x + a, r.y + dy as i32, r.w - a - b, 1), fill);
     }
     for (dy, (a, b)) in spans.iter().enumerate() {
         let y = r.y + dy as i32;
         let top = dy < spans.len() / 2;
-        // кромка: на первой и последней строке — вся длина, дальше — ровно столько, сколько ступенька
-        if dy == 0 || dy + 1 == spans.len() {
+        let first = dy == 0 && rt > 0;
+        let last = dy + 1 == spans.len() && rb > 0;
+        // кромка: на круглом крае первой/последней строки — вся длина, дальше — ровно столько, сколько ступенька
+        if first || last {
             ui.cv.fill(R::new(r.x + a, y, r.w - a - b, 1), edge);
             continue;
         }
-        let near = if top { spans[dy - 1] } else { spans[dy + 1] };
-        let (w_l, w_r) = (((near.0 - a).max(1)), ((near.1 - b).max(1)));
+        let near = if top && dy > 0 { spans[dy - 1] } else if !top && dy + 1 < spans.len() { spans[dy + 1] } else { (*a, *b) };
+        let (w_l, w_r) = ((near.0 - a).max(1), (near.1 - b).max(1));
         ui.cv.fill(R::new(r.x + a, y, w_l, 1), edge);
         ui.cv.fill(R::new(r.right() - b - w_r, y, w_r, 1), edge);
     }
 }
 
-/// отступы слева и справа для каждой строки плашки высотой `h` с радиусом `rad`
-pub fn pill_spans(h: i32, rad: i32) -> Vec<(i32, i32)> {
-    let rad = rad.clamp(0, h / 2);
+/// круглая со всех сторон плашка
+pub fn pill(ui: &mut Ui, r: R, rad: i32, fill: crate::gfx::C, edge: crate::gfx::C) {
+    pill2(ui, r, rad, rad, fill, edge)
+}
+
+/// отступы слева и справа для каждой строки плашки высотой `h` с радиусами `rt` сверху и `rb` снизу
+pub fn round_spans(h: i32, rt: i32, rb: i32) -> Vec<(i32, i32)> {
+    let (rt, rb) = (rt.clamp(0, h / 2), rb.clamp(0, h / 2));
+    let inset = |rad: i32, d: i32| if d <= 0 || rad == 0 { 0 } else { rad - (((rad * rad - (d - 1) * (d - 1)) as f32).sqrt().floor() as i32).clamp(0, rad) };
     (0..h)
         .map(|dy| {
-            let d = if dy < rad { rad - dy } else if dy >= h - rad { dy - (h - rad - 1) } else { 0 };
-            let inset = if d == 0 { 0 } else { rad - (((rad * rad - (d - 1) * (d - 1)) as f32).sqrt().floor() as i32).clamp(0, rad) };
-            (inset, inset)
+            let i = if dy < rt { inset(rt, rt - dy) } else if dy >= h - rb { inset(rb, dy - (h - rb - 1)) } else { 0 };
+            (i, i)
         })
         .collect()
 }
@@ -337,22 +361,8 @@ pub fn pill_spans(h: i32, rad: i32) -> Vec<(i32, i32)> {
 pub fn draw_osd(ui: &mut Ui, st: &State, w: i32, _h: i32) {
     let t = ui.t;
     let Some((kind, _)) = st.osd else { return };
-    let island = st.set.island;
-    let ox0 = ui.cv.ox;
-    let pw = if island { island_osd_w(ui.f, st) } else { w - 8 };
-    // остров: плашка по ширине содержимого, по центру поверхности
-    if island {
-        ui.cv.ox += (w - pw) / 2;
-    }
-    let fr = R::new(0, 0, pw, 56);
-    if island {
-        pill(ui, fr, 28, t.glass_panel(), t.border);
-        // содержимое отступает от круглых концов
-        ui.cv.ox += 8;
-    } else {
-        ui.cv.pxbox(fr, &BoxStyle::new(t.glass_panel(), t.border).shadow(4));
-    }
-    let fr = if island { R::new(0, 0, pw - 16, 56) } else { fr };
+    let fr = R::new(0, 0, w - 8, 56);
+    ui.cv.pxbox(fr, &BoxStyle::new(t.glass_panel(), t.border).shadow(4));
     if kind == "volume" {
         let a = &st.audio;
         ui.cv.icon(if a.muted { "mute" } else { "speaker" }, 12, 11, 2, t.red);
@@ -384,7 +394,6 @@ pub fn draw_osd(ui: &mut Ui, st: &State, w: i32, _h: i32) {
             x += if on { 20 } else { 12 };
         }
     }
-    ui.cv.ox = ox0;
 }
 
 impl App {
@@ -407,35 +416,11 @@ impl App {
             left: life,
             count: 1,
         };
-        let mut note = note;
-        let id = note.id;
         let quiet = self.quiet();
         let muted = is_muted(&self.st.set.notif_muted, &note.app);
-        let ns = &mut self.st.notifs;
-        // то же самое ещё раз (тот же отправитель, заголовок и текст за последние две минуты): одна карточка с ×N
-        if !ns.history.iter().any(|x| x.id == id) {
-            if let Some((old, c)) = ns.history.iter().find(|x| same_message(x, &note)).map(|x| (x.id, x.count)) {
-                note.count = c + 1;
-                ns.remove(old, true);
-            }
-        }
-        if let Some(x) = ns.history.iter_mut().find(|x| x.id == id) {
-            // замена (replaces_id): обновить на месте, без нового въезда
-            let born = x.born;
-            *x = note;
-            x.born = born;
-        } else {
-            ns.history.insert(0, note);
-            ns.history.truncate(self.st.set.notif_history.clamp(10, 500) as usize);
-        }
-        if ((!quiet && !muted) || critical) && !self.st.locked {
-            ns.popups.retain(|x| *x != id);
-            ns.leaving.retain(|x| x.0 != id);
-            ns.popups.insert(0, id);
-            // лишние уходят в историю
-            ns.popups.truncate(self.st.set.notif_max.clamp(1, 8) as usize);
-            ns.resume();
-        }
+        let show = ((!quiet && !muted) || critical) && !self.st.locked;
+        let (cap, max) = (self.st.set.notif_history.clamp(10, 500) as usize, self.st.set.notif_max.clamp(1, 8) as usize);
+        self.st.notifs.add(note, cap, show, max);
         self.sync_notifs();
         self.dirty(&SKind::Bar);
         self.dirty(&SKind::Popup);
@@ -489,12 +474,20 @@ impl App {
     fn notif_place(&self, out: &str, sw: i32) -> (Anchor, (i32, i32, i32, i32)) {
         // от края — notifOffset; бар niri сам вычитает (исключительная зона), карточки — под ним
         let o = self.st.set.num("notif_offset");
-        if self.st.set.island {
-            // остров: под серединой бара (бар сверху и не на весь экран) или по центру экрана
-            return (Anchor::TOP | Anchor::LEFT, (o, 0, 0, self.island_left(out, sw)));
+        if crate::island::on(&self.st) {
+            // остров: карточка висит на баре, вплотную, по его середине (у нижнего бара — над ним)
+            if let Some(br) = self.bar_rect(out) {
+                let (ow, oh) = self.output_size(out);
+                let (bt, _, bb, _) = self.bar_reserve(out);
+                let left = island_left_of(br.x + br.w / 2, sw, ow);
+                return if crate::bar::low(&self.st.set) {
+                    (Anchor::BOTTOM | Anchor::LEFT, (0, 0, bb - (oh - br.y), left))
+                } else {
+                    (Anchor::TOP | Anchor::LEFT, (br.bottom() - bt, 0, 0, left))
+                };
+            }
         }
-        let pos = if self.st.set.island { "top" } else { self.st.set.notif_pos.as_str() };
-        match pos {
+        match self.st.set.notif_pos.as_str() {
             "top-left" => (Anchor::TOP | Anchor::LEFT, (o, 0, 0, 6)),
             "top" => (Anchor::TOP, (o, 0, 0, 0)),
             "bottom-right" => (Anchor::BOTTOM | Anchor::RIGHT, (0, 6, o, 0)),
@@ -502,17 +495,6 @@ impl App {
             "bottom" => (Anchor::BOTTOM, (0, 0, o, 0)),
             _ => (Anchor::TOP | Anchor::RIGHT, (o, 6, 0, 0)),
         }
-    }
-
-    /// левый край острова шириной `sw`: центр бара, если он сверху, иначе центр экрана; не за край экрана
-    pub fn island_left(&self, out: &str, sw: i32) -> i32 {
-        let (ow, _) = self.output_size(out);
-        let (bt, ..) = self.bar_reserve(out);
-        let cx = match self.bar_rect(out) {
-            Some(r) if bt > 0 => r.x + r.w / 2,
-            _ => ow / 2,
-        };
-        island_left_of(cx, sw, ow)
     }
 
     /// место или отступ карточек (OSD) поменялись: поверхность — заново, якорь layer-shell на лету
@@ -527,7 +509,13 @@ impl App {
     }
 
     pub fn sync_notifs(&mut self) {
-        let empty = self.st.notifs.popups.is_empty() || self.st.locked;
+        let island = crate::island::on(&self.st);
+        let shown = self.st.notifs.popups.iter().filter(|id| !island || self.st.notifs.get(**id).is_some_and(crate::island::rich)).count();
+        if island {
+            // таблетка в баре следует за списком: перерисовать бар
+            self.dirty(&SKind::Bar);
+        }
+        let empty = shown == 0 || self.st.locked;
         let ids = self.find(&SKind::Notifs);
         if empty {
             for id in ids {
@@ -610,13 +598,18 @@ impl App {
         }
         let fresh = self.st.osd.is_none();
         self.st.osd = Some((kind, Instant::now()));
+        // остров: громкость и яркость — таблетка в баре, отдельной поверхности нет
+        if crate::island::on(&self.st) {
+            self.dirty(&SKind::Bar);
+            return;
+        }
         if fresh || self.find(&SKind::Osd).is_empty() {
             let out = self.focus_out();
             // osdPos: у края или в углу, отступ — от бара, если он с той стороны; по центру экрана — без отступа.
             // Исключённые зоны OSD не видит (-1): место бара прибавляем сами
             let (bt, br, bb, bl) = self.bar_reserve(&out);
             let o = self.st.set.num("osd_offset");
-            let p = if self.st.set.island { "top".to_string() } else { self.st.set.osd_pos.clone() };
+            let p = self.st.set.osd_pos.clone();
             let mut anchor = Anchor::empty();
             let (mut mt, mut mr, mut mb, mut ml) = (0, 0, 0, 0);
             if p.starts_with("top") {
@@ -633,13 +626,8 @@ impl App {
                 anchor |= Anchor::RIGHT;
                 mr = br + 12;
             }
-            if self.st.set.island {
-                anchor = Anchor::TOP | Anchor::LEFT;
-                (mr, ml) = (0, self.island_left(&out, OSD_ISLAND_W));
-            }
             let margin = (mt, mr, mb, ml);
-            let sw = if self.st.set.island { OSD_ISLAND_W } else { 308 };
-            let id = self.mk(SKind::Osd, &out, Layer::Overlay, "yami-osd", anchor, (sw, 64 + 8), margin, -1, KeyboardInteractivity::None);
+            let id = self.mk(SKind::Osd, &out, Layer::Overlay, "yami-osd", anchor, (308, 64 + 8), margin, -1, KeyboardInteractivity::None);
             if let Some(s) = self.surfs.get(&id) {
                 if let Ok(r) = smithay_client_toolkit::compositor::Region::new(&self.compositor) {
                     s.layer.wl_surface().set_input_region(Some(r.wl_region()));
@@ -652,11 +640,11 @@ impl App {
 
 #[cfg(test)]
 mod pill_tests {
-    use super::pill_spans;
+    use super::round_spans;
 
     #[test]
     fn a_pill_is_round_at_the_ends_and_straight_between() {
-        let s = pill_spans(56, 28);
+        let s = round_spans(56, 28, 28);
         assert_eq!(s.len(), 56);
         assert!(s[0].0 > 10, "the top row is far in: {:?}", s[0]);
         assert!(s[27].0 <= 1 && s[28].0 <= 1, "the middle rows reach the edge");
@@ -671,9 +659,9 @@ mod pill_tests {
 
     #[test]
     fn a_short_card_never_gets_a_radius_bigger_than_half_its_height() {
-        let s = pill_spans(20, 18);
+        let s = round_spans(20, 18, 18);
         assert!(s[0].0 <= 10 && s.len() == 20);
-        assert_eq!(pill_spans(10, 0).iter().filter(|x| x.0 > 0).count(), 0, "no radius: a plain box");
+        assert_eq!(round_spans(10, 0, 0).iter().filter(|x| x.0 > 0).count(), 0, "no radius: a plain box");
     }
 }
 
@@ -702,6 +690,58 @@ mod island_place_tests {
 #[cfg(test)]
 mod dup_tests {
     use super::*;
+
+    #[test]
+    fn three_identical_notifications_become_one_card_marked_x3() {
+        let mut ns = Notifs::default();
+        for id in 1..=3 {
+            ns.add(note(id, "mail", "New mail", "From Sam"), 50, true, 5);
+        }
+        assert_eq!(ns.history.len(), 1, "one entry, not three");
+        assert_eq!((ns.history[0].id, ns.history[0].count), (3, 3), "the newest id, counted three times");
+        assert_eq!(ns.popups, vec![3], "one popup");
+    }
+
+    #[test]
+    fn different_messages_stay_separate_and_keep_their_own_counts() {
+        let mut ns = Notifs::default();
+        ns.add(note(1, "mail", "New mail", "From Sam"), 50, true, 5);
+        ns.add(note(2, "mail", "New mail", "From Alex"), 50, true, 5);
+        ns.add(note(3, "mail", "New mail", "From Sam"), 50, true, 5);
+        assert_eq!(ns.history.len(), 2);
+        assert_eq!(ns.get(3).map(|n| n.count), Some(2));
+        assert_eq!(ns.get(2).map(|n| n.count), Some(1));
+        assert_eq!(ns.popups, vec![3, 2]);
+    }
+
+    #[test]
+    fn a_muted_or_quiet_repeat_is_counted_in_history_without_popping_up() {
+        let mut ns = Notifs::default();
+        ns.add(note(1, "steam", "Download complete", ""), 50, false, 5);
+        ns.add(note(2, "steam", "Download complete", ""), 50, false, 5);
+        assert_eq!(ns.history.len(), 1);
+        assert_eq!(ns.history[0].count, 2);
+        assert!(ns.popups.is_empty());
+    }
+
+    #[test]
+    fn replacing_by_the_same_id_updates_in_place_and_is_not_a_repeat() {
+        let mut ns = Notifs::default();
+        ns.add(note(1, "player", "Track 1", ""), 50, true, 5);
+        ns.add(note(1, "player", "Track 2", ""), 50, true, 5);
+        assert_eq!(ns.history.len(), 1);
+        assert_eq!((ns.history[0].summary.as_str(), ns.history[0].count), ("Track 2", 1));
+    }
+
+    #[test]
+    fn the_history_is_capped_and_only_the_newest_popups_stay() {
+        let mut ns = Notifs::default();
+        for id in 1..=12 {
+            ns.add(note(id, "app", &format!("message {id}"), ""), 10, true, 3);
+        }
+        assert_eq!(ns.history.len(), 10);
+        assert_eq!(ns.popups, vec![12, 11, 10]);
+    }
 
     fn note(id: u32, app: &str, summary: &str, body: &str) -> Note {
         Note { id, app: app.into(), icon: String::new(), summary: summary.into(), body: body.into(), actions: vec![], critical: false, image: None, born: Instant::now(), time: "12:00".into(), life: 7.0, left: 7.0, count: 1 }

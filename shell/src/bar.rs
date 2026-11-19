@@ -145,9 +145,14 @@ pub fn draw(ui: &mut Ui, st: &State, out: &str, w: i32, h: i32) {
     // по центру бара, как часы в большинстве шеллов; длинная левая группа (трек в «музыке»)
     // сдвигает середину ровно настолько, чтобы не наехать; after-left — сразу за левыми
     let cx = if set.bar_center_align == "after-left" { x0 } else { (w / 2 - gw / 2).clamp(x0, (x1 - gw).max(x0)) };
-    ui.cv.push_clip(R::new(x0, 0, (x1 - x0).max(0), H));
-    row(ui, st, out, &mut set.bar_center.iter(), cx, 1, true, ctw);
-    ui.cv.pop_clip();
+    // пока на баре остров, середина (часы) под ним не рисуется: таблетка занимает её место
+    if !crate::island::shows(st) {
+        ui.cv.push_clip(R::new(x0, 0, (x1 - x0).max(0), H));
+        row(ui, st, out, &mut set.bar_center.iter(), cx, 1, true, ctw);
+        ui.cv.pop_clip();
+    }
+    // остров (island.rs): таблетка поверх середины бара, пока есть что показать
+    crate::island::draw(ui, st, w, H);
 }
 
 /// ряд модулей от x0 в сторону dir (1 — вправо, -1 — влево). Разделитель — только между двумя
