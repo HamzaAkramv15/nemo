@@ -15,15 +15,15 @@ pub const VERSION: &str = "0.1.0";
 
 /// клетки рыбки: # контур, W блик, l светлая, t светлая с тенью, b тело, s низ тела
 pub const FISH: [&str; 9] = [
-    "....#####....##.",
-    "..##WWWbW##.#ll#",
-    ".#WWlbbbbbb#llt#",
-    "#Wllllbbbbbbbl#.",
-    "#ll#llbbbbbbbl#.",
-    "#tllllbbbbbsblt#",
-    ".#ttllbbbss#tll#",
-    "..##tssss##.#tt#",
-    "....#####....##.",
+    "......#####.....",
+    ".##..#WWWbb##...",
+    "#ll##WWbbbbbbb#.",
+    "#llllWbbbbb#bb##",
+    "#lll#lbbbbbbbbb#",
+    "#llllsbbbbbbbbs#",
+    "#ll##ssbbbbbbs#.",
+    ".##..#sssssss#..",
+    "......#####.....",
 ];
 
 /// номер цвета клетки в `tones`; None — пусто
