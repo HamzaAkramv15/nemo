@@ -9,6 +9,12 @@ has its Russian line in CHANGELOG.ru.md: `tools/check.sh` checks that.
 
 ## Unreleased
 
+- Emoji and symbols in the launcher: type `:fish`, `:flag egypt` or `:سمكة` (English and Arabic names and keywords from Unicode CLDR, about 2,300 entries, offline); Enter copies it. The black-and-white Noto Emoji font is bundled so they draw. `?caffeine` in the launcher now finds the individual setting.
+- Power profile on plug and unplug: settings → comfort → power sets the profile for battery and for AC (`profileBattery`, `profileAc`; empty leaves it alone); a game in focus keeps its own, a missing profile is skipped; the charge limit shows when the laptop reports one.
+- A snapshot before each update: when snapper is installed and the root is btrfs, `nemo update` takes one first (best effort: without permission the update goes on and says so).
+- A built-in "High contrast" theme (`nemo theme apply "High contrast"`, or settings → color → themes): square corners, no blur or shadow, opaque panels, a yellow accent, sans fonts, no animations; a test measures it at 7:1 or better for text and 4.5:1 for dim text and the accent. A global text-size control is not added: fixed layouts would clip, so it waits for the layout work; the font size control in settings → fonts is unchanged.
+- Screenshots, simpler and working: the colour picker and numbered dots are gone (tools: select, pen, frame, arrow, marker, mosaic); full screen is instant with no overlay; window mode uses niri's own capture because niri 26.04 reports no window positions, so the old window picking never found a window; the default file name starts with `nemo`.
+
 - `nemo-fedora-update` (Fedora, installed with the shell): checks what dnf would upgrade and splits it into a safe set and a held-back set (kernel and boot, graphics, the base of the system, your session, major version jumps); `--apply` updates only the safe set in one transaction, after a snapper snapshot when there is one. On your machine today: 357 safe, 26 held.
 
 - Quality gates: `tools/lint.sh` (a clippy ratchet: 60 warnings down to 20, never more; and `cargo deny` for advisories, licences and sources, which found a yanked `async-executor`, now updated) and `tools/budget.sh` (limits on the release binaries and, when a shell is running, idle memory, wakeups per second, CPU and threads; today 13.9 MB PSS, 4 wakeups/s). Both run from `tools/check.sh`; `shell/deny.toml` and `tools/budget.txt` hold the limits.

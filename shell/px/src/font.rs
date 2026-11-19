@@ -204,6 +204,8 @@ impl Fonts {
         // основной не-пиксельный: Noto Sans из набора Nemo (одинаковый у всех, на нём проверяется вёрстка),
         // а если его нет (модуль в чужой системе) — что fontconfig даст как sans-serif
         let arabic = bundled_file("NotoSansArabic.ttf", &mut srcs);
+        // чёрно-белые эмодзи и знаки: движок рисует контуры, а цветной шрифт эмодзи (bitmap/COLR) он не умеет
+        let emoji_mono = bundled_file("NotoEmoji.ttf", &mut srcs).or_else(|| add("Noto Emoji", Some("noto emoji"), false, &mut srcs));
         let sans = bundled_sans(&mut srcs).or_else(|| add("sans-serif:lang=ru", None, false, &mut srcs));
         let cjk = add("sans-serif:lang=ja", None, false, &mut srcs);
         let emoji = add("emoji", None, false, &mut srcs);
@@ -216,7 +218,7 @@ impl Fonts {
             }
             v
         };
-        let chain_px = chain(&[custom, tiny, mono, dot, sans, arabic, cjk, emoji]);
+        let chain_px = chain(&[custom, tiny, mono, dot, sans, arabic, emoji_mono, cjk, emoji]);
         let chain_jp = chain(&[dot, tiny, cjk, sans]);
         let mut f = Fonts {
             srcs,

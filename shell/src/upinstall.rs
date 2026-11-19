@@ -116,6 +116,28 @@ pub fn install_tag(set: &Settings, want: &str) -> Result<String, String> {
     Ok(crate::tf!("установлено: {}", "installed: {}", "instalado: {}", i.latest))
 }
 
+/// аргументы `snapper create` для снимка перед обновлением до `to`
+pub(crate) fn snapshot_args(to: &str) -> Vec<String> {
+    ["create", "--description", &format!("nemo: before {to}"), "--cleanup-algorithm", "number"].map(String::from).to_vec()
+}
+
+/// снимок всей системы перед обновлением, если есть snapper и корень на btrfs; не вышел (нет прав,
+/// нет настройки) — обновление идёт дальше без него: снимок страховка, а не условие
+fn system_snapshot(to: &str) {
+    if yami_px::paths::find_exe("snapper").is_none() {
+        return;
+    }
+    let fs = Command::new("findmnt").args(["-no", "FSTYPE", "/"]).output().map(|o| String::from_utf8_lossy(&o.stdout).trim().to_string()).unwrap_or_default();
+    if fs != "btrfs" {
+        return;
+    }
+    progress(&crate::tf!("снимок системы (snapper)", "system snapshot (snapper)", "instantâneo do sistema (snapper)"));
+    let ok = Command::new("snapper").args(snapshot_args(to)).stdin(Stdio::null()).stdout(Stdio::null()).stderr(Stdio::null()).status().is_ok_and(|s| s.success());
+    if !ok {
+        progress(&crate::tf!("снимок не вышел (нужны права snapper): ставлю без него", "the snapshot did not work (snapper needs permission): installing without it", "o instantâneo falhou (o snapper precisa de permissão): instalando sem ele"));
+    }
+}
+
 /// сборка и установка коммита i.target из своего клона; прежние бинари — в откат
 pub(crate) fn build_install(i: &Info) -> Result<(), String> {
     require_enabled()?;
@@ -126,6 +148,7 @@ pub(crate) fn build_install(i: &Info) -> Result<(), String> {
         return Err(crate::tf!("в {} есть правки — убери их, и обновлю", "{} has local edits: remove them and update again", "{} tem alterações locais: remova-as e atualize novamente", dir.display()));
     }
     let from = installed().version;
+    system_snapshot(&i.latest);
     progress(&crate::tf!("перехожу на {}", "switching to {}", "trocando para {}", i.reference));
     checkout(&dir, &i.target).map_err(explain)?;
     // прежние бинари и запись об установке — в сторону; точкой отката станут, только если установщик
@@ -427,3 +450,15 @@ pub fn stamp(dir: &Path, components: &str) -> Result<(), String> {
     save_json(&stamp_path(), &Stamp { version, commit, dirty, repo, components, date: now() });
     Ok(())
 }
+
+#[cfg(test)]
+mod snapshot_tests {
+    #[test]
+    fn the_snapshot_names_the_version_and_cleans_itself_up() {
+        let a = super::snapshot_args("3.2.0");
+        assert_eq!(a[0], "create");
+        assert!(a.iter().any(|x| x == "nemo: before 3.2.0"));
+        assert!(a.windows(2).any(|w| w == ["--cleanup-algorithm", "number"]));
+    }
+}
+

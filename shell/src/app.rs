@@ -265,6 +265,8 @@ pub struct State {
     /// характер (personality.rs): лимиты реплик, последнее известное «от сети», «полная» уже сказана
     pub quip: crate::personality::Gate,
     pub ac_prev: Option<bool>,
+    /// питание в прошлый раз для правил профиля (profile.rs); None — ещё не смотрели
+    pub pol_prev: Option<bool>,
     pub full_said: bool,
     /// шторка для трансляций опущена
     pub curtain: Option<crate::curtain::Curtain>,
@@ -511,6 +513,7 @@ impl State {
             tip: None,
             quip: Default::default(),
             ac_prev: None,
+            pol_prev: None,
             full_said: false,
             curtain: None,
             mic: vec![],

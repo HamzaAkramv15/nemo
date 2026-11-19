@@ -102,6 +102,7 @@ yami-shell binds list | print | write     # сочетания клавиш
 
 | Ключ | По умолчанию | Значение |
 |---|---|---|
+| `profileBattery`, `profileAc` | `""` | профиль питания на батарее и от сети: `power-saver`, `balanced`, `performance`; пусто — не трогать |
 | `personality` | `"quiet"` | рыбка говорит о зарядке, кофе и обновлениях: `off` (молчит), `quiet` (только системные события), `playful` (пока то же; строки для пустых панелей — дальше) |
 | `palette` | `"nemo"` | набор: `nemo` (сирень на графите) `blood` `ash` `sakura` `amber` `venom` `ice` `dusk` |
 | `accent` | `""` | свой акцент `#rrggbb`; пусто — акцент набора |

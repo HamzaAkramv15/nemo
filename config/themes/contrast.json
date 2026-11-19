@@ -1,0 +1,30 @@
+{
+  "format": "yami-bundle",
+  "version": 1,
+  "kind": "theme",
+  "yami": "3.0.0",
+  "name": "High contrast",
+  "keepWallpaper": true,
+  "settings": {
+    "preset": "plain",
+    "corners": "square",
+    "radius": 0,
+    "shadow": "none",
+    "accent": "#ffd60a",
+    "tint": 0,
+    "light": false,
+    "glass": 100,
+    "lift": 0,
+    "inner": 100,
+    "dim": 85,
+    "blurShell": false,
+    "blurTerm": false,
+    "animations": false,
+    "iconStyle": "normal",
+    "fontShell": "sans",
+    "fontFiles": "sans",
+    "fontView": "sans",
+    "fontUi": "sans",
+    "wallAccent": false
+  }
+}

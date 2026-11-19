@@ -1,6 +1,9 @@
 // Сгенерировано из подписей вкладок настроек (см. тест the_index_covers_every_setting_label); руками правят только слова-синонимы kw.
 #[rustfmt::skip]
 pub const INDEX: &[Entry] = &[
+    Entry { tab: "comfort", label: "питание", kw: "power profile battery ac plugged saver performance balanced charge limit" },
+    Entry { tab: "comfort", label: "от батареи", kw: "power profile on battery power saver unplugged" },
+    Entry { tab: "comfort", label: "от сети", kw: "power profile plugged in ac charger performance" },
     Entry { tab: "comfort", label: "с", kw: "night light start hour schedule evening on from" },
     Entry { tab: "color", label: "палитра — красит весь райс", kw: "" },
     Entry { tab: "color", label: "свой цвет", kw: "custom colour accent hex" },

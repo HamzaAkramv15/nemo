@@ -396,6 +396,16 @@ impl App {
                     self.st.widget_scripts = !self.st.widget_scripts;
                     self.dirty(&SKind::Modal);
                 }
+                "prof_battery" | "prof_ac" => {
+                    let opts = [("", ""), ("power-saver", ""), ("balanced", ""), ("performance", "")];
+                    if *k == "prof_battery" {
+                        s.profile_battery = cycle(&opts, &s.profile_battery).into();
+                    } else {
+                        s.profile_ac = cycle(&opts, &s.profile_ac).into();
+                    }
+                    // правило сработает по новой настройке сразу, а не при следующей смене питания
+                    self.st.pol_prev = None;
+                }
                 "caffeine_30" | "caffeine_60" | "caffeine_120" | "caffeine_240" | "caffeine_inf" => {
                     let m = match *k {
                         "caffeine_30" => 30,

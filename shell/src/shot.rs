@@ -58,6 +58,8 @@ const TARGETS: &[&str] = &[
     "settings:about",
     "launcher",
     "launcher:calc",
+    "launcher:emoji",
+    "launcher:setting",
     "launcher:find",
     "launcher:win",
     "launcher:cmd",
@@ -545,6 +547,8 @@ fn shoot(st: &mut State, res: &mut Res, target: &str, path: &Path) {
                 "find" => "vrr",
                 "win" => "wiki",
                 "cmd" => "> btop",
+                "emoji" => ":fish",
+                "setting" => "?caffeine",
                 "all" => "firefox",
                 _ => "",
             };

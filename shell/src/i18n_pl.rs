@@ -1498,4 +1498,9 @@ const PL: &[(&str, &str)] = &[
     ("language & time", "język i czas"),
     ("try another word: coffee, night, clock, sound", "inne słowo: kawa, noc, zegar, dźwięk"),
     ("no limit", "bez limitu"),
+    ("needs power-profiles-daemon (or tuned-ppd)", "potrzebny power-profiles-daemon (lub tuned-ppd)"),
+    ("charge limit: {}%", "limit ładowania: {}%"),
+    ("system snapshot (snapper)", "migawka systemu (snapper)"),
+    ("the snapshot did not work (snapper needs permission): installing without it", "migawka się nie udała (snapper wymaga uprawnień): instaluję bez niej"),
+    ("Enter — launch · = calc · > cmd · / files · ? settings · : emoji · Tab — clipboard", "Enter — uruchom · = oblicz · > polecenie · / pliki · ? ustawienia · : emoji · Tab — schowek"),
 ];

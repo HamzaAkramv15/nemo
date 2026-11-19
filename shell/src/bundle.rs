@@ -33,7 +33,7 @@ fn is_look(k: &str) -> bool {
 
 /// темы, что идут с программой (Nemo): применяются как любая тема, но без своих обоев и палитры
 /// (`keepWallpaper`), так что вид меняется, а картинка и цвет остаются твоими
-const BUILTIN: &[(&str, &str)] = &[("Nemo", include_str!("../../config/themes/nemo.json"))];
+const BUILTIN: &[(&str, &str)] = &[("Nemo", include_str!("../../config/themes/nemo.json")), ("High contrast", include_str!("../../config/themes/contrast.json"))];
 
 fn builtin(name: &str) -> Option<Value> {
     let (_, text) = BUILTIN.iter().find(|(n, _)| n.eq_ignore_ascii_case(name.trim()))?;
@@ -684,7 +684,34 @@ pub fn run(y: &Sty, cmd: &str, args: &[&str]) -> i32 {
 
 #[cfg(test)]
 mod tests {
-        /// встроенная тема Nemo: только ключи вида, не трогает обои, находится без учёта регистра
+        /// тема «High contrast»: ключи вида, и текст на фоне читается по WCAG: основной не ниже 7:1 (AAA), приглушённый и акцент — 4,5:1
+    #[test]
+    fn builtin_high_contrast_theme_really_is_high_contrast() {
+        let b = super::builtin("high contrast").expect("High contrast");
+        for k in b["settings"].as_object().unwrap().keys() {
+            assert!(super::is_look(k), "{k} is not a look key");
+        }
+        let mut s = crate::config::Settings::lenient(&b["settings"].to_string());
+        s.sanitize();
+        let t = yami_px::look::Look::from_json(&s.style_value(), Some(s.light)).theme;
+        let lum = |c: crate::gfx::C| {
+            let f = |v: u32| {
+                let x = v as f32 / 255.0;
+                if x <= 0.03928 { x / 12.92 } else { ((x + 0.055) / 1.055).powf(2.4) }
+            };
+            0.2126 * f((c.0 >> 16) & 255) + 0.7152 * f((c.0 >> 8) & 255) + 0.0722 * f(c.0 & 255)
+        };
+        let ratio = |a: crate::gfx::C, b: crate::gfx::C| {
+            let (x, y) = (lum(a) + 0.05, lum(b) + 0.05);
+            x.max(y) / x.min(y)
+        };
+        let (text, dim, accent) = (ratio(t.text, t.bg), ratio(t.text_dim, t.bg), ratio(t.red, t.bg));
+        assert!(text >= 7.0, "text on background is {text:.1}:1");
+        assert!(dim >= 4.5, "dim text on background is {dim:.1}:1");
+        assert!(accent >= 4.5, "the accent on background is {accent:.1}:1");
+    }
+
+    /// встроенная тема Nemo: только ключи вида, не трогает обои, находится без учёта регистра
     #[test]
     fn builtin_nemo_theme_is_a_clean_look() {
         let b = super::builtin("nemo").expect("Nemo");

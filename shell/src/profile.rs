@@ -96,11 +96,65 @@ impl App {
         self.prof_set(n);
     }
 
+    /// правило «на батарее — экономия, от сети — баланс»: срабатывает при смене питания и один раз на старте;
+    /// игра в фокусе его не трогает (у неё свой профиль), недоступный профиль пропускается
+    pub fn power_policy(&mut self) {
+        let Some(b) = self.st.sys.bat else { return };
+        let ac = b.charging || b.plugged;
+        if self.st.pol_prev == Some(ac) {
+            return;
+        }
+        self.st.pol_prev = Some(ac);
+        let want = if ac { self.st.set.profile_ac.clone() } else { self.st.set.profile_battery.clone() };
+        if let Some(p) = policy_target(&want, self.st.game.game, &self.st.prof) {
+            self.prof_set(p);
+        }
+    }
+
     pub fn prof_set(&mut self, p: String) {
         // сразу показать выбор, демон подтвердит
         self.st.prof.active = p.clone();
         self.dirty(&SKind::Bar);
         self.dirty(&SKind::Popup);
         refresh(Some(p), self.tx.clone());
+    }
+}
+
+/// какой профиль включить по правилу; None — ничего менять не нужно
+pub fn policy_target(want: &str, in_game: bool, now: &Prof) -> Option<String> {
+    if want.is_empty() || in_game || !now.present || now.active == want || !now.list.iter().any(|l| l == want) {
+        return None;
+    }
+    Some(want.to_string())
+}
+
+/// предел заряда батареи, % (sysfs charge_control_end_threshold); None — ноутбук его не отдаёт
+pub fn charge_limit() -> Option<u32> {
+    let rd = std::fs::read_dir("/sys/class/power_supply").ok()?;
+    rd.flatten().filter(|e| e.file_name().to_string_lossy().starts_with("BAT")).find_map(|e| {
+        std::fs::read_to_string(e.path().join("charge_control_end_threshold")).ok()?.trim().parse().ok()
+    })
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn prof(active: &str) -> Prof {
+        Prof { present: true, active: active.into(), list: vec!["power-saver".into(), "balanced".into(), "performance".into()], degraded: String::new() }
+    }
+
+    #[test]
+    fn the_rule_changes_only_what_needs_changing() {
+        assert_eq!(policy_target("power-saver", false, &prof("balanced")).as_deref(), Some("power-saver"));
+        assert_eq!(policy_target("", false, &prof("balanced")), None, "no rule: leave alone");
+        assert_eq!(policy_target("balanced", false, &prof("balanced")), None, "already there");
+        assert_eq!(policy_target("power-saver", true, &prof("performance")), None, "a game keeps its own profile");
+        let mut absent = prof("balanced");
+        absent.present = false;
+        assert_eq!(policy_target("power-saver", false, &absent), None, "no power-profiles-daemon");
+        let mut two = prof("balanced");
+        two.list = vec!["balanced".into(), "performance".into()];
+        assert_eq!(policy_target("power-saver", false, &two), None, "the machine lacks that profile");
     }
 }

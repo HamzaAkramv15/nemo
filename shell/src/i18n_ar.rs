@@ -586,4 +586,10 @@ const AR: &[(&str, &str)] = &[
     ("language & time", "اللغة والوقت"),
     ("try another word: coffee, night, clock, sound", "جرّب كلمة أخرى: قهوة، ليل، ساعة، صوت"),
     ("no limit", "بلا حد"),
+    ("leave alone", "بلا تغيير"),
+    ("needs power-profiles-daemon (or tuned-ppd)", "يتطلب power-profiles-daemon (أو tuned-ppd)"),
+    ("charge limit: {}%", "حد الشحن: {}%"),
+    ("system snapshot (snapper)", "لقطة النظام (snapper)"),
+    ("the snapshot did not work (snapper needs permission): installing without it", "فشلت اللقطة (يحتاج snapper إلى صلاحية): سأثبّت بدونها"),
+    ("Enter — launch · = calc · > cmd · / files · ? settings · : emoji · Tab — clipboard", "Enter — تشغيل · = حساب · > أمر · / ملفات · ? إعدادات · : إيموجي · Tab — الحافظة"),
 ];

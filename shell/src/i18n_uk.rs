@@ -1498,4 +1498,9 @@ const UK: &[(&str, &str)] = &[
     ("language & time", "мова й час"),
     ("try another word: coffee, night, clock, sound", "інше слово: кава, ніч, годинник, звук"),
     ("no limit", "без обмеження"),
+    ("needs power-profiles-daemon (or tuned-ppd)", "потрібен power-profiles-daemon (або tuned-ppd)"),
+    ("charge limit: {}%", "ліміт заряду: {}%"),
+    ("system snapshot (snapper)", "знімок системи (snapper)"),
+    ("the snapshot did not work (snapper needs permission): installing without it", "знімок не вийшов (snapper потрібні права): ставлю без нього"),
+    ("Enter — launch · = calc · > cmd · / files · ? settings · : emoji · Tab — clipboard", "Enter запуск · = рахувати · > команда · / файли · ? налашт. · : емодзі · Tab буфер"),
 ];

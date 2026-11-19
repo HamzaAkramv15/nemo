@@ -383,6 +383,26 @@ pub(crate) fn tab_comfort(ui: &mut Ui, st: &State, b: R) {
         ui.button(R::new(b.x + k as i32 * (qw + 6), y, qw, 28), label, "coffee", Tone::Plain, false, true, Act::SCycle(key));
     }
     y += 40;
+    // питание: профиль на батарее и от сети; предел заряда, если ноутбук его отдаёт
+    y = title(ui, b.x, y, b.w, "питание");
+    let prof_name = |p: &str| match p {
+        "power-saver" => "экономия",
+        "balanced" => "баланс",
+        "performance" => "производительность",
+        _ => "не менять",
+    };
+    opt_btn(ui, R::new(lx, y, half, 26), "от батареи", prof_name(&s.profile_battery), Act::SCycle("prof_battery"));
+    opt_btn(ui, R::new(rx, y, half, 26), "от сети", prof_name(&s.profile_ac), Act::SCycle("prof_ac"));
+    y += 34;
+    if !st.prof.present {
+        ui.text_in(PX, R::new(lx, y, b.w, 20), "нужен power-profiles-daemon (или tuned-ppd)", ui.t.text_faint);
+        y += 26;
+    }
+    if let Some(l) = crate::profile::charge_limit() {
+        ui.text_in(PX, R::new(lx, y, b.w, 20), &crate::tf!("предел заряда: {}%", "charge limit: {}%", "limite de carga: {}%", l), ui.t.text_faint);
+        y += 26;
+    }
+    y += 6;
     // не беспокоить: то же, что в уведомлениях и в игровом режиме
     ui.toggle(R::new(lx, y, half, 26), "не беспокоить", "", s.dnd, Act::SBool("dnd"));
     y += 38;

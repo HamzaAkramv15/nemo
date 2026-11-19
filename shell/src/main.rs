@@ -79,6 +79,7 @@ mod reply;
 mod report;
 mod personality;
 mod hijri;
+mod emoji;
 mod popups;
 mod setindex;
 mod tips;

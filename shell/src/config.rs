@@ -231,6 +231,9 @@ pub struct Settings {
     pub date_style: String,
     /// характер: off — молчит, quiet — о системных событиях, playful — ещё пустые панели
     pub personality: String,
+    /// профиль питания на батарее и от сети: пусто — не трогать; power-saver, balanced, performance
+    pub profile_battery: String,
+    pub profile_ac: String,
     /// с какого дня начинается неделя в календаре: mon | sun | sat
     pub week_start: String,
     /// выходные в календаре: satsun — суббота и воскресенье, frisat — пятница и суббота (Египет, Ближний Восток)
@@ -480,7 +483,7 @@ pub fn page_keys(tab: &str) -> &'static [&'static str] {
         "dock" => &["dock*"],
         "windows" => &["stacking", "titlebars", "floatMedia", "floatPip", "floatApps", "floatW", "floatH", "winGap", "winLeft", "winRight", "winTop", "winBottom", "winRadius", "winBorder", "castHide"],
         "notif" => &["dnd", "notifTimeout", "notifMax", "notifHistory", "notifPos", "osdPos", "osdBright", "notifOffset", "osdOffset", "notifImages"],
-        "comfort" => &["lockAfter", "screenOffAfter", "lockSleep", "night", "nightTemp", "nightGeo", "nightOnH", "nightOffH", "nightAlways", "caffeineMinutes", "personality", "dnd"],
+        "comfort" => &["lockAfter", "screenOffAfter", "lockSleep", "night", "nightTemp", "nightGeo", "nightOnH", "nightOffH", "nightAlways", "caffeineMinutes", "personality", "dnd", "profileBattery", "profileAc"],
         "region" => &["lang", "clock12", "clockSeconds", "clockDate", "dateStyle", "weekStart", "weekend", "hijri", "arabicDigits"],
         "system" => &["sessionRestore"],
         "games" => &["game*"],
@@ -679,6 +682,8 @@ impl Default for Settings {
             clock12: false,
             date_style: "dm".into(),
             personality: "quiet".into(),
+            profile_battery: String::new(),
+            profile_ac: String::new(),
             week_start: "mon".into(),
             weekend: "satsun".into(),
             hijri: false,
@@ -909,6 +914,11 @@ impl Settings {
         }
         if !["", "pixel", "normal"].contains(&self.icon_style.as_str()) {
             self.icon_style.clear();
+        }
+        for p in [&mut self.profile_battery, &mut self.profile_ac] {
+            if !["", "power-saver", "balanced", "performance"].contains(&p.as_str()) {
+                p.clear();
+            }
         }
         if !["off", "quiet", "playful"].contains(&self.personality.as_str()) {
             self.personality = "quiet".into();

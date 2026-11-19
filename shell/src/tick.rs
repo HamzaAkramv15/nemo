@@ -25,6 +25,7 @@ impl App {
     /// батарея садится: одно уведомление на 10% и одно на 5%, пока не поставят на зарядку
     pub(crate) fn bat_check(&mut self) {
         self.quip_power();
+        self.power_policy();
         let Some(b) = self.st.sys.bat else { return };
         if b.charging || b.plugged {
             self.st.bat_warn = 0;

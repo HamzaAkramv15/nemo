@@ -1137,4 +1137,10 @@ const PAIRS: &[(&str, &str)] = &[
     ("язык и время", "language & time"),
     ("попробуй другое слово: кофе, ночь, часы, звук", "try another word: coffee, night, clock, sound"),
     ("без срока", "no limit"),
+    ("не менять", "leave alone"),
+    ("нужен power-profiles-daemon (или tuned-ppd)", "needs power-profiles-daemon (or tuned-ppd)"),
+    ("предел заряда: {}%", "charge limit: {}%"),
+    ("снимок системы (snapper)", "system snapshot (snapper)"),
+    ("снимок не вышел (нужны права snapper): ставлю без него", "the snapshot did not work (snapper needs permission): installing without it"),
+    ("Enter — запуск · = счёт · > команда · / файлы · ? настройки · : эмодзи · Tab — буфер", "Enter — launch · = calc · > cmd · / files · ? settings · : emoji · Tab — clipboard"),
 ];

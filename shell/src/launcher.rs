@@ -42,6 +42,8 @@ pub enum Kind {
     Win(u64),
     /// вкладка настроек
     Setting(&'static str),
+    /// эмодзи (его знак копируется)
+    Emoji(String),
     /// команда в терминале
     Cmd(String),
     File(PathBuf),
@@ -336,6 +338,7 @@ impl LState {
             }
             '>' => vec![],
             '?' => settings_items(rest, 20),
+            ':' => crate::emoji::search(rest, 40).into_iter().map(|e| Item { kind: Kind::Emoji(e.ch.to_string()), name: format!("{}  {}", e.ch, crate::emoji::name(&e)), sub: "Enter — скопировать".into(), icon: "copy".into() }).collect(),
             '/' => {
                 if self.files.0 != rest {
                     return Some(vec![]);
@@ -369,6 +372,14 @@ fn settings_items(q: &str, min: i32) -> Vec<Item> {
         };
         if s >= min {
             hits.push((s, Item { kind: Kind::Setting(id), name: crate::tf!("настройки → {}", "settings → {}", "configurações → {}", crate::i18n::tr(name)), sub: String::new(), icon: icon.to_string() }));
+        }
+    }
+    // отдельные настройки (поиск настроек): «кофе», «12 часов», «выходные» — вкладка и название настройки
+    if !q.is_empty() {
+        for (n, e) in crate::setindex::search(q).into_iter().take(8).enumerate() {
+            let Some(tb) = crate::settings::find(e.tab) else { continue };
+            let name = format!("{} · {}", crate::i18n::tr(e.label), crate::i18n::tr(tb.name));
+            hits.push((90 - n as i32, Item { kind: Kind::Setting(e.tab), name, sub: crate::tf!("настройки → {}", "settings → {}", "configurações → {}", crate::i18n::tr(tb.name)), icon: tb.icon.to_string() }));
         }
     }
     hits.sort_by_key(|h| std::cmp::Reverse(h.0));
@@ -522,7 +533,7 @@ impl App {
                 self.sys_action(a);
                 return;
             }
-            Kind::Calc(s) => {
+            Kind::Calc(s) | Kind::Emoji(s) => {
                 std::thread::spawn(move || wl_copy(s.into_bytes(), "text/plain;charset=utf-8"));
             }
             Kind::Win(id) => self.st.niri.act(serde_json::json!({"FocusWindow": {"id": id}})),
@@ -758,7 +769,7 @@ pub fn draw(ui: &mut Ui, st: &State, w: i32, h: i32) {
                 ui.cv.icon("pin", x, cy - 7, 2, t.red);
                 x += 24;
             }
-            Kind::Sys(_) | Kind::Calc(_) | Kind::Setting(_) | Kind::Cmd(_) | Kind::File(_) => {
+            Kind::Sys(_) | Kind::Calc(_) | Kind::Emoji(_) | Kind::Setting(_) | Kind::Cmd(_) | Kind::File(_) => {
                 ui.cv.icon(&it.icon, x, cy - 7, 2, t.red);
                 x += 26;
             }
@@ -829,7 +840,7 @@ pub fn draw(ui: &mut Ui, st: &State, w: i32, h: i32) {
     }
 
     // строка подсказок внизу
-    let hint = if l.clip { "Enter — скопировать · Ctrl+P — закрепить · Del — удалить · Tab — программы" } else { "Enter — запустить · = считать · > команда · / файлы · ? настройки · Tab — буфер" };
+    let hint = if l.clip { "Enter — скопировать · Ctrl+P — закрепить · Del — удалить · Tab — программы" } else { "Enter — запуск · = счёт · > команда · / файлы · ? настройки · : эмодзи · Tab — буфер" };
     ui.text_in(PX, R::new(fx, fr.h - 30, fr.w - 28, 20), hint, t.text_faint);
 }
 
