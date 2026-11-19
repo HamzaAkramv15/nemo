@@ -47,6 +47,8 @@ const TARGETS: &[&str] = &[
     "settings:widgets-scripts",
     "settings:startup",
     "settings:search",
+    "settings:comfort",
+    "settings:region",
     "settings:look",
     "settings:anim",
     "settings:look-sets",
@@ -436,7 +438,7 @@ fn shoot(st: &mut State, res: &mut Res, target: &str, path: &Path) {
                 st.disp.outs = crate::displays::mock();
             }
             if arg == "search" {
-                st.search_field.set("lock");
+                st.search_field.set("caff");
                 st.field_focus = Some("set_search");
             }
             if arg == "startup" {

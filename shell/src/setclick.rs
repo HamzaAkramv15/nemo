@@ -18,6 +18,7 @@ impl App {
         match a {
             Act::STab(id) => {
                 self.st.stab = id;
+                self.st.search_field.set("");
                 self.st.field_focus = None;
                 self.keys_capture(None);
                 if *id == "screens" {
@@ -393,6 +394,17 @@ impl App {
                 "open_welcome" => self.welcome_open("hello"),
                 "widget_scripts" => {
                     self.st.widget_scripts = !self.st.widget_scripts;
+                    self.dirty(&SKind::Modal);
+                }
+                "caffeine_30" | "caffeine_60" | "caffeine_120" | "caffeine_240" | "caffeine_inf" => {
+                    let m = match *k {
+                        "caffeine_30" => 30,
+                        "caffeine_60" => 60,
+                        "caffeine_120" => 120,
+                        "caffeine_240" => 240,
+                        _ => 0,
+                    };
+                    self.caffeine_set(true, m);
                     self.dirty(&SKind::Modal);
                 }
                 "reset_page" => {

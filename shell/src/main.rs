@@ -80,6 +80,7 @@ mod report;
 mod personality;
 mod hijri;
 mod popups;
+mod setindex;
 mod tips;
 mod power;
 mod session;

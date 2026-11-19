@@ -362,7 +362,7 @@ pub(crate) fn reveal_name(id: &str) -> &'static str {
     }
 }
 
-pub(crate) fn tab_system(ui: &mut Ui, st: &State, b: R) {
+pub(crate) fn tab_comfort(ui: &mut Ui, st: &State, b: R) {
     let s = &st.set;
     let half = (b.w - 20) / 2;
     let (lx, rx) = (b.x, b.x + half + 20);
@@ -372,18 +372,20 @@ pub(crate) fn tab_system(ui: &mut Ui, st: &State, b: R) {
     ui.slider(R::new(rx, y, half, 40), "погасить экран через", s.screen_off_after as f32 / 60.0, &mins(s.screen_off_after), 12, Act::SSlider("screen_off_after", 0.0, 60.0, 20));
     y += 52;
     ui.toggle(R::new(lx, y, half, 40), "запирать перед сном", "крышка, suspend, таймер системы", s.lock_sleep, Act::SBool("lock_sleep"));
+    y += 46;
+    // кофе: не давать засыпать и гасить экран; правая кнопка на чашке в баре листает те же сроки
+    y = title(ui, b.x, y, b.w, "кофе: не засыпать");
+    ui.toggle(R::new(lx, y, half, 40), "кофе", if st.caffeine.on { "вкл" } else { "выкл" }, st.caffeine.on, Act::CaffeineToggle);
     num_btn(ui, R::new(rx, y + 6, half, 26), "кофе: выкл. через, мин", s.num("caffeine_minutes"), "caffeine_minutes");
     y += 46;
-    let who = match s.personality.as_str() {
-        "off" => "молчит",
-        "playful" => "игривая",
-        _ => "тихая",
-    };
-    y = title(ui, b.x, y, b.w, "рыбка Nemo");
-    opt_btn(ui, R::new(lx, y, half, 26), "характер рыбки", who, Act::SCycle("personality"));
-    y += 30;
-    ui.text_in(PX, R::new(lx, y, b.w, 20), "одна короткая фраза о зарядке, кофе и обновлениях", ui.t.text_faint);
-    y += 30;
+    let qw = (b.w - 4 * 6) / 5;
+    for (k, (label, key)) in [("30 мин", "caffeine_30"), ("1 ч", "caffeine_60"), ("2 ч", "caffeine_120"), ("4 ч", "caffeine_240"), ("без срока", "caffeine_inf")].into_iter().enumerate() {
+        ui.button(R::new(b.x + k as i32 * (qw + 6), y, qw, 28), label, "coffee", Tone::Plain, false, true, Act::SCycle(key));
+    }
+    y += 40;
+    // не беспокоить: то же, что в уведомлениях и в игровом режиме
+    ui.toggle(R::new(lx, y, half, 26), "не беспокоить", "", s.dnd, Act::SBool("dnd"));
+    y += 38;
     // ночной свет: wlsunset; по координатам — от заката до восхода, иначе по часам
     y = title(ui, b.x, y, b.w, "ночной свет: по солнцу или по часам");
     let has = crate::doctor::which("wlsunset");
@@ -408,11 +410,63 @@ pub(crate) fn tab_system(ui: &mut Ui, st: &State, b: R) {
         }
     }
     y += 40;
-    y = title(ui, b.x, y, b.w, "язык и вход");
+    let who = match s.personality.as_str() {
+        "off" => "молчит",
+        "playful" => "игривая",
+        _ => "тихая",
+    };
+    y = title(ui, b.x, y, b.w, "рыбка Nemo");
+    opt_btn(ui, R::new(lx, y, half, 26), "характер рыбки", who, Act::SCycle("personality"));
+    y += 30;
+    ui.text_in(PX, R::new(lx, y, b.w, 20), "одна короткая фраза о зарядке, кофе и обновлениях", ui.t.text_faint);
+    y += 30;
+    let _ = y;
+}
+
+pub(crate) fn tab_region(ui: &mut Ui, st: &State, b: R) {
+    let s = &st.set;
+    let hw = (b.w - 12) / 2;
+    let half = (b.w - 20) / 2;
+    let lx = b.x;
+    let mut y = title(ui, b.x, b.y, b.w, "язык");
     // название языка — на нём самом (не переводится: opt_btn пропускает его через таблицу как есть)
     let lang = if s.lang.is_empty() { "авто" } else { yami_px::i18n::name(&s.lang) };
     opt_btn(ui, R::new(lx, y, half, 26), "язык", lang, Act::SCycle("lang"));
-    ui.toggle(R::new(rx, y, half, 26), "вернуть программы при входе", "", s.session_restore, Act::SBool("session_restore"));
+    y += 40;
+    // часы и календарь: формат часов, вид даты, с какого дня неделя
+    y = title(ui, b.x, y, b.w, "часы и календарь");
+    let date_name = match s.date_style.as_str() {
+        "md" => "мм/дд",
+        "iso" => "2026-11-17",
+        _ => "дд.мм",
+    };
+    let week_name = match s.week_start.as_str() {
+        "sun" => "воскресенье",
+        "sat" => "суббота",
+        _ => "понедельник",
+    };
+    opt_btn(ui, R::new(b.x, y, hw, 26), "формат часов", if s.clock12 { "12 ч, AM/PM" } else { "24 ч" }, Act::SBool("clock12"));
+    opt_btn(ui, R::new(b.x + hw + 12, y, hw, 26), "дата в баре", date_name, Act::SCycle("date_style"));
+    y += 32;
+    opt_btn(ui, R::new(b.x, y, hw, 26), "неделя с", week_name, Act::SCycle("week_start"));
+    let weekend_name = if s.weekend == "frisat" { "пт и сб" } else { "сб и вс" };
+    opt_btn(ui, R::new(b.x + hw + 12, y, hw, 26), "выходные", weekend_name, Act::SCycle("weekend"));
+    y += 32;
+    ui.toggle(R::new(b.x, y, hw, 26), "часы с секундами", "", s.clock_seconds, Act::SBool("clock_seconds"));
+    ui.toggle(R::new(b.x + hw + 12, y, hw, 26), "дата в часах", "", s.clock_date, Act::SBool("clock_date"));
+    y += 32;
+    ui.toggle(R::new(b.x, y, hw, 26), "дата по хиджре", "", s.hijri, Act::SBool("hijri"));
+    ui.toggle(R::new(b.x + hw + 12, y, hw, 26), "арабские цифры", "", s.arabic_digits, Act::SBool("arabic_digits"));
+    y += 38;
+    let _ = y;
+}
+
+pub(crate) fn tab_system(ui: &mut Ui, st: &State, b: R) {
+    let s = &st.set;
+    let half = (b.w - 20) / 2;
+    let (lx, rx) = (b.x, b.x + half + 20);
+    let mut y = title(ui, b.x, b.y, b.w, "сеанс");
+    ui.toggle(R::new(lx, y, half, 26), "вернуть программы при входе", "", s.session_restore, Act::SBool("session_restore"));
     y += 40;
     // конфиг niri — человека: yami только строка include в его начале, части включаются здесь
     y = title(ui, b.x, y, b.w, "niri: что приносит Nemo");

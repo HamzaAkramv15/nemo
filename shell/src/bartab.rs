@@ -281,31 +281,6 @@ fn tab_bar_look(ui: &mut Ui, st: &State, b: R) {
     };
     opt_btn(ui, R::new(b.x, y, b.w, 26), "стиль", istyle, Act::SCycle("icon_style"));
     y += 38;
-    // часы и календарь: формат часов, вид даты, с какого дня неделя
-    y = title(ui, b.x, y, b.w, "часы и календарь");
-    let date_name = match s.date_style.as_str() {
-        "md" => "мм/дд",
-        "iso" => "2026-11-17",
-        _ => "дд.мм",
-    };
-    let week_name = match s.week_start.as_str() {
-        "sun" => "воскресенье",
-        "sat" => "суббота",
-        _ => "понедельник",
-    };
-    opt_btn(ui, R::new(b.x, y, hw, 26), "формат часов", if s.clock12 { "12 ч, AM/PM" } else { "24 ч" }, Act::SBool("clock12"));
-    opt_btn(ui, R::new(b.x + hw + 12, y, hw, 26), "дата в баре", date_name, Act::SCycle("date_style"));
-    y += 32;
-    opt_btn(ui, R::new(b.x, y, hw, 26), "неделя с", week_name, Act::SCycle("week_start"));
-    let weekend_name = if s.weekend == "frisat" { "пт и сб" } else { "сб и вс" };
-    opt_btn(ui, R::new(b.x + hw + 12, y, hw, 26), "выходные", weekend_name, Act::SCycle("weekend"));
-    y += 32;
-    ui.toggle(R::new(b.x, y, hw, 26), "часы с секундами", "", s.clock_seconds, Act::SBool("clock_seconds"));
-    ui.toggle(R::new(b.x + hw + 12, y, hw, 26), "дата в часах", "", s.clock_date, Act::SBool("clock_date"));
-    y += 32;
-    ui.toggle(R::new(b.x, y, hw, 26), "дата по хиджре", "", s.hijri, Act::SBool("hijri"));
-    ui.toggle(R::new(b.x + hw + 12, y, hw, 26), "арабские цифры", "", s.arabic_digits, Act::SBool("arabic_digits"));
-    y += 38;
     // переключатели — в два столбца, они короче
     let toggles: [(&str, bool, &'static str); 5] = [
         ("трей клетками", s.tray_pixel, "tray_pixel"),

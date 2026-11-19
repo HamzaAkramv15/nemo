@@ -10,7 +10,7 @@ use crate::font::PX;
 use crate::gfx::{BoxStyle, R};
 use crate::ui::{Act, Cur, Tone, Ui};
 pub use crate::bartab::{BDrag, BarEd};
-use crate::settabs::{tab_about, tab_color, tab_dock, tab_look, tab_notif, tab_shots, tab_system, tab_widgets, tab_windows};
+use crate::settabs::{tab_about, tab_color, tab_comfort, tab_region, tab_dock, tab_look, tab_notif, tab_shots, tab_system, tab_widgets, tab_windows};
 use smithay_client_toolkit::seat::keyboard::{KeyEvent, Keysym};
 
 pub const SIZE: (i32, i32) = (800, 600);
@@ -66,13 +66,20 @@ pub const GROUPS: &[(&str, &[Tab])] = &[
         ],
     ),
     (
+        "каждый день",
+        &[
+            tab("comfort", "комфорт", "coffee", "комфорт кофе не засыпать бодрствование сон блокировка экран гаснет простой ночной свет тёплый не беспокоить рыбка характер comfort caffeine coffee keep awake sleep idle lock screen off night light warm do not disturb fish character personality conforto café não dormir inatividade luz noturna não perturbe", tab_comfort), // i18n-ok
+            tab("region", "язык и время", "clock", "язык и время часы 12 24 формат дата неделя выходные пятница суббота хиджра арабские цифры календарь language time clock 12 24 hour format date week start weekend friday saturday hijri arabic digits calendar idioma horário relógio formato data semana fim de semana", tab_region), // i18n-ok
+            tab("notif", "уведомления", "bell", "уведомления не беспокоить место история osd громкость яркость notifications do not disturb position history osd volume brightness notificações notificação perturbe posição histórico volume brilho", tab_notif), // i18n-ok
+        ],
+    ),
+    (
         "система",
         &[
-            tab("system", "система", "gear", "система язык сон блокировка ожидание ночной свет system language idle sleep lock night light sistema idioma língua português brasileiro brasil suspender bloqueio inatividade luz noturna личность рыбка характер personality fish character quip caffeine кофе", tab_system), // i18n-ok
+            tab("system", "система", "gear", "система язык сон блокировка ожидание ночной свет system language idle sleep lock night light sistema idioma língua português brasileiro brasil suspender bloqueio inatividade luz noturna", tab_system), // i18n-ok
             tab("startup", "автозапуск", "play", "автозапуск запуск при входе программы сеанс startup autostart login apps session inicialização iniciar programas sessão", crate::startup::tab), // i18n-ok
             tab("login", "экран входа", "lock", "экран входа вход логин greetd пользователи пароль numlock вуаль менеджер входа login screen greeter display manager users password numlock veil tela de login entrada greetd usuários senha numlock véu gerenciador de login", crate::login::tab), // i18n-ok
             tab("bt", "bluetooth", "bt", "bluetooth блютуз наушники колонки мышь клавиатура сопряжение подключить забыть заряд bluetooth headphones speaker mouse keyboard pair connect forget battery fones caixa de som mouse teclado parear conectar esquecer bateria", crate::bttab::tab), // i18n-ok
-            tab("notif", "уведомления", "bell", "уведомления не беспокоить место история osd громкость яркость notifications do not disturb position history osd volume brightness notificações notificação perturbe posição histórico volume brilho", tab_notif), // i18n-ok
             tab("agents", "службы", "bolt", "службы трей polkit порталы флешки телефоны автоподключение обложки тексты погода services tray portals automount drives phones covers lyrics weather serviços serviço bandeja portais discos telefones montagem capas letras clima", crate::agents::tab), // i18n-ok
             tab("updates", "обновления", "down", "обновления версия откат updates version rollback atualizações atualizar versão reverter", crate::update::tab), // i18n-ok
             tab("about", "о шелле", "about", "о шелле версия память about version memory sobre versão memória", tab_about), // i18n-ok
@@ -140,7 +147,7 @@ pub fn tab_matches(tb: &Tab, query: &str) -> bool {
         return true;
     }
     let hay = format!("{} {} {}", tb.name, crate::i18n::tr(tb.name), tb.find).to_lowercase();
-    q.split_whitespace().all(|w| hay.contains(w))
+    q.split_whitespace().all(|w| hay.contains(w)) || crate::setindex::tab_has_hit(tb.id, query)
 }
 
 /// вкладки, подходящие запросу, по порядку
@@ -209,7 +216,11 @@ pub fn draw(ui: &mut Ui, st: &State, w: i32, h: i32) {
     ui.zone(R::new(side.right() + 1, 31, fr.right() - side.right() - 2, fr.h - 32), Act::SScroll, Cur::Default);
     ui.cv.push_clip(R::new(body.x - 4, body.y - 4, body.w + 8, body.h + 8));
     ui.cv.reach = i32::MIN;
-    (tb.draw)(ui, st, R::new(body.x, body.y - off, body.w, body.h));
+    if st.search_field.text.trim().is_empty() {
+        (tb.draw)(ui, st, R::new(body.x, body.y - off, body.w, body.h));
+    } else {
+        crate::setindex::draw_results(ui, st, R::new(body.x, body.y - off, body.w, body.h));
+    }
     let full = if tb.own_scroll { body.h } else { ui.cv.reach.saturating_add(off + 12 - body.y).max(body.h) };
     st.sscroll_h.set(full);
     ui.cv.pop_clip();
@@ -323,9 +334,12 @@ impl App {
                 Keysym::Return | Keysym::KP_Enter => {
                     if f == "set_search" {
                         // Enter открывает первую подходящую вкладку
-                        if let Some(tb) = matching(&self.st, &self.st.search_field.text.clone()).first() {
-                            self.st.stab = tb.id;
-                            self.st.sscroll = (0, tb.id);
+                        let q = self.st.search_field.text.clone();
+                        let first = crate::setindex::search(&q).first().map(|e| e.tab).or_else(|| matching(&self.st, &q).first().map(|t| t.id));
+                        if let Some(id) = first {
+                            self.st.stab = id;
+                            self.st.sscroll = (0, id);
+                            self.st.search_field.set("");
                             self.tab_probe();
                         }
                         self.st.field_focus = None;

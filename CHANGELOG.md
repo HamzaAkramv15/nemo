@@ -9,6 +9,8 @@ has its Russian line in CHANGELOG.ru.md: `tools/check.sh` checks that.
 
 ## Unreleased
 
+- Settings, reorganised and fully searchable. A new "every day" group: **comfort** (idle, caffeine with a switch and 30 min / 1 h / 2 h / 4 h / no-limit buttons, do not disturb, night light, the fish) and **language & time** (language, clock format, date, week start, weekend, Hijri, Arabic digits), with notifications beside them. System keeps the session and niri parts. Search now finds individual settings ("caffeine", "12 hour", "blur", "weekend") by their label in your language, in English and by synonyms, and shows a results page; Enter opens the first hit. A test fails when a setting is added without a search entry.
+
 - The fish is redrawn from scratch: a new 16×9 grid of our own (round head, forked tail, facing right) replaces the first drawing, which was made from a stock-image preview whose licence could not be confirmed. The SVG, the PNG, the login screen, the settings and fastfetch all use the new grid.
 
 - Bar tooltips for more modules, and battery and power profile are now separate: network (connection, address, speeds), Bluetooth (connected devices and their charge), volume (level and output), keyboard layout (full name), clock (full date, Hijri if on), privacy (which apps), power profile (name, why it is limited) and battery (charge, state, time left). Tips are registered by the modules themselves (`Ui::tip`), independent of what a click does.

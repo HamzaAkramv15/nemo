@@ -475,12 +475,14 @@ pub fn page_keys(tab: &str) -> &'static [&'static str] {
         "fonts" => &["fontShell", "fontFiles", "fontView", "fontUi", "fontPt", "fontSize", "fontMono", "browserMenus", "browserFont", "terminalFish", "fetchFull"],
         "anim" => &["animations", "animSpeed", "animClose", "reveal", "revealGrain", "anims"],
         "wall" => &["wallDir", "wallFit", "wallPixel", "wallTone", "wallDim", "wallKanji"],
-        "bar" => &["bar*", "clockSeconds", "clockDate", "weekend", "hijri", "arabicDigits", "clock12", "dateStyle", "weekStart", "taskWidth", "cpuStyle", "tempStyle", "trayMode", "trayPixel", "batHideFull", "privacyMic", "privacyCam", "privacyScreen", "mediaViz", "mediaView", "controlTiles"],
+        "bar" => &["bar*", "taskWidth", "cpuStyle", "tempStyle", "trayMode", "trayPixel", "batHideFull", "privacyMic", "privacyCam", "privacyScreen", "mediaViz", "mediaView", "controlTiles"],
         "widgets" => &["widgets", "widgetContrast"],
         "dock" => &["dock*"],
         "windows" => &["stacking", "titlebars", "floatMedia", "floatPip", "floatApps", "floatW", "floatH", "winGap", "winLeft", "winRight", "winTop", "winBottom", "winRadius", "winBorder", "castHide"],
         "notif" => &["dnd", "notifTimeout", "notifMax", "notifHistory", "notifPos", "osdPos", "osdBright", "notifOffset", "osdOffset", "notifImages"],
-        "system" => &["lockAfter", "screenOffAfter", "lockSleep", "night", "nightTemp", "nightGeo", "nightOnH", "nightOffH", "nightAlways", "caffeineMinutes", "sessionRestore", "personality"],
+        "comfort" => &["lockAfter", "screenOffAfter", "lockSleep", "night", "nightTemp", "nightGeo", "nightOnH", "nightOffH", "nightAlways", "caffeineMinutes", "personality", "dnd"],
+        "region" => &["lang", "clock12", "clockSeconds", "clockDate", "dateStyle", "weekStart", "weekend", "hijri", "arabicDigits"],
+        "system" => &["sessionRestore"],
         "games" => &["game*"],
         "login" => &["greet*"],
         _ => &[],
@@ -1396,7 +1398,7 @@ mod tests {
     fn every_page_key_exists() {
         let d = serde_json::to_value(Settings::default()).unwrap();
         let keys: Vec<&String> = d.as_object().unwrap().keys().collect();
-        for tab in ["color", "look", "fonts", "anim", "wall", "bar", "widgets", "dock", "windows", "notif", "system", "games", "login"] {
+        for tab in ["color", "look", "fonts", "anim", "wall", "bar", "widgets", "dock", "windows", "notif", "comfort", "region", "system", "games", "login"] {
             let list = super::page_keys(tab);
             assert!(!list.is_empty(), "{tab}");
             for p in list {
@@ -1420,7 +1422,7 @@ mod tests {
         // чужие страницы не тронуты
         assert!(s.clock12 && s.night_temp == 3000 && s.palette == "ash");
         assert_eq!(s.reset_page("dock"), 0);
-        assert_eq!(s.reset_page("bar") >= 1, true);
+        assert_eq!(s.reset_page("region") >= 1, true);
         assert!(!s.clock12);
         // страница без ключей — ничего
         assert_eq!(s.reset_page("keys"), 0);
