@@ -10,7 +10,7 @@ summary_update() {
     exit 1
   fi
   say "$(t "обновлено" "updated" "atualizado")"
-  [[ -s $STATE/packages-needed ]] && note "$("$BIN/yami-shell" update need --print 2>/dev/null)"
+  [[ -s $STATE/packages-needed ]] && note "$("$BIN/nemo-shell" update need --print 2>/dev/null)"
   exit 0
 }
 
@@ -40,12 +40,12 @@ summary_install() {
   fi
   if [[ -s $STATE/packages-needed ]] && ((!DRY)); then
     warn "$(t "для выбранного не хватает пакетов — одна команда (или настройки → обновления):" "the chosen components miss packages; one command (or settings → updates):" "faltam pacotes para os componentes escolhidos; um comando (ou configurações → atualizações):")"
-    note "$("$BIN/yami-shell" update need --print 2>/dev/null)"
+    note "$("$BIN/nemo-shell" update need --print 2>/dev/null)"
   fi
   if [[ $FAM == nixos ]]; then
     printf '\n  %s%s%s\n' "$T" "$(t "NixOS: система — через flake (docs/PACKAGING.md):" "NixOS: the system goes through the flake (docs/PACKAGING.md):" "NixOS: o sistema vai pelo flake (docs/PACKAGING.md):")" "$R"
-    note "inputs.yami.url = \"github:HamzaAkramv15/nemo\";"
-    note "imports = [ yami.nixosModules.default ];  programs.yami.enable = true;"
+    note "inputs.nemo.url = \"github:HamzaAkramv15/nemo\";"
+    note "imports = [ nemo.nixosModules.default ];  programs.nemo.enable = true;"
   fi
   # a run that stopped (the reason is above) did not get to niri: the hint would only mislead
   niri_ok || ((DRY || BUILD_FAILED)) || on fork || warn "$(t "нужен niri {} или новее — поставь его или запусти без --no-fork" "niri {} or newer is required: install it or rerun without --no-fork" "niri {} ou superior é necessário: instale ou execute novamente sem --no-fork" "$NIRI_MIN")"

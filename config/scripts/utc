@@ -1,5 +1,5 @@
 #!/bin/sh
-# yami-script: UTC time (set ZONE for another city, e.g. ZONE=Asia/Tokyo, label in LABEL)
+# nemo-script: UTC time (set ZONE for another city, e.g. ZONE=Asia/Tokyo, label in LABEL)
 zone=${ZONE:-UTC}; label=${LABEL:-$zone}
 t=$(TZ="$zone" date +%H:%M)
 printf '{"text":"%s %s","icon":"clock","color":"text","interval":20}\n' "${label##*/}" "$t"

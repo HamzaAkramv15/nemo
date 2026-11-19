@@ -1,16 +1,16 @@
 // Инструменты разработки репозитория (в установку не входят): tools/check.sh, tools/release.sh и
-// tools/readme-shots.sh зовут их как `yami-dev <команда>`.
+// tools/readme-shots.sh зовут их как `nemo-dev <команда>`.
 //
-//   yami-dev check-docs [-v]            английские и русские документы — один текст
-//   yami-dev check-i18n [ПАПКА …]       у каждой русской строки есть перевод
-//   yami-dev i18n-todo КОД [ПАПКА]       непереведённые строки языка, по номерам (ПАПКА installer — установщик)
-//   yami-dev i18n-add КОД ФАЙЛ [ПАПКА]   вписать переводы «номер<TAB>текст» в таблицу языка
-//   yami-dev i18n-new РУС АНГЛ --pt ТЕКСТ [--de … --fr … --es … --uk … --pl …]   новая надпись во все таблицы шелла разом
-//   yami-dev readme-art [#акцент]       картинки README
-//   yami-dev changelog ВЕРСИЯ           «Unreleased» становится выпуском
-//   yami-dev nar-hash ПАПКА             sha256 архива NAR (как у nix)
-//   yami-dev flake-lock [МОДУЛИ]        flake.lock: модули по их тегам, без nix
-//   yami-dev shots …                    помощники tools/readme-shots.sh
+//   nemo-dev check-docs [-v]            английские и русские документы — один текст
+//   nemo-dev check-i18n [ПАПКА …]       у каждой русской строки есть перевод
+//   nemo-dev i18n-todo КОД [ПАПКА]       непереведённые строки языка, по номерам (ПАПКА installer — установщик)
+//   nemo-dev i18n-add КОД ФАЙЛ [ПАПКА]   вписать переводы «номер<TAB>текст» в таблицу языка
+//   nemo-dev i18n-new РУС АНГЛ --pt ТЕКСТ [--de … --fr … --es … --uk … --pl …]   новая надпись во все таблицы шелла разом
+//   nemo-dev readme-art [#акцент]       картинки README
+//   nemo-dev changelog ВЕРСИЯ           «Unreleased» становится выпуском
+//   nemo-dev nar-hash ПАПКА             sha256 архива NAR (как у nix)
+//   nemo-dev flake-lock [МОДУЛИ]        flake.lock: модули по их тегам, без nix
+//   nemo-dev shots …                    помощники tools/readme-shots.sh
 
 mod art;
 mod docs;
@@ -47,7 +47,7 @@ fn main() {
         Some("flake-lock") => flake::run_lock(rest),
         Some("shots") => shots::run(rest),
         _ => {
-            eprintln!("yami-dev: check-docs [-v] | check-i18n [DIR…] | i18n-todo CODE [DIR|installer] | i18n-add CODE FILE [DIR|installer] | readme-art [#accent] | changelog VERSION | nar-hash DIR | flake-lock [MODULES] | shots …");
+            eprintln!("nemo-dev: check-docs [-v] | check-i18n [DIR…] | i18n-todo CODE [DIR|installer] | i18n-add CODE FILE [DIR|installer] | readme-art [#accent] | changelog VERSION | nar-hash DIR | flake-lock [MODULES] | shots …");
             2
         }
     });

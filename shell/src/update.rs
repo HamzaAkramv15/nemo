@@ -1,10 +1,10 @@
 // Обновления: проверка, установка и откат — из настроек (вкладка «обновления») и из терминала
-// (`yami update`). Источник — свой клон репозитория в ~/.local/share/yami/src (не рабочая
+// (`nemo update`). Источник — свой клон репозитория в ~/.local/share/nemo/src (не рабочая
 // копия разработчика): git fetch, выпуск = самый новый тег vX.Y.Z (канал «main» — вершина
 // ветки). Подпись выпуска проверяется ключами keys/allowed_signers из УЖЕ установленной версии
 // (доверие с первой установки): подменённый на сервере тег без ключа автора не встанет.
 // Ставит install.sh --update (сборка из исходников, без sudo, настройки не трогает), прежние
-// бинари — в ~/.local/lib/yami/prev для отката. Что установлено — ~/.local/state/yami/install.json.
+// бинари — в ~/.local/lib/nemo/prev для отката. Что установлено — ~/.local/state/nemo/install.json.
 
 pub use crate::upinstall::*;
 pub use crate::updtab::{short_repo, tab};
@@ -45,14 +45,14 @@ pub(crate) fn tag_ref(tag: &str) -> String {
 pub const REPO: &str = "https://github.com/HamzaAkramv15/nemo.git";
 const NOTE_ID: u32 = 9_400_001;
 
-/// обновлять и ставить модули может сам yami: нет, если его поставил пакетный менеджер. Сборка из
+/// обновлять и ставить модули может сам nemo: нет, если его поставил пакетный менеджер. Сборка из
 /// исходников узнаёт об этом по feature `package-managed`, готовые бинари в пакете (одни и те же для
-/// всех дистрибутивов) — по файлу-метке, который кладёт пакет: <префикс>/share/yami/package-managed
+/// всех дистрибутивов) — по файлу-метке, который кладёт пакет: <префикс>/share/nemo/package-managed
 pub fn enabled() -> bool {
     static ON: std::sync::OnceLock<bool> = std::sync::OnceLock::new();
     *ON.get_or_init(|| {
-        let exe = yami_px::paths::self_exe();
-        !cfg!(feature = "package-managed") && !exe.parent().and_then(|d| d.parent()).is_some_and(|p| p.join("share/yami/package-managed").exists())
+        let exe = nemo_px::paths::self_exe();
+        !cfg!(feature = "package-managed") && !exe.parent().and_then(|d| d.parent()).is_some_and(|p| p.join("share/nemo/package-managed").exists())
     })
 }
 
@@ -64,7 +64,7 @@ pub(crate) fn require_enabled() -> Result<(), String> {
     if enabled() { Ok(()) } else { Err(managed_message()) }
 }
 
-/// что установлено: пишет `yami-shell update stamp` (установщик, tools/deploy.sh)
+/// что установлено: пишет `nemo-shell update stamp` (установщик, tools/deploy.sh)
 #[derive(Serialize, Deserialize, Default, Clone, Debug, PartialEq)]
 #[serde(default, rename_all = "camelCase")]
 pub struct Stamp {
@@ -77,7 +77,7 @@ pub struct Stamp {
     pub date: u64,
 }
 
-/// результат проверки; последний хранится в ~/.local/state/yami/update.json
+/// результат проверки; последний хранится в ~/.local/state/nemo/update.json
 #[derive(Serialize, Deserialize, Default, Clone, Debug, PartialEq)]
 #[serde(default, rename_all = "camelCase")]
 pub struct Info {
@@ -95,7 +95,7 @@ pub struct Info {
     pub sig: String,
     pub err: String,
     pub at: u64,
-    /// последние выпуски (новые первыми) — на что можно перейти из вкладки и `yami update to`
+    /// последние выпуски (новые первыми) — на что можно перейти из вкладки и `nemo update to`
     pub releases: Vec<Rel>,
 }
 
@@ -159,7 +159,7 @@ impl Upd {
         let (log, log_len) = log_tail();
         Upd { stamp: installed(), info: last(), rollback: can_rollback(), log, log_len, need: crate::need::load(), ..Default::default() }
     }
-    /// для `yami-shell shot settings:updates[-new|-busy]`
+    /// для `nemo-shell shot settings:updates[-new|-busy]`
     pub fn mock(what: &str) -> Upd {
         let stamp = Stamp { version: "2.0.0".into(), commit: "24da2407c0ffee00".into(), repo: REPO.into(), ..Default::default() };
         let mut u = Upd { stamp, rollback: true, ..Default::default() };
@@ -168,11 +168,11 @@ impl Upd {
             i.latest = "2.1.0".into();
             i.reference = "v2.1.0".into();
             i.available = true;
-            i.notes = vec!["yami: one command for the whole desktop".into(), "settings: updates and services tabs".into(), "shell: notification images are size-checked".into()];
+            i.notes = vec!["nemo: one command for the whole desktop".into(), "settings: updates and services tabs".into(), "shell: notification images are size-checked".into()];
         }
         if what == "updates-busy" {
             u.busy = Some("[3/8] shell: build from source".into());
-            u.log = ["▪ checking what is new", "▪ switching to v2.1.0", "▪ build and install (a few minutes)", "▪ [1/8] update from ~/.local/share/yami/src", "✓ update from ~/.local/share/yami/src 0s", "▪ [2/8] packages", "✓ packages 3s", "▪ [3/8] shell: build from source", "Compiling yami-px v2.1.0", "Compiling yami-files v2.1.0", "Compiling yami-shell v2.1.0"]
+            u.log = ["▪ checking what is new", "▪ switching to v2.1.0", "▪ build and install (a few minutes)", "▪ [1/8] update from ~/.local/share/nemo/src", "✓ update from ~/.local/share/nemo/src 0s", "▪ [2/8] packages", "✓ packages 3s", "▪ [3/8] shell: build from source", "Compiling nemo-px v2.1.0", "Compiling nemo-files v2.1.0", "Compiling nemo-shell v2.1.0"]
                 .iter()
                 .map(|s| s.to_string())
                 .collect();
@@ -180,7 +180,7 @@ impl Upd {
         if what == "updates-need" {
             // вышла версия с новыми функциями, а пакетов к ним нет: кнопка «поставить»
             i.available = false;
-            u.need = Some(crate::need::Need { pm: "pacman".into(), pkgs: vec!["wlsunset".into(), "tesseract".into(), "tesseract-data-eng".into(), "zbar".into()], login: Some("/home/you/.local/share/yami/src/tools/greet-install.sh".into()) });
+            u.need = Some(crate::need::Need { pm: "pacman".into(), pkgs: vec!["wlsunset".into(), "tesseract".into(), "tesseract-data-eng".into(), "zbar".into()], login: Some("/home/you/.local/share/nemo/src/tools/greet-install.sh".into()) });
         }
         if what == "updates-pick" {
             // выбор версии: прошлой сборки в образце нет, три выпуска, один не подписан
@@ -209,23 +209,23 @@ pub(crate) fn info_path() -> PathBuf {
     crate::config::state_dir().join("update.json")
 }
 pub fn clone_dir() -> PathBuf {
-    crate::config::data_dir().join("yami/src")
+    crate::config::data_dir().join("nemo/src")
 }
 pub(crate) fn bin_dir() -> PathBuf {
     crate::config::home().join(".local/bin")
 }
 pub(crate) fn prev_dir() -> PathBuf {
-    crate::config::home().join(".local/lib/yami/prev")
+    crate::config::home().join(".local/lib/nemo/prev")
 }
 pub fn log_path() -> PathBuf {
-    yami_px::paths::cache_dir().join("yami/update.log")
+    nemo_px::paths::cache_dir().join("nemo/update.log")
 }
 pub fn installed() -> Stamp {
-    std::fs::read_to_string(stamp_path()).map(|t| yami_px::paths::lenient_json(&t)).unwrap_or_default()
+    std::fs::read_to_string(stamp_path()).map(|t| nemo_px::paths::lenient_json(&t)).unwrap_or_default()
 }
 /// последняя проверка; то, что она нашла и что уже установлено, — не «доступно»
 pub fn last() -> Option<Info> {
-    let mut i: Info = std::fs::read_to_string(info_path()).ok().map(|t| yami_px::paths::lenient_json(&t))?;
+    let mut i: Info = std::fs::read_to_string(info_path()).ok().map(|t| nemo_px::paths::lenient_json(&t))?;
     if i.target == installed().commit {
         i.available = false;
     }
@@ -323,7 +323,7 @@ pub(crate) fn checkout_undo(dir: &Path) {
 }
 
 fn checkout_mark(dir: &Path) -> PathBuf {
-    dir.join(".git/yami-checkout")
+    dir.join(".git/nemo-checkout")
 }
 
 pub(crate) fn has_commit(dir: &Path, c: &str) -> bool {
@@ -519,7 +519,7 @@ pub fn sig_text(sig: &str) -> String {
     }
 }
 
-// ── шелл: проверка по расписанию, вкладка, команды от `yami update` ─────────
+// ── шелл: проверка по расписанию, вкладка, команды от `nemo update` ─────────
 impl App {
     pub fn update_check(&mut self) {
         if !enabled() || self.st.upd.checking {
@@ -565,9 +565,9 @@ impl App {
             }
             let n = crate::dbus::Incoming {
                 id: NOTE_ID,
-                app: "yami-update".into(),
+                app: "nemo-update".into(),
                 icon: String::new(),
-                summary: crate::tf!("доступно обновление Nemo {}", "yami {} is available", "yami {} está disponível", i.latest),
+                summary: crate::tf!("доступно обновление Nemo {}", "nemo {} is available", "nemo {} está disponível", i.latest),
                 body,
                 actions: vec![("default".into(), crate::i18n::tr("подробнее").to_string())],
                 urgency: 1,
@@ -620,7 +620,7 @@ impl App {
             self.st.upd.done = Some((ok == "ok", text.to_string()));
             self.st.upd = Upd { busy: None, done: self.st.upd.done.take(), ..Upd::load() };
         } else if c == "update-reload" {
-            // `yami update check` из терминала уже проверил: перечитать его итог
+            // `nemo update check` из терминала уже проверил: перечитать его итог
             let busy = self.st.upd.busy.take();
             self.st.upd = Upd { busy, ..Upd::load() };
         } else {
@@ -700,7 +700,7 @@ impl App {
     }
 }
 
-/// `yami-shell update apply --notify` отдельным процессом: живёт, даже когда шелл перезапустится
+/// `nemo-shell update apply --notify` отдельным процессом: живёт, даже когда шелл перезапустится
 pub(crate) fn spawn_detached(what: &[&str]) {
     let log = log_path();
     if let Some(p) = log.parent() {
@@ -708,7 +708,7 @@ pub(crate) fn spawn_detached(what: &[&str]) {
     }
     let Ok(f) = std::fs::File::create(&log) else { return };
     let Ok(f2) = f.try_clone() else { return };
-    let _ = Command::new("setsid").arg("-f").arg(yami_px::paths::self_exe()).arg("update").args(what).arg("--notify").stdin(Stdio::null()).stdout(f).stderr(f2).status();
+    let _ = Command::new("setsid").arg("-f").arg(nemo_px::paths::self_exe()).arg("update").args(what).arg("--notify").stdin(Stdio::null()).stdout(f).stderr(f2).status();
 }
 
 #[cfg(test)]
@@ -740,7 +740,7 @@ mod tests {
     #[test]
     fn half_done_checkout_is_put_back() {
         use super::{checkout, checkout_undo, git};
-        let d = yami_px::paths::private_tmp("yami-checkout").unwrap();
+        let d = nemo_px::paths::private_tmp("nemo-checkout").unwrap();
         let (up, cl) = (d.join("up"), d.join("cl"));
         std::fs::create_dir_all(&up).unwrap();
         let commit = |m: &str| git(&up, &["-c", "user.name=t", "-c", "user.email=t@t", "-c", "commit.gpgsign=false", "commit", "-qm", m]).unwrap();
@@ -764,10 +764,10 @@ mod tests {
         assert!(checkout(&cl, &target).is_err());
         assert!(clean() && cl.join("gone").exists() && git(&cl, &["rev-parse", "HEAD"]).unwrap() == head);
         // процесс убит посреди checkout: метка осталась
-        std::fs::write(cl.join(".git/yami-checkout"), &target).unwrap();
+        std::fs::write(cl.join(".git/nemo-checkout"), &target).unwrap();
         std::fs::remove_file(cl.join("gone")).unwrap();
         checkout_undo(&cl);
-        assert!(clean() && !cl.join(".git/yami-checkout").exists());
+        assert!(clean() && !cl.join(".git/nemo-checkout").exists());
         // без метки это правка человека
         std::fs::remove_file(cl.join("gone")).unwrap();
         checkout_undo(&cl);

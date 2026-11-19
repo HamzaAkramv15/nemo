@@ -1,5 +1,5 @@
 [package]
-name = "yami-shell"
+name = "nemo-shell"
 version = "3.1.0"
 edition = "2021"
 publish = false
@@ -10,7 +10,7 @@ categories = ["gui"]
 license = "MIT"
 
 [[bin]]
-name = "yami-shell"
+name = "nemo-shell"
 path = "src/main.rs"
 
 [features]
@@ -19,7 +19,7 @@ package-managed = []
 
 [dependencies]
 # the drawing library lives here (px/); the modules take it by the tag px-vX.Y.Z of this repository
-yami-px = { path = "px" }
+nemo-px = { path = "px" }
 smithay-client-toolkit = "0.20"
 wayland-client = "0.31"
 wayland-protocols = { version = "0.32", features = ["client", "staging", "unstable"] }

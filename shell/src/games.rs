@@ -1,4 +1,4 @@
-// Игры: правила niri для игровых окон (на весь экран, VRR, разрывы на yami-niri, кеш шейдеров)
+// Игры: правила niri для игровых окон (на весь экран, VRR, разрывы на nemo-niri, кеш шейдеров)
 // и игровой режим шелла: пока игра (или любое окно на весь экран) в фокусе — уведомления
 // молча уходят в историю, а профиль питания — «производительность»; после — как было.
 
@@ -43,8 +43,8 @@ pub fn is_game(set: &crate::config::Settings, app_id: &str) -> bool {
 }
 
 /// часть rules.kdl: правило игровых окон и кеш шейдеров
-pub fn kdl(set: &crate::config::Settings, yami: bool, l: &mut Vec<String>) {
-    let tearing = set.game_tearing && yami;
+pub fn kdl(set: &crate::config::Settings, nemo: bool, l: &mut Vec<String>) {
+    let tearing = set.game_tearing && nemo;
     // скруглённые углы обрезали бы угол картинки и интерфейса игры
     let square = set.num("win_radius") > 0;
     if set.game_fullscreen || set.game_vrr || tearing || square {
@@ -64,7 +64,7 @@ pub fn kdl(set: &crate::config::Settings, yami: bool, l: &mut Vec<String>) {
             l.push("    variable-refresh-rate true".into());
         }
         if tearing {
-            // yami-niri: кадр — сразу, без ожидания vblank (меньше задержка, возможны разрывы)
+            // nemo-niri: кадр — сразу, без ожидания vblank (меньше задержка, возможны разрывы)
             l.push("    allow-tearing true".into());
         }
         if square {
@@ -156,7 +156,7 @@ pub fn tab(ui: &mut Ui, st: &State, b: R) {
     ui.toggle(R::new(l, y, half, 40), "сразу на весь экран", "Steam, gamescope и свои ниже", s.game_fullscreen, Act::SBool("game_fullscreen"));
     ui.toggle(R::new(r, y, half, 40), "VRR в играх", "экраны → VRR «в играх»", s.game_vrr, Act::SBool("game_vrr"));
     y += 46;
-    let hint = if st.niri.yami { "меньше задержка, возможны разрывы" } else { "нужен yami-niri (наш форк)" };
+    let hint = if st.niri.nemo { "меньше задержка, возможны разрывы" } else { "нужен nemo-niri (наш форк)" };
     ui.toggle(R::new(l, y, half, 40), "разрывы (tearing)", hint, s.game_tearing, Act::SBool("game_tearing"));
     y += 46;
     // свои игры: какие ещё окна считать играми

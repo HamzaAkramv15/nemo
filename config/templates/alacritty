@@ -1,5 +1,5 @@
-# yami-output: ~/.config/alacritty/yami.toml
-# yami: the palette for alacritty; in alacritty.toml: [general] import = ["~/.config/alacritty/yami.toml"]
+# nemo-output: ~/.config/alacritty/nemo.toml
+# nemo: the palette for alacritty; in alacritty.toml: [general] import = ["~/.config/alacritty/nemo.toml"]
 
 [colors.primary]
 background = "{{bg}}"

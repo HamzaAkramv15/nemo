@@ -1,4 +1,4 @@
-// Окна yami-agents: поверхность layer-shell с окном и затемнение под ней — только пока идёт запрос;
+// Окна nemo-agents: поверхность layer-shell с окном и затемнение под ней — только пока идёт запрос;
 // в простое нет ни одной поверхности. Нити служб (polkit, показ экрана, тома) пишут сюда в канал.
 
 use crate::automount::{Am, Vol};
@@ -34,11 +34,11 @@ use wayland_client::{
 use wayland_protocols::wp::cursor_shape::v1::client::wp_cursor_shape_device_v1::{Shape, WpCursorShapeDeviceV1};
 use wayland_protocols::wp::fractional_scale::v1::client::{wp_fractional_scale_manager_v1 as frac_mgr, wp_fractional_scale_v1 as frac};
 use wayland_protocols::wp::viewporter::client::{wp_viewport, wp_viewporter};
-use yami_px::font::Fonts;
-use yami_px::gfx::Canvas;
-use yami_px::icons::Icons;
-use yami_px::look::Look;
-use yami_px::ui::{Cur, Zone};
+use nemo_px::font::Fonts;
+use nemo_px::gfx::Canvas;
+use nemo_px::icons::Icons;
+use nemo_px::look::Look;
+use nemo_px::ui::{Cur, Zone};
 
 #[derive(Clone, PartialEq, Debug)]
 pub enum Act {
@@ -51,13 +51,13 @@ pub enum Act {
     ScreenCancel,
 }
 
-impl yami_px::ui::Action for Act {
+impl nemo_px::ui::Action for Act {
     fn block() -> Self {
         Act::Block
     }
 }
 
-pub type Ui<'a, 'b> = yami_px::ui::Ui<'a, 'b, Act>;
+pub type Ui<'a, 'b> = nemo_px::ui::Ui<'a, 'b, Act>;
 
 pub enum Msg {
     Auth(polkit::Ev),
@@ -129,7 +129,7 @@ pub struct App {
     pub tx: Sender<Msg>,
     pub auth: Vec<polkit::Req>,
     pub pick: Option<screen::Pick>,
-    pub apps: Vec<yami_px::icons::App>,
+    pub apps: Vec<nemo_px::icons::App>,
     pub am: Am,
     /// первый запуск в этом сеансе (иначе первый взгляд на тома только запоминает их)
     pub restarted: bool,
@@ -147,7 +147,7 @@ fn focused_output() -> Option<String> {
 /// метка «уже запускались в этом сеансе»: папка выполнения живёт до выхода из системы
 fn first_start_in_session() -> bool {
     let Some(d) = std::env::var_os("XDG_RUNTIME_DIR") else { return true };
-    let p = std::path::PathBuf::from(d).join("yami-agents.started");
+    let p = std::path::PathBuf::from(d).join("nemo-agents.started");
     if p.exists() {
         return false;
     }
@@ -157,7 +157,7 @@ fn first_start_in_session() -> bool {
 
 pub fn run(look: Look, cfg: crate::cfg::Cfg, lock: Option<std::fs::File>) -> i32 {
     let Ok(conn) = Connection::connect_to_env() else {
-        eprintln!("yami-agents: no Wayland display");
+        eprintln!("nemo-agents: no Wayland display");
         return 1;
     };
     let Ok((globals, mut queue)) = registry_queue_init::<App>(&conn) else { return 1 };
@@ -177,7 +177,7 @@ pub fn run(look: Look, cfg: crate::cfg::Cfg, lock: Option<std::fs::File>) -> i32
         }
     });
     let (Ok(compositor), Ok(shm), Ok(layer_shell)) = (CompositorState::bind(&globals, &qh), Shm::bind(&globals, &qh), LayerShell::bind(&globals, &qh)) else {
-        eprintln!("yami-agents: the compositor has no layer-shell");
+        eprintln!("nemo-agents: the compositor has no layer-shell");
         return 1;
     };
     let fonts = Fonts::with(look.font("agents"));
@@ -237,7 +237,7 @@ pub fn run(look: Look, cfg: crate::cfg::Cfg, lock: Option<std::fs::File>) -> i32
         });
     }
     // старт позади: код старта — из памяти
-    yami_px::shed_code_later(30);
+    nemo_px::shed_code_later(30);
     loop {
         if ev.dispatch(None, &mut app).is_err() {
             return 1;
@@ -281,9 +281,9 @@ impl App {
     /// окно по запросу: сначала пароли, потом выбор экрана; ничего нет — ни одной поверхности
     pub fn sync_panel(&mut self) {
         let want = if !self.auth.is_empty() {
-            Some(("yami-auth", polkit::SIZE))
+            Some(("nemo-auth", polkit::SIZE))
         } else {
-            self.pick.as_ref().map(|p| ("yami-screen", screen::size(p)))
+            self.pick.as_ref().map(|p| ("nemo-screen", screen::size(p)))
         };
         let Some((ns, (w, h))) = want else {
             self.surfs.clear();
@@ -303,7 +303,7 @@ impl App {
         self.look_fresh();
         let focus = focused_output();
         let out = focus.and_then(|n| self.outputs.outputs().find(|o| self.outputs.info(o).is_some_and(|i| i.name.as_deref() == Some(n.as_str()))));
-        self.make(Kind::Dim, "yami-dim", out.as_ref(), None);
+        self.make(Kind::Dim, "nemo-dim", out.as_ref(), None);
         self.make(Kind::Panel, ns, out.as_ref(), Some((w, h + 12)));
     }
 
@@ -368,7 +368,7 @@ impl App {
         }
         let dim = s.kind == Kind::Dim;
         let (bw, bh) = if dim { (1, 1) } else { (w, h) };
-        let (pw, ph) = if dim || s.vp.is_none() || s.scale == 1.0 { (bw, bh) } else { yami_px::gfx::phys(w, h, s.scale) };
+        let (pw, ph) = if dim || s.vp.is_none() || s.scale == 1.0 { (bw, bh) } else { nemo_px::gfx::phys(w, h, s.scale) };
         let need = (pw * ph * 4) as usize;
         if s.pool.as_ref().map(|p| p.len() < need).unwrap_or(true) {
             s.pool = SlotPool::new(need * 2, &self.shm).ok();
@@ -388,7 +388,7 @@ impl App {
             let ptr = self.ptr.filter(|p| p.0 == s.id).map(|p| (p.1, p.2));
             let down = self.press.as_ref().is_some_and(|p| p.0 == s.id);
             {
-                let mut ui: Ui = yami_px::ui::Ui { cv: Canvas::new(&mut scratch, w, h), f: &mut self.fonts, ic: &mut self.icons, t: self.look.theme, zones: vec![], ptr, down, anim: false, blink: true, tr: crate::i18n::tr };
+                let mut ui: Ui = nemo_px::ui::Ui { cv: Canvas::new(&mut scratch, w, h), f: &mut self.fonts, ic: &mut self.icons, t: self.look.theme, zones: vec![], ptr, down, anim: false, blink: true, tr: crate::i18n::tr };
                 if !self.auth.is_empty() {
                     polkit::draw(&mut ui, &self.auth, w, h - 12);
                 } else if let Some(p) = &self.pick {
@@ -398,7 +398,7 @@ impl App {
                 s.anim = ui.anim;
             }
             if up {
-                yami_px::gfx::upscale(&scratch, w, h, out, pw, ph);
+                nemo_px::gfx::upscale(&scratch, w, h, out, pw, ph);
             } else {
                 out[..scratch.len()].copy_from_slice(&scratch);
             }

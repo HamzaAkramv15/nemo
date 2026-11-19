@@ -1,6 +1,6 @@
 // Выбор обоев (Modal::Walls, #11): сетка миниатюр папки обоев (wallDir; пусто — ~/Pictures/Wallpapers,
 // папка текущих обоев или ~/Pictures), первая клетка — пиксельные из палитры. Папку читает одна
-// нить, миниатюры — другая, через общий с yami-files кеш (yami-px icons::thumb): сперва видимые
+// нить, миниатюры — другая, через общий с nemo-files кеш (nemo-px icons::thumb): сперва видимые
 // строки, потом по две соседних, в памяти — не больше нескольких десятков. Щелчок ставит обои и
 // возвращает в настройки, если выбор открыли оттуда; закрылся — миниатюры отпущены.
 
@@ -54,7 +54,7 @@ pub struct Walls {
     /// номер открытия: ответы прошлого открытия выбрасываются
     pub gen: u64,
     pub dir: PathBuf,
-    /// клетки: 0 — пиксельные из палитры (state/yami/wallpaper.png), дальше картинки папки; пусто,
+    /// клетки: 0 — пиксельные из палитры (state/nemo/wallpaper.png), дальше картинки папки; пусто,
     /// пока нить читает папку. Тот же список у нити миниатюр
     pub tiles: Arc<[PathBuf]>,
     pub thumbs: HashMap<usize, Option<Rc<Img>>>,
@@ -66,7 +66,7 @@ pub struct Walls {
     pub back: bool,
     /// сколько картинок не поместилось в MAX
     pub more: usize,
-    /// есть yami-files: «папка…» и «другой файл…» спрашивают его окно выбора
+    /// есть nemo-files: «папка…» и «другой файл…» спрашивают его окно выбора
     pub pick: bool,
     worker: Option<Worker>,
 }
@@ -74,11 +74,11 @@ pub struct Walls {
 /// папка обоев: своя из настроек (wallDir), иначе Wallpapers в «Изображениях», папка текущих
 /// обоев, сами «Изображения», дом. Трогает диск (сетевая папка может думать): только в нити
 fn dir(wall_dir: &str, cur: Option<&Path>) -> PathBuf {
-    let own = yami_px::paths::expand(wall_dir);
+    let own = nemo_px::paths::expand(wall_dir);
     if !wall_dir.trim().is_empty() && own.is_dir() {
         return own;
     }
-    let pics = Some(yami_px::paths::pictures()).filter(|d| d.is_dir()).unwrap_or_else(|| config::home().join("Pictures"));
+    let pics = Some(nemo_px::paths::pictures()).filter(|d| d.is_dir()).unwrap_or_else(|| config::home().join("Pictures"));
     if let Some(d) = ["Wallpapers", "wallpapers", "Wallpaper", "wallpaper"].iter().map(|n| pics.join(n)).find(|d| d.is_dir()) {
         return d;
     }
@@ -102,7 +102,7 @@ fn list(dir: &Path) -> (Vec<PathBuf>, usize) {
     let mut v: Vec<PathBuf> = std::fs::read_dir(dir)
         .map(|rd| rd.flatten().map(|e| e.path()).filter(|p| !file_name(p).starts_with('.') && crate::wall::decodable(p) && p.is_file()).collect())
         .unwrap_or_default();
-    v.sort_by(|a, b| yami_px::paths::natural(&file_name(a), &file_name(b)));
+    v.sort_by(|a, b| nemo_px::paths::natural(&file_name(a), &file_name(b)));
     let more = v.len().saturating_sub(MAX);
     v.truncate(MAX);
     (v, more)
@@ -136,7 +136,7 @@ fn spawn(tiles: Arc<[PathBuf]>, q: Arc<(Mutex<Q>, Condvar)>, send: impl Fn(usize
                 let Ok(mut g) = m.lock() else { return };
                 loop {
                     if g.stop {
-                        yami_px::trim_heap();
+                        nemo_px::trim_heap();
                         return;
                     }
                     let (top, n) = (g.top, tiles.len());
@@ -147,7 +147,7 @@ fn spawn(tiles: Arc<[PathBuf]>, q: Arc<(Mutex<Q>, Condvar)>, send: impl Fn(usize
                     // делать нечего: память больших декодов — системе, пока ждём
                     if made > 0 {
                         made = 0;
-                        yami_px::trim_heap();
+                        nemo_px::trim_heap();
                     }
                     let Ok(n) = cv.wait(g) else { return };
                     g = n;
@@ -158,7 +158,7 @@ fn spawn(tiles: Arc<[PathBuf]>, q: Arc<(Mutex<Q>, Condvar)>, send: impl Fn(usize
             }
             made += 1;
             if made % 8 == 0 {
-                yami_px::trim_heap();
+                nemo_px::trim_heap();
             }
         }
     });
@@ -185,8 +185,8 @@ pub fn draw(ui: &mut Ui, st: &State, w: i32, h: i32) {
     let (b1, b2) = (126, 156);
     let bx = fr.right() - GX - b1 - b2 - 8;
     ui.cv.icon("folder", GX, 44, 2, t.text_faint);
-    ui.cv.text_in(ui.f, PX, R::new(GX + 22, 38, bx - GX - 30, 26), &yami_px::paths::pretty(&wl.dir), t.text_dim);
-    // выбор папки и файла — окно yami-files: без него кнопок нет (папка обоев — в настройках)
+    ui.cv.text_in(ui.f, PX, R::new(GX + 22, 38, bx - GX - 30, 26), &nemo_px::paths::pretty(&wl.dir), t.text_dim);
+    // выбор папки и файла — окно nemo-files: без него кнопок нет (папка обоев — в настройках)
     if st.walls.pick {
         ui.button(R::new(bx, 39, b1, 24), "папка…", "folder", Tone::Plain, false, true, Act::WallsDir);
         ui.button(R::new(bx + b1 + 8, 39, b2, 24), "другой файл…", "image", Tone::Plain, false, true, Act::WallsFile);
@@ -290,13 +290,13 @@ impl App {
             }
         }
         let gen = self.st.walls.gen + 1;
-        self.st.walls = Walls { gen, back, pick: crate::proc::have("yami-files"), ..Default::default() };
+        self.st.walls = Walls { gen, back, pick: crate::proc::have("nemo-files"), ..Default::default() };
         let (wd, cur, tx) = (self.st.set.wall_dir.clone(), crate::wall::own(&self.st.set), self.tx.clone());
         let _ = std::thread::Builder::new().name("walls-list".into()).spawn(move || {
             let d = dir(&wd, cur.as_deref());
             let (files, more) = list(&d);
             let _ = tx.send(Msg::WallsListed(gen, d, files, more));
-            // кеш миниатюр общий с yami-files: убрать старое (раз в сутки), уже после списка
+            // кеш миниатюр общий с nemo-files: убрать старое (раз в сутки), уже после списка
             crate::icons::thumbs_tidy();
         });
         self.dirty(&SKind::Modal);
@@ -332,7 +332,7 @@ impl App {
     pub fn walls_free(&mut self) {
         let gen = self.st.walls.gen;
         self.st.walls = Walls { gen, ..Default::default() };
-        yami_px::trim_heap();
+        nemo_px::trim_heap();
     }
 
     pub fn walls_thumb(&mut self, gen: u64, i: usize, img: Option<Img>) {
@@ -411,7 +411,7 @@ impl App {
         self.walls_back();
     }
 
-    /// другая папка или файл — через окно выбора yami-files. Выбор обоев на это время закрыт
+    /// другая папка или файл — через окно выбора nemo-files. Выбор обоев на это время закрыт
     /// (он слой поверх окон, окно выбора открылось бы под ним), потом открывается снова
     pub fn walls_ask(&mut self, folder: bool) {
         let back = self.st.walls.back;
@@ -431,11 +431,11 @@ impl App {
         });
     }
 
-    /// папка обоев из настроек: окно выбора yami-files (настройки на это время закрыты: они слой
+    /// папка обоев из настроек: окно выбора nemo-files (настройки на это время закрыты: они слой
     /// поверх окон), потом выбор обоев на новой папке и назад в настройки; отмена — сразу назад
     pub fn wall_dir_ask(&mut self) {
         let s = &self.st.set;
-        let from = if s.wall_dir.trim().is_empty() { yami_px::paths::pictures() } else { yami_px::paths::expand(&s.wall_dir) };
+        let from = if s.wall_dir.trim().is_empty() { nemo_px::paths::pictures() } else { nemo_px::paths::expand(&s.wall_dir) };
         self.close_modal();
         let tx = self.tx.clone();
         let title = crate::i18n::tr("папка обоев").to_string();
@@ -458,7 +458,7 @@ impl App {
     /// в поле пути вписали папку: она — папка обоев, и выбор открывается на ней
     pub fn wall_dir_typed(&mut self, p: &str) -> bool {
         let p = p.trim();
-        if p.is_empty() || !yami_px::paths::expand(p).is_dir() {
+        if p.is_empty() || !nemo_px::paths::expand(p).is_dir() {
             return false;
         }
         self.st.set.wall_dir = p.to_string();
@@ -539,7 +539,7 @@ mod tests {
     use super::*;
 
     fn tmp(name: &str) -> PathBuf {
-        let d = std::env::temp_dir().join(format!("yami-walls-{name}-{}", std::process::id()));
+        let d = std::env::temp_dir().join(format!("nemo-walls-{name}-{}", std::process::id()));
         let _ = std::fs::remove_dir_all(&d);
         std::fs::create_dir_all(&d).unwrap();
         d
@@ -578,7 +578,7 @@ mod tests {
         }
         assert!(make(&v[3]).is_none());
         // второй раз — из кеша
-        assert!(std::fs::read_dir(d.join("cache/yami/thumbs")).unwrap().count() >= 3);
+        assert!(std::fs::read_dir(d.join("cache/nemo/thumbs")).unwrap().count() >= 3);
         match was {
             Some(v) => std::env::set_var("XDG_CACHE_HOME", v),
             None => std::env::remove_var("XDG_CACHE_HOME"),

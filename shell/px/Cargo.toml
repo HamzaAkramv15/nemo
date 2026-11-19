@@ -1,12 +1,12 @@
 [package]
-name = "yami-px"
-# своя версия, не VERSION шелла: модули (yami-files, yami-view, …) берут библиотеку по тегу
+name = "nemo-px"
+# своя версия, не VERSION шелла: модули (nemo-files, nemo-view, …) берут библиотеку по тегу
 # px-vX.Y.Z этого репозитория, и новая версия нужна, только когда меняется то, чем они пользуются
-version = "3.2.0"
+version = "3.2.1"
 edition = "2021"
-description = "Canvas, styles, fonts, theme and immediate-mode UI shared by the yami shell and its modules"
+description = "Canvas, styles, fonts, theme and immediate-mode UI shared by the nemo shell and its modules"
 license = "MIT"
-repository = "https://github.com/Trendorin/yami"
+repository = "https://github.com/HamzaAkramv15/nemo"
 publish = false
 
 [features]

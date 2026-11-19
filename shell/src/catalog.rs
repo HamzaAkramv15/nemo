@@ -1,25 +1,25 @@
 // Готовые шаблоны (#31): цвета палитры для программ, которых recolor сам не знает. Файлы лежат в
 // config/templates и вшиты в бинарь — сеть не нужна, чужой код не скачивается. «Добавить» кладёт копию
-// в ~/.config/yami/templates; дальше это обычный твой шаблон: переключатель, правка руками, перезапись.
+// в ~/.config/nemo/templates; дальше это обычный твой шаблон: переключатель, правка руками, перезапись.
 // Шаблон пишет только свой файл рядом с конфигом программы; подключить его — одна строка в её
-// конфиге (`hint`), её yami не трогает.
+// конфиге (`hint`), её nemo не трогает.
 
 /// (имя файла шаблона, программа, что вписать в её конфиг, текст)
 pub const ALL: &[(&str, &str, &str, &str)] = &[
     ("ghostty", "Ghostty", "theme = Nemo", include_str!("../../config/templates/ghostty")),
-    ("alacritty", "Alacritty", "import = [\"~/.config/alacritty/yami.toml\"]", include_str!("../../config/templates/alacritty")),
-    ("wezterm", "WezTerm", "config.color_scheme = \"yami\"", include_str!("../../config/templates/wezterm")),
-    ("helix", "Helix", "theme = \"yami\"", include_str!("../../config/templates/helix")),
+    ("alacritty", "Alacritty", "import = [\"~/.config/alacritty/nemo.toml\"]", include_str!("../../config/templates/alacritty")),
+    ("wezterm", "WezTerm", "config.color_scheme = \"nemo\"", include_str!("../../config/templates/wezterm")),
+    ("helix", "Helix", "theme = \"nemo\"", include_str!("../../config/templates/helix")),
     ("neovim", "Neovim", ":colorscheme Nemo", include_str!("../../config/templates/neovim")),
     ("zathura", "zathura", "include Nemo", include_str!("../../config/templates/zathura")),
-    ("tmux", "tmux", "source-file ~/.config/tmux/yami.conf", include_str!("../../config/templates/tmux")),
-    ("fuzzel", "fuzzel", "include=~/.config/fuzzel/yami.ini", include_str!("../../config/templates/fuzzel")),
-    ("vesktop", "Vesktop", "themes → yami.theme.css", include_str!("../../config/templates/vesktop")),
-    ("equibop", "Equibop", "themes → yami.theme.css", include_str!("../../config/templates/equibop")),
+    ("tmux", "tmux", "source-file ~/.config/tmux/nemo.conf", include_str!("../../config/templates/tmux")),
+    ("fuzzel", "fuzzel", "include=~/.config/fuzzel/nemo.ini", include_str!("../../config/templates/fuzzel")),
+    ("vesktop", "Vesktop", "themes → nemo.theme.css", include_str!("../../config/templates/vesktop")),
+    ("equibop", "Equibop", "themes → nemo.theme.css", include_str!("../../config/templates/equibop")),
 ];
 
 pub fn dir() -> std::path::PathBuf {
-    crate::config::config_dir().join("yami/templates")
+    crate::config::config_dir().join("nemo/templates")
 }
 
 /// положить копию; своего файла с тем же именем не трогает
@@ -41,7 +41,7 @@ mod tests {
         let known = ["accent", "bg", "border", "bright", "codeBg", "deep", "dim", "glow", "ok", "onAccent", "panel", "selection", "surface", "surfaceHi", "text", "textDim", "textFaint", "textHi", "warn"];
         for (file, _, hint, body) in super::ALL {
             assert!(!hint.is_empty(), "{file}");
-            let out = body.lines().find_map(|l| l.split_once("yami-output:").map(|(_, r)| r.trim())).unwrap_or("");
+            let out = body.lines().find_map(|l| l.split_once("nemo-output:").map(|(_, r)| r.trim())).unwrap_or("");
             assert!(out.starts_with("~/.config/"), "{file}: {out}");
             let mut rest = *body;
             while let Some(i) = rest.find("{{") {

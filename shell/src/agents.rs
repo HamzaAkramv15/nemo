@@ -1,6 +1,6 @@
 // Службы: что из D-Bus и порталов делает сам шелл (сервер уведомлений, трей, обложки музыки из сети)
-// и модули: окно пароля polkit, выбор экрана, автоподключение (yami-agents, его файл agents.json),
-// диалог файлов (yami-files). Каждую можно выключить и отдать другой программе (mako, waybar,
+// и модули: окно пароля polkit, выбор экрана, автоподключение (nemo-agents, его файл agents.json),
+// диалог файлов (nemo-files). Каждую можно выключить и отдать другой программе (mako, waybar,
 // polkit-gnome, GTK-портал).
 // Порталы пишутся в ~/.config/xdg-desktop-portal/niri-portals.conf (только если файл наш).
 
@@ -10,26 +10,26 @@ use crate::gfx::R;
 use crate::settings::{step_in, title};
 use crate::ui::{Act, Tone, Ui};
 
-const PORTALS_HEAD: &str = "# yami: written by yami-shell (settings → services); edit it there or in ~/.config/yami/shell.json";
+const PORTALS_HEAD: &str = "# nemo: written by nemo-shell (settings → services); edit it there or in ~/.config/nemo/shell.json";
 
-/// niri-portals.conf: файлы и показ экрана — yami или GTK/GNOME, остальное — как в niri
+/// niri-portals.conf: файлы и показ экрана — nemo или GTK/GNOME, остальное — как в niri
 pub fn portals_conf(s: &Settings) -> String {
-    let fc = if s.portal_files && crate::proc::have("yami-files") { "yami;gtk;" } else { "gtk;" };
-    let sc = if AgentsCfg::load().screencast && crate::proc::have("yami-agents") { "yami-agents;gnome;" } else { "gnome;" };
+    let fc = if s.portal_files && crate::proc::have("nemo-files") { "nemo;gtk;" } else { "gtk;" };
+    let sc = if AgentsCfg::load().screencast && crate::proc::have("nemo-agents") { "nemo-agents;gnome;" } else { "gnome;" };
     format!(
-        "{PORTALS_HEAD}\n# file dialogs come from yami-files, the screen-share picker from yami-agents;\n# the rest as niri ships it\n[preferred]\ndefault=gnome;gtk;\norg.freedesktop.impl.portal.Access=gtk;\norg.freedesktop.impl.portal.Notification=gtk;\norg.freedesktop.impl.portal.Secret=gnome-keyring;\norg.freedesktop.impl.portal.FileChooser={fc}\norg.freedesktop.impl.portal.ScreenCast={sc}\n"
+        "{PORTALS_HEAD}\n# file dialogs come from nemo-files, the screen-share picker from nemo-agents;\n# the rest as niri ships it\n[preferred]\ndefault=gnome;gtk;\norg.freedesktop.impl.portal.Access=gtk;\norg.freedesktop.impl.portal.Notification=gtk;\norg.freedesktop.impl.portal.Secret=gnome-keyring;\norg.freedesktop.impl.portal.FileChooser={fc}\norg.freedesktop.impl.portal.ScreenCast={sc}\n"
     )
 }
 
-/// переписать, если файла нет или он наш; свой (без «# yami:») — не трогаем
+/// переписать, если файла нет или он наш; свой (без «# nemo:») — не трогаем
 pub fn write_portals(s: &Settings) {
     let p = crate::config::config_dir().join("xdg-desktop-portal/niri-portals.conf");
     // файл без нашей метки — свой у человека, не трогаем; тот же текст write_atomic не пишет (а зовут
     // сюда каждое изменение настроек, каждый шаг ползунка)
     // без наших бэкендов свой файл не заводим (порталы — как их отдаёт niri)
     let mine = match std::fs::read_to_string(&p) {
-        Ok(t) => t.starts_with("# yami:"),
-        Err(_) => crate::proc::have("yami-files") || crate::proc::have("yami-agents"),
+        Ok(t) => t.starts_with("# nemo:"),
+        Err(_) => crate::proc::have("nemo-files") || crate::proc::have("nemo-agents"),
     };
     if mine {
         let _ = crate::config::write_atomic(&p, &portals_conf(s));
@@ -71,7 +71,7 @@ impl App {
     }
 }
 
-/// файл настроек yami-agents: шелл только правит его и просит службу перечитать
+/// файл настроек nemo-agents: шелл только правит его и просит службу перечитать
 #[derive(serde::Serialize, serde::Deserialize, Clone, Debug)]
 #[serde(default, rename_all = "camelCase")]
 pub struct AgentsCfg {
@@ -89,7 +89,7 @@ impl Default for AgentsCfg {
 
 impl AgentsCfg {
     fn path() -> std::path::PathBuf {
-        crate::config::config_dir().join("yami/agents.json")
+        crate::config::config_dir().join("nemo/agents.json")
     }
 
     pub fn load() -> AgentsCfg {
@@ -107,7 +107,7 @@ impl AgentsCfg {
             _ => return,
         }
         let _ = crate::config::write_atomic(&Self::path(), &(serde_json::to_string_pretty(&c).unwrap_or_default() + "\n"));
-        App::spawn(&["yami-agents".to_string(), "--reload".to_string()]);
+        App::spawn(&["nemo-agents".to_string(), "--reload".to_string()]);
     }
 }
 
@@ -117,7 +117,7 @@ pub fn tab(ui: &mut Ui, st: &State, b: R) {
     let t = ui.t;
     let half = (b.w - 20) / 2;
     let x2 = b.x + half + 20;
-    // части модулей (yami-agents, yami-files) — только если модуль стоит
+    // части модулей (nemo-agents, nemo-files) — только если модуль стоит
     let here = st.mods_here;
     let mut y = title(ui, b.x, b.y, b.w, if here.agents { "трей и пароли" } else { "трей" });
     ui.toggle(R::new(b.x, y, half, 40), "трей", "значки программ в баре", s.agent_tray, Act::SBool("agent_tray"));
@@ -135,7 +135,7 @@ pub fn tab(ui: &mut Ui, st: &State, b: R) {
         y = title(ui, b.x, y, b.w, "порталы");
         let mut x = b.x;
         if here.files {
-            ui.toggle(R::new(x, y, half, 40), "диалог файлов yami-files", "выкл — диалог GTK", s.portal_files, Act::SBool("portal_files"));
+            ui.toggle(R::new(x, y, half, 40), "диалог файлов nemo-files", "выкл — диалог GTK", s.portal_files, Act::SBool("portal_files"));
             x = x2;
         }
         if here.agents {

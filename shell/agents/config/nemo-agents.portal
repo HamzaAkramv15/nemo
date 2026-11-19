@@ -1,3 +1,3 @@
 [portal]
-DBusName=org.freedesktop.impl.portal.desktop.yamiagents
+DBusName=org.freedesktop.impl.portal.desktop.nemoagents
 Interfaces=org.freedesktop.impl.portal.ScreenCast

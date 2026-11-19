@@ -1,6 +1,6 @@
-// Шторка для трансляций (Mod+Shift+H, `yami-shell msg curtain`): зрители стрима, демки в
+// Шторка для трансляций (Mod+Shift+H, `nemo-shell msg curtain`): зрители стрима, демки в
 // Discord или записи OBS видят застывший экран — размытым, крупными пикселями или одни обои,
-// без надписей, — а ты работаешь как обычно. На yami-niri шторка — слой с правилом
+// без надписей, — а ты работаешь как обычно. На nemo-niri шторка — слой с правилом
 // `show-only-in "screencast"` (его видит только трансляция), над ней — значок «скрыто» только
 // для тебя (`block-out-from`). На niri без `show-only-in` (сток, старый форк) слой показался бы и
 // тебе, поэтому там вместо шторки окна на время закрываются в трансляции чёрным.
@@ -14,8 +14,8 @@ use std::collections::HashMap;
 use std::rc::Rc;
 
 pub const STYLES: &[(&str, &str)] = &[("blur", "размытие"), ("pixels", "пиксели"), ("wall", "обои")];
-pub const NS: &str = "yami-curtain";
-pub const BADGE_NS: &str = "yami-curtain-badge";
+pub const NS: &str = "nemo-curtain";
+pub const BADGE_NS: &str = "nemo-curtain-badge";
 const BADGE_TEXT: [&str; 2] = ["экран скрыт в трансляции", "показать экран"];
 
 /// шторка включена; картинки по мониторам (пусто — стиль «обои» или обычный niri)
@@ -45,7 +45,7 @@ pub fn kdl(lvl: u32, on: bool, notif_cast: bool, l: &mut Vec<String>) {
         l.push(s.into());
     }
     if !notif_cast {
-        for s in ["layer-rule {", "    match namespace=\"^yami-notif$\"", hide, "}"] {
+        for s in ["layer-rule {", "    match namespace=\"^nemo-notif$\"", hide, "}"] {
             l.push(s.into());
         }
     }

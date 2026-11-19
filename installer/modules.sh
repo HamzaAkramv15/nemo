@@ -1,22 +1,22 @@
 # Модули Nemo живут в своих репозиториях; какая версия подходит этой версии шелла — в modules.lock
 # («repo tag» по строке). Здесь: где взять исходники модуля и как проверить подпись тега.
-# YAMI_MODULES_DIR — папка с уже готовыми checkout'ами (разработка, сборка без сети).
+# NEMO_MODULES_DIR — папка с уже готовыми checkout'ами (разработка, сборка без сети).
 # shellcheck shell=bash
 
-YAMI_MODULES_URL="${YAMI_MODULES_URL:-https://github.com/HamzaAkramv15}"
+NEMO_MODULES_URL="${NEMO_MODULES_URL:-https://github.com/HamzaAkramv15}"
 
-# repository on the server for a module: our forks carry the Nemo name; the local folder keeps the module name
-m_remote() { case $1 in yami-niri) echo nemo-niri ;; yami-*) echo "nemo-${1#yami-}" ;; *) echo "$1" ;; esac; }
+# repository on the server for a module: the repository and the local folder carry the same name
+m_remote() { echo "$1"; }
 
 # компонент → репозиторий; без репозитория — пакеты системы, а не наш модуль
 m_repo() {
   case $1 in
-    files) echo yami-files ;;
-    view) echo yami-view ;;
-    play) echo yami-play ;;
-    shot) echo yami-shot ;;
-    login) echo yami-greet ;;
-    fork) echo yami-niri ;;
+    files) echo nemo-files ;;
+    view) echo nemo-view ;;
+    play) echo nemo-play ;;
+    shot) echo nemo-shot ;;
+    login) echo nemo-greet ;;
+    fork) echo nemo-niri ;;
     *) return 1 ;;
   esac
 }
@@ -42,7 +42,7 @@ do_fetch_modules() {
   ((PREBUILT)) && { prebuilt_fetch || return 1; }
   for repo in $(fetch_list); do
     echo "$repo"
-    # готовые бинари: файлы модуля — из того же архива; yami-niri собирается из исходников
+    # готовые бинари: файлы модуля — из того же архива; nemo-niri собирается из исходников
     if ((PREBUILT)) && [[ -d $PREBUILT_DIR/modules/$repo ]]; then
       prebuilt_module "$repo" || return 1
     else
@@ -62,23 +62,23 @@ plan_fetch() {
 # исходники модуля: печатает папку; нет сети или подписи — код возврата не 0
 m_fetch() {
   local repo=$1 tag dir
-  if [[ -n ${YAMI_MODULES_DIR:-} && -d $YAMI_MODULES_DIR/$repo ]]; then
-    printf '%s\n' "$YAMI_MODULES_DIR/$repo"
+  if [[ -n ${NEMO_MODULES_DIR:-} && -d $NEMO_MODULES_DIR/$repo ]]; then
+    printf '%s\n' "$NEMO_MODULES_DIR/$repo"
     return 0
   fi
   tag="$(m_tag "$repo")"
   [[ -n $tag ]] || { echo "modules.lock: no version for $repo" >&2; return 1; }
-  dir="${XDG_DATA_HOME:-$HOME/.local/share}/yami/modules/$repo"
+  dir="${XDG_DATA_HOME:-$HOME/.local/share}/nemo/modules/$repo"
   if [[ -d $dir/.git ]]; then
     # a checkout made before the fork (origin = upstream) moves to our repository
-    git -C "$dir" remote set-url origin "$YAMI_MODULES_URL/$(m_remote "$repo").git" >&2
+    git -C "$dir" remote set-url origin "$NEMO_MODULES_URL/$(m_remote "$repo").git" >&2
     git -C "$dir" fetch --quiet --tags origin >&2 || return 1
   else
     # the folder may hold the module's files from the ready binaries (prebuilt_module), not a checkout:
     # the clone goes next to it and takes its place only when it is complete
     mkdir -p "${dir%/*}"
     rm -rf -- "$dir.new"
-    git clone --quiet --filter=blob:none "$YAMI_MODULES_URL/$(m_remote "$repo").git" "$dir.new" >&2 || { rm -rf -- "$dir.new"; return 1; }
+    git clone --quiet --filter=blob:none "$NEMO_MODULES_URL/$(m_remote "$repo").git" "$dir.new" >&2 || { rm -rf -- "$dir.new"; return 1; }
     rm -rf -- "$dir" && mv -- "$dir.new" "$dir" || return 1
   fi
   # тег — только по полному имени, а дальше по номерам объектов: голое имя «v3.0.0» подходит и ветке

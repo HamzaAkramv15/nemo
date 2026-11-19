@@ -1,5 +1,5 @@
 #!/bin/sh
-# yami-script: how many processes run, and how many of them are yours
+# nemo-script: how many processes run, and how many of them are yours
 all=$(ls -d /proc/[0-9]* 2>/dev/null | wc -l)
 mine=$(ps -u "$(id -u)" -o pid= 2>/dev/null | wc -l)
 printf '{"text":"%s procs (%s mine)","icon":"chart","color":"dim","interval":10}\n' "$all" "$mine"

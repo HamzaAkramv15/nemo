@@ -5,9 +5,9 @@
 use crate::app::{Act, App, Ui};
 use smithay_client_toolkit::seat::keyboard::{KeyEvent, Keysym, Modifiers};
 use std::sync::mpsc::Sender;
-use yami_px::font::PX;
-use yami_px::gfx::{BoxStyle, R};
-use yami_px::ui::{Cur, Field, Tone};
+use nemo_px::font::PX;
+use nemo_px::gfx::{BoxStyle, R};
+use nemo_px::ui::{Cur, Field, Tone};
 
 const W: i32 = 560;
 /// окон в списке не больше — дальше колесо
@@ -50,7 +50,7 @@ fn title(ui: &mut Ui, x: i32, y: i32, w: i32, s: &str) -> i32 {
 pub fn mock() -> Pick {
     let (reply, _) = std::sync::mpsc::channel();
     let w = |t: &str, a: &str, id: u32| Item { reply: format!("window {id}"), monitor: false, title: t.into(), sub: a.into(), icon: a.into(), size: (0, 0) };
-    Pick { reply, items: vec![Item { reply: "monitor DP-1".into(), monitor: true, title: "DP-1".into(), sub: "1920×1080".into(), icon: String::new(), size: (1920, 1080) }, w("yami: a terminal", "kitty", 1), w("Mozilla Firefox", "firefox", 2)], sel: 0, scroll: 0 }
+    Pick { reply, items: vec![Item { reply: "monitor DP-1".into(), monitor: true, title: "DP-1".into(), sub: "1920×1080".into(), icon: String::new(), size: (1920, 1080) }, w("nemo: a terminal", "kitty", 1), w("Mozilla Firefox", "firefox", 2)], sel: 0, scroll: 0 }
 }
 
 /// правка поля пароля; Ctrl+A/U/V — и в русской раскладке (по положению клавиши)
@@ -66,7 +66,7 @@ pub fn edit_field(f: &mut Field, e: &KeyEvent, mods: &Modifiers) {
             22 => f.clear(),
             30 => f.select_all(),
             47 => {
-                if let Some(t) = yami_px::ui::paste() {
+                if let Some(t) = nemo_px::ui::paste() {
                     f.insert(&t);
                 }
             }
@@ -154,13 +154,13 @@ impl App {
         }
         if types & 2 != 0 {
             if self.apps.is_empty() {
-                self.apps = yami_px::icons::load_apps();
+                self.apps = nemo_px::icons::load_apps();
             }
             for w in niri_json("windows").as_array().into_iter().flatten() {
                 let Some(id) = w["id"].as_u64() else { continue };
                 let app_id = w["app_id"].as_str().unwrap_or("").to_string();
                 let title = w["title"].as_str().filter(|t| !t.is_empty()).unwrap_or(&app_id).to_string();
-                let icon = yami_px::icons::icon_for(&self.apps, &app_id);
+                let icon = nemo_px::icons::icon_for(&self.apps, &app_id);
                 items.push(Item { reply: format!("window {id}"), monitor: false, title, sub: app_id, icon, size: (0, 0) });
             }
         }

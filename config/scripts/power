@@ -1,5 +1,5 @@
 #!/bin/sh
-# yami-script: what the laptop draws from the battery right now, in watts (nothing on a desktop)
+# nemo-script: what the laptop draws from the battery right now, in watts (nothing on a desktop)
 for b in /sys/class/power_supply/BAT*; do
   [ -d "$b" ] || continue
   w=$(awk -v p="$(cat "$b/power_now" 2>/dev/null)" -v i="$(cat "$b/current_now" 2>/dev/null)" -v v="$(cat "$b/voltage_now" 2>/dev/null)" \

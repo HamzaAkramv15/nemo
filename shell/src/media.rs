@@ -149,7 +149,7 @@ pub fn fetch_art(url: String, net: bool, tx: Sender<Msg>) {
     std::thread::spawn(move || {
         let data = if let Some(p) = url.strip_prefix("file://") {
             // путь даёт плеер: только обычный файл и не больше потолка (не /dev/zero)
-            crate::icons::uri_path(&url).or_else(|| Some(p.into())).and_then(|p| yami_px::paths::read_capped(&p, crate::icons::MAX_FILE))
+            crate::icons::uri_path(&url).or_else(|| Some(p.into())).and_then(|p| nemo_px::paths::read_capped(&p, crate::icons::MAX_FILE))
         } else if net && (url.starts_with("https://") || url.starts_with("http://")) {
             // только http(s) и при переадресации, размер с потолком, без чужих конфигов curl (-q)
             let max = crate::icons::MAX_FILE.to_string();

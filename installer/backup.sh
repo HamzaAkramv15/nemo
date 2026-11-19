@@ -1,5 +1,5 @@
 # The rollback point: before an update, a change of modules or a repair, the binaries and the files
-# the installer rewrites are copied to ~/.local/state/yami/snapshots/<date>. An update that fails after
+# the installer rewrites are copied to ~/.local/state/nemo/snapshots/<date>. An update that fails after
 # it began changing things puts everything back by itself; `nemo update rollback` and settings →
 # updates use the newest one. `paths` lists every file with its class: G (generated: a rollback puts it
 # back) or U (yours: only the automatic restore right after a failed run touches it). A file that did
@@ -13,20 +13,20 @@ SNAP_NOW=""
 # every file the installer may write outside its own cache, one per line
 snapshot_list() {
   local data="${XDG_DATA_HOME:-$HOME/.local/share}" b n
-  for b in yami-shell yami-setup yami-files yami-view yami-play yami-shot yami-agents; do printf 'G %s\n' "$BIN/$b"; done
-  # yami's part of niri; before 3.0 it lay next to config.kdl
-  for n in yami.kdl base.kdl binds.kdl rules.kdl colors.kdl cursor.kdl; do printf 'G %s\n' "$CFG/yami/niri/$n"; done
-  for n in yami-local.kdl yami-binds.kdl yami-fx.kdl yami-colors.kdl yami-cursor.kdl; do printf 'G %s\n' "$CFG/niri/$n"; done
-  printf 'G %s\n' "$CFG/xdg-desktop-portal/niri-portals.conf" "$CFG/environment.d/60-yami-path.conf" "$CFG/systemd/user/niri.service.d/60-yami-path.conf" "$STATE/install.json" \
-    "$data/applications/yami-files.desktop" "$data/applications/yami-view.desktop" "$data/applications/yami-play.desktop" \
-    "$data/xdg-desktop-portal/portals/yami.portal" "$data/xdg-desktop-portal/portals/yami-agents.portal" \
-    "$data/dbus-1/services/org.freedesktop.impl.portal.desktop.yami.service" \
-    "$data/dbus-1/services/org.freedesktop.impl.portal.desktop.yamiagents.service" \
+  for b in nemo-shell nemo-setup nemo-files nemo-view nemo-play nemo-shot nemo-agents; do printf 'G %s\n' "$BIN/$b"; done
+  # nemo's part of niri; before 3.0 it lay next to config.kdl
+  for n in nemo.kdl base.kdl binds.kdl rules.kdl colors.kdl cursor.kdl; do printf 'G %s\n' "$CFG/nemo/niri/$n"; done
+  for n in nemo-local.kdl nemo-binds.kdl nemo-fx.kdl nemo-colors.kdl nemo-cursor.kdl; do printf 'G %s\n' "$CFG/niri/$n"; done
+  printf 'G %s\n' "$CFG/xdg-desktop-portal/niri-portals.conf" "$CFG/environment.d/60-nemo-path.conf" "$CFG/systemd/user/niri.service.d/60-nemo-path.conf" "$STATE/install.json" \
+    "$data/applications/nemo-files.desktop" "$data/applications/nemo-view.desktop" "$data/applications/nemo-play.desktop" \
+    "$data/xdg-desktop-portal/portals/nemo.portal" "$data/xdg-desktop-portal/portals/nemo-agents.portal" \
+    "$data/dbus-1/services/org.freedesktop.impl.portal.desktop.nemo.service" \
+    "$data/dbus-1/services/org.freedesktop.impl.portal.desktop.nemoagents.service" \
     "$data/dbus-1/services/org.freedesktop.FileManager1.service"
-  printf 'U %s\n' "$CFG/yami/shell.json" "$CFG/yami-shell.json" "$CFG/mimeapps.list" "$CFG/yami/niri/outputs.kdl" "$CFG/niri/yami-outputs.kdl" "$CFG/niri/user.kdl"
+  printf 'U %s\n' "$CFG/nemo/shell.json" "$CFG/nemo-shell.json" "$CFG/mimeapps.list" "$CFG/nemo/niri/outputs.kdl" "$CFG/niri/nemo-outputs.kdl" "$CFG/niri/user.kdl"
   # niri's config.kdl is the person's (only the restore right after a failed run touches it), except the
   # one Nemo before 3.0 wrote whole: a rollback to that version needs it back
-  if grep -q '"yami-binds.kdl"' "$CFG/niri/config.kdl" 2>/dev/null; then n=G; else n=U; fi
+  if grep -q '"nemo-binds.kdl"' "$CFG/niri/config.kdl" 2>/dev/null; then n=G; else n=U; fi
   printf '%s %s\n' "$n" "$CFG/niri/config.kdl"
 }
 
@@ -56,7 +56,7 @@ snapshot_restore() {
   [[ -n $d && -s $d/paths ]] || return 1
   while read -r cls p; do
     if [[ -e $d/files$p || -L $d/files$p ]]; then
-      mkdir -p "${p%/*}" && snap_copy "$d/files$p" "$p.yami-new" && mv -f -- "$p.yami-new" "$p" || return 1
+      mkdir -p "${p%/*}" && snap_copy "$d/files$p" "$p.nemo-new" && mv -f -- "$p.nemo-new" "$p" || return 1
     else
       rm -f -- "$p"
     fi
@@ -68,4 +68,4 @@ snapshot_restore() {
 }
 
 # only over an installed Nemo: there is something to go back to
-plan_snapshot() { [[ -f $INSTALLED && -x $BIN/yami-shell ]] && add "$(t "точка отката" "rollback point" "ponto de restauração")" do_snapshot; return 0; }
+plan_snapshot() { [[ -f $INSTALLED && -x $BIN/nemo-shell ]] && add "$(t "точка отката" "rollback point" "ponto de restauração")" do_snapshot; return 0; }

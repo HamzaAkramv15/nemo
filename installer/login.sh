@@ -1,5 +1,5 @@
-# The login screen, greetd + yami-greet. greetd (a small daemon in Rust, every
-# distro has it) does PAM and starts the session; yami-greet draws the login screen inside niri with
+# The login screen, greetd + nemo-greet. greetd (a small daemon in Rust, every
+# distro has it) does PAM and starts the session; nemo-greet draws the login screen inside niri with
 # the lock screen's look. The root half is the module's install-system.sh --system. An update (no sudo) only
 # offers it: now from a terminal, else one button in settings → updates. --uninstall takes it out and
 # brings back the login manager it replaced.
@@ -8,7 +8,7 @@
 # где скрипт root-половины: исходники модуля, при удалении — его клон
 greet_script() {
   local d
-  d="$(m_src yami-greet)" || d="${XDG_DATA_HOME:-$HOME/.local/share}/yami/modules/yami-greet"
+  d="$(m_src nemo-greet)" || d="${XDG_DATA_HOME:-$HOME/.local/share}/nemo/modules/nemo-greet"
   printf '%s/install-system.sh\n' "$d"
 }
 
@@ -25,18 +25,18 @@ login_after() {
     return 0
   fi
   on login && ((SUDO && !DRY && !BUILD_FAILED)) || return 0
-  say "$(t "экран входа: ставлю yami-greet (пароль администратора ещё раз)" "login screen: installing yami-greet (the administrator password once more)" "tela de login: instalando o yami-greet (a senha de administrador mais uma vez)")"
-  greet_bin || { FAILED+=("yami-greet"); warn "$(t "yami-greet не встал: до него вход будет текстовым; поставить потом:" "yami-greet is not installed: the login is text until then; install it later:" "o yami-greet não foi instalado: até lá o login será em texto; instale depois:") $(greet_script)"; }
+  say "$(t "экран входа: ставлю nemo-greet (пароль администратора ещё раз)" "login screen: installing nemo-greet (the administrator password once more)" "tela de login: instalando o nemo-greet (a senha de administrador mais uma vez)")"
+  greet_bin || { FAILED+=("nemo-greet"); warn "$(t "nemo-greet не встал: до него вход будет текстовым; поставить потом:" "nemo-greet is not installed: the login is text until then; install it later:" "o nemo-greet não foi instalado: até lá o login será em texto; instale depois:") $(greet_script)"; }
 }
 
 # the installed login screen is older than this build (or still the SDDM theme of before 2.6)
 greet_stale() {
-  [[ -d /usr/share/sddm/themes/yami ]] && return 0
-  [[ -x /usr/local/bin/yami-greet ]] || return 1
-  ! cmp -s "$CACHE/target/release/yami-greet" /usr/local/bin/yami-greet || ! cmp -s "$(m_src yami-greet)/greet-session" /usr/local/lib/yami/greet-session
+  [[ -d /usr/share/sddm/themes/nemo ]] && return 0
+  [[ -x /usr/local/bin/nemo-greet ]] || return 1
+  ! cmp -s "$CACHE/target/release/nemo-greet" /usr/local/bin/nemo-greet || ! cmp -s "$(m_src nemo-greet)/greet-session" /usr/local/lib/nemo/greet-session
 }
 
-# the root half before the build (greetd, folders, greet-session, fonts, cursor); yami-greet itself is
+# the root half before the build (greetd, folders, greet-session, fonts, cursor); nemo-greet itself is
 # installed after it (greet_bin), greet-session meanwhile falls back to greetd's text greeter, so a
 # failed build never leaves the machine without a login
 do_greet() {
@@ -50,16 +50,16 @@ do_greet() {
 # after the build: the binary, root-owned in /usr/local/bin (the root shell is closed by then: the
 # password is asked once more), and the shell's look for it
 greet_bin() {
-  [[ -x $CACHE/target/release/yami-greet ]] || return 1
+  [[ -x $CACHE/target/release/nemo-greet ]] || return 1
   # the pixel cursor on the login screen too: niri there reads /usr/share/icons only; the shell draws
   # it, so it comes after the build
   local acc=(--accent "#${PAL_HEX[$pal]}") cur=()
   ((theme == 1)) && acc+=(--light)
-  rm -rf -- "$CACHE/yami-cursor"
-  if "$BIN/yami-shell" recolor --cursor-to "$CACHE/yami-cursor" "${acc[@]}"; then cur=(--cursor "$CACHE/yami-cursor"); fi
-  $SU "$(greet_script)" --system "$(id -un)" --bin "$CACHE/target/release/yami-greet" "${cur[@]}" --bin-only || return 1
-  rm -rf -- "$CACHE/yami-cursor"
-  "$BIN/yami-shell" login sync >/dev/null 2>&1 || true
+  rm -rf -- "$CACHE/nemo-cursor"
+  if "$BIN/nemo-shell" recolor --cursor-to "$CACHE/nemo-cursor" "${acc[@]}"; then cur=(--cursor "$CACHE/nemo-cursor"); fi
+  $SU "$(greet_script)" --system "$(id -un)" --bin "$CACHE/target/release/nemo-greet" "${cur[@]}" --bin-only || return 1
+  rm -rf -- "$CACHE/nemo-cursor"
+  "$BIN/nemo-shell" login sync >/dev/null 2>&1 || true
 }
 
 
@@ -71,7 +71,7 @@ login_offer() {
   local msg a f="$STATE/packages-needed"
   wants login && ((!DRY && !BUILD_FAILED)) && greet_stale || return 0
   mkdir -p "$STATE" && printf 'login %s\n' "$(greet_script)" >>"$f"
-  if [[ -d /usr/share/sddm/themes/yami ]]; then
+  if [[ -d /usr/share/sddm/themes/nemo ]]; then
     msg="$(t "новый экран входа: свой, вместо SDDM (SDDM выключится, но останется — ./install.sh --uninstall вернёт его)" "the new login screen: our own instead of SDDM (SDDM is turned off, not removed; ./install.sh --uninstall brings it back)" "a nova tela de login: a nossa no lugar do SDDM (o SDDM é desativado, não removido; ./install.sh --uninstall o traz de volta)")"
   else
     msg="$(t "экран входа обновился" "the login screen changed" "a tela de login mudou")"
@@ -90,7 +90,7 @@ login_offer() {
   fi
 }
 
-# the login screen: yami-greet, its files, cursor and greetd config go (greetd gets its own config
+# the login screen: nemo-greet, its files, cursor and greetd config go (greetd gets its own config
 # back), the login manager it replaced (do_greet wrote it down) comes back from the next boot;
 # greetd itself stays.
 uninstall_login() {
@@ -103,30 +103,30 @@ uninstall_login() {
     dm=""
     rm -f "$STATE/login-dm"
   fi
-  for f in /usr/local/bin/yami-greet /usr/local/lib/yami/greet-session /usr/local/share/yami-greet /var/lib/yami-greet /usr/share/icons/yami-cursor \
-    /usr/share/sddm/themes/yami /etc/sddm.conf.d/zz-yami.conf /etc/sddm.conf.d/10-yami.conf; do
+  for f in /usr/local/bin/nemo-greet /usr/local/lib/nemo/greet-session /usr/local/share/nemo-greet /var/lib/nemo-greet /usr/share/icons/nemo-cursor \
+    /usr/share/sddm/themes/nemo /etc/sddm.conf.d/zz-nemo.conf /etc/sddm.conf.d/10-nemo.conf; do
     [[ -e $f ]] && files+=("$f")
   done
   local ours=0
-  grep -qs '^# yami:' /etc/greetd/config.toml && ours=1
+  grep -qs '^# nemo:' /etc/greetd/config.toml && ours=1
   ((${#files[@]} || ours)) || [[ -n $dm ]] || return 0
   local cmd="rm -rf ${files[*]}"
   # OpenRC, runit: greetd off and the managers it replaced back on (install-system.sh wrote them down)
   ((SYSTEMD)) || cmd="$(greet_script) --uninit; $cmd"
-  ((ours)) && cmd+="; mv -f /etc/greetd/config.toml.yami-orig /etc/greetd/config.toml"
+  ((ours)) && cmd+="; mv -f /etc/greetd/config.toml.nemo-orig /etc/greetd/config.toml"
   [[ -n $dm ]] && cmd+="; systemctl enable -f $dm.service"
   if ((EUID != 0)) && { ((!SUDO)) || [[ -z $SU ]] || ! root_start; }; then
     warn "$(t "экран входа не убран, нужен root:" "the login screen is not removed, root is needed:" "a tela de login não foi removida; root é necessário:") sudo sh -c '$cmd'"
     return 0
   fi
-  if ((!SYSTEMD)) && [[ -e /var/lib/yami-greet ]]; then
+  if ((!SYSTEMD)) && [[ -e /var/lib/nemo-greet ]]; then
     $SU "$(greet_script)" --uninit || warn "$(t "greetd не выключен: включи прежний менеджер входа сам" "greetd is not turned off: enable your old login manager yourself" "o greetd não foi desativado: ative você mesmo o gerenciador de login anterior")"
   fi
   ((${#files[@]})) && $SU rm -rf -- "${files[@]}"
   if ((ours)); then
     # greetd без нашего конфига: его собственный, если был, иначе текстовое приветствие
-    if [[ -f /etc/greetd/config.toml.yami-orig ]]; then
-      $SU mv -f /etc/greetd/config.toml.yami-orig /etc/greetd/config.toml
+    if [[ -f /etc/greetd/config.toml.nemo-orig ]]; then
+      $SU mv -f /etc/greetd/config.toml.nemo-orig /etc/greetd/config.toml
     else
       printf '%s\n' "[terminal]" "vt = 1" "" "[default_session]" 'command = "agreety --cmd /bin/sh"' "user = \"$(awk -F'"' '/^user/ { print $2; exit }' /etc/greetd/config.toml)\"" | $SU tee /etc/greetd/config.toml.new >/dev/null &&
         $SU mv -f /etc/greetd/config.toml.new /etc/greetd/config.toml

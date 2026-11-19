@@ -55,11 +55,11 @@ fn demo(dir: &str, root: &Path) -> Result<(), String> {
         crate::art::save_best(&image::DynamicImage::ImageRgb8(big), &d.join(format!("{id}.png")))?;
     }
     let w = |n: &str, b: Vec<u8>| std::fs::write(d.join(n), b).map_err(|e| e.to_string());
-    w("notes.md", b"# yami\n\nPixel-art desktop for niri.\n".to_vec())?;
+    w("notes.md", b"# nemo\n\nPixel-art desktop for niri.\n".to_vec())?;
     w("todo.txt", b"ship 2.1.0\n".to_vec())?;
     let mut gz = vec![0x1f, 0x8b];
     gz.resize(4002, 0);
-    w("Projects/yami.tar.gz", gz)?;
+    w("Projects/nemo.tar.gz", gz)?;
     w("Music/night.flac", vec![0; 9000])
 }
 
@@ -89,7 +89,7 @@ pub fn run(args: &[String]) -> i32 {
                 let (ws, wins) = (file_json(ws), file_json(wins));
                 let idx: i64 = idx.parse().map_err(|_| "idx")?;
                 let w = ws.as_array().and_then(|l| l.iter().find(|x| x["idx"] == idx && x["output"] == *out)).ok_or("no workspace")?;
-                let ours = wins.as_array().is_some_and(|l| l.iter().filter(|x| x["workspace_id"] == w["id"]).all(|x| matches!(x["app_id"].as_str(), Some("yami-files" | "yami-view"))));
+                let ours = wins.as_array().is_some_and(|l| l.iter().filter(|x| x["workspace_id"] == w["id"]).all(|x| matches!(x["app_id"].as_str(), Some("nemo-files" | "nemo-view"))));
                 if w["is_focused"] != true || !ours {
                     return Err("the workspace changed".into());
                 }
@@ -151,7 +151,7 @@ pub fn run(args: &[String]) -> i32 {
     match r {
         Ok(()) => 0,
         Err(e) => {
-            eprintln!("yami-dev shots: {e}");
+            eprintln!("nemo-dev shots: {e}");
             1
         }
     }

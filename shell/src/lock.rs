@@ -1,4 +1,4 @@
-// Экран блокировки (ext-session-lock): лицо экрана входа (yami_px::face: обои под вуалью, часы,
+// Экран блокировки (ext-session-lock): лицо экрана входа (nemo_px::face: обои под вуалью, часы,
 // дата), поле пароля. Ошибка — поле вздрагивает ступенями. Остальные
 // мониторы — только часы.
 
@@ -19,10 +19,10 @@ use wayland_client::protocol::wl_shm;
 
 pub fn draw(ui: &mut Ui, st: &State, w: i32, h: i32, main: bool) {
     let t = ui.t;
-    // то же лицо, что у экрана входа (yami-greet): обои под вуалью, часы, дата, 闇
-    yami_px::face::backdrop(ui, st.wall.as_deref(), w, h);
-    let dy = yami_px::face::clock(ui, w, h) - 30;
-    yami_px::face::kanji(ui, w, h);
+    // то же лицо, что у экрана входа (nemo-greet): обои под вуалью, часы, дата, 闇
+    nemo_px::face::backdrop(ui, st.wall.as_deref(), w, h);
+    let dy = nemo_px::face::clock(ui, w, h) - 30;
+    nemo_px::face::kanji(ui, w, h);
     if !main {
         return;
     }
@@ -56,11 +56,11 @@ pub fn draw(ui: &mut Ui, st: &State, w: i32, h: i32, main: bool) {
     ui.zone(fr, Act::LockField, Cur::Text);
 }
 
-/// метка «экран заперт» для других программ сеанса: yami-agents не подключает под ней чужие флешки.
+/// метка «экран заперт» для других программ сеанса: nemo-agents не подключает под ней чужие флешки.
 /// Внутри — сокет niri (в нём pid niri): по нему шелл после перезапуска узнаёт свой же замок
 pub fn flag(on: bool) {
     let Some(d) = std::env::var_os("XDG_RUNTIME_DIR") else { return };
-    let p = std::path::PathBuf::from(d).join("yami-locked");
+    let p = std::path::PathBuf::from(d).join("nemo-locked");
     if on {
         let _ = std::fs::write(p, std::env::var("NIRI_SOCKET").unwrap_or_default());
     } else {
@@ -72,7 +72,7 @@ pub fn flag(on: bool) {
 /// запертым, но поверхностей замка больше нет, и отпереть нечем. Метка того же niri — запереть снова
 pub fn was_locked() -> bool {
     let Some(d) = std::env::var_os("XDG_RUNTIME_DIR") else { return false };
-    let Ok(s) = std::fs::read_to_string(std::path::PathBuf::from(d).join("yami-locked")) else { return false };
+    let Ok(s) = std::fs::read_to_string(std::path::PathBuf::from(d).join("nemo-locked")) else { return false };
     // пустая — от шелла до 3.0: тогда верим ей (обновление под замком тоже должно запереть снова)
     s.is_empty() || s == std::env::var("NIRI_SOCKET").unwrap_or_default()
 }
@@ -92,7 +92,7 @@ impl App {
                 let tx = self.tx.clone();
                 std::thread::spawn(move || {
                     let ok = crate::pam::check(&pass);
-                    yami_px::ui::wipe(&mut pass);
+                    nemo_px::ui::wipe(&mut pass);
                     let _ = tx.send(crate::app::Msg::Pam(ok));
                 });
             }

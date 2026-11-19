@@ -1,9 +1,9 @@
-// Часть yami в конфиге niri. Конфиг niri — твой: yami его не переписывает, а подключается одной
-// строкой include в начале (`yami niri connect`, первая настройка, установщик), так что всё, что
-// написано в нём ниже, главнее. Своего конфига нет или это стартовый конфиг самого niri — yami
-// кладёт свой стартовый (прежний — в копию рядом). Сама часть — файлы в ~/.config/yami/niri:
-//   yami.kdl      его включает config.kdl: запуск шелла и те части ниже, что включены в настройках
-//   base.kdl      вид niri от yami: ввод, раскладка окон, анимации, правила, окружение (niriLook)
+// Часть nemo в конфиге niri. Конфиг niri — твой: nemo его не переписывает, а подключается одной
+// строкой include в начале (`nemo niri connect`, первая настройка, установщик), так что всё, что
+// написано в нём ниже, главнее. Своего конфига нет или это стартовый конфиг самого niri — nemo
+// кладёт свой стартовый (прежний — в копию рядом). Сама часть — файлы в ~/.config/nemo/niri:
+//   nemo.kdl      его включает config.kdl: запуск шелла и те части ниже, что включены в настройках
+//   base.kdl      вид niri от nemo: ввод, раскладка окон, анимации, правила, окружение (niriLook)
 //   colors.kdl cursor.kdl   цвета палитры и курсор, их пишет recolor (niriColors)
 //   rules.kdl     размытие, игры, плавающие окна: Settings::fx_kdl (niriRules)
 //   binds.kdl     клавиши и раскладки: keys.rs (niriKeys)
@@ -37,11 +37,11 @@ fn part_on(s: &Settings, part: &str) -> bool {
 pub fn config_path() -> PathBuf {
     match std::env::var_os("NIRI_CONFIG") {
         Some(p) if !p.is_empty() => PathBuf::from(p),
-        _ => yami_px::paths::config_dir().join("niri/config.kdl"),
+        _ => nemo_px::paths::config_dir().join("niri/config.kdl"),
     }
 }
 
-/// версия niri из `niri --version` («niri 26.04-yami.6 (…)», «niri 25.11 (…)»): (26, 4)
+/// версия niri из `niri --version` («niri 26.04-nemo.6 (…)», «niri 25.11 (…)»): (26, 4)
 pub fn version() -> Option<(u32, u32)> {
     static V: OnceLock<Option<(u32, u32)>> = OnceLock::new();
     *V.get_or_init(|| {
@@ -74,7 +74,7 @@ fn include(path: &str) -> String {
     }
 }
 
-/// путь от папки from до файла to («../yami/niri/yami.kdl»)
+/// путь от папки from до файла to («../nemo/niri/nemo.kdl»)
 fn relative(from: &Path, to: &Path) -> String {
     let (a, b): (Vec<_>, Vec<_>) = (from.components().collect(), to.components().collect());
     let same = a.iter().zip(&b).take_while(|(x, y)| x == y).count();
@@ -91,11 +91,11 @@ fn relative(from: &Path, to: &Path) -> String {
     p.display().to_string()
 }
 
-/// строка include части yami для config.kdl
+/// строка include части nemo для config.kdl
 fn our_include(cfg: &Path) -> String {
-    let target = niri_dir().join("yami.kdl");
+    let target = niri_dir().join("nemo.kdl");
     if modern() {
-        let p = match target.strip_prefix(yami_px::paths::home()) {
+        let p = match target.strip_prefix(nemo_px::paths::home()) {
             Ok(r) => format!("~/{}", r.display()),
             Err(_) => target.display().to_string(),
         };
@@ -109,14 +109,14 @@ fn our_include(cfg: &Path) -> String {
     }
 }
 
-const BLOCK_HEAD: &str = "// yami: its niri look, keys, window rules, colours and screens (~/.config/yami/niri).\n// What you write below wins. `nemo niri disconnect` takes these lines out.\n";
+const BLOCK_HEAD: &str = "// nemo: its niri look, keys, window rules, colours and screens (~/.config/nemo/niri).\n// What you write below wins. `nemo niri disconnect` takes these lines out.\n";
 
 fn is_our_include(l: &str) -> bool {
     let t = l.trim_start();
-    t.starts_with("include") && t.contains("yami/niri/yami.kdl")
+    t.starts_with("include") && t.contains("nemo/niri/nemo.kdl")
 }
 
-/// yami подключён: в конфиге есть include его yami.kdl
+/// nemo подключён: в конфиге есть include его nemo.kdl
 pub fn connected(text: &str) -> bool {
     text.lines().any(is_our_include)
 }
@@ -163,17 +163,17 @@ fn real_config(cfg: &Path) -> Result<PathBuf, String> {
     }
     let real = std::fs::canonicalize(cfg).unwrap_or_else(|_| cfg.to_path_buf());
     if real.starts_with("/nix/store") {
-        return Err(crate::tf!("{} собран Nix: добавь в него сам строку\n  {}", "{} is built by Nix: add this line to it yourself\n  {}", "{} é gerado pelo Nix: adicione esta linha você mesmo\n  {}", yami_px::paths::pretty(cfg), our_include(cfg)));
+        return Err(crate::tf!("{} собран Nix: добавь в него сам строку\n  {}", "{} is built by Nix: add this line to it yourself\n  {}", "{} é gerado pelo Nix: adicione esta linha você mesmo\n  {}", nemo_px::paths::pretty(cfg), our_include(cfg)));
     }
     Ok(real)
 }
 
-/// метка «yami убрали из конфига niri нарочно»: обновление не подключит его обратно
+/// метка «nemo убрали из конфига niri нарочно»: обновление не подключит его обратно
 fn off_mark() -> PathBuf {
     crate::config::state_dir().join("niri-off")
 }
 
-/// программы, которые спорят с yami, если конфиг niri их запускает: вид спора — для подписи
+/// программы, которые спорят с nemo, если конфиг niri их запускает: вид спора — для подписи
 const OTHERS: &[(&str, &str)] = &[
     ("waybar", "bar"),
     ("ironbar", "bar"),
@@ -229,38 +229,38 @@ pub fn others() -> Vec<Other> {
     v
 }
 
-/// закомментировать запуск чужой программы (копия файла — рядом); вернуть — убрать «// yami: »
+/// закомментировать запуск чужой программы (копия файла — рядом); вернуть — убрать «// nemo: »
 pub fn comment_out(o: &Other) -> Result<String, String> {
     let cfg = real_config(&config_path())?;
     let text = std::fs::read_to_string(&cfg).map_err(|e| e.to_string())?;
     if !text.lines().any(|l| l == o.line) {
         return Err(crate::tf!("строки с {} в конфиге уже нет", "the {} line is no longer in the config", "a linha do {} já não está na configuração", o.prog));
     }
-    let new: Vec<String> = text.lines().map(|l| if l == o.line { format!("// yami: {l}") } else { l.to_string() }).collect();
+    let new: Vec<String> = text.lines().map(|l| if l == o.line { format!("// nemo: {l}") } else { l.to_string() }).collect();
     let saved = backup(&cfg, &text)?;
     crate::config::write_atomic(&cfg, &(new.join("\n") + "\n")).map_err(|e| e.to_string())?;
     if let Err(e) = validate(&cfg) {
         let _ = crate::config::write_atomic(&cfg, &text);
         return Err(e);
     }
-    Ok(crate::tf!("{} больше не запускается со входом (копия: {})", "{} no longer starts at login (a copy: {})", "{} não inicia mais com o login (cópia: {})", o.prog, yami_px::paths::pretty(&saved)))
+    Ok(crate::tf!("{} больше не запускается со входом (копия: {})", "{} no longer starts at login (a copy: {})", "{} não inicia mais com o login (cópia: {})", o.prog, nemo_px::paths::pretty(&saved)))
 }
 
-/// конфиг, который yami до 3.0 писал целиком (его перезаписывало каждое обновление)
-fn old_yami(text: &str) -> bool {
-    text.contains("YAMI // niri") && text.contains("\"yami-binds.kdl\"")
+/// конфиг, который nemo до 3.0 писал целиком (его перезаписывало каждое обновление)
+fn old_nemo(text: &str) -> bool {
+    (text.contains("NEMO // niri") && text.contains("\"nemo-binds.kdl\"")) || (text.contains("YAMI // niri") && text.contains("\"yami-binds.kdl\""))
 }
 
-/// часть yami: base.kdl из своей копии и yami.kdl по настройкам. Пишется, только если другая:
+/// часть nemo: base.kdl из своей копии и nemo.kdl по настройкам. Пишется, только если другая:
 /// каждая запись — перечитывание конфига niri
-pub fn write_yami(set: &Settings) {
+pub fn write_nemo(set: &Settings) {
     let d = niri_dir();
     let _ = std::fs::create_dir_all(&d);
     put(&d.join("base.kdl"), BASE);
     let mut t = String::from(
-        "// yami: written by yami-shell at every start and when its settings change, do not edit.\n\
+        "// nemo: written by nemo-shell at every start and when its settings change, do not edit.\n\
          // Your niri config.kdl includes this file; what you write there after the include wins.\n\
-         // The parts are switched in yami's settings → system → niri.\n",
+         // The parts are switched in nemo's settings → system → niri.\n",
     );
     for p in PARTS {
         if part_on(set, p) {
@@ -269,16 +269,16 @@ pub fn write_yami(set: &Settings) {
         }
     }
     t.push_str("\n// the shell (a second copy exits by itself) and the clipboard history\n");
-    t.push_str("spawn-sh-at-startup \"n=0; until yami-shell; do n=$((n+1)); [ $n -ge 10 ] && break; sleep 1; done\"\n");
+    t.push_str("spawn-sh-at-startup \"n=0; until nemo-shell; do n=$((n+1)); [ $n -ge 10 ] && break; sleep 1; done\"\n");
     t.push_str("spawn-sh-at-startup \"wl-paste --type text --watch cliphist store\"\n");
     t.push_str("spawn-sh-at-startup \"wl-paste --type image --watch cliphist store\"\n");
-    put(&d.join("yami.kdl"), &t);
+    put(&d.join("nemo.kdl"), &t);
     // старый niri: include без optional — файл должен быть, хоть и пустой
     if !modern() {
         for p in PARTS {
             let f = d.join(p);
             if !f.exists() {
-                let _ = crate::config::write_atomic(&f, "// yami: empty for now, the shell writes it\n");
+                let _ = crate::config::write_atomic(&f, "// nemo: empty for now, the shell writes it\n");
             }
         }
     }
@@ -290,17 +290,17 @@ fn put(p: &Path, text: &str) {
     }
 }
 
-/// стартовый конфиг: свой, со строкой include под этот niri; от yami до 3.0 остаётся user.kdl
+/// стартовый конфиг: свой, со строкой include под этот niri; от nemo до 3.0 остаётся user.kdl
 fn start_config(cfg: &Path, old: Option<&str>) -> String {
     let line = our_include(cfg);
     let mut t: String = START.lines().map(|l| if is_our_include(l) { line.clone() } else { l.to_string() }).collect::<Vec<_>>().join("\n") + "\n";
-    if old.is_some_and(old_yami) && cfg.with_file_name("user.kdl").exists() {
-        t.push_str(&format!("\n// your tweaks from before yami 3.0\n{}\n", include("user.kdl")));
+    if old.is_some_and(old_nemo) && cfg.with_file_name("user.kdl").exists() {
+        t.push_str(&format!("\n// your tweaks from before nemo 3.0\n{}\n", include("user.kdl")));
     }
     t
 }
 
-/// свой конфиг: строки yami — после шапки из комментариев, всё остальное ниже и главнее
+/// свой конфиг: строки nemo — после шапки из комментариев, всё остальное ниже и главнее
 fn insert_block(text: &str, cfg: &Path) -> String {
     let lines: Vec<&str> = text.lines().collect();
     let at = lines.iter().position(|l| !(l.trim().is_empty() || l.trim_start().starts_with("//"))).unwrap_or(lines.len());
@@ -316,10 +316,10 @@ fn insert_block(text: &str, cfg: &Path) -> String {
     out
 }
 
-/// копия рядом с конфигом: config.kdl.bak-yami-ГГГГММДД-ЧЧММСС
+/// копия рядом с конфигом: config.kdl.bak-nemo-ГГГГММДД-ЧЧММСС
 fn backup(cfg: &Path, text: &str) -> Result<PathBuf, String> {
-    let t = yami_px::time::local_now();
-    let name = format!("{}.bak-yami-{:04}{:02}{:02}-{:02}{:02}{:02}", cfg.file_name().and_then(|n| n.to_str()).unwrap_or("config.kdl"), t.year, t.mon, t.day, t.hour, t.min, t.sec);
+    let t = nemo_px::time::local_now();
+    let name = format!("{}.bak-nemo-{:04}{:02}{:02}-{:02}{:02}{:02}", cfg.file_name().and_then(|n| n.to_str()).unwrap_or("config.kdl"), t.year, t.mon, t.day, t.hour, t.min, t.sec);
     let mut p = cfg.with_file_name(&name);
     let mut n = 2;
     while p.exists() {
@@ -343,7 +343,7 @@ fn validate(cfg: &Path) -> Result<(), String> {
 
 #[derive(Clone, Copy, PartialEq, Debug)]
 pub enum Mode {
-    /// своего конфига нет, стартовый niri или старый yami — свой стартовый; иначе строка в начало
+    /// своего конфига нет, стартовый niri или старый nemo — свой стартовый; иначе строка в начало
     Auto,
     /// свой стартовый конфиг в любом случае (прежний — в копию)
     Replace,
@@ -366,29 +366,29 @@ pub fn status() -> Status {
     Status { exists: text.is_some(), connected: text.as_deref().is_some_and(connected), niri_default: text.as_deref().is_some_and(niri_default), path }
 }
 
-/// подключить yami к конфигу niri; Ok — что сделано (для человека)
+/// подключить nemo к конфигу niri; Ok — что сделано (для человека)
 pub fn connect(mode: Mode) -> Result<String, String> {
     if too_old() {
         let (a, b) = version().unwrap_or_default();
         return Err(crate::tf!("niri {}.{:02} не умеет include: нужен niri 25.11 или новее", "niri {}.{:02} has no include: Nemo needs niri 25.11 or newer", "o niri {}.{:02} não tem include: o Nemo precisa do niri 25.11 ou mais novo", a, b));
     }
     crate::dirs::migrate();
-    write_yami(&Settings::load());
+    write_nemo(&Settings::load());
     let cfg = real_config(&config_path())?;
     let old = std::fs::read_to_string(&cfg).ok();
     // заменить просили явно — заменяем; иначе подключённый конфиг трогать незачем
     if mode != Mode::Replace && old.as_deref().is_some_and(connected) {
         let _ = std::fs::remove_file(off_mark());
-        return Ok(crate::tf!("yami уже подключён к {}", "yami is already in {}", "o yami já está em {}", yami_px::paths::pretty(&cfg)));
+        return Ok(crate::tf!("nemo уже подключён к {}", "nemo is already in {}", "o nemo já está em {}", nemo_px::paths::pretty(&cfg)));
     }
     let fresh = match (&old, mode) {
         (None, _) | (Some(_), Mode::Replace) => true,
-        (Some(t), Mode::Auto) => niri_default(t) || old_yami(t),
+        (Some(t), Mode::Auto) => niri_default(t) || old_nemo(t),
         (Some(_), Mode::Insert) => false,
     };
     let text = if fresh { start_config(&cfg, old.as_deref()) } else { insert_block(old.as_deref().unwrap_or(""), &cfg) };
     let saved = match old.as_deref() {
-        Some(t) if !old_yami(t) => Some(backup(&cfg, t)?),
+        Some(t) if !old_nemo(t) => Some(backup(&cfg, t)?),
         _ => None,
     };
     if let Some(d) = cfg.parent() {
@@ -407,19 +407,19 @@ pub fn connect(mode: Mode) -> Result<String, String> {
         return Err(crate::tf!("niri не принял конфиг, всё как было:\n{}", "niri rejected the config, nothing changed:\n{}", "o niri recusou a configuração, nada mudou:\n{}", e));
     }
     let _ = std::fs::remove_file(off_mark());
-    let what = if fresh { crate::tf!("стартовый конфиг yami: {}", "yami's starting config: {}", "configuração inicial do yami: {}", yami_px::paths::pretty(&cfg)) } else { crate::tf!("одна строка yami в начале {}", "one yami line at the top of {}", "uma linha do yami no início de {}", yami_px::paths::pretty(&cfg)) };
+    let what = if fresh { crate::tf!("стартовый конфиг nemo: {}", "nemo's starting config: {}", "configuração inicial do nemo: {}", nemo_px::paths::pretty(&cfg)) } else { crate::tf!("одна строка nemo в начале {}", "one nemo line at the top of {}", "uma linha do nemo no início de {}", nemo_px::paths::pretty(&cfg)) };
     Ok(match saved {
-        Some(b) => format!("{what} ({} {})", crate::tf!("прежний —", "the previous one is", "o anterior está em"), yami_px::paths::pretty(&b)),
+        Some(b) => format!("{what} ({} {})", crate::tf!("прежний —", "the previous one is", "o anterior está em"), nemo_px::paths::pretty(&b)),
         None => what,
     })
 }
 
-/// убрать строки yami из конфига niri (его вид, клавиши и правила уходят со следующим перечитыванием)
+/// убрать строки nemo из конфига niri (его вид, клавиши и правила уходят со следующим перечитыванием)
 pub fn disconnect() -> Result<String, String> {
     let cfg = real_config(&config_path())?;
     let Ok(text) = std::fs::read_to_string(&cfg) else { return Ok(crate::tf!("конфига niri нет", "no niri config", "sem configuração do niri")) };
     if !connected(&text) {
-        return Ok(crate::tf!("yami и так не подключён", "yami is not connected", "o Nemo não está conectado"));
+        return Ok(crate::tf!("nemo и так не подключён", "nemo is not connected", "o Nemo não está conectado"));
     }
     let lines: Vec<&str> = text.lines().collect();
     let mut drop = vec![false; lines.len()];
@@ -447,18 +447,43 @@ pub fn disconnect() -> Result<String, String> {
     })?;
     let _ = std::fs::create_dir_all(crate::config::state_dir());
     let _ = std::fs::write(off_mark(), "");
-    Ok(crate::tf!("строки yami убраны из {}", "yami's lines are out of {}", "as linhas do yami saíram de {}", yami_px::paths::pretty(&cfg)))
+    Ok(crate::tf!("строки nemo убраны из {}", "nemo's lines are out of {}", "as linhas do nemo saíram de {}", nemo_px::paths::pretty(&cfg)))
 }
 
-/// конфиг до 3.0, который yami писал целиком: теперь стартовый, со строкой include; свой config.kdl,
+/// после переименования yami → nemo: include в config.kdl ведёт на ~/.config/nemo/niri/nemo.kdl, а не на yami.kdl,
+/// который уже переехал вместе с папкой настроек. Правится только строка include и комментарии шапки
+pub fn migrate_renamed(niri: &Path) {
+    let Ok(cfg) = real_config(&niri.join("config.kdl")) else { return };
+    let Ok(text) = std::fs::read_to_string(&cfg) else { return };
+    if !text.lines().any(|l| l.trim_start().starts_with("include") && l.contains("yami/niri/yami.kdl")) {
+        return;
+    }
+    let fixed: Vec<String> = text
+        .lines()
+        .map(|l| {
+            let t = l.trim_start();
+            if (t.starts_with("include") && l.contains("yami/niri/yami.kdl")) || t.starts_with("//") {
+                l.replace("yami/niri/yami.kdl", "nemo/niri/nemo.kdl").replace("yami", "nemo")
+            } else {
+                l.to_string()
+            }
+        })
+        .collect();
+    // новая часть уже на месте: niri перечитывает config.kdl сразу после записи
+    write_nemo(&Settings::load());
+    let _ = crate::config::write_atomic(&cfg, &(fixed.join("\n") + "\n"));
+    let _ = std::fs::remove_file(niri_dir().join("yami.kdl"));
+}
+
+/// конфиг до 3.0, который nemo писал целиком: теперь стартовый, со строкой include; свой config.kdl,
 /// где кто-то включал наши старые файлы, — эти include заменяет одна строка
 pub fn migrate_old_config(niri: &Path) {
     let Ok(cfg) = real_config(&niri.join("config.kdl")) else { return };
     let Ok(text) = std::fs::read_to_string(&cfg) else { return };
-    let new = if old_yami(&text) {
+    let new = if old_nemo(&text) {
         start_config(&cfg, Some(&text))
     } else {
-        let olds: Vec<String> = crate::dirs::OLD_NIRI.iter().map(|(o, _)| format!("\"{o}\"")).chain(["\"yami-local.kdl\"".to_string()]).collect();
+        let olds: Vec<String> = crate::dirs::OLD_NIRI.iter().map(|(o, _)| format!("\"{o}\"")).chain(["\"nemo-local.kdl\"".to_string()]).collect();
         if !text.lines().any(|l| l.trim_start().starts_with("include") && olds.iter().any(|o| l.contains(o.as_str()))) {
             return;
         }
@@ -475,11 +500,11 @@ pub fn migrate_old_config(niri: &Path) {
     }
 }
 
-/// всё, что шелл пишет сам при старте, — для установщика и терминала (`yami niri write`)
+/// всё, что шелл пишет сам при старте, — для установщика и терминала (`nemo niri write`)
 pub fn write_all() {
     crate::dirs::migrate();
     let set = Settings::load();
-    write_yami(&set);
+    write_nemo(&set);
     crate::keys::write(&set);
     let lvl = crate::niri::config_level(crate::niri::fork_level());
     let p = niri_dir().join("rules.kdl");
@@ -492,11 +517,11 @@ pub fn cli(y: &crate::cmd::Sty, args: &[&str]) -> i32 {
             let s = status();
             let v = version().map(|(a, b)| format!("{a}.{b:02}")).unwrap_or_else(|| "?".into());
             println!("{} {}", y.dim("niri"), v);
-            println!("{} {}", y.dim(&crate::tf!("конфиг", "config", "configuração")), yami_px::paths::pretty(&s.path));
+            println!("{} {}", y.dim(&crate::tf!("конфиг", "config", "configuração")), nemo_px::paths::pretty(&s.path));
             let state = if !s.exists {
                 crate::tf!("нет: `nemo niri connect` положит стартовый", "missing: `nemo niri connect` writes a starting one", "ausente: `nemo niri connect` cria uma inicial")
             } else if s.connected {
-                crate::tf!("yami подключён", "yami is connected", "o Nemo está conectado")
+                crate::tf!("nemo подключён", "nemo is connected", "o Nemo está conectado")
             } else if s.niri_default {
                 crate::tf!("стартовый конфиг niri, Nemo не подключён: `nemo niri connect`", "niri's starting config, Nemo not connected: `nemo niri connect`", "configuração inicial do niri, o Nemo não está conectado: `nemo niri connect`")
             } else {
@@ -509,9 +534,9 @@ pub fn cli(y: &crate::cmd::Sty, args: &[&str]) -> i32 {
             0
         }
         "connect" => {
-            // обновление и починка (`--update`): если yami убрали из конфига нарочно, так и остаётся
+            // обновление и починка (`--update`): если nemo убрали из конфига нарочно, так и остаётся
             if args.contains(&"--unless-off") && off_mark().exists() {
-                println!("{}", crate::tf!("yami убран из конфига niri, оставляю так (nemo niri connect вернёт)", "yami was taken out of niri's config, leaving it so (nemo niri connect brings it back)", "o Nemo foi removido da configuração do niri, deixando assim (nemo niri connect o traz de volta)"));
+                println!("{}", crate::tf!("nemo убран из конфига niri, оставляю так (nemo niri connect вернёт)", "nemo was taken out of niri's config, leaving it so (nemo niri connect brings it back)", "o Nemo foi removido da configuração do niri, deixando assim (nemo niri connect o traz de volta)"));
                 return 0;
             }
             let mode = if args.contains(&"--replace") {
@@ -531,7 +556,7 @@ pub fn cli(y: &crate::cmd::Sty, args: &[&str]) -> i32 {
             let cfg = config_path();
             if status().connected {
                 if let Err(e) = validate(&cfg) {
-                    eprintln!("{} {}\n{e}", y.bad("✗"), crate::tf!("niri не принимает часть yami", "niri rejects yami's part", "o niri recusa a parte do yami"));
+                    eprintln!("{} {}\n{e}", y.bad("✗"), crate::tf!("niri не принимает часть nemo", "niri rejects nemo's part", "o niri recusa a parte do nemo"));
                     return 1;
                 }
             }
@@ -563,14 +588,14 @@ mod tests {
 
     #[test]
     fn versions_and_paths() {
-        assert_eq!(parse_version("niri 26.04-yami.6 (78cbb03a)"), Some((26, 4)));
+        assert_eq!(parse_version("niri 26.04-nemo.6 (78cbb03a)"), Some((26, 4)));
         assert_eq!(parse_version("niri 25.11 (abc)"), Some((25, 11)));
-        assert_eq!(relative(Path::new("/h/.config/niri"), Path::new("/h/.config/yami/niri/yami.kdl")), "../yami/niri/yami.kdl");
+        assert_eq!(relative(Path::new("/h/.config/niri"), Path::new("/h/.config/nemo/niri/nemo.kdl")), "../nemo/niri/nemo.kdl");
     }
 
     #[test]
     fn a_text_inside_a_binary_is_found_whole() {
-        let d = yami_px::paths::private_tmp("yami-test-niri").unwrap();
+        let d = nemo_px::paths::private_tmp("nemo-test-niri").unwrap();
         let f = d.join("niri");
         std::fs::write(&f, b"\x7fELF\0\0// config\nbinds {}\n\0\0tail").unwrap();
         assert!(file_contains(&f, b"// config\nbinds {}\n"));

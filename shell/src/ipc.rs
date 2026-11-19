@@ -1,4 +1,4 @@
-// Команды шеллу: `yami-shell msg launcher` → сокет $XDG_RUNTIME_DIR/yami-shell.sock.
+// Команды шеллу: `nemo-shell msg launcher` → сокет $XDG_RUNTIME_DIR/nemo-shell.sock.
 // Ими пользуются бинды niri. Второй экземпляр шелла сюда же и упирается — и выходит.
 // Безопасность: сокет 0600, говорим только с процессами своего пользователя (SO_PEERCRED),
 // строка не длиннее 4 КБ и ждём её не дольше 2 с — зависший клиент не заткнёт шелл.
@@ -14,11 +14,11 @@ use std::path::PathBuf;
 
 pub fn path() -> PathBuf {
     let dir = std::env::var("XDG_RUNTIME_DIR").unwrap_or_else(|_| format!("/run/user/{}", unsafe { libc::getuid() }));
-    PathBuf::from(dir).join("yami-shell.sock")
+    PathBuf::from(dir).join("nemo-shell.sock")
 }
 
 /// команда шеллу; true — шелл её принял (ответил). Ответа ждём не дольше 5 с: зависший шелл
-/// не должен вешать установщик и `yami update`
+/// не должен вешать установщик и `nemo update`
 pub fn send(cmd: &str) -> bool {
     match UnixStream::connect(path()) {
         Ok(mut s) => {
@@ -37,7 +37,7 @@ pub fn send(cmd: &str) -> bool {
 pub fn serve(tx: Sender<Msg>) {
     let p = path();
     if UnixStream::connect(&p).is_ok() {
-        eprintln!("{}", crate::tf!("yami-shell уже запущен", "yami-shell is already running", "yami-shell já está em execução"));
+        eprintln!("{}", crate::tf!("nemo-shell уже запущен", "nemo-shell is already running", "nemo-shell já está em execução"));
         std::process::exit(0);
     }
     let _ = std::fs::remove_file(&p);
@@ -133,17 +133,17 @@ impl crate::app::App {
                 _ => {}
             },
             c if c.starts_with("settings ") => self.open_settings_tab(c[9..].trim()),
-            // снимает отдельная программа: второй запуск закрывает открытый оверлей (yami-shot)
+            // снимает отдельная программа: второй запуск закрывает открытый оверлей (nemo-shot)
             c if c == "screenshot" || c.starts_with("screenshot ") => {
                 if self.st.locked {
                     return;
                 }
-                if !crate::proc::have("yami-shot") {
-                    self.toast_note("скриншоты не установлены", "модуль yami-shot ставится из первой настройки: nemo setup");
+                if !crate::proc::have("nemo-shot") {
+                    self.toast_note("скриншоты не установлены", "модуль nemo-shot ставится из первой настройки: nemo setup");
                     return;
                 }
                 self.close_all();
-                let mut a = vec!["yami-shot".to_string()];
+                let mut a = vec!["nemo-shot".to_string()];
                 let mut w = c.split_whitespace().skip(1);
                 a.push(w.next().unwrap_or("area").to_string());
                 if let Some(d) = w.next() {
@@ -169,7 +169,7 @@ impl crate::app::App {
         }
     }
 
-    /// настройки на вкладке (`yami open settings:keys`, карточка обновления)
+    /// настройки на вкладке (`nemo open settings:keys`, карточка обновления)
     pub fn open_settings_tab(&mut self, tab: &str) {
         let Some(t) = crate::settings::find(tab).map(|x| x.id) else { return };
         self.st.stab = t;

@@ -1,4 +1,4 @@
-// Установка и откат обновлений: процесс `yami update apply | to | rollback` (отдельно от шелла),
+// Установка и откат обновлений: процесс `nemo update apply | to | rollback` (отдельно от шелла),
 // его замок, прогресс в update.log, копии прежних бинарей, снимок настроек перед переходом на
 // более старый выпуск, возвращение шелла после.
 
@@ -7,13 +7,13 @@ use crate::config::Settings;
 use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
 
-// ── установка и откат (процесс `yami update apply`, отдельно от шелла) ─────
+// ── установка и откат (процесс `nemo update apply`, отдельно от шелла) ─────
 /// замок: две установки сразу не пойдут
 /// файл держится открытым, пока жив замок: закрытие снимает flock
 pub struct Lock(#[allow(dead_code)] std::fs::File);
 pub fn lock() -> Option<Lock> {
     use std::os::unix::io::AsRawFd;
-    let p = yami_px::paths::cache_dir().join("yami/update.lock");
+    let p = nemo_px::paths::cache_dir().join("nemo/update.lock");
     let _ = std::fs::create_dir_all(p.parent()?);
     let f = std::fs::OpenOptions::new().create(true).truncate(false).write(true).open(p).ok()?;
     // SAFETY: flock на своём открытом файле; снимается при закрытии
@@ -56,7 +56,7 @@ pub fn step_of(s: &str) -> (Option<(u32, u32)>, &str) {
 
 pub(crate) fn copy_bins(from: &Path, to: &Path) -> std::io::Result<()> {
     std::fs::create_dir_all(to)?;
-    for b in ["yami-shell", "yami-setup", "yami-files", "yami-view", "yami-play", "yami-shot", "yami-agents"] {
+    for b in ["nemo-shell", "nemo-setup", "nemo-files", "nemo-view", "nemo-play", "nemo-shot", "nemo-agents"] {
         let src = from.join(b);
         if src.exists() {
             // через временное имя: работающий бинарь подменяется целиком (rename), не переписывается
@@ -124,7 +124,7 @@ pub(crate) fn snapshot_args(to: &str) -> Vec<String> {
 /// снимок всей системы перед обновлением, если есть snapper и корень на btrfs; не вышел (нет прав,
 /// нет настройки) — обновление идёт дальше без него: снимок страховка, а не условие
 fn system_snapshot(to: &str) {
-    if yami_px::paths::find_exe("snapper").is_none() {
+    if nemo_px::paths::find_exe("snapper").is_none() {
         return;
     }
     let fs = Command::new("findmnt").args(["-no", "FSTYPE", "/"]).output().map(|o| String::from_utf8_lossy(&o.stdout).trim().to_string()).unwrap_or_default();
@@ -165,7 +165,7 @@ pub(crate) fn build_install(i: &Info) -> Result<(), String> {
     let mut ch = Command::new("bash")
         .arg(dir.join("install.sh"))
         .arg("--update")
-        .env("YAMI_UPDATE", "1")
+        .env("NEMO_UPDATE", "1")
         .stdin(Stdio::null())
         .stdout(Stdio::piped())
         .stderr(Stdio::inherit())
@@ -208,8 +208,8 @@ pub(crate) fn keep_stage(stage: &Path) {
         (Ok(x), Ok(y)) => x == y,
         _ => false,
     };
-    let old = stage.join("yami-shell");
-    if old.exists() && !same(&old, &bin_dir().join("yami-shell")) {
+    let old = stage.join("nemo-shell");
+    if old.exists() && !same(&old, &bin_dir().join("nemo-shell")) {
         let _ = std::fs::remove_dir_all(prev_dir());
         if std::fs::rename(stage, prev_dir()).is_ok() {
             return;
@@ -230,7 +230,7 @@ pub(crate) fn ensure_shell() {
     if up() || std::env::var_os("NIRI_SOCKET").is_none() {
         return;
     }
-    let bin = bin_dir().join("yami-shell").to_string_lossy().replace('\'', "'\\''");
+    let bin = bin_dir().join("nemo-shell").to_string_lossy().replace('\'', "'\\''");
     println!("  {}", crate::tf!("шелл не ответил — запускаю его снова", "the shell did not answer: starting it again", "o shell não respondeu: iniciando novamente"));
     let _ = Command::new("niri").args(["msg", "action", "spawn-sh", "--", &format!("until '{bin}'; do sleep 1; done")]).stdin(Stdio::null()).stdout(Stdio::null()).status();
     if !up() {
@@ -310,7 +310,7 @@ fn snapshot_back(d: &Path) -> std::io::Result<()> {
             if let Some(dir) = target.parent() {
                 std::fs::create_dir_all(dir)?;
             }
-            let tmp = PathBuf::from(format!("{p}.yami-new"));
+            let tmp = PathBuf::from(format!("{p}.nemo-new"));
             let _ = std::fs::remove_file(&tmp);
             if m.file_type().is_symlink() {
                 std::os::unix::fs::symlink(std::fs::read_link(&src)?, &tmp)?;
@@ -330,7 +330,7 @@ fn snapshot_back(d: &Path) -> std::io::Result<()> {
 
 /// откат возможен: есть точка отката или прошлые бинари
 pub fn can_rollback() -> bool {
-    !snapshots().is_empty() || prev_dir().join("yami-shell").exists()
+    !snapshots().is_empty() || prev_dir().join("nemo-shell").exists()
 }
 
 /// версия прошлой сборки (для мгновенного отката), если она есть
@@ -338,7 +338,7 @@ pub fn prev_version() -> Option<String> {
     if let Some((_, v)) = snapshots().first() {
         return Some(v.clone());
     }
-    if !prev_dir().join("yami-shell").exists() {
+    if !prev_dir().join("nemo-shell").exists() {
         return None;
     }
     let s: Stamp = std::fs::read_to_string(prev_dir().join("install.json")).ok().and_then(|t| serde_json::from_str(&t).ok()).unwrap_or_default();
@@ -388,7 +388,7 @@ pub fn rollback() -> Result<String, String> {
         return Ok(crate::tf!("вернул {}", "rolled back to {}", "revertido para {}", installed().version));
     }
     let p = prev_dir();
-    if !p.join("yami-shell").exists() {
+    if !p.join("nemo-shell").exists() {
         return Err(crate::tf!("откатывать не на что: прежней сборки нет", "nothing to roll back to: no previous build", "não há como reverter: sem compilação anterior"));
     }
     let from = installed().version;

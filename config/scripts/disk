@@ -1,5 +1,5 @@
 #!/bin/sh
-# yami-script: free space on / (set DISK_PATH in the script for another place); amber above 85% used
+# nemo-script: free space on / (set DISK_PATH in the script for another place); amber above 85% used
 p=${DISK_PATH:-/}
 set -- $(df -P "$p" 2>/dev/null | awk 'NR == 2 { gsub("%", "", $5); print $4, $5 }')
 if [ -z "$2" ]; then printf '{"text":"disk ?","icon":"folder","color":"dim","interval":300}\n'; exit 0; fi

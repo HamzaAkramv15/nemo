@@ -1,5 +1,5 @@
 #!/bin/sh
-# yami-script: the fastest fan, in RPM (nothing if the machine reports no fan)
+# nemo-script: the fastest fan, in RPM (nothing if the machine reports no fan)
 best=0
 for f in /sys/class/hwmon/hwmon*/fan*_input; do
   [ -r "$f" ] || continue

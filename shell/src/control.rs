@@ -1,4 +1,4 @@
-// Панель управления (из yami-lite): ПКМ по пустому месту бара или `yami msg control`. Слева — часы и
+// Панель управления (из nemo-lite): ПКМ по пустому месту бара или `nemo msg control`. Слева — часы и
 // дата на обоях под вуалью, время работы системы (щелчок — выбор обоев); справа — два вертикальных
 // ползунка клетками: громкость и яркость (подсветка ноутбука, bright.rs; без неё ползунок погашен).
 // Под ними — что играет (если играет), плитки на выбор (controlTiles, до MAX штук): каждая — уже
@@ -132,7 +132,7 @@ pub fn draw(ui: &mut Ui, st: &State, b: R) {
         let (dw, dh) = ((img.w as f32 * k).ceil() as i32, (img.h as f32 * k).ceil() as i32);
         ui.cv.image_scaled(img, R::new(inner.x + (inner.w - dw) / 2, inner.y + (inner.h - dh) / 2, dw, dh), 1.0);
     }
-    ui.cv.fill(inner, yami_px::face::veil(&t, Some(0.45)));
+    ui.cv.fill(inner, nemo_px::face::veil(&t, Some(0.45)));
     ui.cv.pop_clip();
     if ui.hover(card) {
         ui.cv.icon("image", card.right() - 26, card.y + 10, 2, t.text);
@@ -143,7 +143,7 @@ pub fn draw(ui: &mut Ui, st: &State, b: R) {
     let time = crate::clock::clock_text(&tm, st.set.clock_seconds);
     let (lx, ty) = (card.x + 16, card.y + 14);
     ui.text(face, lx, ty, &time, t.text_hi);
-    let date = yami_px::i18n::long_date(crate::i18n::tr(RU_DAY_FULL[tm.wday as usize]), tm.day as u32, (tm.mon - 1) as usize, crate::i18n::tr(RU_MON[(tm.mon - 1) as usize]));
+    let date = nemo_px::i18n::long_date(crate::i18n::tr(RU_DAY_FULL[tm.wday as usize]), tm.day as u32, (tm.mon - 1) as usize, crate::i18n::tr(RU_MON[(tm.mon - 1) as usize]));
     let ly = ty + ui.f.line(face) + 4;
     ui.cv.text_in(ui.f, PX, R::new(lx, ly, card.w - 32, 18), &date, t.text);
     // низ карточки: время работы, а под мышью на плитке — её название (у плиток одни значки)

@@ -1,15 +1,15 @@
-// Перекраска всего вокруг шелла по одной палитре: `yami-shell recolor` (шелл зовёт его с пониженным
+// Перекраска всего вокруг шелла по одной палитре: `nemo-shell recolor` (шелл зовёт его с пониженным
 // приоритетом, установщик — напрямую). Всегда: цвета рамок niri, обои шелла, свои шаблоны. Чужие
 // программы — только те, что в themeApps настроек (настройки → цвет → программы, установщик); курсор
 // по ключу cursor, набор значков по iconTheme. Здесь палитра, настройки, запись файлов и порядок
 // шагов; программы — recolor_apps.rs, шаблоны — recolor_tpl.rs, картинки — recolor_art.rs.
 //
-//   recolor [palette.json]              палитра от шелла (~/.local/state/yami/palette.json)
+//   recolor [palette.json]              палитра от шелла (~/.local/state/nemo/palette.json)
 //   recolor --accent '#c4161c' [--light]   без шелла: вывести оттенки из акцента
 //   recolor --cursor-to DIR [--accent …]   курсор экрана входа в DIR
 //   recolor --cursor | --icons | --fonts | --fetch | --profiles | --templates [--force NAME]
 //
-// Что вышло у программ и шаблонов — в ~/.local/state/yami/restyle.json (restyle.rs это показывает).
+// Что вышло у программ и шаблонов — в ~/.local/state/nemo/restyle.json (restyle.rs это показывает).
 
 use serde_json::{Map, Value};
 use std::cell::OnceCell;
@@ -219,10 +219,10 @@ impl Cx {
     pub fn new() -> Cx {
         let home = std::env::var_os("HOME").map(PathBuf::from).unwrap_or_else(|| PathBuf::from("/"));
         let cfg = env_dir("XDG_CONFIG_HOME", home.join(".config"));
-        let state = env_dir("XDG_STATE_HOME", home.join(".local/state")).join("yami");
+        let state = env_dir("XDG_STATE_HOME", home.join(".local/state")).join("nemo");
         let data = env_dir("XDG_DATA_HOME", home.join(".local/share"));
-        // настройки шелла: ~/.config/yami/shell.json, до переноса — старый ~/.config/yami-shell.json
-        let sj = if cfg.join("yami/shell.json").exists() || !cfg.join("yami-shell.json").exists() { cfg.join("yami/shell.json") } else { cfg.join("yami-shell.json") };
+        // настройки шелла: ~/.config/nemo/shell.json, до переноса — старый ~/.config/nemo-shell.json
+        let sj = if cfg.join("nemo/shell.json").exists() || !cfg.join("nemo-shell.json").exists() { cfg.join("nemo/shell.json") } else { cfg.join("nemo-shell.json") };
         let mut st = std::fs::read_to_string(&sj).ok().and_then(|t| serde_json::from_str::<Value>(&t).ok()).and_then(|v| v.as_object().cloned()).unwrap_or_default();
         for k in ["fontUi", "fontMono", "fontShell", "fontFiles", "fontView", "cursor", "iconTheme"] {
             let v = st.get(k).and_then(|x| x.as_str()).map(clean_name).unwrap_or_default();
@@ -230,7 +230,7 @@ impl Cx {
         }
         let lang = st.get("lang").and_then(|l| l.as_str()).unwrap_or("").trim().replace('_', "-").to_lowercase();
         let tag = lang.split('.').next().unwrap_or("").split('@').next().unwrap_or("").split('-').next().unwrap_or("").to_string();
-        st.insert("lang".into(), yami_px::i18n::normalize(&tag).into());
+        st.insert("lang".into(), nemo_px::i18n::normalize(&tag).into());
         for (k, lo, hi, dflt) in [("cursorSize", 16, 96, 24), ("fontSize", 0, 64, 0), ("fontPt", 0, 48, 0), ("wallPixel", 1, 64, 1)] {
             let v = lenient_int(st.get(k).or(Some(&Value::from(dflt)))).map_or(dflt, |n| n.clamp(lo, hi));
             st.insert(k.into(), v.into());
@@ -327,7 +327,7 @@ impl Cx {
     }
 }
 
-/// `yami-shell recolor …`
+/// `nemo-shell recolor …`
 pub fn run(args: &[String]) -> i32 {
     use crate::{recolor_apps as a, recolor_art as art, recolor_tpl as tpl};
     let cx = Cx::new();
@@ -344,7 +344,7 @@ pub fn run(args: &[String]) -> i32 {
             report("icons", a::icons(&cx, &p));
             report("app_icons", art::app_icons(&cx, &p));
         }
-        Some("--cursor-to") if args.len() > 1 => report("cursor", art::cursor_theme(&cx.palette(&args[2..]), Path::new(&args[1]), "yami-cursor")),
+        Some("--cursor-to") if args.len() > 1 => report("cursor", art::cursor_theme(&cx.palette(&args[2..]), Path::new(&args[1]), "nemo-cursor")),
         Some("--profiles") => {
             for d in a::firefox_profiles(&cx) {
                 println!("{}", d.display());

@@ -53,7 +53,7 @@ pub fn geo(s: &str) -> Option<(f64, f64)> {
 pub fn args(set: &crate::config::Settings) -> Vec<String> {
     // auto: координаты из locate.rs (часовой пояс системы); пока их нет — по часам
     let place = if crate::locate::is_auto(&set.night_geo) { crate::locate::cached().map(|(la, lo, _)| (la, lo)) } else { geo(&set.night_geo) };
-    yami_px::night::args(set.num("night_temp"), set.night_always, place, set.num("night_on_h"), set.num("night_off_h"))
+    nemo_px::night::args(set.num("night_temp"), set.night_always, place, set.num("night_on_h"), set.num("night_off_h"))
 }
 
 impl App {
@@ -91,7 +91,7 @@ impl App {
         self.dirty(&SKind::Bar);
     }
 
-    /// `yami night on|off|toggle|always|schedule|temp K`: то же, что в настройках; сохраняется в shell.json
+    /// `nemo night on|off|toggle|always|schedule|temp K`: то же, что в настройках; сохраняется в shell.json
     pub fn night_cmd(&mut self, arg: &str) {
         if !crate::doctor::which("wlsunset") {
             self.toast_note("ночной свет", "нужен wlsunset: поставь его из своего дистрибутива");

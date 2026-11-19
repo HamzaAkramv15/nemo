@@ -161,7 +161,7 @@ time_guess() {
 }
 # the network is needed for packages and sources; a local source tree does without
 net_check() {
-  [[ -n ${YAMI_MODULES_DIR:-} || $YAMI_REPO == file:* ]] && return 0
+  [[ -n ${NEMO_MODULES_DIR:-} || $NEMO_REPO == file:* ]] && return 0
   command -v curl >/dev/null || return 0
   curl -fsS -o /dev/null --connect-timeout 5 --max-time 8 https://github.com 2>/dev/null
 }
@@ -191,7 +191,7 @@ welcome() {
       welcome_rows "$(t "диск" "disk" "disco")" "$(t "нужно около {} ГБ, свободно {} ГБ" "about {} GB needed, {} GB free" "cerca de {} GB necessários, {} GB livres" "$gb" "$have")"
     fi
     ((net)) || welcome_rows "$(t "сеть" "network" "rede")" "$WARN$(t "GitHub не отвечает: проверь интернет и нажми enter" "GitHub does not answer: check the internet and press enter" "o GitHub não responde: verifique a internet e pressione enter")$R"
-    if ((COUNT)) && [[ ! -e $STATE/counted && -z ${DO_NOT_TRACK:-} && -z ${YAMI_NO_COUNT:-} ]]; then
+    if ((COUNT)) && [[ ! -e $STATE/counted && -z ${DO_NOT_TRACK:-} && -z ${NEMO_NO_COUNT:-} ]]; then
       welcome_rows "$(t "счётчик" "counter" "contador")" "$(t "один анонимный запрос в конце, без данных (--no-count — без него)" "one anonymous request at the end, no data (--no-count skips it)" "uma requisição anônima no final, sem dados (--no-count desativa)")"
     fi
     ((DRY)) && welcome_rows "--dry-run" "$(t "только покажу план, ничего не изменю" "only showing the plan, nothing changes" "só mostro o plano, nada muda")"
@@ -266,8 +266,8 @@ crates_of() {
   local f
   case $1 in
     do_build_shell) f="$ROOT/shell/Cargo.lock" ;;
-    do_build_module) f="$(m_src "yami-$2" 2>/dev/null)/Cargo.lock" ;;
-    do_build_greet) f="$(m_src yami-greet 2>/dev/null)/Cargo.lock" ;;
+    do_build_module) f="$(m_src "nemo-$2" 2>/dev/null)/Cargo.lock" ;;
+    do_build_greet) f="$(m_src nemo-greet 2>/dev/null)/Cargo.lock" ;;
     *) return 0 ;;
   esac
   grep -c '^name = ' "$f" 2>/dev/null

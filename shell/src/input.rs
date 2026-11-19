@@ -403,7 +403,7 @@ impl App {
                         Some('U') => f.clear(),
                         Some('A') => f.select_all(),
                         Some('V') => {
-                            if let Some(t) = yami_px::ui::paste() {
+                            if let Some(t) = nemo_px::ui::paste() {
                                 f.insert(&t);
                             }
                         }

@@ -1,10 +1,10 @@
-// Действия панелей шелла. Сам немедленный UI (кнопки, поля, зоны) — общий, в yami-px:
+// Действия панелей шелла. Сам немедленный UI (кнопки, поля, зоны) — общий, в nemo-px:
 // им же рисуют файловый менеджер и диалоги.
 
-pub use yami_px::ui::{Cur, Field, Tone};
+pub use nemo_px::ui::{Cur, Field, Tone};
 
-pub type Ui<'a, 'b> = yami_px::ui::Ui<'a, 'b, Act>;
-pub type Zone = yami_px::ui::Zone<Act>;
+pub type Ui<'a, 'b> = nemo_px::ui::Ui<'a, 'b, Act>;
+pub type Zone = nemo_px::ui::Zone<Act>;
 
 #[derive(Clone, Debug, PartialEq)]
 pub enum Act {
@@ -204,7 +204,7 @@ impl Act {
     }
 }
 
-impl yami_px::ui::Action for Act {
+impl nemo_px::ui::Action for Act {
     fn block() -> Self {
         Act::Block
     }

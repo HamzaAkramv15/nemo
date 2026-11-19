@@ -1,5 +1,5 @@
-# yami-output: ~/.config/fuzzel/yami.ini
-# yami: the palette for fuzzel; in fuzzel.ini under [main]: include=~/.config/fuzzel/yami.ini
+# nemo-output: ~/.config/fuzzel/nemo.ini
+# nemo: the palette for fuzzel; in fuzzel.ini under [main]: include=~/.config/fuzzel/nemo.ini
 [colors]
 background={{bg.strip}}ff
 text={{text.strip}}ff

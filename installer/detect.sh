@@ -1,5 +1,5 @@
 # What this machine is. The distro family and its package manager, sudo or
-# doas, memory and threads (how hard to build, whether yami-niri is worth it), systemd,
+# doas, memory and threads (how hard to build, whether nemo-niri is worth it), systemd,
 # a running niri, the login manager in use and Steam. Defaults
 # of the components come from here; the flags of install.sh override them.
 # shellcheck shell=bash
@@ -46,9 +46,9 @@ detect_machine() {
   MEM_GB=$(awk '/^MemTotal:/{printf "%d", $2 / 1048576 + 0.5}' /proc/meminfo 2>/dev/null)
   THREADS=$(nproc 2>/dev/null || echo 2)
   [[ $MEM_GB =~ ^[0-9]+$ ]] || MEM_GB=8
-  # a light machine (an old laptop, a small VM): yami-niri (an hour of building there) is off by
+  # a light machine (an old laptop, a small VM): nemo-niri (an hour of building there) is off by
   # default, the packaged niri is the same desktop; the shell itself starts in lite mode (see
-  # `yami-shell config lite-auto`)
+  # `nemo-shell config lite-auto`)
   LIGHT=0
   ((MEM_GB < 6 || THREADS < 4)) && LIGHT=1
   FORK_ON=$((1 - LIGHT))
@@ -67,7 +67,7 @@ detect_machine() {
 }
 
 # the login screen is on by default only when no other login manager is set; ours is greetd with
-# yami-greet, or SDDM with the old yami theme (the login screen before 2.6: an update moves it over)
+# nemo-greet, or SDDM with the old nemo theme (the login screen before 2.6: an update moves it over)
 detect_login() {
   local d m
   OTHER_DM=""
@@ -85,8 +85,8 @@ detect_login() {
   # our own login screen counts as nothing to replace
   GREET_OURS=0
   case $OTHER_DM in
-    greetd) grep -qs 'yami/greet-session' /etc/greetd/config.toml && { OTHER_DM="" GREET_OURS=1; } ;;
-    sddm) [[ -d /usr/share/sddm/themes/yami ]] && { OTHER_DM="" GREET_OURS=1; } ;;
+    greetd) grep -qs 'nemo/greet-session' /etc/greetd/config.toml && { OTHER_DM="" GREET_OURS=1; } ;;
+    sddm) [[ -d /usr/share/sddm/themes/nemo ]] && { OTHER_DM="" GREET_OURS=1; } ;;
   esac
   LOGIN_ON=1
   [[ -n $OTHER_DM ]] && LOGIN_ON=0

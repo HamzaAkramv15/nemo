@@ -1,6 +1,6 @@
 // Нарисованные картинки README в .github/assets: пиксельный логотип и карточки возможностей (по картинке на
-// язык), из самого проекта: цвета — как у перекраски, значки — из gfx.rs icon7 библиотеки yami-px, шрифты — из
-// fonts/. Настоящие снимки сеанса делает tools/readme-shots.sh.  yami-dev readme-art [#акцент]
+// язык), из самого проекта: цвета — как у перекраски, значки — из gfx.rs icon7 библиотеки nemo-px, шрифты — из
+// fonts/. Настоящие снимки сеанса делает tools/readme-shots.sh.  nemo-dev readme-art [#акцент]
 
 use crate::recolor_data::KANJI;
 use crate::recolor_math::{derive, mix, rgb as hex_rgb, wallpaper_img, P};
@@ -133,18 +133,18 @@ const CARDS: [[&str; 7]; 10] = [
     ["ram", "~15 MB shell", "bar, launcher, dock, notifications, widgets:", "one Rust binary, no toolkit, no GPU context", "шелл на 15 МБ", "бар, лаунчер, док, уведомления, виджеты:", "один бинарь на Rust, без тулкитов и GPU"],
     ["drop", "one accent", "pick a colour: Qt, KDE, GTK, kitty, browser,", "the cursor and the login screen follow", "один акцент", "выбери цвет: Qt, KDE, GTK, kitty, браузер,", "курсор и экран входа перекрасятся"],
     ["lock", "login screen", "our own greeter in Rust: the lock screen's", "face; greetd checks the password", "экран входа", "свой, на Rust: лицо экрана блокировки;", "пароль проверяет greetd"],
-    ["play", "made for games", "tearing and VRR on yami-niri; while you play", "notifications wait, power goes to max", "для игр", "tearing и VRR на yami-niri; пока играешь,", "уведомления ждут, питание на максимум"],
-    ["folder", "files and player", "yami-files: tabs, split view, trash and the", "file dialog of every app; yami-view, yami-play", "файлы и плеер", "yami-files: вкладки, корзина и диалог", "выбора файлов для всех; просмотр, плеер"],
+    ["play", "made for games", "tearing and VRR on nemo-niri; while you play", "notifications wait, power goes to max", "для игр", "tearing и VRR на nemo-niri; пока играешь,", "уведомления ждут, питание на максимум"],
+    ["folder", "files and player", "nemo-files: tabs, split view, trash and the", "file dialog of every app; nemo-view, nemo-play", "файлы и плеер", "nemo-files: вкладки, корзина и диалог", "выбора файлов для всех; просмотр, плеер"],
     ["camera", "screenshots", "area, window or screen; loupe, colour picker,", "pen, arrows, mosaic, numbered badges", "скриншоты", "область, окно или экран; лупа, пипетка,", "перо, стрелки, мозаика, номерки"],
     ["eye", "stream curtain", "viewers of a stream see a frozen, blurred", "screen while you keep working", "шторка стрима", "зрители видят размытый стоп-кадр,", "а ты спокойно работаешь дальше"],
-    ["down", "signed updates", "one click or yami update, built from source,", "tags checked by the author's key, rollback", "обновления", "в один клик или yami update, сборка", "из исходников, подпись автора, откат"],
+    ["down", "signed updates", "one click or nemo update, built from source,", "tags checked by the author's key, rollback", "обновления", "в один клик или nemo update, сборка", "из исходников, подпись автора, откат"],
     ["screen", "any distro", "Arch, Fedora, Debian, openSUSE, Void, Alpine,", "Gentoo: one installer; NixOS: a flake", "8 дистрибутивов", "Arch, Fedora, Debian, openSUSE, Void, Alpine,", "Gentoo — установщик; NixOS — flake"],
     ["text", "eight languages", "en ru pt-BR es de fr uk pl,", "switched live, the login screen too", "восемь языков", "en ru pt-BR es de fr uk pl,", "на лету, экран входа тоже"],
 ];
 
 /// акцент — тот же, что на скриншотах (палитра шелла), а без настроек — «кровь»
 fn accent(root: &std::path::Path) -> String {
-    let st: serde_json::Value = std::env::var_os("HOME").and_then(|h| std::fs::read_to_string(std::path::Path::new(&h).join(".config/yami/shell.json")).ok()).and_then(|t| serde_json::from_str(&t).ok()).unwrap_or_default();
+    let st: serde_json::Value = std::env::var_os("HOME").and_then(|h| std::fs::read_to_string(std::path::Path::new(&h).join(".config/nemo/shell.json")).ok()).and_then(|t| serde_json::from_str(&t).ok()).unwrap_or_default();
     let choices = std::fs::read_to_string(root.join("installer/choices.sh")).unwrap_or_default();
     let list = |name: &str| Regex::new(&format!(r"{name}=\(([^)]*)\)")).ok().and_then(|r| r.captures(&choices).map(|m| m[1].split_whitespace().map(String::from).collect::<Vec<_>>())).unwrap_or_default();
     let (ids, hexes) = (list("PAL_ID"), list("PAL_HEX"));
@@ -156,7 +156,7 @@ fn accent(root: &std::path::Path) -> String {
     format!("#{}", ids.iter().zip(hexes.iter()).find(|(i, _)| i.as_str() == want).map_or("c4161c", |(_, h)| h.as_str()))
 }
 
-/// значки 7×7 из библиотеки yami-px (shell/px этого репозитория)
+/// значки 7×7 из библиотеки nemo-px (shell/px этого репозитория)
 fn icons(root: &std::path::Path) -> BTreeMap<String, Vec<String>> {
     let src = std::fs::read_to_string(root.join("shell/px/src/gfx.rs")).unwrap_or_default();
     let block = Regex::new(r#""(\w+)" => &\[((?:"[.#]{7}",? ?){7})\]"#).unwrap();
@@ -183,7 +183,7 @@ fn features(d: &mut D, lang: &str) -> Result<RgbaImage, String> {
     d.rect(1, 2, w - 2, hh - 1, panel);
     d.rect(1, hh, w - 2, hh, border);
     d.rect(10, hh / 2 - 3, 15, hh / 2 + 2, accent);
-    let (title, sub) = if lang == "en" { ("yami", "a pixel desktop for niri") } else { ("yami", "пиксельный рабочий стол для niri") };
+    let (title, sub) = if lang == "en" { ("nemo", "a pixel desktop for niri") } else { ("nemo", "пиксельный рабочий стол для niri") };
     d.text(22.0, 4.0, title, 8.0, text);
     let tw = d.width(title, 8.0);
     d.text(24.0 + tw, 4.0, sub, 8.0, faint);
@@ -261,7 +261,7 @@ fn social(d: &mut D) -> RgbaImage {
     }
     let tx = (x0 + (gw + 1) * cell + 40) as f32;
     let (text, dim, faint, accent) = (d.col("text"), d.col("textDim"), d.col("textFaint"), d.col("accent"));
-    d.text(tx, 104.0, "yami", 48.0, text);
+    d.text(tx, 104.0, "nemo", 48.0, text);
     d.rect(tx as i64, 160, tx as i64 + 31, 163, accent);
     d.text(tx, 176.0, "a pixel-art desktop for niri", 16.0, dim);
     d.text(tx, 204.0, "Rust Wayland shell in ~15 MB · own file manager · one accent for every app", 8.0, faint);
@@ -316,7 +316,7 @@ fn save_png(path: &std::path::Path, w: u32, h: u32, data: &[u8], color: image::E
     PngEncoder::new_with_quality(std::io::BufWriter::new(f), CompressionType::Best, FilterType::Adaptive).write_image(data, w, h, color).is_ok()
 }
 
-/// то же для любой картинки: снимки README (yami-dev shots) тоже лежат в git
+/// то же для любой картинки: снимки README (nemo-dev shots) тоже лежат в git
 pub(crate) fn save_best(im: &image::DynamicImage, path: &std::path::Path) -> Result<(), String> {
     if save_png(path, im.width(), im.height(), im.as_bytes(), im.color().into()) {
         Ok(())

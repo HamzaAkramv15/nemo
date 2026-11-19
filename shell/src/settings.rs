@@ -1,5 +1,5 @@
 // Настройки: группы вкладок слева, содержимое справа. Всё применяется сразу и пишется в
-// ~/.config/yami/shell.json (его можно править и руками — шелл подхватит).
+// ~/.config/nemo/shell.json (его можно править и руками — шелл подхватит).
 //
 // Вкладка — строка в GROUPS: ключ, имя, значок, слова для поиска и функция рисования (каждая в
 // своём модуле). Содержимое листается колесом: сколько его, узнаём по зонам, которые вкладка
@@ -162,7 +162,7 @@ pub fn draw(ui: &mut Ui, st: &State, w: i32, h: i32) {
     let t = ui.t;
     let fr = R::new(0, 0, w - 6, h - 6);
     ui.frame(fr, false);
-    let sub = crate::tf!("Nemo {} · {:.0} МБ", "Nemo {} · {:.0} MB", "Nemo {} · {:.0} MB", yami_px::brand::VERSION, st.rss);
+    let sub = crate::tf!("Nemo {} · {:.0} МБ", "Nemo {} · {:.0} MB", "Nemo {} · {:.0} MB", nemo_px::brand::VERSION, st.rss);
     ui.header(R::new(1, 1, fr.w - 2, 30), "gear", "настройки", &sub);
     // за заголовок окно двигается (крестик зарегистрирован позже — он сверху)
     ui.zone(R::new(1, 1, fr.w - 2, 30), Act::MDrag, Cur::Default);
@@ -194,7 +194,7 @@ pub fn draw(ui: &mut Ui, st: &State, w: i32, h: i32) {
         ui.cv.fill(R::new(side.x + 12, y + 8, 4, 4), t.red.alpha(0.7));
         ui.text_in(PX, R::new(side.x + 22, y, side.w - 30, HEAD_H - 4), gname, t.text_faint);
         y += HEAD_H;
-        // вкладки модулей, которых нет (скриншоты без yami-shot, экран входа без yami-greet), прячутся
+        // вкладки модулей, которых нет (скриншоты без nemo-shot, экран входа без nemo-greet), прячутся
         for tb in tabs.iter().filter(|tb| st.mods_here.shows(tb.id) && tab_matches(tb, &query)) {
             let r = R::new(side.x + 8, y, side.w - 16, ROW_H - 2);
             ui.button(r, tb.name, tb.icon, Tone::Ghost, st.stab == tb.id, true, Act::STab(tb.id));

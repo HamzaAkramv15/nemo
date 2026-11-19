@@ -1,5 +1,5 @@
 #!/bin/sh
-# yami-script: CPU temperature from the kernel's sensors (amber from 80°C, red from 90°C)
+# nemo-script: CPU temperature from the kernel's sensors (amber from 80°C, red from 90°C)
 best=0
 for z in /sys/class/hwmon/hwmon*; do
   n=$(cat "$z/name" 2>/dev/null)

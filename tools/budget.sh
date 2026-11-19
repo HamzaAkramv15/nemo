@@ -11,13 +11,13 @@ fail=0
 ok() { printf '\e[32m✓ %s\e[0m\n' "$1"; }
 bad() { printf '\e[31m✗ %s\e[0m\n' "$1"; fail=1; }
 rel="$ROOT/shell/target/release"
-for bin in yami-shell yami-agents; do
+for bin in nemo-shell nemo-agents; do
   [[ -f $rel/$bin ]] || continue
   kb=$(($(stat -c %s "$rel/$bin") / 1024)); max="$(lim "size_$bin")"
   if ((kb <= max)); then ok "$bin $((kb / 1024)).$((kb % 1024 * 10 / 1024)) MB (limit $((max / 1024)) MB)"; else bad "$bin is $kb KB, the limit is $max KB"; fi
 done
-pid="$(pgrep -x yami-shell | head -n1 || true)"
-if [[ -z $pid ]]; then echo "  (no running yami-shell: idle memory and wakeups were not measured)"; exit $fail; fi
+pid="$(pgrep -x nemo-shell | head -n1 || true)"
+if [[ -z $pid ]]; then echo "  (no running nemo-shell: idle memory and wakeups were not measured)"; exit $fail; fi
 secs="${1:-20}"
 sw() { awk '/^voluntary_ctxt_switches/{v=$2} /^nonvoluntary_ctxt_switches/{n=$2} END{print v+n}' "/proc/$pid/status"; }
 ticks() { awk '{print $14+$15}' "/proc/$pid/stat"; }

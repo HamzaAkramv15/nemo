@@ -185,7 +185,7 @@ impl Notif {
         ["actions", "body", "body-markup", "icon-static", "persistence", "inline-reply"].iter().map(|s| s.to_string()).collect()
     }
     fn get_server_information(&self) -> (String, String, String, String) {
-        ("yami-shell".into(), "YAMI".into(), env!("CARGO_PKG_VERSION").into(), "1.2".into())
+        ("nemo-shell".into(), "NEMO".into(), env!("CARGO_PKG_VERSION").into(), "1.2".into())
     }
 }
 

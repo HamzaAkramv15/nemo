@@ -1,8 +1,8 @@
 // Восстановление сессии: какие программы были открыты, на каком столе и мониторе. Шелл пишет
-// снимок (~/.local/state/yami/session.json) через несколько секунд после изменений окон; при
+// снимок (~/.local/state/nemo/session.json) через несколько секунд после изменений окон; при
 // следующем входе запускает каждую программу один раз и возвращает её первое окно на место.
-// Только в свежем сеансе (niri только что запущен), никогда после `yami restart`. Игры и окна
-// самого yami не входят; пустой снимок не заменяет полный (при выходе окна закрываются по одному).
+// Только в свежем сеансе (niri только что запущен), никогда после `nemo restart`. Игры и окна
+// самого nemo не входят; пустой снимок не заменяет полный (при выходе окна закрываются по одному).
 // i18n: inline pairs
 
 use crate::app::App;
@@ -33,7 +33,7 @@ fn path() -> std::path::PathBuf {
 }
 
 fn skip(app_id: &str) -> bool {
-    app_id.is_empty() || app_id.starts_with("steam_app_") || app_id == "gamescope" || app_id.starts_with("yami-")
+    app_id.is_empty() || app_id.starts_with("steam_app_") || app_id == "gamescope" || app_id.starts_with("nemo-")
 }
 
 /// niri запущен меньше двух минут назад: это вход, а не перезапуск шелла. Метка в runtime-папке
@@ -42,7 +42,7 @@ fn fresh() -> bool {
     let Some(sock) = std::env::var_os("NIRI_SOCKET") else { return false };
     let young = std::fs::metadata(&sock).and_then(|m| m.modified()).ok().and_then(|t| t.elapsed().ok()).is_some_and(|e| e < Duration::from_secs(120));
     let Some(name) = std::path::Path::new(&sock).file_name() else { return false };
-    let mark = crate::ipc::path().with_file_name(format!("yami-restored-{}", name.to_string_lossy()));
+    let mark = crate::ipc::path().with_file_name(format!("nemo-restored-{}", name.to_string_lossy()));
     young && std::fs::OpenOptions::new().write(true).create_new(true).open(mark).is_ok()
 }
 

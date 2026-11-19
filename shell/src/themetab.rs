@@ -1,11 +1,11 @@
-// Вкладка «цвет» → «темы» (#8): свои темы из ~/.config/yami/themes (bundle.rs) карточками,
+// Вкладка «цвет» → «темы» (#8): свои темы из ~/.config/nemo/themes (bundle.rs) карточками,
 // щелчок применяет, × удаляет, кнопка сохраняет текущий вид. Файлы тем бывают по десятку МБ
 // (картинка обоев внутри): читаются и пишутся в нити, ответ — Msg::Themes.
 
 use crate::app::{App, Msg, SKind, State};
 use crate::gfx::{BoxStyle, C, R};
 use crate::ui::{Act, Cur, Tone, Ui};
-use yami_px::font::PX;
+use nemo_px::font::PX;
 
 const COLS: i32 = 4;
 const CARD_H: i32 = 58;
@@ -27,7 +27,7 @@ pub fn tab(ui: &mut Ui, st: &State, b: R, head_w: i32) {
         ui.zone(r, Act::STheme(i), Cur::Pointer);
         // образец: акцент на фоне своей темы (светлый или тёмный)
         let sw = R::new(r.x + 8, r.y + 8, r.w - 16, 22);
-        let bg = yami_px::theme::Theme::new(c.accent, 1.0, 1.0, 0.0, 1.0, c.light).panel;
+        let bg = nemo_px::theme::Theme::new(c.accent, 1.0, 1.0, 0.0, 1.0, c.light).panel;
         let ac = C(0xff000000 | c.accent);
         ui.cv.pxbox(sw, &BoxStyle::new(bg, t.border).bevel(true));
         ui.cv.fill(R::new(sw.x + 4, sw.y + 4, sw.w / 2 - 4, sw.h - 8), ac);
@@ -71,7 +71,7 @@ impl App {
             };
             let _ = tx.send(Msg::Themes(crate::bundle::cards(), r.unwrap_or_else(|e| e), op == "apply"));
             // тема с картинкой — мегабайты JSON: куча шелла не должна их держать
-            yami_px::trim_heap();
+            nemo_px::trim_heap();
         });
     }
 

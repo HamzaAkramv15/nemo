@@ -8,9 +8,9 @@ use crate::app::{Act, App, Msg, Ui};
 use calloop::channel::Sender;
 use smithay_client_toolkit::seat::keyboard::{KeyEvent, Keysym};
 use std::collections::HashMap;
-use yami_px::font::PX;
-use yami_px::gfx::{BoxStyle, R};
-use yami_px::ui::{Cur, Field, Tone};
+use nemo_px::font::PX;
+use nemo_px::gfx::{BoxStyle, R};
+use nemo_px::ui::{Cur, Field, Tone};
 use std::io::{BufRead, BufReader, Write};
 use std::sync::mpsc;
 use std::sync::Mutex;
@@ -19,7 +19,7 @@ use zbus::blocking::Connection;
 use zbus::zvariant::{OwnedValue, Value};
 
 pub const SIZE: (i32, i32) = (446, 248);
-const PATH: &str = "/org/yami/PolkitAgent";
+const PATH: &str = "/org/nemo/PolkitAgent";
 pub const SOCKET: &str = "/run/polkit/agent-helper.socket";
 pub const HELPERS: &[&str] = &["/usr/lib/polkit-1/polkit-agent-helper-1", "/usr/libexec/polkit-agent-helper-1", "/usr/lib/policykit-1/polkit-agent-helper-1", "/usr/libexec/polkit-1/polkit-agent-helper-1"];
 
@@ -30,7 +30,7 @@ pub fn helper() -> Option<std::path::PathBuf> {
     if wrap.exists() {
         return Some(wrap.to_path_buf());
     }
-    HELPERS.iter().map(std::path::PathBuf::from).find(|p| p.exists()).or_else(|| yami_px::paths::find_exe("polkit-agent-helper-1"))
+    HELPERS.iter().map(std::path::PathBuf::from).find(|p| p.exists()).or_else(|| nemo_px::paths::find_exe("polkit-agent-helper-1"))
 }
 const TRIES: u32 = 3;
 
@@ -147,7 +147,7 @@ fn session(user: &str, cookie: &str, tx: &Sender<Msg>, rx: &mpsc::Receiver<Optio
                 match rx.recv() {
                     Ok(Some(mut p)) => {
                         let ok = writeln!(w, "{p}").and_then(|_| w.flush()).is_ok();
-                        yami_px::ui::wipe(&mut p);
+                        nemo_px::ui::wipe(&mut p);
                         if !ok {
                             return Out::Bad;
                         }
@@ -360,7 +360,7 @@ impl App {
             let (tx, name) = (self.tx.clone(), r.message.clone());
             std::thread::spawn(move || {
                 let res = crate::automount::unlock(&dev, &p);
-                yami_px::ui::wipe(&mut p);
+                nemo_px::ui::wipe(&mut p);
                 let _ = tx.send(Msg::Unlocked(name, res));
             });
         } else {

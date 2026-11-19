@@ -1,14 +1,14 @@
 // Внешние программы: запуск отвязанными (setsid), долгие дети нитей (PDEATHSIG), curl к чужим
-// сайтам, окно выбора yami-files, перекраска с пониженным приоритетом, подбор детей,
+// сайтам, окно выбора nemo-files, перекраска с пониженным приоритетом, подбор детей,
 // доставшихся от образа до перезапуска.
 
 use crate::app::App;
 
 /// curl к чужому сайту (погода, тексты песен, тема по ссылке): только https, и после
-/// переадресаций; потолок времени и размера; имя yami в User-Agent. Флаги -f, -G, -L, -o — у вызова
+/// переадресаций; потолок времени и размера; имя nemo в User-Agent. Флаги -f, -G, -L, -o — у вызова
 pub fn curl(secs: u32, max: u64) -> std::process::Command {
     let mut c = std::process::Command::new("curl");
-    let ua = concat!("yami/", env!("CARGO_PKG_VERSION"), " (https://github.com/HamzaAkramv15/nemo)");
+    let ua = concat!("nemo/", env!("CARGO_PKG_VERSION"), " (https://github.com/HamzaAkramv15/nemo)");
     c.args(["-q", "-s", "--proto", "=https", "--proto-redir", "=https", "-A", ua, "--max-time", &secs.to_string(), "--max-filesize", &max.to_string()]);
     c
 }
@@ -25,7 +25,7 @@ pub fn curl_get(secs: u32, max: u64, url: &str, q: &[(&str, String)]) -> std::pr
 
 /// долгий процесс нити шелла (playerctl -F, pactl subscribe, parec) уходит вместе с ней: при
 /// падении шелла и при перезапуске (exec в том же pid уничтожает нити, их дети получают сигнал).
-/// Без этого каждый `yami restart` и каждое обновление оставляли по живой копии каждого из них
+/// Без этого каждый `nemo restart` и каждое обновление оставляли по живой копии каждого из них
 pub fn owned(cmd: &mut std::process::Command) -> &mut std::process::Command {
     use std::os::unix::process::CommandExt;
     // SAFETY: между fork и exec только prctl
@@ -37,19 +37,19 @@ pub fn owned(cmd: &mut std::process::Command) -> &mut std::process::Command {
     }
 }
 
-/// исполняемый файл bin в PATH или в ~/.local/bin (туда ставит установщик): yami-files, yami-view и
-/// yami-play ставятся по выбору, шелл без них открывает чужими программами
+/// исполняемый файл bin в PATH или в ~/.local/bin (туда ставит установщик): nemo-files, nemo-view и
+/// nemo-play ставятся по выбору, шелл без них открывает чужими программами
 pub fn have(bin: &str) -> bool {
     use std::os::unix::fs::PermissionsExt;
-    let local = yami_px::paths::home().join(".local/bin");
+    let local = nemo_px::paths::home().join(".local/bin");
     let path = std::env::var_os("PATH").unwrap_or_default();
     std::env::split_paths(&path).chain(std::iter::once(local)).any(|d| d.join(bin).metadata().is_ok_and(|m| m.is_file() && m.permissions().mode() & 0o111 != 0))
 }
 
-/// окно выбора yami-files (`--pick MODE`, папка, свои ключи): первая строка ответа или None
+/// окно выбора nemo-files (`--pick MODE`, папка, свои ключи): первая строка ответа или None
 /// (отмена). Ждёт, пока окно открыто, — только из нити; окно закрывается вместе с нитью (owned)
 pub fn files_pick(mode: &str, folder: &std::path::Path, args: &[&str]) -> Option<String> {
-    let mut c = std::process::Command::new("yami-files");
+    let mut c = std::process::Command::new("nemo-files");
     c.args(["--pick", mode]).args(args).arg("--folder").arg(folder);
     owned(&mut c).output().ok().filter(|o| o.status.success()).and_then(|o| String::from_utf8_lossy(&o.stdout).lines().next().map(str::to_string))
 }
@@ -94,7 +94,7 @@ pub(crate) fn reap_inherited() {
     v.retain(|&p| unsafe { libc::waitpid(p, std::ptr::null_mut(), libc::WNOHANG) } == 0);
 }
 
-/// `yami-shell recolor`, тихо и с пониженным приоритетом: на слабой машине перекраска (обои, курсор,
+/// `nemo-shell recolor`, тихо и с пониженным приоритетом: на слабой машине перекраска (обои, курсор,
 /// темы программ) не должна отнимать процессор у стола
 /// перекраски идут по одной: два recolor разом пишут одни файлы, и старая палитра могла лечь
 /// последней (#33: cava оставалась на прошлых обоях). Каждый читает palette.json, когда дошла очередь
@@ -107,7 +107,7 @@ pub fn recolor_run(args: &[&std::ffi::OsStr]) -> bool {
 }
 
 pub fn recolor() -> std::process::Command {
-    let mut c = std::process::Command::new(yami_px::paths::self_exe());
+    let mut c = std::process::Command::new(nemo_px::paths::self_exe());
     c.arg("recolor").stdout(std::process::Stdio::null()).stderr(std::process::Stdio::null());
     gentle(&mut c);
     c
@@ -126,9 +126,9 @@ pub fn gentle(cmd: &mut std::process::Command) -> &mut std::process::Command {
 }
 
 impl App {
-    /// папка (или trash:///) — в yami-files, а без него — в файловом менеджере по умолчанию (xdg-open)
+    /// папка (или trash:///) — в nemo-files, а без него — в файловом менеджере по умолчанию (xdg-open)
     pub fn open_dir(what: String) {
-        let app = if have("yami-files") { "yami-files" } else { "xdg-open" };
+        let app = if have("nemo-files") { "nemo-files" } else { "xdg-open" };
         App::spawn(&[app.into(), what]);
     }
 

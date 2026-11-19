@@ -1,10 +1,10 @@
-// Настройки yami-agents: ~/.config/yami/agents.json — какие части работают. До 2.8 часть из них
+// Настройки nemo-agents: ~/.config/nemo/agents.json — какие части работают. До 2.8 часть из них
 // лежала в настройках шелла: при первой загрузке переезжают оттуда.
 
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use std::path::PathBuf;
-use yami_px::paths;
+use nemo_px::paths;
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 #[serde(default, rename_all = "camelCase")]
@@ -26,7 +26,7 @@ impl Default for Cfg {
 }
 
 fn path() -> PathBuf {
-    paths::config_dir().join("yami/agents.json")
+    paths::config_dir().join("nemo/agents.json")
 }
 
 impl Cfg {

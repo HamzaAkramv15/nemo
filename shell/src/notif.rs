@@ -223,7 +223,7 @@ pub fn draw(ui: &mut Ui, st: &State, w: i32, _h: i32) {
             draw_card(ui, n, R::new(r.x + 14, r.y + 8, r.w - 24, r.h - 16), true);
         }
         if pixel && k < 1.0 && !island {
-            ui.cv.dissolve_rect_as(R::new(r.x - 4, r.y - 4, r.w + 12, r.h + 12), k, 2, yami_px::gfx::Reveal::from_id(style), st.set.reveal_grain);
+            ui.cv.dissolve_rect_as(R::new(r.x - 4, r.y - 4, r.w + 12, r.h + 12), k, 2, nemo_px::gfx::Reveal::from_id(style), st.set.reveal_grain);
         }
         // уходящая карточка уже не ловит нажатий
         if leaving.is_some() {
@@ -528,7 +528,7 @@ impl App {
         if ids.is_empty() {
             let out = self.focus_out();
             let (anchor, margin) = self.notif_place(&out, w);
-            self.mk(SKind::Notifs, &out, Layer::Overlay, "yami-notif", anchor, (w, h), margin, 0, KeyboardInteractivity::None);
+            self.mk(SKind::Notifs, &out, Layer::Overlay, "nemo-notif", anchor, (w, h), margin, 0, KeyboardInteractivity::None);
         } else {
             for id in ids {
                 if let Some(s) = self.surfs.get_mut(&id) {
@@ -557,7 +557,7 @@ impl App {
         // свои номера по кругу 9 500 000…9 999 999: не совпадают друг с другом и с карточкой обновления (update.rs NOTE_ID)
         static NEXT: std::sync::atomic::AtomicU32 = std::sync::atomic::AtomicU32::new(0);
         let id = 9_500_000 + NEXT.fetch_add(1, std::sync::atomic::Ordering::Relaxed) % 500_000;
-        let n = crate::dbus::Incoming { id, app: "yami".into(), icon: String::new(), summary: crate::i18n::tr(summary).into(), body: match quip { Some(q) => format!("{}\n{q}", crate::i18n::tr(body)), None => crate::i18n::tr(body).into() }, actions: vec![], urgency: 1, image: None, timeout: -1 };
+        let n = crate::dbus::Incoming { id, app: "nemo".into(), icon: String::new(), summary: crate::i18n::tr(summary).into(), body: match quip { Some(q) => format!("{}\n{q}", crate::i18n::tr(body)), None => crate::i18n::tr(body).into() }, actions: vec![], urgency: 1, image: None, timeout: -1 };
         self.on_notif(n);
     }
 
@@ -627,7 +627,7 @@ impl App {
                 mr = br + 12;
             }
             let margin = (mt, mr, mb, ml);
-            let id = self.mk(SKind::Osd, &out, Layer::Overlay, "yami-osd", anchor, (308, 64 + 8), margin, -1, KeyboardInteractivity::None);
+            let id = self.mk(SKind::Osd, &out, Layer::Overlay, "nemo-osd", anchor, (308, 64 + 8), margin, -1, KeyboardInteractivity::None);
             if let Some(s) = self.surfs.get(&id) {
                 if let Ok(r) = smithay_client_toolkit::compositor::Region::new(&self.compositor) {
                     s.layer.wl_surface().set_input_region(Some(r.wl_region()));

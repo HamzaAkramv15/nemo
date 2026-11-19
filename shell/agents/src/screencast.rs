@@ -12,8 +12,8 @@ use zbus::zvariant::{ObjectPath, OwnedObjectPath, OwnedValue, Value};
 
 pub static CONN: OnceLock<Connection> = OnceLock::new();
 
-/// имя бэкенда на шине (config/portal/yami-agents.portal)
-pub const NAME: &str = "org.freedesktop.impl.portal.desktop.yamiagents";
+/// имя бэкенда на шине (config/portal/nemo-agents.portal)
+pub const NAME: &str = "org.freedesktop.impl.portal.desktop.nemoagents";
 
 const MUTTER: &str = "org.gnome.Mutter.ScreenCast";
 
@@ -47,7 +47,7 @@ pub fn serve(tx: Sender<Msg>) {
             Ok(c) => {
                 let _ = CONN.set(c);
             }
-            Err(e) => eprintln!("yami-agents: {NAME}: {e}"),
+            Err(e) => eprintln!("nemo-agents: {NAME}: {e}"),
         }
     });
 }

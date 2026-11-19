@@ -1,6 +1,6 @@
 // Тексты песен для всплывашки музыки (#13). Откуда, по порядку: сам плеер (MPRIS xesam:asText),
 // файл .lrc или .txt рядом с треком (xesam:url), кеш, LRCLIB (lrclib.net) — только если разрешено
-// (службы → «тексты песен из сети»). Ответ сети кешируется в ~/.cache/yami/lyrics, «не нашлось» —
+// (службы → «тексты песен из сети»). Ответ сети кешируется в ~/.cache/nemo/lyrics, «не нашлось» —
 // тоже, на неделю. В памяти — только текст текущего трека. LRC с метками времени — построчно,
 // звучащая строка подсвечена; без меток — простым текстом.
 
@@ -169,17 +169,17 @@ fn from_player(player: &str, field: &str) -> Option<String> {
 /// «трек.lrc» или «трек.txt» рядом с файлом, который играет
 fn from_file(player: &str) -> Option<String> {
     let url = from_player(player, "xesam:url")?;
-    let p = yami_px::icons::uri_path(&url)?;
-    ["lrc", "txt"].iter().find_map(|e| yami_px::paths::read_capped(&p.with_extension(e), MAX_TEXT)).map(|b| String::from_utf8_lossy(&b).into_owned()).filter(|s| !s.trim().is_empty())
+    let p = nemo_px::icons::uri_path(&url)?;
+    ["lrc", "txt"].iter().find_map(|e| nemo_px::paths::read_capped(&p.with_extension(e), MAX_TEXT)).map(|b| String::from_utf8_lossy(&b).into_owned()).filter(|s| !s.trim().is_empty())
 }
 
 fn cache_dir() -> PathBuf {
-    yami_px::paths::cache_dir().join("yami/lyrics")
+    nemo_px::paths::cache_dir().join("nemo/lyrics")
 }
 
 fn cache_file(key: &str) -> PathBuf {
     // FNV-1a: имя файла из исполнителя и названия, без них самих в пути
-    let h = yami_px::fnv(yami_px::FNV0, key.as_bytes());
+    let h = nemo_px::fnv(nemo_px::FNV0, key.as_bytes());
     cache_dir().join(format!("{h:016x}.lrc"))
 }
 
@@ -191,15 +191,15 @@ fn cached(key: &str) -> Option<Option<String>> {
         let fresh = m.modified().ok().and_then(|t| t.elapsed().ok()).is_some_and(|d| d.as_secs() < 7 * 86400);
         return fresh.then_some(None);
     }
-    let b = yami_px::paths::read_capped(&p, MAX_TEXT)?;
+    let b = nemo_px::paths::read_capped(&p, MAX_TEXT)?;
     Some(Some(String::from_utf8_lossy(&b).into_owned()))
 }
 
 fn store(key: &str, text: Option<&str>) {
     static TIDY: std::sync::Once = std::sync::Once::new();
     let d = cache_dir();
-    TIDY.call_once(|| yami_px::paths::tidy(&d, 365, 8 << 20));
-    let _ = yami_px::paths::write_atomic(&cache_file(key), text.unwrap_or(""));
+    TIDY.call_once(|| nemo_px::paths::tidy(&d, 365, 8 << 20));
+    let _ = nemo_px::paths::write_atomic(&cache_file(key), text.unwrap_or(""));
 }
 
 /// исполнитель и название без приписок видео и каналов: «(Official Video)», «[HD]», « - Topic»;
@@ -303,7 +303,7 @@ mod tests {
         assert_eq!(l.iter().map(|x| (x.at, x.text.as_str())).collect::<Vec<_>>(), vec![(2.0, "a b"), (3.0, ""), (5.0, "c")]);
     }
 
-    /// живой запрос к lrclib.net: `cargo test -p yami-shell lyrics -- --ignored`
+    /// живой запрос к lrclib.net: `cargo test -p nemo-shell lyrics -- --ignored`
     #[test]
     #[ignore]
     fn lrclib_live() {

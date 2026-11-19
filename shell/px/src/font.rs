@@ -148,9 +148,9 @@ fn load(file: &str, idx: u32) -> Option<FontRef<'static>> {
 
 /// где лежат шрифты набора: $NEMO_FONTS (проверка и CI берут их прямо из репозитория), иначе папка установки
 fn bundled_dir() -> std::path::PathBuf {
-    match std::env::var_os("NEMO_FONTS") {
+    match crate::paths::env_os("NEMO_FONTS") {
         Some(d) if !d.is_empty() => d.into(),
-        _ => crate::paths::home().join(".local/share/fonts/yami"),
+        _ => crate::paths::home().join(".local/share/fonts/nemo"),
     }
 }
 

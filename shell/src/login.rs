@@ -1,10 +1,10 @@
-// Экран входа (yami-greet) в виде шелла: шелл выкладывает в /var/lib/yami-greet/look то, из
+// Экран входа (nemo-greet) в виде шелла: шелл выкладывает в /var/lib/nemo-greet/look то, из
 // чего тот рисуется, — look.json (палитра и тона, язык, проявление, 闇, шрифт, раскладки,
-// мониторы из ~/.config/yami/niri/outputs.kdl, настройки экрана входа greet*) и wall.png (обои: как на столе,
+// мониторы из ~/.config/nemo/niri/outputs.kdl, настройки экрана входа greet*) и wall.png (обои: как на столе,
 // пиксельные из палитры или никаких — greetWall). Папку отдаёт пользователю установщик; нет её или
 // она не наша — ничего не пишется. Экран входа проверяет всё сам: для него это чужие данные.
-// Здесь же вкладка «экран входа» и `yami login` (sync, status, log, preview). Как прошёл его
-// последний запуск, greet-session пишет в /var/lib/yami-greet/log (читать может каждый).
+// Здесь же вкладка «экран входа» и `nemo login` (sync, status, log, preview). Как прошёл его
+// последний запуск, greet-session пишет в /var/lib/nemo-greet/log (читать может каждый).
 
 use crate::app::{App, State};
 use crate::config::Settings;
@@ -12,23 +12,25 @@ use crate::settings::{opt_btn, title};
 use crate::ui::{Act, Ui};
 use std::path::{Path, PathBuf};
 use std::sync::Mutex;
-use yami_px::font::PX;
-use yami_px::gfx::{Img, R};
-use yami_px::ui::Tone;
+use nemo_px::font::PX;
+use nemo_px::gfx::{Img, R};
+use nemo_px::ui::Tone;
 
-/// ключи настроек, которые читает экран входа (yami_px::look::Look::from_json, data::Opts, kdl.rs)
+/// ключи настроек, которые читает экран входа (nemo_px::look::Look::from_json, data::Opts, kdl.rs)
 const KEYS: [&str; 26] = [
     "preset", "corners", "radius", "shadow", "palette", "accent", "tint", "glass", "lift", "inner", "light", "lang", "reveal", "revealGrain", "animations", "animSpeed", "lite", "wallKanji", "fontShell", "greetUsers", "greetDim", "greetClock",
     "greetHost", "greetPower", "greetOff", "greetNumlock",
 ];
 
 /// куда ставит модуль (install-system.sh)
-const GREET: &str = "/usr/local/bin/yami-greet";
-const LOG_DIR: &str = "/var/lib/yami-greet/log";
+const GREET: &str = "/usr/local/bin/nemo-greet";
+const LOG_DIR: &str = "/var/lib/nemo-greet/log";
 
-/// папка вида экрана входа; YAMI_GREET_LOOK — для проверок без root
+/// папка вида экрана входа; NEMO_GREET_LOOK — для проверок без root
 pub fn dir() -> PathBuf {
-    std::env::var_os("YAMI_GREET_LOOK").map(PathBuf::from).unwrap_or_else(|| "/var/lib/yami-greet/look".into())
+    // до переименования каталог звался yami-greet: пока установщик его не переименовал, пишем в старый
+    let dir = if std::path::Path::new("/var/lib/nemo-greet").exists() || !std::path::Path::new("/var/lib/yami-greet").exists() { "/var/lib/nemo-greet/look" } else { "/var/lib/yami-greet/look" };
+    nemo_px::paths::env_os("NEMO_GREET_LOOK").map(PathBuf::from).unwrap_or_else(|| dir.into())
 }
 
 /// экран входа установлен и папка вида — наша
@@ -37,12 +39,12 @@ pub fn writable() -> bool {
     unsafe { libc::access(c.as_ptr(), libc::W_OK) == 0 }
 }
 
-/// yami-greet: установленный установщиком, а у сборки пакетного менеджера (Nix) — рядом с шеллом
+/// nemo-greet: установленный установщиком, а у сборки пакетного менеджера (Nix) — рядом с шеллом
 pub fn greet_bin() -> Option<PathBuf> {
     if Path::new(GREET).exists() {
         return Some(GREET.into());
     }
-    let near = yami_px::paths::self_exe().with_file_name("yami-greet");
+    let near = nemo_px::paths::self_exe().with_file_name("nemo-greet");
     (!crate::update::enabled() && near.is_file()).then_some(near)
 }
 
@@ -53,7 +55,7 @@ pub fn installed() -> bool {
 pub fn look(set: &Settings) -> String {
     let v = serde_json::to_value(set).unwrap_or_default();
     let mut o = serde_json::Map::new();
-    o.insert("_".into(), "written by yami-shell for the login screen (yami-greet)".into());
+    o.insert("_".into(), "written by nemo-shell for the login screen (nemo-greet)".into());
     for k in KEYS {
         if let Some(x) = v.get(k) {
             o.insert(k.into(), x.clone());
@@ -188,7 +190,7 @@ pub fn dm() -> Option<bool> {
 }
 
 pub fn last_result() -> String {
-    yami_px::paths::read_capped(&Path::new(LOG_DIR).join("last"), 4096).map(|b| String::from_utf8_lossy(&b).lines().next().unwrap_or("").trim().to_string()).unwrap_or_default()
+    nemo_px::paths::read_capped(&Path::new(LOG_DIR).join("last"), 4096).map(|b| String::from_utf8_lossy(&b).lines().next().unwrap_or("").trim().to_string()).unwrap_or_default()
 }
 
 /// «2026-11-07 10:59:43 ok 412» → (время, итог по-людски, хорошо ли)
@@ -228,9 +230,9 @@ pub fn tab(ui: &mut Ui, st: &State, b: R) {
     let p = &st.login_probe;
     let half = (b.w - 20) / 2;
     let (lx, rx) = (b.x, b.x + half + 20);
-    let mut y = title(ui, b.x, b.y, b.w, "экран входа: greetd + yami-greet");
+    let mut y = title(ui, b.x, b.y, b.w, "экран входа: greetd + nemo-greet");
     if !p.installed {
-        ui.text_in(PX, R::new(b.x, y, b.w, 20), "не установлен: модуль yami-greet ставится из nemo setup", t.warn);
+        ui.text_in(PX, R::new(b.x, y, b.w, 20), "не установлен: модуль nemo-greet ставится из nemo setup", t.warn);
         y += 22;
         ui.text_in(PX, R::new(b.x, y, b.w, 20), "настройки ниже применятся, когда он появится", t.text_faint);
         y += 30;
@@ -288,7 +290,7 @@ pub fn tab(ui: &mut Ui, st: &State, b: R) {
     ui.button(R::new(b.x + bw + 6, y, bw, 28), "отдать вид сейчас", "reboot", Tone::Plain, false, p.look, Act::SCycle("login_sync"));
     ui.button(R::new(b.x + 2 * (bw + 6), y, bw, 28), "журнал", "text", Tone::Plain, false, p.installed, Act::SCycle("login_log"));
     y += 34;
-    ui.text_in(PX, R::new(b.x, y, b.w, 20), "«посмотреть» — экран входа поверх стола: пароль yami или esc", t.text_faint);
+    ui.text_in(PX, R::new(b.x, y, b.w, 20), "«посмотреть» — экран входа поверх стола: пароль nemo или esc", t.text_faint);
 }
 
 impl App {
@@ -300,7 +302,7 @@ impl App {
             "greet_users" => s.greet_users = if s.greet_users == "name" { "list" } else { "name" }.into(),
             "login_sync" => {
                 std::thread::spawn(|| {
-                    let _ = std::process::Command::new(yami_px::paths::self_exe()).args(["login", "sync"]).stdout(std::process::Stdio::null()).stderr(std::process::Stdio::null()).status();
+                    let _ = std::process::Command::new(nemo_px::paths::self_exe()).args(["login", "sync"]).stdout(std::process::Stdio::null()).stderr(std::process::Stdio::null()).status();
                 });
                 return true;
             }
@@ -326,14 +328,14 @@ impl App {
     }
 }
 
-/// `yami login [sync|status|log|preview]`
+/// `nemo login [sync|status|log|preview]`
 pub fn cli(a: &[&str]) -> i32 {
     match a.first().copied() {
         None | Some("sync") => sync(),
         Some("status") => status(),
         Some("log") => {
             let p = Path::new(LOG_DIR).join("greet.log");
-            match yami_px::paths::read_capped(&p, 1 << 20) {
+            match nemo_px::paths::read_capped(&p, 1 << 20) {
                 Some(b) => {
                     print!("{}", String::from_utf8_lossy(&b));
                     0
@@ -362,7 +364,7 @@ pub fn cli(a: &[&str]) -> i32 {
 fn status() -> i32 {
     let p = probe();
     let yes = |b: bool| if b { "✓" } else { "·" };
-    println!("{} yami-greet   {}", yes(p.installed), greet_bin().map(|p| p.display().to_string()).unwrap_or_else(|| "—".into()));
+    println!("{} nemo-greet   {}", yes(p.installed), greet_bin().map(|p| p.display().to_string()).unwrap_or_else(|| "—".into()));
     let dm = match p.dm {
         Some(true) => crate::tf!("greetd — менеджер входа", "greetd is the login manager", "o greetd é o gerenciador de login"),
         Some(false) => crate::tf!("greetd не включён", "greetd is not enabled", "o greetd não está ativado"),
@@ -395,7 +397,7 @@ fn sync() -> i32 {
             Some((o.get("width")?.as_i64()? as i32, o.get("height")?.as_i64()? as i32))
         })
         .unwrap_or((1920, 1080));
-    let t = yami_px::theme::Theme::new(set.accent_rgb(), set.tint, set.glass, set.lift, set.inner, set.light).apply();
+    let t = nemo_px::theme::Theme::new(set.accent_rgb(), set.tint, set.glass, set.lift, set.inner, set.light).apply();
     match wall_mode(&set) {
         "desktop" => {
             let job = crate::wall::Job::new(&set, &t, w, h, crate::wall::own(&set));

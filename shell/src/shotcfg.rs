@@ -1,4 +1,4 @@
-// Настройки скриншотов: файл ~/.config/yami/shot.json принадлежит yami-shot, вкладка шелла правит его же.
+// Настройки скриншотов: файл ~/.config/nemo/shot.json принадлежит nemo-shot, вкладка шелла правит его же.
 // До 2.8 они лежали в настройках шелла: при первой загрузке переезжают оттуда.
 
 use serde::{Deserialize, Serialize};
@@ -16,19 +16,19 @@ pub struct ShotCfg {
     pub delay: u32,
     pub confirm: String,
     pub prefix: String,
-    /// когда файл прочитан: yami-shot правит его и сам (кнопка таймера), шелл перечитывает перед правкой
+    /// когда файл прочитан: nemo-shot правит его и сам (кнопка таймера), шелл перечитывает перед правкой
     #[serde(skip)]
     mtime: Option<std::time::SystemTime>,
 }
 
 impl Default for ShotCfg {
     fn default() -> ShotCfg {
-        ShotCfg { dir: String::new(), copy: true, save: true, loupe: true, notify: true, delay: 3, confirm: "space".into(), prefix: "yami".into(), mtime: None }
+        ShotCfg { dir: String::new(), copy: true, save: true, loupe: true, notify: true, delay: 3, confirm: "space".into(), prefix: "nemo".into(), mtime: None }
     }
 }
 
 fn path() -> PathBuf {
-    crate::config::config_dir().join("yami/shot.json")
+    crate::config::config_dir().join("nemo/shot.json")
 }
 
 fn mtime() -> Option<std::time::SystemTime> {
@@ -39,7 +39,7 @@ impl ShotCfg {
     pub fn load() -> ShotCfg {
         // файл есть — он главный: негодный ключ берётся по умолчанию, остальное остаётся, файл не переписывается
         if let Ok(t) = std::fs::read_to_string(path()) {
-            let mut c: ShotCfg = yami_px::paths::lenient_json(&t);
+            let mut c: ShotCfg = nemo_px::paths::lenient_json(&t);
             c.mtime = mtime();
             return c;
         }
@@ -61,7 +61,7 @@ impl ShotCfg {
         c
     }
 
-    /// файл изменился с прошлого чтения (yami-shot, руками): прочитать заново; true — изменился
+    /// файл изменился с прошлого чтения (nemo-shot, руками): прочитать заново; true — изменился
     pub fn fresh(&mut self) -> bool {
         if mtime() == self.mtime {
             return false;
@@ -79,9 +79,9 @@ impl ShotCfg {
     pub fn folder(&self) -> PathBuf {
         let d = self.dir.trim();
         if d.is_empty() {
-            yami_px::paths::pictures().join("Screenshots")
+            nemo_px::paths::pictures().join("Screenshots")
         } else {
-            yami_px::paths::expand(d)
+            nemo_px::paths::expand(d)
         }
     }
 }

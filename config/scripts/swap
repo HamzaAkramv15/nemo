@@ -1,5 +1,5 @@
 #!/bin/sh
-# yami-script: swap in use (amber above half full)
+# nemo-script: swap in use (amber above half full)
 set -- $(awk '/SwapTotal/ { t = $2 } /SwapFree/ { f = $2 } END { print t, t - f }' /proc/meminfo)
 if [ "${1:-0}" -eq 0 ]; then printf '{"text":"no swap","icon":"ram","color":"dim","interval":300}\n'; exit 0; fi
 pct=$(($2 * 100 / $1))

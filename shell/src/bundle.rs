@@ -1,15 +1,15 @@
-// Настройки и темы одним файлом. `yami theme export ФАЙЛ` упаковывает только вид: палитру и
+// Настройки и темы одним файлом. `nemo theme export ФАЙЛ` упаковывает только вид: палитру и
 // тона, светлую или тёмную тему, эффекты, шрифты, бар, виджеты, вид дока, отступы, курсор и саму
-// картинку обоев; `yami theme import ФАЙЛ` применяет его и больше ничего не трогает. Чужая тема
+// картинку обоев; `nemo theme import ФАЙЛ` применяет его и больше ничего не трогает. Чужая тема
 // ничего не может запустить: ни клавиш, ни команд, ни скриптов, ни источника обновлений.
-// `yami export ФАЙЛ` — полный бэкап yami этой машины (все настройки, настройки файлов,
-// niri/user.kdl, скрипты бара, обои); `yami import ФАЙЛ` показывает, что идёт с командами (свои
+// `nemo export ФАЙЛ` — полный бэкап nemo этой машины (все настройки, настройки файлов,
+// niri/user.kdl, скрипты бара, обои); `nemo import ФАЙЛ` показывает, что идёт с командами (свои
 // клавиши, user.kdl, скрипты), и ставит это только с `--yes`. Перед любым импортом всё текущее
-// копируется в ~/.local/state/yami/before-import-*.json (тот же формат, пять последних;
-// `yami import КОПИЯ --yes` возвращает). Файл — JSON, двоичное в
+// копируется в ~/.local/state/nemo/before-import-*.json (тот же формат, пять последних;
+// `nemo import КОПИЯ --yes` возвращает). Файл — JSON, двоичное в
 // base64: читается глазами, сравнивается diff'ом, делится одним файлом.
-// Темы под рукой (#8) — ~/.config/yami/themes/<имя>.json того же формата: `yami theme save ИМЯ`,
-// `apply`, `remove`, `list`, раздел «темы» во вкладке «цвет»; `yami theme import` кладёт тему и
+// Темы под рукой (#8) — ~/.config/nemo/themes/<имя>.json того же формата: `nemo theme save ИМЯ`,
+// `apply`, `remove`, `list`, раздел «темы» во вкладке «цвет»; `nemo theme import` кладёт тему и
 // туда, в том числе по https-ссылке (только тема, никогда не полный файл).
 // i18n: inline pairs
 
@@ -18,9 +18,9 @@ use crate::config::{config_dir, settings_path, state_dir, write_atomic};
 use serde_json::{json, Map, Value};
 use std::path::{Path, PathBuf};
 
-const FORMAT: &str = "yami-bundle";
+const FORMAT: &str = "nemo-bundle";
 
-/// ключи вида (camelCase, как в yami-shell.json)
+/// ключи вида (camelCase, как в nemo-shell.json)
 fn is_look(k: &str) -> bool {
     const EXACT: &[&str] = &[
         "accent", "palette", "tint", "light", "glass", "lift", "inner", "dim", "blurShell", "blurTerm", "preset", "corners", "radius", "shadow", "iconStyle", "animations", "animSpeed", "animClose", "reveal", "revealGrain", "scanlines", "iconTheme", "iconPixel", "cursor", "cursorSize",
@@ -113,13 +113,13 @@ fn bundle(theme: bool, with_wall: bool) -> Value {
             s.insert(k.clone(), v.clone());
         }
     }
-    let mut b = json!({ "format": FORMAT, "version": 1, "kind": if theme { "theme" } else { "full" }, "yami": env!("CARGO_PKG_VERSION"), "settings": s });
+    let mut b = json!({ "format": FORMAT, "version": 1, "kind": if theme { "theme" } else { "full" }, "nemo": env!("CARGO_PKG_VERSION"), "settings": s });
     if let Some(w) = with_wall.then(|| wall_entry(&set)).flatten() {
         b["wallpaper"] = w;
     }
     if !theme {
         let mut files = Map::new();
-        for (rel, p) in [("yami/files.json", yami_px::paths::module_settings("files")), ("niri/user.kdl", config_dir().join("niri/user.kdl"))] {
+        for (rel, p) in [("nemo/files.json", nemo_px::paths::module_settings("files")), ("niri/user.kdl", config_dir().join("niri/user.kdl"))] {
             if let Ok(t) = std::fs::read_to_string(p) {
                 files.insert(rel.into(), Value::String(t));
             }
@@ -127,7 +127,7 @@ fn bundle(theme: bool, with_wall: bool) -> Value {
         for m in crate::plugins::available() {
             let name = &m[2..];
             if let Ok(t) = std::fs::read(crate::plugins::dir().join(name)) {
-                files.insert(format!("yami/scripts/{name}"), json!({ "exec": true, "data": b64(&t) }));
+                files.insert(format!("nemo/scripts/{name}"), json!({ "exec": true, "data": b64(&t) }));
             }
         }
         b["files"] = Value::Object(files);
@@ -154,9 +154,9 @@ const RUNS: &[&str] = &["customBinds", "binds"];
 /// имена файлов до 3.0 → нынешние (старый файл настроек тоже импортируется)
 fn modern_rel(rel: &str) -> String {
     match rel {
-        "yami-files.json" => "yami/files.json".into(),
-        _ => match rel.strip_prefix("yami/modules/") {
-            Some(n) => format!("yami/scripts/{n}"),
+        "nemo-files.json" | "yami-files.json" | "yami/files.json" => "nemo/files.json".into(),
+        _ => match rel.strip_prefix("nemo/modules/").or_else(|| rel.strip_prefix("yami/modules/")).or_else(|| rel.strip_prefix("yami/scripts/")) {
+            Some(n) => format!("nemo/scripts/{n}"),
             None => rel.into(),
         },
     }
@@ -164,9 +164,9 @@ fn modern_rel(rel: &str) -> String {
 
 fn file_kind(rel: &str) -> Option<bool> {
     match rel {
-        "yami/files.json" => Some(false),
+        "nemo/files.json" => Some(false),
         "niri/user.kdl" => Some(true),
-        _ => rel.strip_prefix("yami/scripts/").filter(|n| crate::plugins::name_ok(n)).map(|_| true),
+        _ => rel.strip_prefix("nemo/scripts/").filter(|n| crate::plugins::name_ok(n)).map(|_| true),
     }
 }
 
@@ -185,18 +185,18 @@ fn risky(b: &Value) -> Vec<String> {
                 v.push(k.clone());
             }
         }
-        if f.get("yami/files.json").or_else(|| f.get("yami-files.json")).and_then(|t| t.as_str()).is_some_and(|t| t.contains("\"terminal\"")) {
+        if f.get("nemo/files.json").or_else(|| f.get("yami/files.json")).or_else(|| f.get("yami-files.json")).and_then(|t| t.as_str()).is_some_and(|t| t.contains("\"terminal\"")) {
             v.push(crate::tf!("терминал файлового менеджера", "the file manager's terminal", "terminal do gerenciador de arquivos"));
         }
     }
     v
 }
 
-/// files.json yami-files из файла; без --yes терминал остаётся свой: это команда, которую файлы запускают
+/// files.json nemo-files из файла; без --yes терминал остаётся свой: это команда, которую файлы запускают
 fn files_json(incoming: &str, yes: bool) -> Option<String> {
     let mut v: Map<String, Value> = serde_json::from_str::<Value>(incoming).ok()?.as_object()?.clone();
     if !yes {
-        let cur = std::fs::read_to_string(yami_px::paths::module_settings("files")).ok().and_then(|t| serde_json::from_str::<Value>(&t).ok());
+        let cur = std::fs::read_to_string(nemo_px::paths::module_settings("files")).ok().and_then(|t| serde_json::from_str::<Value>(&t).ok());
         match cur.as_ref().and_then(|c| c.get("terminal")) {
             Some(t) => v.insert("terminal".into(), t.clone()),
             None => v.remove("terminal"),
@@ -208,14 +208,14 @@ fn files_json(incoming: &str, yes: bool) -> Option<String> {
 /// больше — не файл настроек и не тема (обои внутри — до 32 МБ, в base64 это ~43 МБ)
 const MAX_FILE: u64 = 64 << 20;
 
-/// файл yami: не больше 64 МБ, JSON нашего формата
+/// файл nemo: не больше 64 МБ, JSON нашего формата
 fn load(file: &Path) -> Result<Value, String> {
     if std::fs::metadata(file).map(|m| m.len() > MAX_FILE).unwrap_or(false) {
         return Err(crate::tf!("слишком большой файл: {}", "file too large: {}", "arquivo grande demais: {}", file.display()));
     }
     let b: Value = std::fs::read_to_string(file).ok().and_then(|t| serde_json::from_str(&t).ok()).ok_or_else(|| crate::tf!("не читается: {}", "cannot read: {}", "não foi possível ler: {}", file.display()))?;
-    if b["format"] != FORMAT {
-        return Err(crate::tf!("это не файл yami (export)", "not a yami file (export)", "não é um arquivo yami (export)"));
+    if b["format"] != FORMAT && b["format"] != "yami-bundle" {
+        return Err(crate::tf!("это не файл nemo (export)", "not a nemo file (export)", "não é um arquivo nemo (export)"));
     }
     Ok(b)
 }
@@ -251,7 +251,7 @@ fn plan(b: &Value, theme_only: bool, yes: bool) -> Plan {
 /// y — куда сказать о пропущенных чужих файлах (из шелла — молча)
 fn commit(b: &Value, p: Plan, yes: bool, y: Option<&Sty>) -> Result<PathBuf, String> {
     let Plan { theme, mut set, .. } = p;
-    // копия того, что было, тем же форматом: `yami import КОПИЯ --yes` возвращает всё назад
+    // копия того, что было, тем же форматом: `nemo import КОПИЯ --yes` возвращает всё назад
     let backup = backup().ok_or_else(|| crate::tf!("не могу сохранить копию текущих настроек — ничего не меняю", "cannot save a copy of the current settings: nothing changed", "não foi possível copiar as configurações atuais: nada foi alterado"))?;
     if let Some(w) = b.get("wallpaper").filter(|w| w.is_object()) {
         if let (Some(name), Some(data)) = (w["name"].as_str(), w["data"].as_str().and_then(unb64)) {
@@ -288,7 +288,7 @@ fn commit(b: &Value, p: Plan, yes: bool, y: Option<&Sty>) -> Result<PathBuf, Str
                     let _ = std::fs::create_dir_all(d);
                 }
                 match v {
-                    Value::String(t) if rel == "yami/files.json" => {
+                    Value::String(t) if rel == "nemo/files.json" => {
                         if let Some(t) = files_json(t, yes) {
                             let _ = write_atomic(&dst, &t);
                         }
@@ -357,10 +357,10 @@ fn import_value(y: &Sty, b: &Value, theme_only: bool, yes: bool, dry: bool) -> i
     }
 }
 
-// ── темы под рукой: ~/.config/yami/themes ───────────────────────────────────
+// ── темы под рукой: ~/.config/nemo/themes ───────────────────────────────────
 
 pub fn themes_dir() -> PathBuf {
-    config_dir().join("yami/themes")
+    config_dir().join("nemo/themes")
 }
 
 /// имя темы (оно же имя файла): буквы, цифры, пробел, «-», «_»; не больше 40 знаков
@@ -392,8 +392,8 @@ pub struct Card {
 
 /// цвет акцента темы: свой (#rrggbb) или пресета палитры
 fn accent_of(s: &Value) -> u32 {
-    let own = s["accent"].as_str().and_then(yami_px::theme::parse_hex);
-    own.or_else(|| yami_px::theme::PRESETS.iter().find(|p| Some(p.id) == s["palette"].as_str()).map(|p| p.accent)).unwrap_or(yami_px::theme::PRESETS[0].accent)
+    let own = s["accent"].as_str().and_then(nemo_px::theme::parse_hex);
+    own.or_else(|| nemo_px::theme::PRESETS.iter().find(|p| Some(p.id) == s["palette"].as_str()).map(|p| p.accent)).unwrap_or(nemo_px::theme::PRESETS[0].accent)
 }
 
 /// что карточке нужно из файла темы: картинку обоев (base64, мегабайты) разбор пропускает, не собирая
@@ -421,12 +421,12 @@ pub fn cards() -> Vec<Card> {
             let name = p.file_stem()?.to_str()?.to_string();
             let f = std::fs::File::open(&p).ok().filter(|f| f.metadata().is_ok_and(|m| m.is_file() && m.len() <= MAX_FILE))?;
             let b: Head = serde_json::from_reader(std::io::BufReader::new(f)).ok()?;
-            (b.format == FORMAT && b.kind == "theme").then_some(())?;
+            ((b.format == FORMAT || b.format == "yami-bundle") && b.kind == "theme").then_some(())?;
             let s = &b.settings;
             Some(Card { name, accent: accent_of(s), light: s["light"].as_bool().unwrap_or(false), wall: b.wallpaper.is_some() })
         })
         .collect();
-    v.sort_by(|a, b| yami_px::paths::natural(&a.name.to_lowercase(), &b.name.to_lowercase()));
+    v.sort_by(|a, b| nemo_px::paths::natural(&a.name.to_lowercase(), &b.name.to_lowercase()));
     v.truncate(48);
     // встроенные — первыми (если своя тема не носит то же имя)
     for (name, _) in BUILTIN.iter().rev() {
@@ -438,13 +438,13 @@ pub fn cards() -> Vec<Card> {
     v
 }
 
-/// та же тема в файле p: всё, кроме имени и версии yami
+/// та же тема в файле p: всё, кроме имени и версии nemo
 fn same(p: &Path, b: &Value) -> bool {
     let Ok(mut v) = load(p) else { return false };
     let mut b = b.clone();
     for x in [&mut v, &mut b] {
         x["name"] = Value::Null;
-        x["yami"] = Value::Null;
+        x["nemo"] = Value::Null;
     }
     v == b
 }
@@ -500,7 +500,7 @@ fn fetch(url: &str) -> Result<Value, String> {
     if !url.starts_with("https://") {
         return Err(crate::tf!("только https://", "https:// only", "somente https://"));
     }
-    let dir = yami_px::paths::private_tmp("theme").map_err(|e| e.to_string())?;
+    let dir = nemo_px::paths::private_tmp("theme").map_err(|e| e.to_string())?;
     let out = dir.join("theme.json");
     let ok = crate::proc::curl(30, MAX_FILE)
         .args(["-fL", "--max-redirs", "3", "-o"])
@@ -519,7 +519,7 @@ fn fetch(url: &str) -> Result<Value, String> {
     Ok(b)
 }
 
-/// `yami theme import ФАЙЛ|https://…`: в библиотеку и применить
+/// `nemo theme import ФАЙЛ|https://…`: в библиотеку и применить
 fn theme_import(y: &Sty, src: &str, dry: bool) -> i32 {
     let got = if src.starts_with("https://") || src.starts_with("http://") { fetch(src) } else { load(Path::new(src)) };
     let mut b = match got {
@@ -530,17 +530,17 @@ fn theme_import(y: &Sty, src: &str, dry: bool) -> i32 {
         }
     };
     // имя: из файла темы, иначе из имени файла или конца ссылки
-    let stem = src.rsplit('/').next().unwrap_or("").split(['?', '#']).next().unwrap_or("").trim_end_matches(".json").trim_end_matches(".yami").to_string();
+    let stem = src.rsplit('/').next().unwrap_or("").split(['?', '#']).next().unwrap_or("").trim_end_matches(".json").trim_end_matches(".nemo").to_string();
     let name = b["name"].as_str().map(theme_name).filter(|n| !n.is_empty()).unwrap_or(stem);
     let code = import_value(y, &b, true, false, dry);
     if code == 0 && !dry {
-        // полный файл (yami export) через theme import — только вид, в библиотеку как тема
+        // полный файл (nemo export) через theme import — только вид, в библиотеку как тема
         b["kind"] = Value::String("theme".into());
         if let Some(s) = b["settings"].as_object_mut() {
             s.retain(|k, _| is_look(k));
         }
         if let Some(o) = b.as_object_mut() {
-            o.retain(|k, _| matches!(k.as_str(), "format" | "version" | "kind" | "yami" | "settings" | "wallpaper" | "name"));
+            o.retain(|k, _| matches!(k.as_str(), "format" | "version" | "kind" | "nemo" | "settings" | "wallpaper" | "name"));
         }
         match put(&name, &mut b, false) {
             Ok(n) => println!("   {} {}\n", y.dim(&crate::tf!("в темах:", "saved as:", "salvo como:")), n),
@@ -550,7 +550,7 @@ fn theme_import(y: &Sty, src: &str, dry: bool) -> i32 {
     code
 }
 
-/// картинка обоев из файла → ~/.local/share/yami/wallpapers: имя — только имя файла (без пути и
+/// картинка обоев из файла → ~/.local/share/nemo/wallpapers: имя — только имя файла (без пути и
 /// скрытых), расширение — по содержимому (PNG, JPEG, WebP; другое не обои); чужую картинку с тем же
 /// именем не затирает
 fn wall_file(name: &str, data: &[u8]) -> Option<PathBuf> {
@@ -566,7 +566,7 @@ fn wall_file(name: &str, data: &[u8]) -> Option<PathBuf> {
     let stem: String = Path::new(name).file_stem().map(|n| n.to_string_lossy().to_string()).unwrap_or_default().chars().filter(|c| c.is_alphanumeric() || "._- ".contains(*c)).take(64).collect();
     let stem = stem.trim_start_matches('.').trim();
     let stem = if stem.is_empty() { "wallpaper" } else { stem };
-    let dir = crate::config::data_dir().join("yami/wallpapers");
+    let dir = crate::config::data_dir().join("nemo/wallpapers");
     std::fs::create_dir_all(&dir).ok()?;
     let p = (0..100).map(|n| dir.join(if n == 0 { format!("{stem}.{ext}") } else { format!("{stem}-{n}.{ext}") })).find(|p| std::fs::read(p).map(|d| d == data).unwrap_or(true))?;
     if !p.exists() {
@@ -583,7 +583,7 @@ fn backup_key(p: &Path) -> Option<(u64, u32)> {
     Some((a.parse().ok()?, b.parse().ok()?))
 }
 
-/// копия всех настроек перед импортом: ~/.local/state/yami/before-import-<время>.json, пять последних
+/// копия всех настроек перед импортом: ~/.local/state/nemo/before-import-<время>.json, пять последних
 fn backup() -> Option<PathBuf> {
     let dir = state_dir();
     std::fs::create_dir_all(&dir).ok()?;
@@ -610,7 +610,7 @@ fn safe_rel(rel: &str) -> bool {
     !rel.is_empty() && p.is_relative() && p.components().all(|c| matches!(c, std::path::Component::Normal(_)))
 }
 
-/// `yami theme …`, `yami export …`, `yami import …`
+/// `nemo theme …`, `nemo export …`, `nemo import …`
 /// итог команды: ✓ и что сделано (0) или ✕ и почему (1)
 fn report(y: &Sty, r: Result<String, String>) -> i32 {
     match r {
@@ -672,7 +672,7 @@ pub fn run(y: &Sty, cmd: &str, args: &[&str]) -> i32 {
             y.section("nemo theme / export / import");
             y.row("theme export FILE", &crate::tf!("вид в один файл: палитра, эффекты, шрифты, бар, виджеты, обои", "the look in one file: palette, effects, fonts, bar, widgets, wallpaper", "o visual num arquivo: paleta, efeitos, fontes, barra, widgets e papel de parede"));
             y.row("theme import FILE|URL [--dry-run]", &crate::tf!("применить чужую тему (файл или https-ссылка): только вид, без команд; остаётся в темах", "apply someone's theme (a file or an https link): the look only, no commands; kept in your themes", "aplicar um tema de outra pessoa (arquivo ou link https): só a aparência, sem comandos; salvo nos seus temas"));
-            y.row("theme save [NAME]", &crate::tf!("текущий вид — в свои темы (~/.config/yami/themes)", "keep the current look in your themes (~/.config/yami/themes)", "salvar a aparência atual nos seus temas (~/.config/yami/themes)"));
+            y.row("theme save [NAME]", &crate::tf!("текущий вид — в свои темы (~/.config/nemo/themes)", "keep the current look in your themes (~/.config/nemo/themes)", "salvar a aparência atual nos seus temas (~/.config/nemo/themes)"));
             y.row("theme list | apply NAME | remove NAME", &crate::tf!("свои темы: список, применить, удалить", "your themes: list, apply, remove", "seus temas: list, apply, remove"));
             y.row("export FILE", &crate::tf!("все настройки, user.kdl, скрипты бара, обои", "every setting, user.kdl, bar scripts, wallpaper", "todas as configurações, user.kdl, scripts da barra e papel de parede"));
             y.row("import FILE [--yes] [--dry-run]", &crate::tf!("вернуть всё; команды и скрипты — только с --yes", "restore it all; commands and scripts only with --yes", "restaurar tudo; comandos e scripts somente com --yes"));
@@ -693,7 +693,7 @@ mod tests {
         }
         let mut s = crate::config::Settings::lenient(&b["settings"].to_string());
         s.sanitize();
-        let t = yami_px::look::Look::from_json(&s.style_value(), Some(s.light)).theme;
+        let t = nemo_px::look::Look::from_json(&s.style_value(), Some(s.light)).theme;
         let lum = |c: crate::gfx::C| {
             let f = |v: u32| {
                 let x = v as f32 / 255.0;
@@ -727,7 +727,7 @@ mod tests {
         // тема, что идёт с программой, настроек читается как есть: каждое значение принимает Settings
         let mut s = crate::config::Settings::lenient(&b["settings"].to_string());
         s.sanitize();
-        assert_eq!((s.corners.as_str(), s.icon_style.as_str(), s.cursor.as_str()), ("notch", "normal", "yami"));
+        assert_eq!((s.corners.as_str(), s.icon_style.as_str(), s.cursor.as_str()), ("notch", "normal", "nemo"));
     }
 
     #[test]
@@ -749,10 +749,10 @@ mod tests {
         assert_eq!(super::theme_name(" ash/../dark: 2 "), "ashdark 2");
         assert!(super::is_policy("updateRepo"));
         assert!(super::safe_rel("niri/user.kdl") && !super::safe_rel("../x") && !super::safe_rel("/etc/x"));
-        assert_eq!(super::file_kind(&super::modern_rel("yami-files.json")), Some(false));
-        assert_eq!(super::file_kind(&super::modern_rel("yami/modules/w.sh")), Some(true));
+        assert_eq!(super::file_kind(&super::modern_rel("nemo-files.json")), Some(false));
+        assert_eq!(super::file_kind(&super::modern_rel("nemo/modules/w.sh")), Some(true));
         assert_eq!(super::file_kind("autostart/x.desktop"), None);
-        assert_eq!(super::file_kind("yami/scripts/../../fish/config.fish"), None);
+        assert_eq!(super::file_kind("nemo/scripts/../../fish/config.fish"), None);
         assert_eq!(super::backup_key(std::path::Path::new("/s/before-import-1793885973-12.json")), Some((1793885973, 12)));
         assert_eq!(super::backup_key(std::path::Path::new("/s/before-import-1793885973.json")), Some((1793885973, 0)));
         assert_eq!(super::backup_key(std::path::Path::new("/s/other.json")), None);

@@ -1,5 +1,5 @@
-# yami-output: ~/.config/zathura/yami
-# yami: the palette for zathura; in zathurarc: include yami
+# nemo-output: ~/.config/zathura/nemo
+# nemo: the palette for zathura; in zathurarc: include nemo
 set default-bg "{{bg}}"
 set default-fg "{{text}}"
 set statusbar-bg "{{panel}}"

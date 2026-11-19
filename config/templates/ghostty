@@ -1,6 +1,6 @@
-# yami-output: ~/.config/ghostty/themes/yami
-# yami-reload: USR2 ghostty
-# yami: the palette as a ghostty theme; in ~/.config/ghostty/config: theme = yami
+# nemo-output: ~/.config/ghostty/themes/nemo
+# nemo-reload: USR2 ghostty
+# nemo: the palette as a ghostty theme; in ~/.config/ghostty/config: theme = nemo
 background = {{bg}}
 foreground = {{text}}
 cursor-color = {{accent}}

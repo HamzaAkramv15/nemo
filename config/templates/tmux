@@ -1,5 +1,5 @@
-# yami-output: ~/.config/tmux/yami.conf
-# yami: the palette for tmux; in tmux.conf: source-file ~/.config/tmux/yami.conf
+# nemo-output: ~/.config/tmux/nemo.conf
+# nemo: the palette for tmux; in tmux.conf: source-file ~/.config/tmux/nemo.conf
 set -g status-style "bg={{panel}},fg={{text}}"
 set -g status-left-style "bg={{accent}},fg={{onAccent}}"
 set -g window-status-style "fg={{textDim}}"

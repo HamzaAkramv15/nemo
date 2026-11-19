@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# YAMI: the minimal install. One command, from anywhere, as yourself (not root):
+# NEMO: the minimal install. One command, from anywhere, as yourself (not root):
 #
 #   bash <(curl -fsSL https://raw.githubusercontent.com/HamzaAkramv15/nemo/main/install.sh)
 #
@@ -19,7 +19,7 @@
 # Choices: --lang en|ru|pt-BR|es|de|fr|uk|pl  --palette blood|ash|sakura|amber|venom|ice|dusk  --theme dark|light
 #   --look matte|glass|light|solid  --font sans|pixel  --fetch mini|full
 #   --restyle LIST (all, none, or: gtk qt cursor kitty fastfetch btop firefox mangohud foot cava starship)
-# Modules (with --full or --apply): files view play shot login games fork (the services, yami-agents, come with the shell)
+# Modules (with --full or --apply): files view play shot login games fork (the services, nemo-agents, come with the shell)
 #   --no-ID leaves one out, --ID takes it. --no-sudo: the home folder only, no packages.
 # Rarely needed: --no-monocraft, --no-count, --keep-build, --no-anim, --print-packages,
 #   --prebuilt DIR|URL  (a folder or address with the release's archive and SHA256SUMS).
@@ -27,17 +27,17 @@
 #
 # Families: Arch, Fedora (incl. atomic), Debian/Ubuntu, openSUSE, Void, Alpine, Gentoo. NixOS: the
 # flake (docs/PACKAGING.md). Anything replaced is kept next to itself as *.bak-DATE.
-# Log: ~/.cache/yami/install.log. Each module in installer/*.sh holds one job.
+# Log: ~/.cache/nemo/install.log. Each module in installer/*.sh holds one job.
 set -uo pipefail
 # the whole script is one block and the modules are read whole when sourced: bash parses all of it
 # before running, so an update of these files mid-run (git pull, an editor) cannot shift lines
 {
 
 # ── bootstrap: started outside the repo (curl | bash) — fetch it and run from there ──
-YAMI_REPO="${YAMI_REPO:-https://github.com/HamzaAkramv15/nemo.git}"
+NEMO_REPO="${NEMO_REPO:-https://github.com/HamzaAkramv15/nemo.git}"
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")" 2>/dev/null && pwd)"
 if [[ ! -f $ROOT/shell/Cargo.toml || ! -f $ROOT/installer/ui.sh ]]; then
-  SRC_DIR="${XDG_DATA_HOME:-$HOME/.local/share}/yami/src"
+  SRC_DIR="${XDG_DATA_HOME:-$HOME/.local/share}/nemo/src"
   if ! command -v git >/dev/null; then
     # a bare system: git is the one thing needed before the installer proper
     pm="" su=""
@@ -48,23 +48,23 @@ if [[ ! -f $ROOT/shell/Cargo.toml || ! -f $ROOT/installer/ui.sh ]]; then
       if command -v sudo >/dev/null; then su=sudo; elif command -v doas >/dev/null; then su=doas; fi
     fi
     if [[ -n $pm ]] && { ((EUID == 0)) || [[ -n $su ]]; } && { : </dev/tty; } 2>/dev/null; then
-      echo "yami: git is needed to fetch the installer, installing it (the administrator password is asked once more later)" >&2
+      echo "nemo: git is needed to fetch the installer, installing it (the administrator password is asked once more later)" >&2
       # shellcheck disable=SC2086 # the command and its arguments
-      $su $pm </dev/tty || { echo "yami: could not install git; install it yourself and run this again: $su $pm" >&2; exit 1; }
+      $su $pm </dev/tty || { echo "nemo: could not install git; install it yourself and run this again: $su $pm" >&2; exit 1; }
     else
-      echo "yami: git is needed to fetch the installer; install it and run this again${pm:+: $su $pm}" >&2
+      echo "nemo: git is needed to fetch the installer; install it and run this again${pm:+: $su $pm}" >&2
       exit 1
     fi
   fi
   if [[ -d $SRC_DIR/.git ]]; then
     # a clone of an older address follows the current one; it may stand on a release tag
-    [[ "$(git -C "$SRC_DIR" remote get-url origin 2>/dev/null)" == "$YAMI_REPO" ]] || git -C "$SRC_DIR" remote set-url origin "$YAMI_REPO"
-    git -C "$SRC_DIR" fetch --quiet --tags origin main || echo "yami: could not update $SRC_DIR, using it as is" >&2
+    [[ "$(git -C "$SRC_DIR" remote get-url origin 2>/dev/null)" == "$NEMO_REPO" ]] || git -C "$SRC_DIR" remote set-url origin "$NEMO_REPO"
+    git -C "$SRC_DIR" fetch --quiet --tags origin main || echo "nemo: could not update $SRC_DIR, using it as is" >&2
   else
-    echo "yami: downloading the installer…" >&2
+    echo "nemo: downloading the installer…" >&2
     mkdir -p "${SRC_DIR%/*}"
     # history without file contents: small like --depth 1, but updates can compare versions
-    git clone --filter=blob:none "$YAMI_REPO" "$SRC_DIR" || { echo "yami: git clone $YAMI_REPO failed" >&2; exit 1; }
+    git clone --filter=blob:none "$NEMO_REPO" "$SRC_DIR" || { echo "nemo: git clone $NEMO_REPO failed" >&2; exit 1; }
   fi
   # the newest release (its ready binaries need no compiler); --main: the head of the development branch
   at=""
@@ -72,7 +72,7 @@ if [[ ! -f $ROOT/shell/Cargo.toml || ! -f $ROOT/installer/ui.sh ]]; then
   # by full name: a bare «v3.0.0» would also match a branch of that name, and checkout takes a branch first
   ref="refs/remotes/origin/main"
   [[ -n $at ]] && ref="refs/tags/$at"
-  git -C "$SRC_DIR" checkout --quiet --detach "$ref" || echo "yami: could not switch $SRC_DIR, using it as is" >&2
+  git -C "$SRC_DIR" checkout --quiet --detach "$ref" || echo "nemo: could not switch $SRC_DIR, using it as is" >&2
   # curl … | bash: give the interactive installer the terminal back
   if [[ ! -t 0 ]] && { : </dev/tty; } 2>/dev/null; then exec bash "$SRC_DIR/install.sh" "$@" </dev/tty; fi
   exec bash "$SRC_DIR/install.sh" "$@"
@@ -80,13 +80,19 @@ fi
 
 # ── where things go ─────────────────────────────────────────────────────────
 CFG="${XDG_CONFIG_HOME:-$HOME/.config}"
-CACHE="${XDG_CACHE_HOME:-$HOME/.cache}/yami"
-STATE="${XDG_STATE_HOME:-$HOME/.local/state}/yami"
+CACHE="${XDG_CACHE_HOME:-$HOME/.cache}/nemo"
+STATE="${XDG_STATE_HOME:-$HOME/.local/state}/nemo"
 BIN="$HOME/.local/bin"
 STAMP="$(date +%Y%m%d-%H%M%S)"
-# settings of this shell: ~/.config/yami/shell.json; before 3.0 ~/.config/yami-shell.json (the shell moves it)
-SET_JSON="$CFG/yami/shell.json"
+# settings of this shell: ~/.config/nemo/shell.json; before 3.0 ~/.config/yami-shell.json (the shell moves it)
+SET_JSON="$CFG/nemo/shell.json"
 [[ -f $SET_JSON || ! -f $CFG/yami-shell.json ]] || SET_JSON="$CFG/yami-shell.json"
+# the environment variables kept their meaning when YAMI_* became NEMO_*
+for v in $(compgen -e | grep '^YAMI_'); do n="NEMO_${v#YAMI_}"; [[ -n ${!n+x} ]] || export "$n=${!v}"; done
+unset v n
+# an installation under the old name (yami) moves to the new one first, with its settings (installer/legacy.sh)
+# shellcheck source=/dev/null
+. "$ROOT/installer/legacy.sh" && legacy_migrate
 LOG="$CACHE/install.log"
 MISSING_F="$CACHE/missing-packages"
 RUST_MIN="1.89"
@@ -140,7 +146,7 @@ done
 [[ -t 0 && -t 1 ]] || { YES=1; ANIM=0; }
 # the first install is the base alone; the rest comes from the first-run setup. Run again over an
 # installed Nemo it is a repair: the same choice, nothing is dropped and no first-run setup
-if ((!UPDATE && !FULL && !APPLY && !UNINSTALL)) && [[ -f $STATE/install.json && -x $BIN/yami-shell ]]; then
+if ((!UPDATE && !FULL && !APPLY && !UNINSTALL)) && [[ -f $STATE/install.json && -x $BIN/nemo-shell ]]; then
   REPAIR=1
 fi
 ((UPDATE || FULL || APPLY || REPAIR)) || SHELL_ONLY=1
@@ -150,7 +156,7 @@ export GIT_TERMINAL_PROMPT=0
 # ── the modules: each only defines (installer/*.sh) ─────────────────────────
 for m in ui json detect root packages components restyle choices modules prebuilt build apps desktop niri login backup uninstall summary; do
   # shellcheck source=/dev/null
-  . "$ROOT/installer/$m.sh" || { echo "yami: $ROOT/installer/$m.sh is missing" >&2; exit 1; }
+  . "$ROOT/installer/$m.sh" || { echo "nemo: $ROOT/installer/$m.sh is missing" >&2; exit 1; }
 done
 unset m
 
@@ -161,10 +167,10 @@ if ((PRINT_PKGS)); then
   exit 0
 fi
 # `sudo ./install.sh` would put the desktop into root's home: the installer asks for the password
-# itself, only where it is needed (containers and CI run as root on purpose: YAMI_AS_ROOT=1)
-if ((EUID == 0)) && [[ -z ${YAMI_AS_ROOT:-} && -z ${CI:-} ]]; then
-  echo "yami: run the installer as yourself, not as root: it asks for the password when it needs it" >&2
-  echo "      ./install.sh   (a root shell on purpose, e.g. a container: YAMI_AS_ROOT=1)" >&2
+# itself, only where it is needed (containers and CI run as root on purpose: NEMO_AS_ROOT=1)
+if ((EUID == 0)) && [[ -z ${NEMO_AS_ROOT:-} && -z ${CI:-} ]]; then
+  echo "nemo: run the installer as yourself, not as root: it asks for the password when it needs it" >&2
+  echo "      ./install.sh   (a root shell on purpose, e.g. a container: NEMO_AS_ROOT=1)" >&2
   exit 1
 fi
 mkdir -p "$CACHE"
@@ -214,7 +220,7 @@ if ((UPDATE)); then
   plan_desktop  # desktop.sh: fonts, niri config, everything from the palette
   plan_record   # desktop.sh: install record, packages-needed, counter, restart
   run_steps
-  fork_after    # niri.sh: yami-niri when its patch series moved
+  fork_after    # niri.sh: nemo-niri when its patch series moved
   login_after   # login.sh: offers the new login screen
   summary_update
 fi
@@ -257,8 +263,9 @@ plan_desktop
 plan_record
 run_steps
 root_end        # root.sh
-login_after     # login.sh: yami-greet itself
-fork_after      # niri.sh: yami-niri (minutes)
+legacy_cleanup  # legacy.sh: the commands and glue files of the old name
+login_after     # login.sh: nemo-greet itself
+fork_after      # niri.sh: nemo-niri (minutes)
 summary_install # summary.sh
 # a run that stopped half way is a failure for whoever started it
 ((BUILD_FAILED)) && exit 1

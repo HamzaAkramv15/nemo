@@ -50,7 +50,7 @@ restyle_saved() {
   else list="${T_ID[*]}"; fi
   list=" ${list//$'\n'/ } "
   local out=() c
-  c="$(json_field "$SET_JSON" cursor)" || c=yami
+  c="$(json_field "$SET_JSON" cursor)" || c=nemo
   for id in "${T_ID[@]}"; do
     if [[ $id == cursor ]]; then
       [[ $c != system ]] && out+=("$id")
@@ -81,10 +81,10 @@ t_name() {
 }
 t_desc() {
   case $1 in
-    gtk) t "adw-gtk3 в палитре, шрифт, тёмная или светлая: settings.ini, gtk.css, gsettings (прежние — в .bak-yami)" "adw-gtk3 in the palette, the font, dark or light: settings.ini, gtk.css, gsettings (the old ones kept as .bak-yami)" "adw-gtk3 na paleta, a fonte, escuro ou claro: settings.ini, gtk.css, gsettings (os antigos ficam como .bak-yami)" ;;
-    qt) t "qt6ct с Fusion в палитре, kdeglobals (прежние — в .bak-yami)" "qt6ct with Fusion in the palette, kdeglobals (the old ones kept as .bak-yami)" "qt6ct com Fusion na paleta, kdeglobals (os antigos ficam como .bak-yami)" ;;
+    gtk) t "adw-gtk3 в палитре, шрифт, тёмная или светлая: settings.ini, gtk.css, gsettings (прежние — в .bak-nemo)" "adw-gtk3 in the palette, the font, dark or light: settings.ini, gtk.css, gsettings (the old ones kept as .bak-nemo)" "adw-gtk3 na paleta, a fonte, escuro ou claro: settings.ini, gtk.css, gsettings (os antigos ficam como .bak-nemo)" ;;
+    qt) t "qt6ct с Fusion в палитре, kdeglobals (прежние — в .bak-nemo)" "qt6ct with Fusion in the palette, kdeglobals (the old ones kept as .bak-nemo)" "qt6ct com Fusion na paleta, kdeglobals (os antigos ficam como .bak-nemo)" ;;
     cursor) t "пиксельный курсор в палитре: niri, GTK, X11-программы; выкл — системный" "the pixel cursor in the palette: niri, GTK, X11 apps; off: the system one" "o cursor em pixel na paleta: niri, GTK, apps X11; desligado: o do sistema" ;;
-    kitty) t "цвета, шрифт и стекло: одна строка include yami.conf в конце kitty.conf, остальное твоё не трогается" "colours, font and glass: one line include yami.conf at the end of kitty.conf, the rest of yours stays" "cores, fonte e vidro: uma linha include yami.conf no fim do kitty.conf, o resto continua seu" ;;
+    kitty) t "цвета, шрифт и стекло: одна строка include nemo.conf в конце kitty.conf, остальное твоё не трогается" "colours, font and glass: one line include nemo.conf at the end of kitty.conf, the rest of yours stays" "cores, fonte e vidro: uma linha include nemo.conf no fim do kitty.conf, o resto continua seu" ;;
     fastfetch) t "свой конфиг с логотипом Nemo (прежний — в .bak)" "its own config with the Nemo logo (the old one kept as .bak)" "uma configuração própria com o logo Nemo (a antiga fica como .bak)" ;;
     btop) t "тема Nemo в btop" "the Nemo theme in btop" "o tema Nemo no btop" ;;
     firefox) t "меню и шрифт: userChrome.css, только если он наш" "menus and font: userChrome.css, only one Nemo wrote" "menus e fonte: userChrome.css, só um escrito pelo Nemo" ;;
@@ -95,5 +95,5 @@ t_desc() {
   esac
 }
 
-# settings → ~/.config/yami/shell.json (do_dotfiles): themeApps and the cursor
-restyle_json() { "$BIN/yami-shell" config restyle "$(t_list)" "$(t_on cursor && echo Nemo || echo system)"; }
+# settings → ~/.config/nemo/shell.json (do_dotfiles): themeApps and the cursor
+restyle_json() { "$BIN/nemo-shell" config restyle "$(t_list)" "$(t_on cursor && echo Nemo || echo system)"; }

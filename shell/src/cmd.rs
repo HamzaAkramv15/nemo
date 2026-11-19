@@ -1,5 +1,5 @@
-// Командная строка: `yami <команда>` (ссылка ~/.local/bin/yami → yami-shell) и то же самое
-// через `yami-shell <команда>`. Без команды `yami` печатает справку, а `yami-shell` запускает
+// Командная строка: `nemo <команда>` (ссылка ~/.local/bin/nemo → nemo-shell) и то же самое
+// через `nemo-shell <команда>`. Без команды `nemo` печатает справку, а `nemo-shell` запускает
 // шелл (так его зовёт niri). Справка — в цветах палитры, на языке шелла; NO_COLOR — без цвета.
 // Команды для настроек — cli.rs, проверка системы — doctor.rs, обновления — update.rs.
 // i18n: inline pairs
@@ -67,7 +67,7 @@ impl Sty {
 
 fn banner(y: &Sty) {
     println!();
-    println!(" {} {}  {}", y.acc("▚▞"), y.head(&format!("NEMO {}", yami_px::brand::VERSION)), y.dim(&crate::tf!("пиксельный рабочий стол для niri, форк yami (Trendorin)", "pixel desktop for niri, a fork of yami by Trendorin", "desktop em pixel para niri, um fork do yami de Trendorin")));
+    println!(" {} {}  {}", y.acc("▚▞"), y.head(&format!("NEMO {}", nemo_px::brand::VERSION)), y.dim(&crate::tf!("пиксельный рабочий стол для niri, форк nemo (Trendorin)", "pixel desktop for niri, a fork of nemo by Trendorin", "desktop em pixel para niri, um fork do nemo de Trendorin")));
 }
 
 fn help(y: &Sty, me: &str) {
@@ -96,7 +96,7 @@ fn help(y: &Sty, me: &str) {
     y.row("export | import FILE", &crate::tf!("все настройки одним файлом: переезд на новую систему", "every setting as one file: move to a new system", "todas as configurações num arquivo: migrar para outro sistema"));
     y.row("config …", &crate::tf!("все настройки: list get set reset check path kdl", "every setting: list get set reset check path kdl", "todas as configurações: list get set reset check path kdl"));
     y.row("binds …", &crate::tf!("клавиши: list print write", "keybindings: list print write", "atalhos: list print write"));
-    y.row("niri [connect|disconnect]", &crate::tf!("часть Nemo в конфиге niri: подключить одной строкой, убрать, состояние", "yami in niri's config: connect with one line, take out, status", "o Nemo na configuração do niri: conectar com uma linha, remover, estado"));
+    y.row("niri [connect|disconnect]", &crate::tf!("часть Nemo в конфиге niri: подключить одной строкой, убрать, состояние", "nemo in niri's config: connect with one line, take out, status", "o Nemo na configuração do niri: conectar com uma linha, remover, estado"));
     y.section(&crate::tf!("обслуживание", "maintenance", "manutenção"));
     y.row("update [check]", &crate::tf!("что нового в репозитории", "what is new upstream", "novidades no projeto original"));
     y.row("update apply", &crate::tf!("собрать и поставить новое (прежнее — в откат)", "build and install it (the old one is kept)", "compilar e instalar (a versão anterior é preservada)"));
@@ -108,8 +108,8 @@ fn help(y: &Sty, me: &str) {
     y.row("report [-o FILE]", &crate::tf!("архив для issue: версии, doctor, журнал, конфиги без секретов", "an archive for an issue: versions, doctor, journal, configs without secrets", "um arquivo para relatar problemas: versões, diagnóstico, registros e configurações sem segredos"));
     y.row("login sync", &crate::tf!("отдать экрану входа вид шелла сейчас (шелл делает это сам)", "give the login screen the shell's look now (the shell does it by itself)", "dar agora à tela de login a aparência do shell (o shell faz isso sozinho)"));
     y.row("login status | log", &crate::tf!("экран входа: стоит ли, как прошёл последний запуск, его журнал", "the login screen: installed or not, how its last start went, its log", "a tela de login: instalada ou não, como foi a última inicialização, o log"));
-    y.row("login preview", &crate::tf!("экран входа поверх стола (пароль yami или Esc)", "the login screen over the desktop (password yami or Esc)", "a tela de login sobre a área de trabalho (senha yami ou Esc)"));
-    y.row("clean [--dry-run]", &crate::tf!("убрать кеш сборки: исходники yami-niri и target шелла (гигабайты)", "remove the build cache: yami-niri sources and the shell's target (gigabytes)", "remover o cache de compilação: código-fonte do yami-niri e target do shell (gigabytes)"));
+    y.row("login preview", &crate::tf!("экран входа поверх стола (пароль nemo или Esc)", "the login screen over the desktop (password nemo or Esc)", "a tela de login sobre a área de trabalho (senha nemo ou Esc)"));
+    y.row("clean [--dry-run]", &crate::tf!("убрать кеш сборки: исходники nemo-niri и target шелла (гигабайты)", "remove the build cache: nemo-niri sources and the shell's target (gigabytes)", "remover o cache de compilação: código-fonte do nemo-niri e target do shell (gigabytes)"));
     y.row("version", &crate::tf!("версии всех частей", "versions of every part", "versões de cada componente"));
     y.row("shot …", &crate::tf!("панели в PNG без Wayland (разработка)", "panels to PNG without Wayland (development)", "painéis em PNG sem Wayland (desenvolvimento)"));
     println!("\n {} {}", y.dim(&crate::tf!("подробнее:", "more:", "mais:")), y.dim(&crate::tf!("nemo help <команда> · docs/CONFIG.md · NO_COLOR=1 — без цвета", "nemo help <command> · docs/CONFIG.md · NO_COLOR=1 for plain output", "nemo help <comando> · docs/CONFIG.md · NO_COLOR=1 para saída sem cores")));
@@ -152,7 +152,7 @@ fn help_open(y: &Sty) {
 
 fn help_update(y: &Sty) {
     y.section(&crate::tf!("обновления", "updates", "atualizações"));
-    y.row("update [check]", &crate::tf!("git fetch своего клона (~/.local/share/yami/src), что нового", "git fetch of its own clone (~/.local/share/yami/src), what is new", "git fetch da própria cópia (~/.local/share/yami/src), novidades"));
+    y.row("update [check]", &crate::tf!("git fetch своего клона (~/.local/share/nemo/src), что нового", "git fetch of its own clone (~/.local/share/nemo/src), what is new", "git fetch da própria cópia (~/.local/share/nemo/src), novidades"));
     y.row("update apply [-y]", &crate::tf!("проверить подпись, собрать из исходников, поставить", "check the signature, build from source, install", "verificar a assinatura, compilar e instalar"));
     y.row("update rollback", &crate::tf!("вернуть программы и конфиги, что стояли до последнего обновления (сразу)", "bring back the programs and configs from before the last update (instant)", "traz de volta os programas e configurações anteriores à última atualização (instantâneo)"));
     y.row("update snapshots", &crate::tf!("точки отката: хранятся три последние", "the rollback points: the last three are kept", "os pontos de restauração: os três últimos são mantidos"));
@@ -292,10 +292,10 @@ fn version(y: &Sty) -> i32 {
     println!();
     let row = |k: &str, v: String| println!("   {}{}", y.dim(&format!("{k:<14}")), v);
     let commit: String = st.commit.chars().take(8).collect();
-    row("nemo", yami_px::brand::VERSION.into());
-    row("yami base", format!("{}{}", if st.version.is_empty() { env!("CARGO_PKG_VERSION") } else { &st.version }, if commit.is_empty() { String::new() } else { format!("  {}", y.dim(&commit)) }));
-    row("yami-shell", env!("CARGO_PKG_VERSION").into());
-    for b in ["yami-files", "yami-view", "yami-play", "yami-shot", "yami-agents", "yami-greet"] {
+    row("nemo", nemo_px::brand::VERSION.into());
+    row("nemo base", format!("{}{}", if st.version.is_empty() { env!("CARGO_PKG_VERSION") } else { &st.version }, if commit.is_empty() { String::new() } else { format!("  {}", y.dim(&commit)) }));
+    row("nemo-shell", env!("CARGO_PKG_VERSION").into());
+    for b in ["nemo-files", "nemo-view", "nemo-play", "nemo-shot", "nemo-agents", "nemo-greet"] {
         // каждое из них ставится по выбору (компоненты установщика): нет — не беда
         row(b, out(b).map(|v| v.split_whitespace().last().unwrap_or("").to_string()).unwrap_or_else(|| y.dim(&crate::tf!("не установлен", "not installed", "não instalado"))));
     }
@@ -492,7 +492,7 @@ fn update(y: &Sty, args: &[&str]) -> i32 {
     }
 }
 
-/// разбор команды; as_yami — вызвали как `yami` (без команды — справка, а не запуск шелла)
+/// разбор команды; as_nemo — вызвали как `nemo` (без команды — справка, а не запуск шелла)
 pub fn run(args: &[String], me: &str) -> i32 {
     // перекраска — отдельная работа: настройки разбирает сама, справка и цвета ей не нужны
     if args.first().map(String::as_str) == Some("recolor") {
@@ -530,7 +530,7 @@ pub fn run(args: &[String], me: &str) -> i32 {
             0
         }
         Some("--version") | Some("-V") => {
-            println!("yami-shell {}", env!("CARGO_PKG_VERSION"));
+            println!("nemo-shell {}", env!("CARGO_PKG_VERSION"));
             0
         }
         Some("version") => version(&y),
@@ -558,7 +558,7 @@ pub fn run(args: &[String], me: &str) -> i32 {
                 2
             }
         },
-        // ночной свет из терминала или с клавиши: yami night [on|off|toggle|always|schedule|temp K]
+        // ночной свет из терминала или с клавиши: nemo night [on|off|toggle|always|schedule|temp K]
         Some("night") => {
             let cmd = if a.len() == 1 { "night".to_string() } else { format!("night {}", a[1..].join(" ")) };
             if !msg_ok(&cmd) {
@@ -567,7 +567,7 @@ pub fn run(args: &[String], me: &str) -> i32 {
             }
             send(&y, &cmd)
         }
-        // кофе: не гасить экран и не засыпать — yami caffeine [on|off|toggle|МИНУТЫ|Nh]
+        // кофе: не гасить экран и не засыпать — nemo caffeine [on|off|toggle|МИНУТЫ|Nh]
         Some("caffeine") => {
             let cmd = if a.len() == 1 { "caffeine".to_string() } else { format!("caffeine {}", a[1..].join(" ")) };
             if !msg_ok(&cmd) {
@@ -583,11 +583,11 @@ pub fn run(args: &[String], me: &str) -> i32 {
         Some("report") => crate::report::run(&y, &a[1..]),
         // первая настройка — окно самого шелла: язык, вид, бар, клавиши, niri, модули
         Some("setup") => send(&y, &a.get(1).map_or("welcome".to_string(), |s| format!("welcome {s}"))),
-        // распознавание живёт в модуле yami-shot
-        Some("ocr") => match std::process::Command::new("yami-shot").arg("ocr").args(&a[1..]).status() {
+        // распознавание живёт в модуле nemo-shot
+        Some("ocr") => match std::process::Command::new("nemo-shot").arg("ocr").args(&a[1..]).status() {
             Ok(s) => s.code().unwrap_or(1),
             Err(_) => {
-                eprintln!(" {} {}", y.bad("✕"), crate::tf!("нужен модуль yami-shot", "the yami-shot module is needed", "o módulo yami-shot é necessário"));
+                eprintln!(" {} {}", y.bad("✕"), crate::tf!("нужен модуль nemo-shot", "the nemo-shot module is needed", "o módulo nemo-shot é necessário"));
                 1
             }
         },

@@ -9,7 +9,7 @@ PREBUILT=0 PREBUILT_DIR="" PREBUILT_ASSET=""
 # the newest glibc the archive asks for
 GLIBC_NEED=2.34
 
-prebuilt_where() { printf '%s' "${PREBUILT_FROM:-${YAMI_PREBUILT_URL:-https://github.com/HamzaAkramv15/nemo/releases/download/v$(cat "$ROOT/VERSION")}}"; }
+prebuilt_where() { printf '%s' "${PREBUILT_FROM:-${NEMO_PREBUILT_URL:-https://github.com/HamzaAkramv15/nemo/releases/download/v$(cat "$ROOT/VERSION")}}"; }
 glibc_ok() {
   local v
   v="$(getconf GNU_LIBC_VERSION 2>/dev/null | awk '{print $2}')"
@@ -41,7 +41,7 @@ prebuilt_init() {
   local asked=0
   [[ -n $PREBUILT_FROM ]] && asked=1
   # checkouts of the modules next to this tree are built from what is in them
-  ((asked)) || [[ -z ${YAMI_MODULES_DIR:-} ]] || return 0
+  ((asked)) || [[ -z ${NEMO_MODULES_DIR:-} ]] || return 0
   if [[ "$(uname -m)" != x86_64 ]] || ! glibc_ok; then
     ((asked)) && { echo "--prebuilt: needs x86_64 and glibc $GLIBC_NEED or newer" >&2; exit 2; }
     return 0
@@ -52,7 +52,7 @@ prebuilt_init() {
   if ((!asked)); then
     [[ "$(git -C "$ROOT" describe --tags --exact-match --match 'v[0-9]*' HEAD 2>/dev/null)" == "v$ver" && -n "$(src_rev "$ROOT")" ]] || return 0
   fi
-  PREBUILT_ASSET="yami-$ver-x86_64-linux.tar.gz"
+  PREBUILT_ASSET="nemo-$ver-x86_64-linux.tar.gz"
   if ! prebuilt_has "$PREBUILT_ASSET"; then
     ((asked)) && { echo "--prebuilt: no $PREBUILT_ASSET at $(prebuilt_where)" >&2; exit 2; }
     return 0
@@ -61,7 +61,7 @@ prebuilt_init() {
   # known up front: the steps run in subshells and share nothing but files
   PREBUILT_DIR="$CACHE/prebuilt/${PREBUILT_ASSET%.tar.gz}"
 }
-# the compiler is still wanted for yami-niri, or for niri itself when the packaged one is too old
+# the compiler is still wanted for nemo-niri, or for niri itself when the packaged one is too old
 needs_compiler() { ((!PREBUILT)) || on fork || { ((!APPLY)) && on core && ! niri_will_do && ((!DRY)); }; }
 
 # the checksum file signed by a release key, then the archive against it. Keys in the tree: no signature, no install
@@ -70,7 +70,7 @@ prebuilt_verify() { # folder
   if grep -qvE '^[[:space:]]*(#|$)' "$keys" 2>/dev/null; then
     [[ -s $d/SHA256SUMS.sig ]] || { echo "the ready binaries of this release carry no signature"; return 1; }
     who="$(ssh-keygen -Y find-principals -f "$keys" -s "$d/SHA256SUMS.sig" 2>/dev/null | head -n1)"
-    if [[ -z $who ]] || ! ssh-keygen -q -Y verify -f "$keys" -I "$who" -n yami-release -s "$d/SHA256SUMS.sig" <"$d/SHA256SUMS" >/dev/null 2>&1; then
+    if [[ -z $who ]] || ! ssh-keygen -q -Y verify -f "$keys" -I "$who" -n nemo-release -s "$d/SHA256SUMS.sig" <"$d/SHA256SUMS" >/dev/null 2>&1; then
       echo "the signature of the ready binaries does not check out"
       return 1
     fi
@@ -93,16 +93,16 @@ prebuilt_fetch() {
   prebuilt_verify "$dl" || return 1
   tar -xzf "$dl/$PREBUILT_ASSET" --no-same-owner -C "$ex" || return 1
   rm -rf -- "$dl"
-  [[ -x $PREBUILT_DIR/bin/yami-shell ]] || { echo "the archive holds no yami-shell"; return 1; }
+  [[ -x $PREBUILT_DIR/bin/nemo-shell ]] || { echo "the archive holds no nemo-shell"; return 1; }
 }
 # a module's files (.desktop, portals, the login screen's scripts) stay where a git checkout of it would:
 # settings → updates runs the login screen's script later from there
 prebuilt_module() { # repository
-  local dest="${XDG_DATA_HOME:-$HOME/.local/share}/yami/modules/$1"
+  local dest="${XDG_DATA_HOME:-$HOME/.local/share}/nemo/modules/$1"
   rm -rf -- "$dest"
   mkdir -p "${dest%/*}"
   cp -a -- "$PREBUILT_DIR/modules/$1" "$dest" || return 1
-  [[ $1 != yami-greet ]] || install -m755 "$PREBUILT_DIR/bin/yami-greet" "$dest/yami-greet" || return 1
+  [[ $1 != nemo-greet ]] || install -m755 "$PREBUILT_DIR/bin/nemo-greet" "$dest/nemo-greet" || return 1
   printf '%s\n' "$dest" >"$CACHE/src-$1"
 }
 # the chosen binaries go to the same place a build leaves them; do_install_bins swaps them in
@@ -113,12 +113,12 @@ prebuilt_take() { # binary
 do_prebuilt_bins() {
   local id repo
   # the services come with the shell
-  ((APPLY)) || { prebuilt_take yami-shell && prebuilt_take yami-agents; } || return 1
+  ((APPLY)) || { prebuilt_take nemo-shell && prebuilt_take nemo-agents; } || return 1
   for id in files view play shot; do
     on "$id" || continue
     repo="$(m_repo "$id")" && prebuilt_take "$repo" || return 1
   done
-  if wants login; then install -Dm755 "$PREBUILT_DIR/bin/yami-greet" "$CACHE/target/release/yami-greet" || return 1; fi
+  if wants login; then install -Dm755 "$PREBUILT_DIR/bin/nemo-greet" "$CACHE/target/release/nemo-greet" || return 1; fi
   rm -rf -- "$CACHE/prebuilt"
   return 0
 }

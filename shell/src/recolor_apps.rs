@@ -1,6 +1,6 @@
 // Перекраска чужих программ по палитре (recolor.rs): Qt и KDE, GTK, шрифты, kitty, foot, cava, starship,
 // btop, Firefox и его родня, fastfetch, niri, MangoHud. Каждая — только если отмечена в themeApps; свои
-// файлы человека не перезаписываем: чужое в конфиге остаётся, прежнее лежит рядом как *.bak-yami.
+// файлы человека не перезаписываем: чужое в конфиге остаётся, прежнее лежит рядом как *.bak-nemo.
 
 use crate::recolor::*;
 use crate::recolor_data::{FF_FONT, FF_MENUS, NIRI_KDL, QSS};
@@ -93,16 +93,16 @@ pub fn qt6ct(cx: &Cx, p: &P) -> Res {
     let mut ina = act.clone();
     ina[12] = p.g("dim");
     let j = |xs: &[&str]| xs.iter().map(|h| format!("#ff{}", h.trim_start_matches('#'))).collect::<Vec<_>>().join(", ");
-    write(&cx.cfg.join("qt6ct/colors/yami.conf"), &format!("[ColorScheme]\nactive_colors={}\ndisabled_colors={}\ninactive_colors={}\n", j(&act), j(&dis), j(&ina)))?;
-    let d = cx.cfg.join("qt6ct/qss/yami");
+    write(&cx.cfg.join("qt6ct/colors/nemo.conf"), &format!("[ColorScheme]\nactive_colors={}\ndisabled_colors={}\ninactive_colors={}\n", j(&act), j(&dis), j(&ina)))?;
+    let d = cx.cfg.join("qt6ct/qss/nemo");
     crate::recolor_art::qt_pixels(p, &d)?;
-    // диалоги файлов Qt — через портал, то есть yami-files (как у GTK и браузеров)
+    // диалоги файлов Qt — через портал, то есть nemo-files (как у GTK и браузеров)
     ini_set(&cx.cfg.join("qt6ct/qt6ct.conf"), "standard_dialogs", "xdgdesktopportal", "[Appearance]")?;
     let u = |n: &str| format!("url({}.png)", d.join(n).display());
     let sl = |n: &str| format!("border-image: {} 4 4 4 4 stretch stretch; border-width: 4px;", u(n));
     let arg = |e: &str| e.split('\'').nth(1).unwrap_or("").to_string();
     let css = pyf(QSS, p, &|e| if e.starts_with("sl(") { sl(&arg(e)) } else { u(&arg(e)) });
-    write(&cx.cfg.join("qt6ct/qss/yami.qss"), &css)
+    write(&cx.cfg.join("qt6ct/qss/nemo.qss"), &css)
 }
 
 // ── KDE: схема цветов и kdeglobals ──────────────────────────────────────────
@@ -152,21 +152,21 @@ pub fn kde(cx: &Cx, p: &P) -> Res {
         format!("{r},{g},{b}")
     };
     let groups = [("Window", p.g("panel").to_string(), p.g("surface").to_string()), ("View", p.g("bg").to_string(), mix(p.g("bg"), p.g("panel"), 0.6)), ("Button", p.g("surface").to_string(), p.g("surfaceHi").to_string()), ("Selection", p.g("selection").to_string(), p.g("dim").to_string()), ("Tooltip", p.g("panel").to_string(), p.g("surface").to_string()), ("Complementary", p.g("codeBg").to_string(), p.g("panel").to_string()), ("Header", p.g("panel").to_string(), p.g("surface").to_string())];
-    let mut out: Vec<String> = ["[General]", "ColorScheme=Yami", "Name=YAMI", "shadeSortColumn=true", "", "[KDE]", "contrast=4", ""].iter().map(|s| s.to_string()).collect();
+    let mut out: Vec<String> = ["[General]", "ColorScheme=Nemo", "Name=Nemo", "shadeSortColumn=true", "", "[KDE]", "contrast=4", ""].iter().map(|s| s.to_string()).collect();
     for (g, bg, alt) in &groups {
         let fg = if *g == "Selection" { p.hi() } else { p.g("text").to_string() };
         out.extend([format!("[Colors:{g}]"), format!("BackgroundNormal={}", c(bg)), format!("BackgroundAlternate={}", c(alt)), format!("ForegroundNormal={}", c(&fg)), format!("ForegroundInactive={}", c(p.g("textDim"))), format!("ForegroundActive={}", c(p.g("bright"))), format!("ForegroundLink={}", c(p.g("bright"))), format!("ForegroundVisited={}", c(p.g("accent"))), format!("ForegroundNegative={}", c("#ff4a3d")), format!("ForegroundNeutral={}", c(p.g("warn"))), format!("ForegroundPositive={}", c(p.g("ok"))), format!("DecorationFocus={}", c(p.g("accent"))), format!("DecorationHover={}", c(p.g("bright"))), String::new()]);
     }
     out.extend(["[Colors:Header][Inactive]".to_string(), format!("BackgroundNormal={}", c(p.g("bg"))), format!("BackgroundAlternate={}", c(p.g("panel"))), format!("ForegroundNormal={}", c(p.g("textDim"))), String::new(), "[WM]".to_string(), format!("activeBackground={}", c(p.g("panel"))), format!("activeForeground={}", c(p.g("text"))), format!("activeBlend={}", c(p.g("accent"))), format!("inactiveBackground={}", c(p.g("bg"))), format!("inactiveForeground={}", c(p.g("textFaint"))), format!("inactiveBlend={}", c(p.g("border"))), String::new()]);
     let scheme = out.join("\n");
-    write(&cx.home.join(".local/share/color-schemes/Yami.colors"), &scheme)?;
+    write(&cx.home.join(".local/share/color-schemes/Nemo.colors"), &scheme)?;
     let target = cx.cfg.join("kdeglobals");
     let mut cfg = if target.exists() { ini_parse(&std::fs::read_to_string(&target)?) } else { vec![] };
     for (sec, kv) in ini_parse(&scheme) {
         if sec.starts_with("[Colors:") || sec == "[WM]" {
             *section(&mut cfg, &sec) = kv;
         } else if sec == "[General]" {
-            kv_set(section(&mut cfg, &sec), "ColorScheme", "Yami");
+            kv_set(section(&mut cfg, &sec), "ColorScheme", "Nemo");
         }
     }
     // программы KDE сами включают Breeze, если он стоит; Fusion — чтобы работал наш QSS
@@ -176,19 +176,19 @@ pub fn kde(cx: &Cx, p: &P) -> Res {
 }
 
 // ── GTK 3/4 ─────────────────────────────────────────────────────────────────
-/// наш стиль GTK — в своём файле yami.css; в gtk.css только строка @import (твой gtk.css остаётся
-/// твоим). gtk.css, целиком написанный yami до 3.0, заменяется одной этой строкой
-const GTK_IMPORT: &str = "@import url(\"yami.css\");";
+/// наш стиль GTK — в своём файле nemo.css; в gtk.css только строка @import (твой gtk.css остаётся
+/// твоим). gtk.css, целиком написанный nemo до 3.0, заменяется одной этой строкой
+const GTK_IMPORT: &str = "@import url(\"nemo.css\");";
 
 fn gtk_attach(dir: &Path, css: &str) -> Res {
-    write(&dir.join("yami.css"), css)?;
+    write(&dir.join("nemo.css"), css)?;
     let f = dir.join("gtk.css");
     let cur = std::fs::read_to_string(&f).unwrap_or_default();
     if cur.lines().any(|l| l.trim() == GTK_IMPORT) {
         return Ok(());
     }
     let text = if cur.trim().is_empty() || cur.starts_with("/* NEMO") {
-        format!("/* yami: its colours live in yami.css; write your own rules below. */\n{GTK_IMPORT}\n")
+        format!("/* nemo: its colours live in nemo.css; write your own rules below. */\n{GTK_IMPORT}\n")
     } else {
         // @import — до остальных правил
         format!("{GTK_IMPORT}\n{cur}")
@@ -201,16 +201,16 @@ fn gtk_attach(dir: &Path, css: &str) -> Res {
     Ok(())
 }
 
-/// GTK выключили (или только GTK 4): наша строка и yami.css уходят, твои правила остаются
+/// GTK выключили (или только GTK 4): наша строка и nemo.css уходят, твои правила остаются
 fn gtk_detach(dir: &Path) -> Res {
-    let _ = std::fs::remove_file(dir.join("yami.css"));
+    let _ = std::fs::remove_file(dir.join("nemo.css"));
     let f = dir.join("gtk.css");
     let Ok(cur) = std::fs::read_to_string(&f) else { return Ok(()) };
     if cur.starts_with("/* NEMO") {
         let _ = std::fs::remove_file(&f);
         return Ok(());
     }
-    let keep: Vec<&str> = cur.lines().filter(|l| l.trim() != GTK_IMPORT && !l.starts_with("/* yami: its colours live in yami.css")).collect();
+    let keep: Vec<&str> = cur.lines().filter(|l| l.trim() != GTK_IMPORT && !l.starts_with("/* nemo: its colours live in nemo.css")).collect();
     if keep.len() == cur.lines().count() {
         return Ok(());
     }
@@ -231,7 +231,7 @@ pub fn gtk(cx: &Cx, p: &P) -> Res {
     }
     let side = mix(p.g("bg"), p.g("panel"), 0.5);
     let d: Vec<(&str, &str)> = vec![("accent_color", p.g("bright")), ("accent_bg_color", p.g("accent")), ("accent_fg_color", p.g("onAccent")), ("destructive_color", "#ff4a3d"), ("destructive_bg_color", "#8a1a14"), ("destructive_fg_color", "#ffffff"), ("success_color", p.g("ok")), ("warning_color", p.g("warn")), ("error_color", "#ff4a3d"), ("window_bg_color", p.g("panel")), ("window_fg_color", p.g("text")), ("view_bg_color", p.g("bg")), ("view_fg_color", p.g("text")), ("headerbar_bg_color", p.g("panel")), ("headerbar_fg_color", p.g("text")), ("headerbar_border_color", p.g("border")), ("headerbar_backdrop_color", p.g("bg")), ("sidebar_bg_color", &side), ("sidebar_fg_color", p.g("text")), ("sidebar_backdrop_color", p.g("bg")), ("card_bg_color", p.g("surface")), ("card_fg_color", p.g("text")), ("dialog_bg_color", p.g("panel")), ("dialog_fg_color", p.g("text")), ("popover_bg_color", p.g("panel")), ("popover_fg_color", p.g("text")), ("thumbnail_bg_color", p.g("surface")), ("thumbnail_fg_color", p.g("text")), ("borders", p.g("border"))];
-    let mut css = format!("/* YAMI: пишет {WHO} по палитре шелла. */\n"); // i18n-ok
+    let mut css = format!("/* NEMO: пишет {WHO} по палитре шелла. */\n"); // i18n-ok
     for (k, v) in &d {
         css += &format!("@define-color {k} {v};\n");
     }
@@ -394,12 +394,12 @@ pub fn fonts(cx: &Cx, _p: &P) -> Res {
         gs_set("monospace-font-name", &format!("{mono} {mono_pt}"));
     }
     if cx.on("kitty") {
-        write(&cx.cfg.join("kitty/yami-font.conf"), &format!("# YAMI: written by {WHO} (settings → fonts)\nfont_family {mono}\nfont_size {mono_pt}.0\n"))?;
+        write(&cx.cfg.join("kitty/nemo-font.conf"), &format!("# NEMO: written by {WHO} (settings → fonts)\nfont_family {mono}\nfont_size {mono_pt}.0\n"))?;
         // оболочка kitty: fish подсказывает команды по истории сам, и kitty знает его по имени
         // (shell integration работает); входная оболочка системы остаётся как была
         let fish = cx.st.get("terminalFish").and_then(|v| v.as_bool()).unwrap_or(true) && crate::doctor::which("fish");
         let body = if fish { "shell fish\n" } else { "# fish is off or not installed: kitty starts your usual shell\n" };
-        write(&cx.cfg.join("kitty/yami-shell.conf"), &format!("# YAMI: written by {WHO} (settings → fonts → terminal)\n{body}"))?;
+        write(&cx.cfg.join("kitty/nemo-shell.conf"), &format!("# NEMO: written by {WHO} (settings → fonts → terminal)\n{body}"))?;
     }
     Ok(())
 }
@@ -447,7 +447,7 @@ fn kitty_detach(cx: &Cx) -> Res {
     let conf = cx.cfg.join("kitty/kitty.conf");
     let Ok(t) = std::fs::read_to_string(&conf) else { return Ok(()) };
     let lines = lines_of(&t);
-    let keep: Vec<&str> = lines.iter().copied().filter(|l| l.trim() != "include yami.conf" && !l.starts_with("# YAMI")).collect();
+    let keep: Vec<&str> = lines.iter().copied().filter(|l| l.trim() != "include nemo.conf" && !l.starts_with("# NEMO")).collect();
     if keep != lines {
         let text = keep.join("\n").trim_end_matches('\n').to_string() + "\n";
         // ссылка (stow, Home Manager) остаётся ссылкой: пишем сквозь неё
@@ -474,14 +474,14 @@ pub fn kitty(cx: &Cx, p: &P) -> Res {
         cols.push((k, v));
     }
     let body: String = cols.iter().map(|(k, v)| format!("{k:<24}{v}\n")).collect();
-    write(&cx.cfg.join("kitty/yami-colors.conf"), &format!("# YAMI: пишет {WHO} по палитре шелла\n{body}"))?; // i18n-ok
+    write(&cx.cfg.join("kitty/nemo-colors.conf"), &format!("# NEMO: пишет {WHO} по палитре шелла\n{body}"))?; // i18n-ok
     signal("USR1", "kitty");
     Ok(())
 }
 
-const FOOT_MARK: &str = "# YAMI: settings → color → apps → foot off takes these lines out";
+const FOOT_MARK: &str = "# NEMO: settings → color → apps → foot off takes these lines out";
 
-/// foot.ini без наших строк: include на yami-colors.ini, пометка и [main] под ней
+/// foot.ini без наших строк: include на nemo-colors.ini, пометка и [main] под ней
 fn foot_strip(t: &str) -> String {
     let lines = lines_keep(t);
     let mut out = String::new();
@@ -495,7 +495,7 @@ fn foot_strip(t: &str) -> String {
             continue;
         }
         let l = lines[i].trim();
-        if l.strip_prefix("include").is_some_and(|r| r.trim_start().starts_with('=')) && l.ends_with("yami-colors.ini") {
+        if l.strip_prefix("include").is_some_and(|r| r.trim_start().starts_with('=')) && l.ends_with("nemo-colors.ini") {
             i += 1;
             continue;
         }
@@ -523,12 +523,12 @@ fn first_version(s: &str) -> Option<(u32, u32)> {
     None
 }
 
-/// foot: цвета в foot/yami-colors.ini, include на него — в конце foot.ini под своим [main]: так наши
+/// foot: цвета в foot/nemo-colors.ini, include на него — в конце foot.ini под своим [main]: так наши
 /// цвета перекрывают [colors] выше, пока foot отмечен. Не отмечен — наши строки уходят
 pub fn foot(cx: &Cx, p: &P) -> Res {
     let ini = cx.cfg.join("foot/foot.ini");
     if !cx.on("foot") {
-        if ini.exists() && read_lossy(&ini)?.contains("yami-colors.ini") {
+        if ini.exists() && read_lossy(&ini)?.contains("nemo-colors.ini") {
             write(&ini, &foot_strip(&read_lossy(&ini)?))?;
         }
         return Ok(());
@@ -540,10 +540,10 @@ pub fn foot(cx: &Cx, p: &P) -> Res {
     let s = |k: &str| a_get(&a, k).trim_start_matches('#').to_string();
     // foot 1.22: секция [colors] стала [colors-dark] (старое имя ещё читается, но с предупреждением)
     let sec = if output_of(&["foot", "--version"]).and_then(|o| first_version(&o)).is_some_and(|v| v >= (1, 22)) { "colors-dark" } else { "colors" };
-    let mut lines = vec![format!("# YAMI: пишет {WHO} по палитре шелла (include в foot.ini)"), format!("[{sec}]"), format!("foreground={}", s("foreground")), format!("background={}", s("background")), format!("selection-foreground={}", s("selection_foreground")), format!("selection-background={}", s("selection_background")), format!("cursor={} {}", p.g("bg").trim_start_matches('#'), s("cursor")), format!("urls={}", p.g("bright").trim_start_matches('#'))]; // i18n-ok
+    let mut lines = vec![format!("# NEMO: пишет {WHO} по палитре шелла (include в foot.ini)"), format!("[{sec}]"), format!("foreground={}", s("foreground")), format!("background={}", s("background")), format!("selection-foreground={}", s("selection_foreground")), format!("selection-background={}", s("selection_background")), format!("cursor={} {}", p.g("bg").trim_start_matches('#'), s("cursor")), format!("urls={}", p.g("bright").trim_start_matches('#'))]; // i18n-ok
     lines.extend((0..8).map(|i| format!("regular{i}={}", s(&format!("color{i}")))));
     lines.extend((0..8).map(|i| format!("bright{i}={}", s(&format!("color{}", i + 8)))));
-    let inc = cx.cfg.join("foot/yami-colors.ini");
+    let inc = cx.cfg.join("foot/nemo-colors.ini");
     write(&inc, &(lines.join("\n") + "\n"))?;
     // foot раскрывает «~/» в include сам; вне дома (XDG_CONFIG_HOME где-то ещё) — полный путь
     let body = if ini.exists() { foot_strip(&read_lossy(&ini)?) } else { String::new() };
@@ -629,8 +629,8 @@ fn palette_value(line: &str) -> Option<&str> {
     Some(&t[..end])
 }
 
-/// starship: палитра [palettes.yami] и palette = "yami", если палитры не выбрано: выбранную свою не
-/// трогаем, [palettes.yami] лежит рядом
+/// starship: палитра [palettes.nemo] и palette = "nemo", если палитры не выбрано: выбранную свою не
+/// трогаем, [palettes.nemo] лежит рядом
 pub fn starship(cx: &Cx, p: &P) -> Res {
     let conf = cx.cfg.join("starship.toml");
     if !cx.on("starship") || !conf.exists() {
@@ -644,7 +644,7 @@ pub fn starship(cx: &Cx, p: &P) -> Res {
     for line in lines_of(&text) {
         if let Some(h) = table_name(line) {
             seen_table = true;
-            skip = h.trim() == "palettes.yami";
+            skip = h.trim() == "palettes.nemo";
             if skip {
                 continue;
             }
@@ -660,13 +660,13 @@ pub fn starship(cx: &Cx, p: &P) -> Res {
         out.push(line.to_string());
     }
     if chosen.is_none() {
-        out.insert(0, "palette = \"yami\"".to_string());
+        out.insert(0, "palette = \"nemo\"".to_string());
     }
-    cx.status("starship", chosen.as_deref().filter(|c| *c != "yami").map(|c| serde_json::json!({ "palette": c })))?;
+    cx.status("starship", chosen.as_deref().filter(|c| *c != "nemo").map(|c| serde_json::json!({ "palette": c })))?;
     while out.last().is_some_and(|l| l.trim().is_empty()) {
         out.pop();
     }
-    out.extend([String::new(), format!("# YAMI: пишет {WHO} по палитре шелла"), "[palettes.yami]".to_string()]); // i18n-ok
+    out.extend([String::new(), format!("# NEMO: пишет {WHO} по палитре шелла"), "[palettes.nemo]".to_string()]); // i18n-ok
     out.extend(pal.iter().map(|(k, v)| format!("{k} = \"{v}\"")));
     let new = out.join("\n") + "\n";
     if new != text {
@@ -687,15 +687,15 @@ pub fn btop(cx: &Cx, p: &P) -> Res {
     let m3 = mix(acc, p.g("text"), 0.3);
     let th: Vec<(&str, &str)> = vec![("main_bg", p.g("bg")), ("main_fg", p.g("text")), ("title", p.g("text")), ("hi_fg", bright), ("selected_bg", deep), ("selected_fg", "#ffffff"), ("inactive_fg", p.g("textFaint")), ("graph_text", p.g("textDim")), ("meter_bg", p.g("surfaceHi")), ("proc_misc", acc), ("cpu_box", border), ("mem_box", border), ("net_box", border), ("proc_box", border), ("div_line", border), ("temp_start", &m1), ("temp_mid", acc), ("temp_end", bright), ("cpu_start", deep), ("cpu_mid", acc), ("cpu_end", bright), ("free_start", border), ("free_mid", deep), ("free_end", acc), ("cached_start", border), ("cached_mid", &m2), ("cached_end", p.g("textDim")), ("available_start", border), ("available_mid", deep), ("available_end", acc), ("used_start", deep), ("used_mid", acc), ("used_end", bright), ("download_start", border), ("download_mid", deep), ("download_end", acc), ("upload_start", border), ("upload_mid", &m3), ("upload_end", p.g("text")), ("process_start", deep), ("process_mid", acc), ("process_end", bright)];
     let body: String = th.iter().map(|(k, v)| format!("theme[{k}]=\"{v}\"\n")).collect();
-    write(&cx.cfg.join("btop/themes/yami.theme"), &format!("# YAMI: пишет {WHO} по палитре шелла\n{body}"))?; // i18n-ok
+    write(&cx.cfg.join("btop/themes/nemo.theme"), &format!("# NEMO: пишет {WHO} по палитре шелла\n{body}"))?; // i18n-ok
     let conf = cx.cfg.join("btop/btop.conf");
     if conf.exists() {
         let t = std::fs::read_to_string(&conf)?;
         let is_key = |l: &str| l.strip_prefix("color_theme").is_some_and(|r| r.trim_start().starts_with('='));
-        let t = if t.split('\n').any(is_key) { set_lines(&t, is_key, "color_theme = \"yami\"") } else { t + "\ncolor_theme = \"yami\"\n" };
+        let t = if t.split('\n').any(is_key) { set_lines(&t, is_key, "color_theme = \"nemo\"") } else { t + "\ncolor_theme = \"nemo\"\n" };
         write(&conf, &t)
     } else {
-        write(&conf, "#? Config file for btop (NEMO: only the theme is set, btop fills the rest)\ncolor_theme = \"yami\"\ntheme_background = false\n")
+        write(&conf, "#? Config file for btop (NEMO: only the theme is set, btop fills the rest)\ncolor_theme = \"nemo\"\ntheme_background = false\n")
     }
 }
 
@@ -785,7 +785,7 @@ pub fn firefox(cx: &Cx, p: &P) -> Res {
         let uj = prof.join("user.js");
         let t = if uj.exists() { std::fs::read_to_string(&uj)? } else { String::new() };
         if !t.contains("toolkit.legacyUserProfileCustomizations.stylesheets") {
-            write(&uj, &format!("{t}// yami: lets the browser read chrome/userChrome.css (menus in the palette)\nuser_pref(\"toolkit.legacyUserProfileCustomizations.stylesheets\", true);\n"))?;
+            write(&uj, &format!("{t}// nemo: lets the browser read chrome/userChrome.css (menus in the palette)\nuser_pref(\"toolkit.legacyUserProfileCustomizations.stylesheets\", true);\n"))?;
         }
     }
     Ok(())
@@ -848,7 +848,7 @@ pub fn fastfetch(cx: &Cx, p: &P) -> Res {
     };
     let esc = |h: &str| format!("\u{1b}[{}m", e(h));
     let (a, d, f, t) = (p.g("accent"), p.g("border"), p.g("textFaint"), p.g("text"));
-    let logo_path = cx.cfg.join("fastfetch/yami-logo.txt");
+    let logo_path = cx.cfg.join("fastfetch/nemo-logo.txt");
     let logo = crate::recolor_art::fish_logo(p);
     write(&logo_path, &logo)?;
     let swatch: String = [p.g("bg"), p.g("panel"), p.g("border"), p.g("deep"), a, p.g("bright"), p.g("textDim"), t]
@@ -898,7 +898,7 @@ pub fn fastfetch(cx: &Cx, p: &P) -> Res {
         "blocks" => false,
         _ => crate::doctor::which("kitty"),
     };
-    let png_path = cx.cfg.join("fastfetch/yami-logo.png");
+    let png_path = cx.cfg.join("fastfetch/nemo-logo.png");
     if image {
         let tmp = png_path.with_extension("png~");
         if std::fs::write(&tmp, crate::recolor_art::fish_png(p)).and_then(|_| std::fs::rename(&tmp, &png_path)).is_err() {
@@ -928,11 +928,11 @@ pub fn fastfetch(cx: &Cx, p: &P) -> Res {
         ("modules", J::A(mods)),
     ]);
     // config.jsonc — наш, пока его первая строка наша (или его нет); свой не перезаписываем: наш вид
-    // ложится рядом, в yami.jsonc (fastfetch -c ~/.config/fastfetch/yami.jsonc)
+    // ложится рядом, в nemo.jsonc (fastfetch -c ~/.config/fastfetch/nemo.jsonc)
     let main = cx.cfg.join("fastfetch/config.jsonc");
-    let own = read_lossy(&main).ok().is_some_and(|t| !t.trim_start().split('\n').next().unwrap_or("").starts_with("// YAMI"));
-    let target = if own { cx.cfg.join("fastfetch/yami.jsonc") } else { main };
-    let mut body = format!("// YAMI: пишет {WHO} по палитре шелла\n"); // i18n-ok
+    let own = read_lossy(&main).ok().is_some_and(|t| !t.trim_start().split('\n').next().unwrap_or("").starts_with("// NEMO"));
+    let target = if own { cx.cfg.join("fastfetch/nemo.jsonc") } else { main };
+    let mut body = format!("// NEMO: пишет {WHO} по палитре шелла\n"); // i18n-ok
     jdump(&conf, 0, &mut body);
     body.push('\n');
     write(&target, &body)?;
@@ -941,11 +941,11 @@ pub fn fastfetch(cx: &Cx, p: &P) -> Res {
 
 // ── niri ────────────────────────────────────────────────────────────────────
 pub fn niri(cx: &Cx, p: &P) -> Res {
-    write(&cx.cfg.join("yami/niri/colors.kdl"), &pyf(NIRI_KDL, p, &|_| String::new()))
+    write(&cx.cfg.join("nemo/niri/colors.kdl"), &pyf(NIRI_KDL, p, &|_| String::new()))
 }
 
 // ── MangoHud ────────────────────────────────────────────────────────────────
-const MANGO_MARKS: [&str; 2] = ["# yami: written by nemo recolor", "# yami: written by tools/theme.py"];
+const MANGO_MARKS: [&str; 2] = ["# nemo: written by nemo recolor", "# nemo: written by tools/theme.py"];
 
 /// ~/.config/MangoHud/MangoHud.conf в цветах палитры, шрифт Tiny5 по сетке; свой конфиг не трогаем
 pub fn mangohud(cx: &Cx, p: &P) -> Res {
@@ -964,7 +964,7 @@ pub fn mangohud(cx: &Cx, p: &P) -> Res {
         return Ok(());
     }
     let h = |k: &str| p.g(k).trim_start_matches('#').to_string();
-    let font = [cx.home.join(".local/share/fonts/yami/Tiny5.ttf"), cx.home.join(".local/share/fonts/Tiny5.ttf")].into_iter().find(|f| f.exists());
+    let font = [cx.home.join(".local/share/fonts/nemo/Tiny5.ttf"), cx.home.join(".local/share/fonts/Tiny5.ttf")].into_iter().find(|f| f.exists());
     let mut lines: Vec<String> = vec![format!("{} (shell palette; delete this line to keep your own edits)", MANGO_MARKS[0]), "legacy_layout=false".into(), "horizontal".into(), "hud_compact".into(), "round_corners=0".into(), "background_alpha=0.7".into(), format!("background_color={}", h("bg")), format!("text_color={}", h("text")), format!("gpu_color={}", h("accent")), format!("cpu_color={}", h("bright")), format!("vram_color={}", h("deep")), format!("ram_color={}", h("deep")), format!("frametime_color={}", h("accent")), "fps_color_change".into(), format!("fps_color={},{},{}", h("warn"), h("bright"), h("ok")), "fps_value=30,60".into(), "fps".into(), "frametime".into(), "gpu_stats".into(), "cpu_stats".into(), "vram".into(), "ram".into(), "frame_timing".into(), "position=top-left".into(), "toggle_hud=Shift_R+F12".into(), "font_size=16".into()];
     if let Some(f) = font {
         lines.push(format!("font_file={}", f.display()));
@@ -1018,7 +1018,7 @@ mod tests {
 
     #[test]
     fn foot_lines_come_out() {
-        let t = "[main]\nfont=x\n\n# YAMI: settings → color → apps → foot off takes these lines out\n[main]\ninclude=~/.config/foot/yami-colors.ini\n";
+        let t = "[main]\nfont=x\n\n# NEMO: settings → color → apps → foot off takes these lines out\n[main]\ninclude=~/.config/foot/nemo-colors.ini\n";
         assert_eq!(foot_strip(t), "[main]\nfont=x\n");
     }
 

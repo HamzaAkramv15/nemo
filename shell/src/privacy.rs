@@ -1,4 +1,4 @@
-// Индикатор приватности в баре (модуль `privacy`, идея из форка yami-lite): горит, пока программа
+// Индикатор приватности в баре (модуль `privacy`, идея из форка nemo-lite): горит, пока программа
 // пишет микрофон (audio.rs `recorders`: записи PipeWire не с мониторов звука), держит камеру
 // (camera.rs) или показывает экран (трансляции niri, niri.rs `casts`); ничего — модуля не видно.
 // Щелчок — всплывашка: кто именно, выключить микрофон, остановить трансляцию (только PipeWire: так
@@ -127,7 +127,7 @@ pub fn popup(ui: &mut Ui, st: &State, b: R) {
             }
             y += 44;
         }
-        // шторка: зрители видят замороженный экран, ты — свой (curtain.rs, yami-niri ≥ 4)
+        // шторка: зрители видят замороженный экран, ты — свой (curtain.rs, nemo-niri ≥ 4)
         if !st.niri.casts.is_empty() && st.niri.cast_only {
             let on = st.curtain.is_some();
             ui.button(R::new(b.x, y + 4, b.w, 28), if on { "поднять шторку" } else { "опустить шторку" }, "eye", Tone::Plain, on, true, Act::Curtain);

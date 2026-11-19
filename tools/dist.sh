@@ -3,16 +3,16 @@
 # glibc, one archive with everything the installer and the packages need, SHA256SUMS over it.
 #   tools/dist.sh                  x86_64 archive into dist/ (the sysroot below when this system is newer)
 #   tools/dist.sh --deb            also one .deb per program
-#   tools/dist.sh --loose          also each module as one file: `yami-files install` from the binary alone
+#   tools/dist.sh --loose          also each module as one file: `nemo-files install` from the binary alone
 #   tools/dist.sh --sign KEY       also SHA256SUMS.sig, checked by the installer against keys/allowed_signers
 #   tools/dist.sh --no-sysroot     link against this system's glibc (a container with an old one: CI)
 #   tools/dist.sh --strict         stop when a module is not at the version of modules.lock (a release)
 # A container with Debian 12 needs no sysroot; without containers the sysroot is the packages of Debian 12
-# unpacked into ~/.cache/yami/sysroot and clang pointed at them. The binaries come out the same.
+# unpacked into ~/.cache/nemo/sysroot and clang pointed at them. The binaries come out the same.
 # Nothing is published here: tools/release.sh does that.
 set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-MODS="${YAMI_MODULES_DIR:-$ROOT/../yami-modules}"
+MODS="${NEMO_MODULES_DIR:-$ROOT/../nemo-modules}"
 # shellcheck source=/dev/null
 [[ -f $MODS/env.sh ]] && . "$MODS/env.sh"
 # the newest glibc the binaries may ask for. Linked against Debian 12 they ask for 2.34 at most: Ubuntu 22.04,
@@ -37,11 +37,11 @@ VER="$(cat "$ROOT/VERSION")"
 EPOCH="${SOURCE_DATE_EPOCH:-$(git -C "$ROOT" log -1 --format=%ct)}"
 ARCH=x86_64
 [[ "$(uname -m)" == "$ARCH" ]] || { echo "dist: only $ARCH for now" >&2; exit 1; }
-NAME="yami-$VER-$ARCH-linux"
-CACHE="${XDG_CACHE_HOME:-$HOME/.cache}/yami"
+NAME="nemo-$VER-$ARCH-linux"
+CACHE="${XDG_CACHE_HOME:-$HOME/.cache}/nemo"
 TARGET="$CACHE/dist-target"
-# the modules, each from its own repository; the shell and its services (yami-agents) come from this tree
-PROGS=(yami-files yami-view yami-play yami-shot yami-greet)
+# the modules, each from its own repository; the shell and its services (nemo-agents) come from this tree
+PROGS=(nemo-files nemo-view nemo-play nemo-shot nemo-greet)
 say() { printf '\e[1m── %s\e[0m\n' "$*"; }
 ver_gt() { [[ "$(printf '%s\n%s\n' "$1" "$2" | sort -V | tail -n1)" == "$1" && $1 != "$2" ]]; }
 
@@ -129,8 +129,8 @@ build() { # the crate's Cargo.toml, cargo arguments
   env ${ENVS[@]+"${ENVS[@]}"} cargo build --release --locked --target x86_64-unknown-linux-gnu --target-dir "$TARGET" --manifest-path "$@"
 }
 BUILT="$TARGET/x86_64-unknown-linux-gnu/release"
-say "yami-shell $VER"
-build "$ROOT/shell/Cargo.toml" -p yami-shell -p yami-agents
+say "nemo-shell $VER"
+build "$ROOT/shell/Cargo.toml" -p nemo-shell -p nemo-agents
 locked() { awk -v r="$1" '$1 == r { print $2 }' "$ROOT/modules.lock"; }
 for m in "${PROGS[@]}"; do
   [[ -f $MODS/$m/Cargo.toml ]] || { echo "dist: no $MODS/$m" >&2; exit 1; }
@@ -150,8 +150,8 @@ trap 'rm -rf "$STAGE"' EXIT
 T="$STAGE/$NAME"
 mkdir -p "$T/bin" "$T/modules"
 strip_to() { install -m755 "$BUILT/$1" "$T/bin/$1"; }
-strip_to yami-shell
-strip_to yami-agents
+strip_to nemo-shell
+strip_to nemo-agents
 for m in "${PROGS[@]}"; do strip_to "$m"; done
 glibc_of() { objdump -T "$1" | grep -o 'GLIBC_[0-9.]*' | sort -Vu | tail -n1 | cut -d_ -f2; }
 for b in "$T"/bin/*; do
@@ -163,15 +163,15 @@ cp -a "$ROOT/config" "$ROOT/fonts" "$T/"
 install -m644 "$ROOT/LICENSE" "$ROOT/VERSION" "$ROOT/modules.lock" "$T/"
 install -m755 "$ROOT/packaging/stage.sh" "$T/stage.sh"
 # what each module keeps next to its binary: .desktop files, portals, D-Bus services, the login screen's scripts
-for m in yami-files yami-view yami-play; do
+for m in nemo-files nemo-view nemo-play; do
   mkdir -p "$T/modules/$m"
   cp -a "$MODS/$m/config" "$T/modules/$m/"
 done
 # the services' portal and D-Bus files, where stage.sh and the packages look for them
-mkdir -p "$T/modules/yami-agents"
-cp -a "$ROOT/shell/agents/config" "$T/modules/yami-agents/"
-mkdir -p "$T/modules/yami-shot" "$T/modules/yami-greet"
-cp -a "$MODS/yami-greet/fonts" "$MODS/yami-greet/greet-session" "$MODS/yami-greet/install-system.sh" "$T/modules/yami-greet/"
+mkdir -p "$T/modules/nemo-agents"
+cp -a "$ROOT/shell/agents/config" "$T/modules/nemo-agents/"
+mkdir -p "$T/modules/nemo-shot" "$T/modules/nemo-greet"
+cp -a "$MODS/nemo-greet/fonts" "$MODS/nemo-greet/greet-session" "$MODS/nemo-greet/install-system.sh" "$T/modules/nemo-greet/"
 mkdir -p "$OUT"
 ARCHIVE="$NAME.tar.gz"
 tar --sort=name --owner=0 --group=0 --numeric-owner --mtime="@$EPOCH" -C "$STAGE" -cf - "$NAME" | gzip -n9 >"$OUT/$ARCHIVE"
@@ -186,7 +186,7 @@ make_deb() { # package, stage.sh target
     printf 'Package: %s\nVersion: %s\nArchitecture: amd64\nMaintainer: Trendorin <193045225+Trendorin@users.noreply.github.com>\n' "$pkg" "$VER"
     printf 'Installed-Size: %s\nDepends: %s\n' "$(du -sk "$dir" | cut -f1)" "$deps"
     [[ -n $recommends ]] && printf 'Recommends: %s\n' "$recommends"
-    printf 'Section: x11\nPriority: optional\nHomepage: https://github.com/Trendorin/yami\nDescription: %s, part of the yami desktop for niri\n' "$pkg"
+    printf 'Section: x11\nPriority: optional\nHomepage: https://github.com/HamzaAkramv15/nemo\nDescription: %s, part of the nemo desktop for niri\n' "$pkg"
   } >"$ctl/control"
   (cd "$dir" && find . -type f -printf '%P\0' | LC_ALL=C sort -z | xargs -0 md5sum) >"$ctl/md5sums"
   local tars=(--sort=name --owner=0 --group=0 --numeric-owner --mtime="@$EPOCH")
@@ -201,22 +201,22 @@ make_deb() { # package, stage.sh target
 if ((DEB)); then
   say ".deb"
   base="libc6 (>= $GLIBC_MAX), libgcc-s1, libxkbcommon0"
-  make_deb yami-shell "$base, libpam0g, polkitd | policykit-1" "niri, yami-files, yami-view, yami-play, yami-shot, udisks2, gvfs-backends, gvfs-fuse, grim, wl-clipboard, cliphist, playerctl, brightnessctl, kitty"
-  make_deb yami-files "$base" "ffmpegthumbnailer, libarchive-tools, udisks2, gvfs-backends, gvfs-fuse"
-  make_deb yami-view "$base"
-  make_deb yami-play "$base, libmpv2"
-  make_deb yami-shot "$base, grim" "tesseract-ocr, tesseract-ocr-eng, zbar-tools"
-  make_deb yami-greet "$base, greetd"
+  make_deb nemo-shell "$base, libpam0g, polkitd | policykit-1" "niri, nemo-files, nemo-view, nemo-play, nemo-shot, udisks2, gvfs-backends, gvfs-fuse, grim, wl-clipboard, cliphist, playerctl, brightnessctl, kitty"
+  make_deb nemo-files "$base" "ffmpegthumbnailer, libarchive-tools, udisks2, gvfs-backends, gvfs-fuse"
+  make_deb nemo-view "$base"
+  make_deb nemo-play "$base, libmpv2"
+  make_deb nemo-shot "$base, grim" "tesseract-ocr, tesseract-ocr-eng, zbar-tools"
+  make_deb nemo-greet "$base, greetd"
 fi
 
 # ── checksums and the signature ─────────────────────────────────────────────
 LOOSE_FILES=()
 if ((LOOSE)); then
-  for m in yami-files yami-view yami-play yami-shot; do install -m755 "$T/bin/$m" "$OUT/$m"; LOOSE_FILES+=("$m"); done
+  for m in nemo-files nemo-view nemo-play nemo-shot; do install -m755 "$T/bin/$m" "$OUT/$m"; LOOSE_FILES+=("$m"); done
 fi
 (cd "$OUT" && rm -f SHA256SUMS SHA256SUMS.sig && sha256sum "$ARCHIVE" $( ((DEB)) && printf '%s ' ./*.deb) ${LOOSE_FILES[@]+"${LOOSE_FILES[@]}"} >SHA256SUMS)
 if [[ -n $KEY ]]; then
-  ssh-keygen -q -Y sign -f "$KEY" -n yami-release "$OUT/SHA256SUMS"
+  ssh-keygen -q -Y sign -f "$KEY" -n nemo-release "$OUT/SHA256SUMS"
   say "signed: SHA256SUMS.sig"
 fi
 say "ready: $OUT"

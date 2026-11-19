@@ -1,27 +1,27 @@
 {
-  description = "yami: a lightweight pixel-art Wayland desktop for the niri compositor";
+  description = "nemo: a lightweight pixel-art Wayland desktop for the niri compositor";
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
     # the modules live in their own repositories; the versions are those of modules.lock (the shell's
-    # services, yami-agents, and the drawing library yami-px are part of this repository)
-    yami-files = {
+    # services, nemo-agents, and the drawing library nemo-px are part of this repository)
+    nemo-files = {
       url = "github:HamzaAkramv15/nemo-files/nemo-v0.2.2";
       flake = false;
     };
-    yami-view = {
+    nemo-view = {
       url = "github:HamzaAkramv15/nemo-view/nemo-v0.2.2";
       flake = false;
     };
-    yami-play = {
+    nemo-play = {
       url = "github:HamzaAkramv15/nemo-play/nemo-v0.2.2";
       flake = false;
     };
-    yami-shot = {
+    nemo-shot = {
       url = "github:HamzaAkramv15/nemo-shot/nemo-v0.3.2";
       flake = false;
     };
-    yami-greet = {
+    nemo-greet = {
       url = "github:HamzaAkramv15/nemo-greet/nemo-v0.2.0";
       flake = false;
     };
@@ -37,7 +37,7 @@
       ];
       forAll = f: lib.genAttrs systems (system: f nixpkgs.legacyPackages.${system});
       version = lib.fileContents ./VERSION;
-      # only what the build reads: a change to docs, CI or the installer does not rebuild yami. keys/: the
+      # only what the build reads: a change to docs, CI or the installer does not rebuild nemo. keys/: the
       # release keys are compiled into the shell (update.rs), so a check never trusts a file it is handed
       src = lib.fileset.toSource {
         root = ./.;
@@ -51,14 +51,14 @@
         ];
       };
       modules = lib.getAttrs [
-        "yami-files"
-        "yami-view"
-        "yami-play"
-        "yami-shot"
-        "yami-greet"
+        "nemo-files"
+        "nemo-view"
+        "nemo-play"
+        "nemo-shot"
+        "nemo-greet"
       ] inputs;
       packagesFor = pkgs: {
-        yami = pkgs.callPackage ./nix/package.nix { inherit version src modules; };
+        nemo = pkgs.callPackage ./nix/package.nix { inherit version src modules; };
       };
     in
     {
@@ -66,11 +66,11 @@
         pkgs:
         packagesFor pkgs
         // {
-          default = self.packages.${pkgs.stdenv.hostPlatform.system}.yami;
+          default = self.packages.${pkgs.stdenv.hostPlatform.system}.nemo;
         }
       );
 
-      # `nix flake check`: the package builds, the NixOS module evaluates (greetd runs yami-greet, the
+      # `nix flake check`: the package builds, the NixOS module evaluates (greetd runs nemo-greet, the
       # portals, services and tools are set)
       checks = forAll (
         pkgs:
@@ -82,11 +82,11 @@
                 self.nixosModules.default
                 {
                   nixpkgs.hostPlatform = system;
-                  programs.yami = {
+                  programs.nemo = {
                     enable = true;
-                    loginScreen.user = "yami";
+                    loginScreen.user = "nemo";
                   };
-                  users.users.yami.isNormalUser = true;
+                  users.users.nemo.isNormalUser = true;
                   fileSystems."/" = {
                     device = "/dev/null";
                     fsType = "ext4";
@@ -98,8 +98,8 @@
             }).config;
         in
         {
-          inherit (self.packages.${system}) yami;
-          nixos-module = pkgs.writeText "yami-nixos-module.json" (
+          inherit (self.packages.${system}) nemo;
+          nixos-module = pkgs.writeText "nemo-nixos-module.json" (
             builtins.toJSON {
               greeter = c.services.greetd.settings.default_session.command;
               tmpfiles = c.systemd.tmpfiles.rules;
@@ -117,14 +117,14 @@
 
       devShells = forAll (pkgs: {
         default = pkgs.mkShell {
-          inputsFrom = [ self.packages.${pkgs.stdenv.hostPlatform.system}.yami ];
+          inputsFrom = [ self.packages.${pkgs.stdenv.hostPlatform.system}.nemo ];
           packages = with pkgs; [
             cargo
             rustc
             clippy
             shellcheck
           ];
-          # yami-play finds libmpv at run time
+          # nemo-play finds libmpv at run time
           LD_LIBRARY_PATH = lib.makeLibraryPath [ pkgs.mpv-unwrapped ];
         };
       });

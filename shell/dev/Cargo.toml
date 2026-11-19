@@ -1,13 +1,13 @@
 [package]
-name = "yami-dev"
+name = "nemo-dev"
 version = "3.1.0"
 edition = "2021"
-description = "Developer tools of the yami repository: documentation and translation checks, README pictures"
+description = "Developer tools of the nemo repository: documentation and translation checks, README pictures"
 license = "MIT"
 publish = false
 
 [[bin]]
-name = "yami-dev"
+name = "nemo-dev"
 path = "src/main.rs"
 
 [dependencies]

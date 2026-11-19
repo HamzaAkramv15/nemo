@@ -2,7 +2,7 @@
 // ключа: город → координаты (geocoding-api.open-meteo.com; «широта, долгота» — сразу), потом
 // прогноз (api.open-meteo.com) через curl. Уходят только город (или координаты) и единицы.
 // Спрашивается раз в 20 минут (после ошибки — через 5) и только пока погода в баре или на столе;
-// ответ — в ~/.cache/yami/weather.json: после перезапуска шелла сначала он. Нить — на один запрос.
+// ответ — в ~/.cache/nemo/weather.json: после перезапуска шелла сначала он. Нить — на один запрос.
 
 use crate::app::{App, Msg, SKind};
 use crate::config::Settings;
@@ -60,7 +60,7 @@ pub fn key(s: &Settings) -> String {
 }
 
 fn cache() -> std::path::PathBuf {
-    yami_px::paths::cache_dir().join("yami/weather.json")
+    nemo_px::paths::cache_dir().join("nemo/weather.json")
 }
 
 /// прошлый ответ с диска (маленький файл: читается при старте)
@@ -296,7 +296,7 @@ mod tests {
         assert_eq!(text(75), "снег");
     }
 
-    /// живой запрос: `cargo test -p yami-shell weather -- --ignored`
+    /// живой запрос: `cargo test -p nemo-shell weather -- --ignored`
     #[test]
     #[ignore]
     fn open_meteo_live() {

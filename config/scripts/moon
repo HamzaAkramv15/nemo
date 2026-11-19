@@ -1,5 +1,5 @@
 #!/bin/sh
-# yami-script: the phase of the moon (an approximation, good to about a day)
+# nemo-script: the phase of the moon (an approximation, good to about a day)
 days=$(( ($(date +%s) - 947182440) / 86400 ))            # since the new moon of 2000-01-06
 age=$(awk -v d="$days" 'BEGIN { a = d % 29.530588; if (a < 0) a += 29.530588; printf "%d", a + 0.5 }')
 case $age in

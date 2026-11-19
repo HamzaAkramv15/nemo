@@ -30,7 +30,7 @@ pub struct Skwd {
 
 /// папка, куда skwd-walld пишет last-wallpaper.json (всегда $XDG_CACHE_HOME/skwd-wall-v2)
 fn cache() -> PathBuf {
-    yami_px::paths::cache_dir().join("skwd-wall-v2")
+    nemo_px::paths::cache_dir().join("skwd-wall-v2")
 }
 
 fn config_dir() -> PathBuf {
@@ -50,7 +50,7 @@ fn colors_dir() -> PathBuf {
     match set {
         Some(s) => {
             let s = s.trim();
-            let p = yami_px::paths::expand(s);
+            let p = nemo_px::paths::expand(s);
             if p.is_absolute() {
                 p
             } else {
@@ -237,7 +237,7 @@ mod tests {
 
     #[test]
     fn picks_an_image_or_its_frame() {
-        let d = std::env::temp_dir().join(format!("yami-skwd-test-{}", std::process::id()));
+        let d = std::env::temp_dir().join(format!("nemo-skwd-test-{}", std::process::id()));
         std::fs::create_dir_all(&d).unwrap();
         let (img, th) = (d.join("a.png"), d.join("t.jpg"));
         std::fs::write(&img, b"x").unwrap();
@@ -265,7 +265,7 @@ mod tests {
     #[test]
     fn who_draws() {
         let l = json!([
-            {"namespace": "yami-wall", "output": "DP-1", "layer": "Background"},
+            {"namespace": "nemo-wall", "output": "DP-1", "layer": "Background"},
             {"namespace": "skwd-paper", "output": "DP-2", "layer": "Background"},
             {"namespace": "skwd-paper-backdrop", "output": "DP-1", "layer": "Background"},
             {"namespace": "skwd-paper", "output": "DP-2", "layer": "Bottom"},

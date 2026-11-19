@@ -6,7 +6,7 @@
 // у gio, какие тома есть, и подключаем новые — те, что сам том велит подключать
 // (should_automount: съёмные диски, образы, телефоны — да; разделы внутренних дисков — нет).
 // Каждый том — один раз за появление: отключённое руками само обратно не подключается.
-// Зашифрованные (LUKS, BitLocker) не трогаем: пароль спросит yami-files (--unlock).
+// Зашифрованные (LUKS, BitLocker) не трогаем: пароль спросит nemo-files (--unlock).
 
 use crate::app::{App, Msg};
 use crate::notify;
@@ -199,7 +199,7 @@ fn parse(text: &str) -> Vec<Vol> {
 /// локальная папка подключения: file:// — сам путь, gvfs — его FUSE-точка
 fn local(uri: &str) -> Option<String> {
     if uri.starts_with("file://") {
-        return Some(yami_px::icons::uri_path(uri)?.to_string_lossy().into_owned());
+        return Some(nemo_px::icons::uri_path(uri)?.to_string_lossy().into_owned());
     }
     let o = gio().args(["info", "-a", "standard::type", "--", uri]).output().ok()?;
     String::from_utf8_lossy(&o.stdout).lines().find_map(|l| l.strip_prefix("local path: ").map(|p| p.trim().to_string()))
@@ -256,11 +256,11 @@ fn owned(c: &mut Command) -> &mut Command {
     }
 }
 
-/// заперт ли экран: шелл yami ставит метку; у остальных спрашиваем logind
+/// заперт ли экран: шелл nemo ставит метку; у остальных спрашиваем logind
 fn session_locked() -> bool {
     if let Some(d) = std::env::var_os("XDG_RUNTIME_DIR") {
         // в метке — сокет niri, под которым заперли: метка другого (прошлого) niri не в счёт
-        if let Ok(s) = std::fs::read_to_string(std::path::PathBuf::from(d).join("yami-locked")) {
+        if let Ok(s) = std::fs::read_to_string(std::path::PathBuf::from(d).join("nemo-locked")) {
             if s.is_empty() || std::env::var("NIRI_SOCKET").map_or(true, |n| n == s) {
                 return true;
             }
@@ -419,7 +419,7 @@ impl App {
                     open_path(&path);
                     return;
                 }
-                let body = if path.is_empty() { String::new() } else { yami_px::paths::pretty(std::path::Path::new(&path)) };
+                let body = if path.is_empty() { String::new() } else { nemo_px::paths::pretty(std::path::Path::new(&path)) };
                 let summary = match v.kind() {
                     Kind::Phone => crate::tf!("телефон подключён: {}", "phone connected: {}", "telefone conectado: {}", v.name),
                     Kind::Camera => crate::tf!("камера подключена: {}", "camera connected: {}", "câmera conectada: {}", v.name),
@@ -483,7 +483,7 @@ impl App {
                 if self.cfg.automount_open && !path.is_empty() && !fullscreen_in_front() {
                     open_path(&path);
                 } else {
-                    let body = yami_px::paths::pretty(std::path::Path::new(&path));
+                    let body = nemo_px::paths::pretty(std::path::Path::new(&path));
                     self.note(crate::tf!("подключено: {}", "mounted: {}", "montado: {}", message), body, "drive-removable-media", path);
                 }
             }
@@ -535,7 +535,7 @@ mod t {
 
     #[test]
     fn volumes() {
-        let t = "Drive(0): SAMSUNG\n  Type: GProxyDrive (GProxyVolumeMonitorUDisks2)\n  Volume(0): root\n    Type: GProxyVolume (GProxyVolumeMonitorUDisks2)\n    ids:\n     unix-device: '/dev/nvme0n1p2'\n    can_mount=1\n    should_automount=0\n    Mount(0): root -> file:///\n      Type: GProxyMount (GProxyVolumeMonitorUDisks2)\nVolume(0): YAMITEST\n  Type: GProxyVolume (GProxyVolumeMonitorUDisks2)\n  ids:\n   unix-device: '/dev/loop0'\n   uuid: 'C397-BAE0'\n  can_mount=1\n  should_automount=1\nVolume(1): Pixel 8\n  Type: GProxyVolume (GProxyVolumeMonitorMTP)\n  ids:\n   unix-device: '/dev/bus/usb/003/007'\n  activation_root=mtp://Google_Pixel_8_3A1/\n  can_mount=1\n  should_automount=1\n";
+        let t = "Drive(0): SAMSUNG\n  Type: GProxyDrive (GProxyVolumeMonitorUDisks2)\n  Volume(0): root\n    Type: GProxyVolume (GProxyVolumeMonitorUDisks2)\n    ids:\n     unix-device: '/dev/nvme0n1p2'\n    can_mount=1\n    should_automount=0\n    Mount(0): root -> file:///\n      Type: GProxyMount (GProxyVolumeMonitorUDisks2)\nVolume(0): NEMOTEST\n  Type: GProxyVolume (GProxyVolumeMonitorUDisks2)\n  ids:\n   unix-device: '/dev/loop0'\n   uuid: 'C397-BAE0'\n  can_mount=1\n  should_automount=1\nVolume(1): Pixel 8\n  Type: GProxyVolume (GProxyVolumeMonitorMTP)\n  ids:\n   unix-device: '/dev/bus/usb/003/007'\n  activation_root=mtp://Google_Pixel_8_3A1/\n  can_mount=1\n  should_automount=1\n";
         let v = parse(t);
         assert_eq!(v.len(), 3);
         assert_eq!((v[0].dev.as_str(), v[0].mount.as_str(), v[0].wanted()), ("/dev/nvme0n1p2", "file:///", false));

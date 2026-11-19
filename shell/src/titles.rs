@@ -234,7 +234,7 @@ impl App {
             if held == Some(w.id) {
                 continue;
             }
-            let (r, ns) = (w.r, if is_title { "yami-title" } else { "yami-grip" });
+            let (r, ns) = (w.r, if is_title { "nemo-title" } else { "nemo-grip" });
             match have.iter().find(|h| h.1 == w.id).map(|h| h.0) {
                 None => {
                     let sid = self.mk(kind(w.id), &w.out, Layer::Top, ns, Anchor::TOP | Anchor::LEFT, (r.w, r.h), (r.y, 0, 0, r.x), -1, KeyboardInteractivity::None);

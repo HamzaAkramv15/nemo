@@ -1,9 +1,9 @@
-// `yami doctor` и `yami status`: что есть в системе и что работает. Шелл без внешних программ не
+// `nemo doctor` и `nemo status`: что есть в системе и что работает. Шелл без внешних программ не
 // падает — просто гаснет то, чему они нужны; doctor говорит, что именно и почему.
 // Службы D-Bus — кто держит имя (процесс по pid), а не «есть ли пакет».
 // i18n: inline pairs
 
-use yami_px::paths::pids;
+use nemo_px::paths::pids;
 use crate::cmd::Sty;
 
 /// программа → для чего (RU, EN); true — без неё не работает основное
@@ -35,11 +35,11 @@ const DEPS: &[(&str, &str, &str, bool)] = &[
 ];
 
 pub fn which(c: &str) -> bool {
-    yami_px::paths::find_exe(c).is_some()
+    nemo_px::paths::find_exe(c).is_some()
 }
 
-/// сам шелл: yami-shell (или yami) без команды либо с `run`; `yami update apply` и прочие команды
-/// CLI — тоже процессы yami-shell, их за шелл не считаем
+/// сам шелл: nemo-shell (или nemo) без команды либо с `run`; `nemo update apply` и прочие команды
+/// CLI — тоже процессы nemo-shell, их за шелл не считаем
 fn shell_pids() -> Vec<u32> {
     let Ok(rd) = std::fs::read_dir("/proc") else { return vec![] };
     rd.flatten()
@@ -48,7 +48,7 @@ fn shell_pids() -> Vec<u32> {
             let c = std::fs::read(format!("/proc/{pid}/cmdline")).unwrap_or_default();
             let parts: Vec<String> = c.split(|b| *b == 0).filter(|s| !s.is_empty()).map(|s| String::from_utf8_lossy(s).to_string()).collect();
             let exe = parts.first().map(|f| f.rsplit('/').next().unwrap_or("").to_string()).unwrap_or_default();
-            (exe == "yami-shell" || exe == "yami") && (parts.len() == 1 || (parts.len() == 2 && parts[1] == "run"))
+            (exe == "nemo-shell" || exe == "nemo") && (parts.len() == 1 || (parts.len() == 2 && parts[1] == "run"))
         })
         .collect()
 }
@@ -86,11 +86,11 @@ fn line(y: &Sty, mark: &str, what: &str, note: &str) {
     println!("   {mark} {}{}{}", what, " ".repeat(pad), y.dim(note));
 }
 
-/// экран входа: yami-greet стоит, greetd — менеджер входа, вид шелла до него доходит, как прошёл
-/// последний запуск (greet-session пишет его в /var/lib/yami-greet/log)
+/// экран входа: nemo-greet стоит, greetd — менеджер входа, вид шелла до него доходит, как прошёл
+/// последний запуск (greet-session пишет его в /var/lib/nemo-greet/log)
 fn login(y: &Sty) {
     let greet = crate::login::installed();
-    if !greet && !std::path::Path::new("/usr/share/sddm/themes/yami").exists() {
+    if !greet && !std::path::Path::new("/usr/share/sddm/themes/nemo").exists() {
         return;
     }
     y.section(&crate::tf!("экран входа", "login screen", "tela de login"));
@@ -98,7 +98,7 @@ fn login(y: &Sty) {
         line(y, &y.warn("·"), "SDDM", &crate::tf!("тема Nemo до 2.6; свой экран входа: nemo setup", "the Nemo theme of before 2.6; our own login screen: nemo setup", "o tema Nemo de antes da 2.6; nossa própria tela de login: nemo setup"));
         return;
     }
-    line(y, &y.ok("✓"), "yami-greet", &crate::login::greet_bin().map(|p| p.display().to_string()).unwrap_or_default());
+    line(y, &y.ok("✓"), "nemo-greet", &crate::login::greet_bin().map(|p| p.display().to_string()).unwrap_or_default());
     match crate::login::dm() {
         Some(false) => line(y, &y.warn("·"), "greetd", &crate::tf!("не менеджер входа: nemo setup", "not the login manager: nemo setup", "não é o gerenciador de login: nemo setup")),
         _ => line(y, &y.ok("✓"), "greetd", &crate::tf!("менеджер входа", "the login manager", "o gerenciador de login")),
@@ -147,8 +147,8 @@ fn services(y: &Sty, problems: &mut u32) {
     y.section(&crate::tf!("службы", "services", "serviços"));
     if let Ok(c) = zbus::blocking::Connection::session() {
         for (name, ru, en, want) in [
-            ("org.freedesktop.Notifications", "уведомления", "notifications", set.agent_notif.then_some("yami-shell")),
-            ("org.kde.StatusNotifierWatcher", "трей", "tray", set.agent_tray.then_some("yami-shell")),
+            ("org.freedesktop.Notifications", "уведомления", "notifications", set.agent_notif.then_some("nemo-shell")),
+            ("org.kde.StatusNotifierWatcher", "трей", "tray", set.agent_tray.then_some("nemo-shell")),
             ("org.freedesktop.portal.Desktop", "порталы", "portals", None),
         ] {
             let label = crate::i18n::select(ru, en);
@@ -162,16 +162,16 @@ fn services(y: &Sty, problems: &mut u32) {
                 }
             }
         }
-        let yp = "org.freedesktop.impl.portal.desktop.yami";
-        let run = !pids("yami-files", "--portal").is_empty();
+        let yp = "org.freedesktop.impl.portal.desktop.nemo";
+        let run = !pids("nemo-files", "--portal").is_empty();
         if run || activatable(&c, yp) {
-            line(y, &y.ok("✓"), &crate::tf!("портал yami-files", "yami-files portal", "portal yami-files"), &if run { crate::tf!("работает", "running", "em execução") } else { crate::tf!("запустится по запросу", "starts on demand", "inicia sob demanda") });
-        } else if !crate::proc::have("yami-files") {
-            // yami-files не выбран при установке: диалоги выбора файлов — от GTK или KDE
-            line(y, &y.dim("·"), &crate::tf!("портал yami-files", "yami-files portal", "portal yami-files"), &crate::tf!("yami-files не установлен: диалоги — от GTK/KDE", "yami-files not installed: dialogs come from GTK/KDE", "yami-files não instalado: diálogos do GTK/KDE"));
+            line(y, &y.ok("✓"), &crate::tf!("портал nemo-files", "nemo-files portal", "portal nemo-files"), &if run { crate::tf!("работает", "running", "em execução") } else { crate::tf!("запустится по запросу", "starts on demand", "inicia sob demanda") });
+        } else if !crate::proc::have("nemo-files") {
+            // nemo-files не выбран при установке: диалоги выбора файлов — от GTK или KDE
+            line(y, &y.dim("·"), &crate::tf!("портал nemo-files", "nemo-files portal", "portal nemo-files"), &crate::tf!("nemo-files не установлен: диалоги — от GTK/KDE", "nemo-files not installed: dialogs come from GTK/KDE", "nemo-files não instalado: diálogos do GTK/KDE"));
         } else {
             *problems += 1;
-            line(y, &y.bad("✕"), &crate::tf!("портал yami-files", "yami-files portal", "portal yami-files"), &crate::tf!("не установлен: install.sh (шаг «файлы»)", "not installed: install.sh (the «files» step)", "não instalado: install.sh (etapa «arquivos»)"));
+            line(y, &y.bad("✕"), &crate::tf!("портал nemo-files", "nemo-files portal", "portal nemo-files"), &crate::tf!("не установлен: install.sh (шаг «файлы»)", "not installed: install.sh (the «files» step)", "não instalado: install.sh (etapa «arquivos»)"));
         }
     } else {
         *problems += 1;
@@ -192,8 +192,8 @@ fn services(y: &Sty, problems: &mut u32) {
             }
         }
     }
-    if !which("yami-agents") {
-        line(y, &y.dim("·"), "yami-agents", &crate::tf!("нет: окон пароля polkit и автоподключения нет — это часть шелла, вернёт ./install.sh", "missing: no polkit password window and no automount; it is part of the shell, ./install.sh brings it back", "ausente: sem janela de senha do polkit e sem montagem automática; faz parte do shell, o ./install.sh traz de volta"));
+    if !which("nemo-agents") {
+        line(y, &y.dim("·"), "nemo-agents", &crate::tf!("нет: окон пароля polkit и автоподключения нет — это часть шелла, вернёт ./install.sh", "missing: no polkit password window and no automount; it is part of the shell, ./install.sh brings it back", "ausente: sem janela de senha do polkit e sem montagem automática; faz parte do shell, o ./install.sh traz de volta"));
     }
 }
 
@@ -207,14 +207,14 @@ fn path_of(c: &str) -> Option<std::path::PathBuf> {
 fn nemo_parts(y: &Sty) {
     y.section("Nemo");
     // команда nemo: наша ссылка, чужая программа с тем же именем (файловый менеджер Cinnamon) или нет вовсе
-    let me = std::fs::canonicalize(yami_px::paths::self_exe()).ok();
+    let me = std::fs::canonicalize(nemo_px::paths::self_exe()).ok();
     match path_of("nemo") {
         Some(p) if std::fs::canonicalize(&p).ok() == me => line(y, &y.ok("✓"), "nemo", &crate::tf!("команда: {}", "the command: {}", "o comando: {}", p.display())),
-        Some(p) => line(y, &y.warn("·"), "nemo", &crate::tf!("это другая программа ({}): команда шелла — yami", "another program owns the name ({}): the shell's command is yami", "outro programa usa o nome ({}): o comando do shell é yami", p.display())),
-        None => line(y, &y.warn("·"), "nemo", &crate::tf!("нет ссылки: ln -s yami-shell ~/.local/bin/nemo", "no link: ln -s yami-shell ~/.local/bin/nemo", "sem link: ln -s yami-shell ~/.local/bin/nemo")),
+        Some(p) => line(y, &y.warn("·"), "nemo", &crate::tf!("это другая программа ({}): команда шелла — nemo", "another program owns the name ({}): the shell's command is nemo", "outro programa usa o nome ({}): o comando do shell é nemo", p.display())),
+        None => line(y, &y.warn("·"), "nemo", &crate::tf!("нет ссылки: ln -s nemo-shell ~/.local/bin/nemo", "no link: ln -s nemo-shell ~/.local/bin/nemo", "sem link: ln -s nemo-shell ~/.local/bin/nemo")),
     }
     // fish: kitty запускает его ради подсказок, если он стоит и включён
-    let conf = std::fs::read_to_string(crate::config::config_dir().join("kitty/yami-shell.conf")).unwrap_or_default();
+    let conf = std::fs::read_to_string(crate::config::config_dir().join("kitty/nemo-shell.conf")).unwrap_or_default();
     if !which("fish") {
         line(y, &y.dim("·"), "fish", &crate::tf!("нет: подсказок команд в kitty не будет", "missing: no command suggestions in kitty", "ausente: sem sugestões de comandos no kitty"));
     } else if conf.lines().any(|l| l.trim() == "shell fish") {
@@ -275,7 +275,7 @@ pub fn run(y: &Sty) -> i32 {
     }
     if which("niri") {
         let cfg = crate::niricfg::config_path();
-        let name = yami_px::paths::pretty(&cfg);
+        let name = nemo_px::paths::pretty(&cfg);
         let ok = std::process::Command::new("niri").arg("validate").arg("-c").arg(&cfg).stdout(std::process::Stdio::null()).stderr(std::process::Stdio::null()).status().map(|s| s.success()).unwrap_or(false);
         if ok {
             line(y, &y.ok("✓"), &name, &crate::tf!("проходит проверку", "validates", "válido"));
@@ -283,12 +283,12 @@ pub fn run(y: &Sty) -> i32 {
             problems += 1;
             line(y, &y.bad("✕"), &name, &crate::tf!("не проходит: niri validate", "fails: niri validate", "falhou: niri validate"));
         }
-        // клавиши, правила и вид yami приходят в niri одной строкой include
+        // клавиши, правила и вид nemo приходят в niri одной строкой include
         if crate::niricfg::status().connected {
-            line(y, &y.ok("✓"), "yami ↔ niri", &crate::tf!("часть yami подключена", "yami's part is connected", "a parte do yami está conectada"));
+            line(y, &y.ok("✓"), "nemo ↔ niri", &crate::tf!("часть nemo подключена", "nemo's part is connected", "a parte do nemo está conectada"));
         } else {
             problems += 1;
-            line(y, &y.warn("·"), "yami ↔ niri", &crate::tf!("не подключён: nemo niri connect (клавиш шелла пока нет)", "not connected: nemo niri connect (the shell's keys are missing)", "não conectado: nemo niri connect (faltam os atalhos do shell)"));
+            line(y, &y.warn("·"), "nemo ↔ niri", &crate::tf!("не подключён: nemo niri connect (клавиш шелла пока нет)", "not connected: nemo niri connect (the shell's keys are missing)", "não conectado: nemo niri connect (faltam os atalhos do shell)"));
         }
     }
     login(y);
@@ -320,17 +320,17 @@ pub fn run(y: &Sty) -> i32 {
 pub fn status(y: &Sty) {
     y.section(&crate::tf!("работает", "running", "em execução"));
     match shell_pids().into_iter().find(|p| *p != std::process::id()) {
-        Some(pid) => line(y, &y.ok("✓"), "yami-shell", &crate::tf!("pid {}, {:.1} МБ", "pid {}, {:.1} MB", "pid {}, {:.1} MB", pid, pss_mb(pid))),
-        None => line(y, &y.bad("✕"), "yami-shell", &crate::tf!("не запущен", "not running", "fora de execução")),
+        Some(pid) => line(y, &y.ok("✓"), "nemo-shell", &crate::tf!("pid {}, {:.1} МБ", "pid {}, {:.1} MB", "pid {}, {:.1} MB", pid, pss_mb(pid))),
+        None => line(y, &y.bad("✕"), "nemo-shell", &crate::tf!("не запущен", "not running", "fora de execução")),
     }
-    match pids("yami-files", "--portal").first() {
+    match pids("nemo-files", "--portal").first() {
         Some(pid) => line(y, &y.ok("✓"), &crate::tf!("портал файлов", "file portal", "portal de arquivos"), &crate::tf!("pid {}, {:.1} МБ", "pid {}, {:.1} MB", "pid {}, {:.1} MB", pid, pss_mb(*pid))),
         None => line(y, &y.dim("·"), &crate::tf!("портал файлов", "file portal", "portal de arquivos"), &crate::tf!("запустится по запросу", "starts on demand", "inicia sob demanda")),
     }
     let lvl = crate::niri::fork_level();
     let nv = std::process::Command::new("niri").arg("--version").output().ok().map(|o| String::from_utf8_lossy(&o.stdout).trim().to_string()).unwrap_or_default();
     if std::env::var_os("NIRI_SOCKET").is_some() {
-        line(y, &y.ok("✓"), "niri", &if lvl > 0 { crate::tf!("{} (yami-niri, уровень {})", "{} (yami-niri, level {})", "{} (yami-niri, nível {})", nv, lvl) } else { nv });
+        line(y, &y.ok("✓"), "niri", &if lvl > 0 { crate::tf!("{} (nemo-niri, уровень {})", "{} (nemo-niri, level {})", "{} (nemo-niri, nível {})", nv, lvl) } else { nv });
     } else {
         line(y, &y.dim("·"), "niri", &crate::tf!("не в сеансе niri", "not in a niri session", "fora de uma sessão niri"));
     }
@@ -349,7 +349,7 @@ pub fn status(y: &Sty) {
     line(y, &y.ok("✓"), &crate::tf!("версия", "version", "versão"), &format!("{}  ·  {upd}", if u.version.is_empty() { env!("CARGO_PKG_VERSION") } else { &u.version }));
 }
 
-/// снимки системы: yami сам откатывает только свои бинари (yami update rollback); всю систему
+/// снимки системы: nemo сам откатывает только свои бинари (nemo update rollback); всю систему
 /// откатывают снимки btrfs (snapper, timeshift) или zfs — показать, есть ли они и как сделать
 fn snapshots(y: &Sty) {
     let fs = std::process::Command::new("findmnt").args(["-no", "FSTYPE", "/"]).output().map(|o| String::from_utf8_lossy(&o.stdout).trim().to_string()).unwrap_or_default();
@@ -361,7 +361,7 @@ fn snapshots(y: &Sty) {
     let (mark, note) = match tool {
         Some("snapper") => (y.ok("✓"), crate::tf!("перед большим обновлением: sudo snapper create -d 'before nemo update'", "before a big update: sudo snapper create -d 'before nemo update'", "antes de uma atualização grande: sudo snapper create -d 'before nemo update'")),
         Some("timeshift") => (y.ok("✓"), crate::tf!("перед большим обновлением: sudo timeshift --create --comments 'before nemo update'", "before a big update: sudo timeshift --create --comments 'before nemo update'", "antes de uma atualização grande: sudo timeshift --create --comments 'before nemo update'")),
-        Some(_) => (y.ok("✓"), crate::tf!("перед большим обновлением: sudo zfs snapshot <пул>/ROOT@yami", "before a big update: sudo zfs snapshot <pool>/ROOT@yami", "antes de uma atualização grande: sudo zfs snapshot <pool>/ROOT@yami")),
+        Some(_) => (y.ok("✓"), crate::tf!("перед большим обновлением: sudo zfs snapshot <пул>/ROOT@nemo", "before a big update: sudo zfs snapshot <pool>/ROOT@nemo", "antes de uma atualização grande: sudo zfs snapshot <pool>/ROOT@nemo")),
         None => (y.dim("·"), crate::tf!("корень на {}, но нет snapper или timeshift: систему откатить нечем", "the root is {} but there is no snapper or timeshift: nothing rolls the system back", "a raiz é {}, mas não há snapper nem timeshift: não é possível reverter o sistema", fs)),
     };
     line(y, &mark, &fs, &note);

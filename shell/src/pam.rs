@@ -1,5 +1,5 @@
 // Проверка пароля через PAM напрямую (libpam), без лишних crate'ов и bindgen. Свой файл
-// сервиса лежит в ~/.local/state/yami/pam: только pam_unix, без журналов входа (faillock не
+// сервиса лежит в ~/.local/state/nemo/pam: только pam_unix, без журналов входа (faillock не
 // запрёт учётку за опечатки). Пользователя не из /etc/passwd (LDAP, SSSD, systemd-homed)
 // pam_unix не знает: ему — системный сервис входа, как у swaylock.
 
@@ -55,7 +55,7 @@ extern "C" fn conv(n: c_int, msgs: *mut *const PamMessage, resp: *mut *mut PamRe
     PAM_SUCCESS
 }
 
-const SERVICE: &str = "# yami lock: password check only\nauth required pam_unix.so\n";
+const SERVICE: &str = "# nemo lock: password check only\nauth required pam_unix.so\n";
 
 /// пользователь записан в /etc/passwd: его пароль у pam_unix
 fn local_user(name: &[u8]) -> bool {
@@ -80,12 +80,12 @@ pub fn check(password: &str) -> bool {
     let sys = if local_user(user.to_bytes()) { None } else { system_service() };
     if sys.is_none() {
         let _ = std::fs::create_dir_all(&dir);
-        let f = dir.join("yami-lock");
+        let f = dir.join("nemo-lock");
         if std::fs::read_to_string(&f).map(|t| t != SERVICE).unwrap_or(true) {
             let _ = std::fs::write(&f, SERVICE);
         }
     }
-    let (Ok(svc), Ok(pass), Ok(cdir)) = (CString::new(sys.unwrap_or("yami-lock")), CString::new(password), CString::new(dir.to_string_lossy().as_bytes())) else { return false };
+    let (Ok(svc), Ok(pass), Ok(cdir)) = (CString::new(sys.unwrap_or("nemo-lock")), CString::new(password), CString::new(dir.to_string_lossy().as_bytes())) else { return false };
     let c = PamConv { conv, appdata_ptr: pass.as_ptr() as *mut c_void };
     let mut h: *mut c_void = std::ptr::null_mut();
     unsafe {

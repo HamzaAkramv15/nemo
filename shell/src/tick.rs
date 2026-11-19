@@ -47,7 +47,7 @@ impl App {
         // назад: их код больше не исполняется — из памяти; нужное вернётся из кеша страниц
         if self.shed_at.is_some_and(|t| now >= t) && self.st.modal.is_none() && self.st.popup.is_none() {
             self.shed_at = None;
-            yami_px::shed_code();
+            nemo_px::shed_code();
         }
         // текст песни: звучит следующая строка — перерисовать
         if self.lyrics_live() {
@@ -84,7 +84,7 @@ impl App {
             if self.st.modal == Some(Modal::Settings) || self.st.rss == 0.0 {
                 self.st.rss = crate::sys::self_mem_mb();
             }
-            // вкладка скриншотов показывает файл yami-shot: он мог поменять его сам
+            // вкладка скриншотов показывает файл nemo-shot: он мог поменять его сам
             if self.st.modal == Some(Modal::Settings) && self.st.shot_cfg.fresh() {
                 self.dirty(&SKind::Modal);
             }

@@ -201,7 +201,7 @@ fn mgmt_of(sec: &str) -> &'static str {
 
 /// пароль в профиль — по D-Bus (Settings.Connection.Update2), а не аргументом nmcli: командную
 /// строку видят все процессы системы. Флаги 0 — пароль хранит NetworkManager, а не агент
-/// (KWallet и подобные, которых в сеансе yami нет)
+/// (KWallet и подобные, которых в сеансе nemo нет)
 fn nm_set_secret(uuid: &str, wep: bool, pass: &str) -> Result<(), String> {
     let e = |x: zbus::Error| x.to_string();
     let c = system().ok_or("нет системной шины")?;

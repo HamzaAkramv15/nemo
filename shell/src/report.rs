@@ -1,5 +1,5 @@
-// `yami report`: всё, что нужно для issue, одним архивом. Версии, дистрибутив, видеокарта, что
-// говорят `yami doctor` и `yami status`, журнал шелла и niri за эту загрузку, конфиги шелла и niri.
+// `nemo report`: всё, что нужно для issue, одним архивом. Версии, дистрибутив, видеокарта, что
+// говорят `nemo doctor` и `nemo status`, журнал шелла и niri за эту загрузку, конфиги шелла и niri.
 // Секреты не попадают: строки, похожие на пароли и токены, вычищаются, домашний путь, имя
 // пользователя и хоста заменяются. Ничего никуда не отправляется: человек сам смотрит архив и
 // прикладывает его.
@@ -92,14 +92,14 @@ pub fn run(y: &Sty, args: &[&str]) -> i32 {
                 return 2;
             }
         },
-        None => std::env::current_dir().unwrap_or_else(|_| home.clone()).join(format!("yami-report-{stamp}.tar.gz")),
+        None => std::env::current_dir().unwrap_or_else(|_| home.clone()).join(format!("nemo-report-{stamp}.tar.gz")),
     };
     // свой каталог 0700: предсказуемое имя в /tmp дало бы чужим подложить ссылки
-    let Ok(dir) = yami_px::paths::private_tmp("yami-report") else {
+    let Ok(dir) = nemo_px::paths::private_tmp("nemo-report") else {
         eprintln!(" {} {}", y.bad("✕"), crate::tf!("не могу создать временный каталог", "cannot create a temporary folder", "não foi possível criar uma pasta temporária"));
         return 1;
     };
-    let base = dir.join("yami-report");
+    let base = dir.join("nemo-report");
     if std::fs::create_dir_all(base.join("config")).is_err() {
         eprintln!(" {} {}", y.bad("✕"), crate::tf!("не могу создать {}", "cannot create {}", "não foi possível criar {}", dir.display()));
         let _ = std::fs::remove_dir_all(&dir);
@@ -111,10 +111,10 @@ pub fn run(y: &Sty, args: &[&str]) -> i32 {
     let put = |name: &str, text: &str| {
         let _ = std::fs::write(base.join(name), scrub(text, &h, &user, &host, name.starts_with("journal")));
     };
-    let me = std::env::current_exe().map(|p| p.to_string_lossy().to_string()).unwrap_or_else(|_| "yami-shell".into());
+    let me = std::env::current_exe().map(|p| p.to_string_lossy().to_string()).unwrap_or_else(|_| "nemo-shell".into());
 
     let mut sys = String::new();
-    sys += &format!("yami-shell {}\n", env!("CARGO_PKG_VERSION"));
+    sys += &format!("nemo-shell {}\n", env!("CARGO_PKG_VERSION"));
     sys += &out("niri", &["--version"]);
     sys += &out("uname", &["-srvm"]);
     sys += &std::fs::read_to_string("/etc/os-release").unwrap_or_default();
@@ -130,12 +130,12 @@ pub fn run(y: &Sty, args: &[&str]) -> i32 {
     put("status.txt", &out(&me, &["status"]));
     put("update.txt", &out(&me, &["update", "status"]));
     // только эта загрузка: шелл — по имени процесса, niri — по юниту
-    put("journal-shell.txt", &out("journalctl", &["--user", "-b", "--no-pager", "-o", "short-iso", "-n", "3000", "_COMM=yami-shell"]));
+    put("journal-shell.txt", &out("journalctl", &["--user", "-b", "--no-pager", "-o", "short-iso", "-n", "3000", "_COMM=nemo-shell"]));
     put("journal-niri.txt", &out("journalctl", &["--user", "-b", "--no-pager", "-o", "short-iso", "-n", "3000", "-u", "niri"]));
     let cfg = crate::config::config_dir();
-    // свои настройки yami (~/.config/yami/*.json), конфиг niri и часть yami в нём
+    // свои настройки nemo (~/.config/nemo/*.json), конфиг niri и часть nemo в нём
     let mut files: Vec<PathBuf> = vec![];
-    for (dir, ext) in [(cfg.join("yami"), "json"), (cfg.join("niri"), "kdl"), (crate::dirs::niri_dir(), "kdl")] {
+    for (dir, ext) in [(cfg.join("nemo"), "json"), (cfg.join("niri"), "kdl"), (crate::dirs::niri_dir(), "kdl")] {
         if let Ok(rd) = std::fs::read_dir(dir) {
             files.extend(rd.flatten().map(|e| e.path()).filter(|p| p.extension().is_some_and(|e| e == ext)));
         }
@@ -146,7 +146,7 @@ pub fn run(y: &Sty, args: &[&str]) -> i32 {
             let _ = std::fs::write(base.join("config").join(name), scrub(&t, &h, &user, &host, false));
         }
     }
-    let ok = Command::new("tar").arg("-czf").arg(&target).arg("-C").arg(&dir).arg("yami-report").status().map(|s| s.success()).unwrap_or(false);
+    let ok = Command::new("tar").arg("-czf").arg(&target).arg("-C").arg(&dir).arg("nemo-report").status().map(|s| s.success()).unwrap_or(false);
     let _ = std::fs::remove_dir_all(&dir);
     if !ok {
         eprintln!(" {} {}", y.bad("✕"), crate::tf!("tar не смог записать {}", "tar could not write {}", "tar não conseguiu gravar {}", target.display()));
@@ -190,9 +190,9 @@ mod tests {
         assert!(!s.contains("/home/ann"));
         assert!(s.contains("~/Pictures"));
         assert!(s.contains("spawn \"kitty\""));
-        let j = "2026-11-04T14:29 annpc yami-shell[1]: polkit auth ok\n2026-11-04T14:30 annpc nm[2]: psk token=abc\n";
+        let j = "2026-11-04T14:29 annpc nemo-shell[1]: polkit auth ok\n2026-11-04T14:30 annpc nm[2]: psk token=abc\n";
         let s = super::scrub(j, "/home/ann", "ann", "annpc", true);
-        assert!(s.contains("<host> yami-shell[1]: polkit auth ok"));
+        assert!(s.contains("<host> nemo-shell[1]: polkit auth ok"));
         assert!(!s.contains("abc"));
         let j = super::private_keys(r#"{"nightGeo":"55.7, 37.6","weatherCity":"Tver","servers":["smb://nas"],"devsHidden":["uuid:1234-ABCD"],"lang":"ru"}"#);
         assert!(!j.contains("55.7") && !j.contains("Tver") && !j.contains("nas") && !j.contains("1234-ABCD") && j.contains("\"ru\""));

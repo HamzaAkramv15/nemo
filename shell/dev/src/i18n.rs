@@ -444,7 +444,7 @@ fn installer_add(code: &str, file: &str) -> i32 {
     let path = installer_table(code);
     let name = match code { "es" => "Español", "de" => "Deutsch", "fr" => "Français", "uk" => "Українська", "pl" => "Polski", "ar" => "العربية", c => c };
     let text = std::fs::read_to_string(&path).unwrap_or_else(|_| {
-        format!("# {name}: the installer's lines keyed by the English text (t in installer/ui.sh, lang_load).\n# A line missing here shows in English; yami-dev check-i18n checks the keys and the {{}} of each line.\n# shellcheck shell=bash disable=SC2034\nTR=(\n)\n")
+        format!("# {name}: the installer's lines keyed by the English text (t in installer/ui.sh, lang_load).\n# A line missing here shows in English; nemo-dev check-i18n checks the keys and the {{}} of each line.\n# shellcheck shell=bash disable=SC2034\nTR=(\n)\n")
     });
     let Some(end) = text.rfind("\n)") else {
         eprintln!("i18n-add: {} has no table", path.display());
@@ -494,7 +494,7 @@ fn installer() -> (Vec<String>, String) {
     (problems, if line.is_empty() { String::new() } else { format!("installer {}", line.join(", ")) })
 }
 
-/// `yami-dev i18n-new РУС АНГЛ --pt ТЕКСТ [--de ТЕКСТ …]`: одна новая надпись вместо ручной правки семи
+/// `nemo-dev i18n-new РУС АНГЛ --pt ТЕКСТ [--de ТЕКСТ …]`: одна новая надпись вместо ручной правки семи
 /// таблиц. Русская и английская пара — в PAIRS (shell/src/i18n.rs), перевод на каждый язык — в его
 /// таблицу, ключом идёт английский текст. Португальский обязателен (на нём проверка), остальные
 /// языки без перевода показывают английский. Дубликат русской или английской надписи — ошибка.
@@ -519,7 +519,7 @@ pub fn new_string(args: &[String]) -> i32 {
         }
     }
     let [ru, en] = free[..] else {
-        eprintln!("usage: yami-dev i18n-new RU EN --pt TEXT [--de TEXT --fr TEXT --es TEXT --uk TEXT --pl TEXT]");
+        eprintln!("usage: nemo-dev i18n-new RU EN --pt TEXT [--de TEXT --fr TEXT --es TEXT --uk TEXT --pl TEXT]");
         return 2;
     };
     if !tr.iter().any(|(c, _)| *c == "pt") {
@@ -570,6 +570,6 @@ pub fn new_string(args: &[String]) -> i32 {
             return 1;
         }
     }
-    println!("added to PAIRS and {} table(s). Next: yami-dev check-i18n, then yami-shell shot --defaults --fit --lang LANG -o DIR for each language", tr.len());
+    println!("added to PAIRS and {} table(s). Next: nemo-dev check-i18n, then nemo-shell shot --defaults --fit --lang LANG -o DIR for each language", tr.len());
     0
 }

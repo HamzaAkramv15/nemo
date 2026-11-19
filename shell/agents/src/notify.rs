@@ -1,4 +1,4 @@
-// Уведомления по стандарту freedesktop: их показывает любой сервер (шелл yami, mako, dunst…).
+// Уведомления по стандарту freedesktop: их показывает любой сервер (шелл nemo, mako, dunst…).
 
 use std::collections::HashMap;
 use std::sync::mpsc;
@@ -13,7 +13,7 @@ pub fn send(summary: &str, body: &str, icon: &str, open: Option<&str>, wait: u64
     let actions: Vec<&str> = open.map(|l| vec!["default", l]).unwrap_or_default();
     let hints: HashMap<&str, Value> = HashMap::new();
     let signals = open.and_then(|_| p.receive_all_signals().ok());
-    let Ok(reply) = p.call_method("Notify", &("yami-agents", 0u32, icon, summary, body, actions, hints, -1i32)) else { return false };
+    let Ok(reply) = p.call_method("Notify", &("nemo-agents", 0u32, icon, summary, body, actions, hints, -1i32)) else { return false };
     let Ok(id) = reply.body().deserialize::<u32>() else { return false };
     let Some(signals) = signals else { return false };
     let (tx, rx) = mpsc::channel();

@@ -1,6 +1,6 @@
-// yami: written by yami-shell from its copy at every start. yami's niri look: input, layout,
-// animations, window rules, environment. ~/.config/yami/niri/yami.kdl includes it while settings →
-// system → niri → «yami's niri look» is on (niriLook); your config.kdl is read after it and wins.
+// nemo: written by nemo-shell from its copy at every start. nemo's niri look: input, layout,
+// animations, window rules, environment. ~/.config/nemo/niri/nemo.kdl includes it while settings →
+// system → niri → «nemo's niri look» is on (niriLook); your config.kdl is read after it and wins.
 
 // ─── input ─────────────────────────────────────────────────────────────────
 input {
@@ -178,7 +178,7 @@ window-rule {
     match app-id=r#"^org\.pulseaudio\.pavucontrol$"#
     match app-id=r#"^nm-connection-editor$"#
     match app-id=r#"^xdg-desktop-portal"#
-    match app-id=r#"^yami-files-pick$"#
+    match app-id=r#"^nemo-files-pick$"#
     match title=r#"^(Picture-in-Picture|Картинка в картинке)$"#
     // the whole title: a window named «OpenRGB» or a page «Save the date — Firefox» stays tiled
     match title=r#"^(Open|Save|Открыть|Сохранить)( (File|Files|Folder|As|Image)| (файл|файлы|папку|как))?(…|\.\.\.)?$"#
@@ -190,7 +190,7 @@ window-rule {
 
 // the wallpaper stays behind the overview (Mod+Tab), like a real desktop
 layer-rule {
-    match namespace="^yami-wall$"
+    match namespace="^nemo-wall$"
     place-within-backdrop true
 }
 // notifications are hidden from screen capture by a rule in rules.kdl
@@ -205,7 +205,7 @@ environment {
     QT_WAYLAND_DISABLE_WINDOWDECORATION "1"
     SDL_VIDEODRIVER "wayland,x11"
     MOZ_ENABLE_WAYLAND "1"
-    // file dialogs through the portal → yami-files (GTK 3/4, Firefox, KDE platform theme)
+    // file dialogs through the portal → nemo-files (GTK 3/4, Firefox, KDE platform theme)
     GTK_USE_PORTAL "1"
     GDK_DEBUG "portals"
     PLASMA_INTEGRATION_USE_PORTAL "1"
@@ -215,7 +215,7 @@ environment {
 }
 
 cursor {
-    // the pixel cursor in the palette comes from cursor.kdl (yami-shell recolor); this is the fallback
+    // the pixel cursor in the palette comes from cursor.kdl (nemo-shell recolor); this is the fallback
     xcursor-theme "Adwaita"
     xcursor-size 24
     hide-when-typing

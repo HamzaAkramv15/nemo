@@ -1,4 +1,4 @@
-//! Установка модуля из одного файла: `yami-x install` спрашивает настройки, показывает, что изменит,
+//! Установка модуля из одного файла: `nemo-x install` спрашивает настройки, показывает, что изменит,
 //! и ставит только после «да». Всё, что модулю нужно на диске (.desktop, порталы, службы D-Bus),
 //! вшито в бинарь. Без терминала и без --yes не ставит ничего.
 
@@ -76,7 +76,7 @@ fn parse(args: &[String]) -> Result<Opts, String> {
             "-y" | "--yes" => o.yes = true,
             "--all" => o.all = true,
             "--look" => match it.next().map(String::as_str) {
-                Some(v @ ("plain" | "yami")) => o.look = Some(v.to_string()),
+                Some(v @ ("plain" | "nemo")) => o.look = Some(v.to_string()),
                 _ => return Err("--look plain|Nemo".into()),
             },
             "--lang" => match it.next().map(|v| i18n::normalize(v)) {
@@ -212,10 +212,10 @@ fn install(spec: &Spec, o: &Opts) -> i32 {
         let look = match (&o.look, ask) {
             (Some(l), _) => l.clone(),
             (None, false) => "plain".to_string(),
-            (None, true) => ask_pick(tr(&["Вид:", "Look:", "Aparência:"]), &[("plain", ["нейтральный", "neutral", "neutra"]), ("yami", ["пиксельный Nemo", "the Nemo pixel look", "o visual em pixels do Nemo"])]).to_string(),
+            (None, true) => ask_pick(tr(&["Вид:", "Look:", "Aparência:"]), &[("plain", ["нейтральный", "neutral", "neutra"]), ("nemo", ["пиксельный Nemo", "the Nemo pixel look", "o visual em pixels do Nemo"])]).to_string(),
         };
         let mut v = serde_json::json!({ "preset": look });
-        if look == "yami" {
+        if look == "nemo" {
             v["palette"] = "ash".into();
         }
         if !lang.is_empty() {
@@ -343,7 +343,7 @@ mod tests {
 
     #[test]
     fn options() {
-        assert_eq!(parse(&s(&["--yes", "--all", "--look", "yami", "--lang", "pt_BR.UTF-8"])).unwrap(), Opts { yes: true, all: true, look: Some("yami".into()), lang: Some("pt-BR".into()) });
+        assert_eq!(parse(&s(&["--yes", "--all", "--look", "nemo", "--lang", "pt_BR.UTF-8"])).unwrap(), Opts { yes: true, all: true, look: Some("nemo".into()), lang: Some("pt-BR".into()) });
         assert!(parse(&s(&["--look", "shiny"])).is_err());
         assert!(parse(&s(&["--lang", "ja"])).is_err());
         assert!(parse(&s(&["--force"])).is_err());
@@ -376,7 +376,7 @@ mod tests {
 
     #[test]
     fn removal_keeps_every_other_default() {
-        let t = "[Default Applications]\nimage/png=yami-view.desktop\nimage/gif=gimp.desktop;yami-view.desktop;\ntext/plain=kate.desktop\n# yami-view.desktop=x\n";
-        assert_eq!(mime_without(t, "yami-view.desktop"), "[Default Applications]\nimage/gif=gimp.desktop;\ntext/plain=kate.desktop\n# yami-view.desktop=x\n");
+        let t = "[Default Applications]\nimage/png=nemo-view.desktop\nimage/gif=gimp.desktop;nemo-view.desktop;\ntext/plain=kate.desktop\n# nemo-view.desktop=x\n";
+        assert_eq!(mime_without(t, "nemo-view.desktop"), "[Default Applications]\nimage/gif=gimp.desktop;\ntext/plain=kate.desktop\n# nemo-view.desktop=x\n");
     }
 }

@@ -1,5 +1,5 @@
 #!/bin/sh
-# yami-script: the active VPN connection of NetworkManager (WireGuard, OpenVPN...), or "no vpn"
+# nemo-script: the active VPN connection of NetworkManager (WireGuard, OpenVPN...), or "no vpn"
 name=$(nmcli -t -f NAME,TYPE connection show --active 2>/dev/null | awk -F: '$2 == "vpn" || $2 == "wireguard" { print $1; exit }' | tr -d '"\\')
 if [ -n "$name" ]; then
   printf '{"text":"%s","icon":"lock","color":"ok","click":"nm-connection-editor","interval":10}\n' "$name"

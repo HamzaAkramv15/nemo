@@ -1,8 +1,8 @@
 // Пакеты, которых не хватает выбранным частям установки (ночной свет, текст со скриншота,
 // GameMode…). Установщик (installer/packages.sh, do_need_pkgs) пишет
-// ~/.local/state/yami/packages-needed: «pm pacman» и «pkgs a b c» — только то, что есть в
-// репозиториях и не стоит; «login ПУТЬ» — экран входа (install-system.sh модуля yami-greet, из которого
-// шло обновление): нового нет или он старее сборки. Обновление идёт без sudo и само их не поставит: `yami update need`
+// ~/.local/state/nemo/packages-needed: «pm pacman» и «pkgs a b c» — только то, что есть в
+// репозиториях и не стоит; «login ПУТЬ» — экран входа (install-system.sh модуля nemo-greet, из которого
+// шло обновление): нового нет или он старее сборки. Обновление идёт без sudo и само их не поставит: `nemo update need`
 // печатает одну команду, `--run` выполняет её здесь же, вкладка «обновления» открывает её в
 // терминале (пароль sudo спрашивает там). Команду собирает шелл по своей таблице: из файла
 // берутся только имена пакетов, и только безопасные.
@@ -14,7 +14,7 @@ use std::path::PathBuf;
 pub struct Need {
     pub pm: String,
     pub pkgs: Vec<String>,
-    /// yami-greet/install-system.sh, который поставит экран входа (вместо SDDM или новее)
+    /// nemo-greet/install-system.sh, который поставит экран входа (вместо SDDM или новее)
     pub login: Option<PathBuf>,
 }
 
@@ -51,7 +51,7 @@ pub fn parse(t: &str) -> Option<Need> {
         } else if let Some(v) = l.strip_prefix("login ") {
             // только настоящий install-system.sh модуля по абсолютному пути: другое имя файл не подсунет
             let p = PathBuf::from(v.trim());
-            if p.is_absolute() && p.ends_with("yami-greet/install-system.sh") && p.is_file() && !v.chars().any(char::is_control) {
+            if p.is_absolute() && p.ends_with("nemo-greet/install-system.sh") && p.is_file() && !v.chars().any(char::is_control) {
                 n.login = Some(p);
             }
         }
@@ -89,7 +89,7 @@ impl Need {
         }
         parts.join(" && ")
     }
-    /// что не поставлено, одной строкой — yami doctor и `yami update need`
+    /// что не поставлено, одной строкой — nemo doctor и `nemo update need`
     pub fn what(&self) -> String {
         self.items().join("  ·  ")
     }
@@ -100,7 +100,7 @@ impl Need {
             v.push(crate::tf!("не хватает пакетов: {}", "missing packages: {}", "pacotes ausentes: {}", self.pkgs.join(" ")));
         }
         if self.login.is_some() {
-            v.push(if std::path::Path::new("/usr/share/sddm/themes/yami").exists() {
+            v.push(if std::path::Path::new("/usr/share/sddm/themes/nemo").exists() {
                 crate::tf!("новый экран входа вместо SDDM (SDDM выключится, не удалится)", "the new login screen instead of SDDM (SDDM is turned off, not removed)", "a nova tela de login no lugar do SDDM (o SDDM é desativado, não removido)")
             } else {
                 crate::tf!("экран входа обновился", "the login screen changed", "a tela de login mudou")
@@ -135,7 +135,7 @@ impl crate::app::App {
     }
 }
 
-/// `yami update need [--print | --run]`
+/// `nemo update need [--print | --run]`
 pub fn cli(y: &crate::cmd::Sty, args: &[&str]) -> i32 {
     let Some(n) = load() else {
         if !args.contains(&"--print") {
@@ -179,9 +179,9 @@ mod tests {
     }
     #[test]
     fn login_line() {
-        let d = std::env::temp_dir().join(format!("yami-need-{}", std::process::id()));
-        let _ = std::fs::create_dir_all(d.join("yami-greet"));
-        let g = d.join("yami-greet/install-system.sh");
+        let d = std::env::temp_dir().join(format!("nemo-need-{}", std::process::id()));
+        let _ = std::fs::create_dir_all(d.join("nemo-greet"));
+        let g = d.join("nemo-greet/install-system.sh");
         let _ = std::fs::write(&g, "#!/bin/sh\n");
         // только экран входа: менеджер пакетов не нужен
         let n = super::parse(&format!("login {}\n", g.display())).unwrap();
@@ -191,8 +191,8 @@ mod tests {
         assert!(n.line().ends_with(&format!("pacman -S --needed zbar && '{}'", g.display())));
         // чужой файл, относительный путь, нет файла — мимо
         assert!(super::parse("login /bin/sh\n").is_none());
-        assert!(super::parse("login yami-greet/install-system.sh\n").is_none());
-        assert!(super::parse("login /nowhere/yami-greet/install-system.sh\n").is_none());
+        assert!(super::parse("login nemo-greet/install-system.sh\n").is_none());
+        assert!(super::parse("login /nowhere/nemo-greet/install-system.sh\n").is_none());
         let _ = std::fs::remove_dir_all(&d);
     }
 }

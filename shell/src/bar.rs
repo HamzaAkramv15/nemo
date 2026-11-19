@@ -1275,7 +1275,7 @@ impl App {
     pub fn mk_bar(&mut self, out: &str) {
         use smithay_client_toolkit::shell::wlr_layer::{KeyboardInteractivity, Layer};
         let p = self.bar_place(out);
-        let id = self.mk(SKind::Bar, out, Layer::Top, "yami-bar", p.anchor, p.size, p.margin, p.excl, KeyboardInteractivity::None);
+        let id = self.mk(SKind::Bar, out, Layer::Top, "nemo-bar", p.anchor, p.size, p.margin, p.excl, KeyboardInteractivity::None);
         if let Some(s) = self.surfs.get_mut(&id) {
             s.anchor_side = p.key;
             // mk считает угол по отступам сверху и слева, а у нижнего и правого бара они с другой стороны

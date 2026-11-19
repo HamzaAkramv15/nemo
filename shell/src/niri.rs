@@ -1,7 +1,7 @@
 // niri по IPC-сокету: поток событий в отдельной нити, действия — короткими запросами.
 //
 // Сворачивание и «стол» делает шелл: свёрнутое окно уезжает на последний (пустой) стол и
-// прячется из бара, «стол» — все окна плавают, заголовки рисует шелл. yami-niri (наш форк)
+// прячется из бара, «стол» — все окна плавают, заголовки рисует шелл. nemo-niri (наш форк)
 // узнаётся по версии: ему можно писать правила, которых нет у стокового (allow-tearing).
 
 use serde_json::{json, Value};
@@ -44,7 +44,7 @@ pub struct Ws {
 }
 
 /// трансляция экрана (события niri Cast*, niri ≥ 25.11): что показывается и кому. Свои снимки
-/// (grim шелла и yami-shot) сюда не попадают — см. `ours`
+/// (grim шелла и nemo-shot) сюда не попадают — см. `ours`
 #[derive(Clone, Debug, Default, PartialEq)]
 pub struct Cast {
     pub stream: u64,
@@ -68,8 +68,8 @@ pub struct Niri {
     pub kb_names: Vec<String>,
     pub kb_idx: usize,
     pub overview: bool,
-    /// yami-niri: понимает наши правила (allow-tearing)
-    pub yami: bool,
+    /// nemo-niri: понимает наши правила (allow-tearing)
+    pub nemo: bool,
     /// форк умеет `show-only-in` (шторка для трансляций): уровень ≥ 4
     pub cast_only: bool,
     /// уровень форка (0 — сток): от него зависит, какие правила niri поймёт
@@ -91,17 +91,18 @@ pub enum Ev {
     Changed,
 }
 
-/// наш ли это форк и какой: уровень из версии «26.04-yami.N (rev)», N — сколько патчей в серии,
+/// наш ли это форк и какой: уровень из версии «26.04-nemo.N (rev)», N — сколько патчей в серии,
 /// 0 — сток. Это запущенный niri (после сборки до перезахода работает ещё старый бинарь)
 pub fn fork_level() -> u32 {
     let v = request(&json!("Version")).and_then(|v| v["Ok"]["Version"].as_str().map(str::to_string)).unwrap_or_default();
-    let Some(i) = v.find("yami") else { return 0 };
+    // до переименования форк называл себя «26.04-yami.N»: уже собранный niri узнаём по обоим именам
+    let Some(i) = v.find("nemo").or_else(|| v.find("yami")) else { return 0 };
     // до уровней в версии: allow-tearing и realtime, три патча
     v[i + 4..].strip_prefix('.').and_then(|r| r.split(|c: char| !c.is_ascii_digit()).next()?.parse().ok()).unwrap_or(3)
 }
 
 /// уровень для rules.kdl: конфиг должен понять и запущенный niri, и тот, что будет после входа.
-/// Форк выключен до следующего входа (`yami-niri.sh off` убирает ссылку ~/.local/bin/niri) — его
+/// Форк выключен до следующего входа (`nemo-niri.sh off` убирает ссылку ~/.local/bin/niri) — его
 /// ключи сломали бы конфиг пакетному niri (тот стартовал бы со своим, без шелла): тогда 0.
 /// Спрашивается при каждой записи, а не раз при старте: off мог случиться при живом шелле
 pub fn config_level(running: u32) -> u32 {
@@ -112,9 +113,9 @@ pub fn config_level(running: u32) -> u32 {
     }
 }
 
-/// следующий вход — тоже yami-niri: `yami-niri.sh on` ставит ссылку niri в ~/.local/bin на сборку
+/// следующий вход — тоже nemo-niri: `nemo-niri.sh on` ставит ссылку niri в ~/.local/bin на сборку
 fn next_login_fork() -> bool {
-    std::fs::read_link(crate::config::home().join(".local/bin/niri")).map(|t| t.to_string_lossy().contains("/yami-niri/")).unwrap_or(false)
+    std::fs::read_link(crate::config::home().join(".local/bin/niri")).map(|t| t.to_string_lossy().contains("/nemo-niri/")).unwrap_or(false)
 }
 
 fn socket() -> Option<String> {
@@ -241,7 +242,7 @@ impl Niri {
         let mut n = Niri { tx: Some(tx), ..Default::default() };
         n.stacking = std::fs::read_to_string(crate::config::state_dir().join("stacking")).map(|s| s.trim() == "1").unwrap_or(false);
         let lvl = fork_level();
-        n.yami = lvl > 0;
+        n.nemo = lvl > 0;
         n.cast_only = lvl >= 4;
         n.level = lvl;
         n
@@ -512,7 +513,7 @@ impl Niri {
     }
 }
 
-/// трансляция из события; свои (снимки шелла и yami-shot) — None. Имя смотрящего сохраняется из
+/// трансляция из события; свои (снимки шелла и nemo-shot) — None. Имя смотрящего сохраняется из
 /// прошлого состояния того же потока: PipeWire его не повторяет
 fn cast_of(v: &Value, old: &[Cast]) -> Option<Cast> {
     let stream = v["stream_id"].as_u64()?;
@@ -537,7 +538,7 @@ fn cast_of(v: &Value, old: &[Cast]) -> Option<Cast> {
     Some(c)
 }
 
-/// снимок экрана от нас самих: процесс — шелл, yami-shot или их ребёнок (grim) — до трёх колен вверх
+/// снимок экрана от нас самих: процесс — шелл, nemo-shot или их ребёнок (grim) — до трёх колен вверх
 fn ours(pid: u32) -> bool {
     let me = std::process::id();
     let mut p = pid;
@@ -546,7 +547,7 @@ fn ours(pid: u32) -> bool {
             return p == me;
         }
         let comm = std::fs::read_to_string(format!("/proc/{p}/comm")).unwrap_or_default();
-        if matches!(comm.trim(), "yami-shell" | "yami-shot") {
+        if matches!(comm.trim(), "nemo-shell" | "nemo-shot") {
             return true;
         }
         let stat = std::fs::read_to_string(format!("/proc/{p}/stat")).unwrap_or_default();

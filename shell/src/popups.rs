@@ -10,7 +10,7 @@ use crate::ui::{Act, Cur, Tone, Ui};
 use crate::widgets;
 use smithay_client_toolkit::seat::keyboard::{KeyEvent, Keysym};
 
-/// виды всплывашек: `popup KIND`, `yami open KIND`, shot
+/// виды всплывашек: `popup KIND`, `nemo open KIND`, shot
 pub const KINDS: &[&str] = &["cal", "sound", "media", "net", "bt", "sys", "profile", "tray", "weather", "privacy", "control"];
 
 impl State {
@@ -179,7 +179,7 @@ fn cal(ui: &mut Ui, st: &State, b: R) {
     let now = crate::clock::local_now();
     let face = font::px(32);
     ui.text(face, b.x, b.y - 2, &crate::clock::clock_text(&now, false), t.text);
-    let date = yami_px::i18n::long_date(crate::i18n::tr(crate::clock::RU_DAY_FULL[now.wday as usize]), now.day as u32, (now.mon - 1) as usize, crate::i18n::tr(crate::clock::RU_MON[(now.mon - 1) as usize]));
+    let date = nemo_px::i18n::long_date(crate::i18n::tr(crate::clock::RU_DAY_FULL[now.wday as usize]), now.day as u32, (now.mon - 1) as usize, crate::i18n::tr(crate::clock::RU_MON[(now.mon - 1) as usize]));
     ui.text_in(PX, R::new(b.x, b.y + 34, 300, 20), &date, t.text_dim);
     if st.set.hijri {
         let days = crate::widgets::days_from_civil(now.year, now.mon as u32, now.day as u32);
@@ -358,8 +358,8 @@ fn media(ui: &mut Ui, st: &State, b: R) {
     if m.length > 0.0 {
         // время: где сейчас (или куда тянут) и сколько всего
         let at = st.seek.map(|f| f as f64 * m.length).unwrap_or(m.now_pos());
-        ui.cv.text_in(ui.f, PX, R::new(b.x, y, b.w / 2, 20), &yami_px::clock(at), if st.seek.is_some() { t.red } else { t.text_dim });
-        ui.cv.text_right(ui.f, PX, R::new(b.x, y, b.w, 20), &yami_px::clock(m.length), t.text_faint);
+        ui.cv.text_in(ui.f, PX, R::new(b.x, y, b.w / 2, 20), &nemo_px::clock(at), if st.seek.is_some() { t.red } else { t.text_dim });
+        ui.cv.text_right(ui.f, PX, R::new(b.x, y, b.w, 20), &nemo_px::clock(m.length), t.text_faint);
         y += 24;
     }
     match view {

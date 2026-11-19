@@ -1,7 +1,7 @@
-// Обои: своя картинка или пиксельные из палитры (yami-shell recolor пишет wallpaper.png). Своя
+// Обои: своя картинка или пиксельные из палитры (nemo-shell recolor пишет wallpaper.png). Своя
 // готовится в нити — декод, обрезка или вписывание под экран, клетки, окраска в палитру,
 // затемнение — и приходит в Msg::Wall уже готовой: экран рисует её без пересчёта. Тот же
-// результат идёт и экрану входа (login.rs → /var/lib/yami-greet/look/wall.png). Здесь же вкладка «обои».
+// результат идёт и экрану входа (login.rs → /var/lib/nemo-greet/look/wall.png). Здесь же вкладка «обои».
 
 use crate::app::{App, Msg, SKind, State};
 use crate::config::{self, Settings};
@@ -42,7 +42,7 @@ pub fn own(s: &Settings) -> Option<PathBuf> {
     if p.is_empty() {
         return None;
     }
-    Some(yami_px::paths::expand(p))
+    Some(nemo_px::paths::expand(p))
 }
 
 /// что рисовать: картинка, выбранная в skwd-wall (если он включён и что-то выбрал), иначе своя
@@ -151,7 +151,7 @@ pub fn prepare(j: &Job) -> (Option<Img>, Option<u32>) {
     };
     dim(&mut out, bg, j.dim);
     // большой декод уже не нужен: вернуть память системе
-    yami_px::trim_heap();
+    nemo_px::trim_heap();
     (Some(crate::icons::from_rgba(&out)), accent)
 }
 
@@ -368,7 +368,7 @@ fn shrink(img: &Img, max: i32) -> Img {
 
 /// обои на весь экран «как обложка» (картинка уже в пропорциях экрана — без обрезки)
 pub fn cover(ui: &mut Ui, img: &Img, w: i32, h: i32) {
-    yami_px::face::cover(ui, img, w, h);
+    nemo_px::face::cover(ui, img, w, h);
 }
 
 pub fn draw(ui: &mut Ui, st: &State, w: i32, h: i32) {
@@ -381,11 +381,11 @@ pub fn draw(ui: &mut Ui, st: &State, w: i32, h: i32) {
         // знак Nemo в правом нижнем углу: рыбка и слово (раньше здесь был иероглиф 闇); ключ
         // wallKanji остался как был, чтобы настройки не потерялись
         let face = font::px(32);
-        let word = yami_px::brand::NAME.to_lowercase();
+        let word = nemo_px::brand::NAME.to_lowercase();
         let (tw, th) = (ui.w(face, &word), ui.f.line(face));
-        let (fw, fh) = yami_px::brand::fish_size(3);
+        let (fw, fh) = nemo_px::brand::fish_size(3);
         let (x, y) = (w - 40 - tw - 14 - fw, h - 32 - th.max(fh));
-        yami_px::brand::fish(ui, x, y + (th.max(fh) - fh) / 2, 3, 0.55);
+        nemo_px::brand::fish(ui, x, y + (th.max(fh) - fh) / 2, 3, 0.55);
         ui.text(face, x + fw + 14, y + (th.max(fh) - th) / 2, &word, t.red.fade(0.45));
     }
 }
@@ -450,7 +450,7 @@ pub fn tab(ui: &mut Ui, st: &State, b: R) {
     ui.button(R::new(b.right() - 120, y + 2, 120, 26), "применить", "check", Tone::Primary, false, true, Act::SCycle("wall_apply"));
     y += 40;
     // папка обоев (wallDir): из неё сетка выбора; пусто — находится сама (walls.rs dir). Путь — как
-    // есть, без перевода; выбрать — окно yami-files, без него папку вписывают в поле выше
+    // есть, без перевода; выбрать — окно nemo-files, без него папку вписывают в поле выше
     let auto = s.wall_dir.trim().is_empty();
     ui.cv.icon("folder", b.x + 2, y + 9, 2, t.text_faint);
     let lw = ui.text_in(PX, R::new(b.x + 22, y, 160, 30), "папка", t.text_faint);
@@ -463,7 +463,7 @@ pub fn tab(ui: &mut Ui, st: &State, b: R) {
         ui.text_in(PX, pr, "авто: Pictures/Wallpapers", t.text_dim);
     } else {
         ui.cv.push_clip(pr);
-        ui.cv.text_in(ui.f, PX, pr, &yami_px::paths::pretty(&yami_px::paths::expand(&s.wall_dir)), t.text);
+        ui.cv.text_in(ui.f, PX, pr, &nemo_px::paths::pretty(&nemo_px::paths::expand(&s.wall_dir)), t.text);
         ui.cv.pop_clip();
     }
     let mut bx = b.right() - bw;
@@ -593,7 +593,7 @@ impl App {
         let small = shrink(img, PARK);
         self.st.wall = Some(std::rc::Rc::new(small));
         self.st.wall_parked = true;
-        yami_px::trim_heap();
+        nemo_px::trim_heap();
     }
 
     /// полная картинка снова нужна (обои перерисовать, блокировка, шторка): пересчитать её в нити.
@@ -610,7 +610,7 @@ impl App {
     /// новый путь (пусто — пиксельные из палитры): из настроек, IPC и диалога выбора
     pub fn set_wall(&mut self, p: &str) {
         let p = p.trim();
-        let p = if p.is_empty() { String::new() } else { yami_px::paths::expand(p).to_string_lossy().to_string() };
+        let p = if p.is_empty() { String::new() } else { nemo_px::paths::expand(p).to_string_lossy().to_string() };
         self.st.set.wallpaper = p.clone();
         self.st.wall_field.set(&p);
         self.st.field_focus = None;
@@ -621,7 +621,7 @@ impl App {
         let Act::SWall(k) = a else { return false };
         let s = &mut self.st.set;
         match *k {
-            // сетка картинок папки обоев (walls.rs); другой файл и папка — оттуда через yami-files
+            // сетка картинок папки обоев (walls.rs); другой файл и папка — оттуда через nemo-files
             "pick" => {
                 self.walls_open(true);
                 return true;
@@ -636,7 +636,7 @@ impl App {
                 self.set_wall("");
                 return true;
             }
-            // папка обоев: выбрать в окне yami-files или вернуть «авто»; сохранится само (flush)
+            // папка обоев: выбрать в окне nemo-files или вернуть «авто»; сохранится само (flush)
             "dir" => {
                 self.wall_dir_ask();
                 return true;
@@ -666,7 +666,7 @@ impl App {
 
 #[cfg(test)]
 mod tests {
-    use yami_px::gfx::Img;
+    use nemo_px::gfx::Img;
     #[test]
     fn shrink_odd_sizes() {
         for (w, h) in [(4000, 3), (3, 4000), (1, 1), (1920, 1080), (641, 2)] {
@@ -741,7 +741,7 @@ mod tests {
         assert!(sat(super::dominant(&img, "mono").unwrap()) < 0.12);
     }
 
-    /// `NEMO_TEST_WALL=/path/a.png cargo test -p yami-shell live_wallpaper -- --ignored --nocapture`: что выбрано для настоящей картинки
+    /// `NEMO_TEST_WALL=/path/a.png cargo test -p nemo-shell live_wallpaper -- --ignored --nocapture`: что выбрано для настоящей картинки
     #[test]
     #[ignore]
     fn live_wallpaper() {

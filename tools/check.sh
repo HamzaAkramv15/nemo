@@ -28,14 +28,14 @@ elif grep -q 'warning:' <<<"$out"; then
 else
   ok "build"
 fi
-BIN="$ROOT/shell/target/release/yami-shell"
+BIN="$ROOT/shell/target/release/nemo-shell"
 
 step "versions"
 want="$(cat "$ROOT/VERSION")"
 vbad=0
 for f in "$ROOT"/shell/Cargo.toml "$ROOT"/shell/*/Cargo.toml; do
   [[ -f $f ]] || continue
-  # yami-px has its own version: the modules take it by the tag px-vX.Y.Z (see shell/px/Cargo.toml)
+  # nemo-px has its own version: the modules take it by the tag px-vX.Y.Z (see shell/px/Cargo.toml)
   [[ $f == */shell/px/Cargo.toml ]] && continue
   v="$(sed -n '0,/^version = "\(.*\)"/s//\1/p' "$f")"
   [[ $v == "$want" ]] || { echo "${f#"$ROOT"/}: $v, VERSION: $want"; vbad=1; }
@@ -43,10 +43,10 @@ done
 ((vbad)) && bad "crate versions differ from VERSION (tools/release.sh sets them)" || ok "every crate is $want"
 
 step "i18n"
-DEV="$ROOT/shell/target/release/yami-dev"
+DEV="$ROOT/shell/target/release/nemo-dev"
 "$DEV" check-i18n || bad "static i18n"
 # README, CHANGELOG, docs/* and their .ru.md twins: one skeleton, links, anchors
-"$DEV" check-docs && ok "docs: English and Russian in step" || bad "docs EN/RU (yami-dev check-docs)"
+"$DEV" check-docs && ok "docs: English and Russian in step" || bad "docs EN/RU (nemo-dev check-docs)"
 if [[ -x $BIN ]]; then
   # every panel drawn offscreen in English: any Russian text left on screen fails
   "$BIN" shot --defaults --lang en -o "$TMP/en" | grep untranslated
@@ -55,24 +55,24 @@ if [[ -x $BIN ]]; then
 fi
 # the shell in Brazilian Portuguese: nothing left in Russian or English from the catalogs
 "$BIN" shot --lang pt-BR -o "$TMP/pt" --defaults | grep untranslated
-[[ ${PIPESTATUS[0]} -eq 0 ]] && ok "yami-shell shot --lang pt-BR" || bad "yami-shell shot --lang pt-BR"
+[[ ${PIPESTATUS[0]} -eq 0 ]] && ok "nemo-shell shot --lang pt-BR" || bad "nemo-shell shot --lang pt-BR"
 # every language (a missing line shows in English): every text fits its place, nothing cut
 fit=0
 for lang in ru en pt-BR es de fr uk pl ar; do
   "$BIN" shot --defaults --fit --lang "$lang" -o "$TMP/$lang" >"$TMP/fit.log" 2>&1 || { grep -E "layout:|untranslated" "$TMP/fit.log" | head -10; fit=1; }
 done
-((fit)) && bad "yami-shell shot --fit (shorten the translation or give the text room)" || ok "yami-shell shot --fit: all eight languages, every text fits"
-# the services' windows (yami-agents): both looks, three languages, nothing left untranslated
-AG="$ROOT/shell/target/release/yami-agents"
+((fit)) && bad "nemo-shell shot --fit (shorten the translation or give the text room)" || ok "nemo-shell shot --fit: all eight languages, every text fits"
+# the services' windows (nemo-agents): both looks, three languages, nothing left untranslated
+AG="$ROOT/shell/target/release/nemo-agents"
 printf '{"preset":"plain"}\n' >"$TMP/plain.json"
-printf '{"preset":"yami","palette":"ash"}\n' >"$TMP/yami.json"
+printf '{"preset":"nemo","palette":"ash"}\n' >"$TMP/nemo.json"
 ag=0
-for look in plain yami; do
+for look in plain nemo; do
   for lang in en ru pt-BR es de fr uk pl ar; do
-    YAMI_STYLE="$TMP/$look.json" "$AG" shot --lang "$lang" -o "$TMP/ag-$look-$lang" >"$TMP/ag.log" 2>&1 || { tail -5 "$TMP/ag.log"; ag=1; }
+    NEMO_STYLE="$TMP/$look.json" "$AG" shot --lang "$lang" -o "$TMP/ag-$look-$lang" >"$TMP/ag.log" 2>&1 || { tail -5 "$TMP/ag.log"; ag=1; }
   done
 done
-((ag)) && bad "yami-agents shot" || ok "yami-agents shot: plain and yami, every language"
+((ag)) && bad "nemo-agents shot" || ok "nemo-agents shot: plain and nemo, every language"
 step "lint and budget"
 tools/lint.sh && ok "clippy ratchet and cargo-deny" || bad "lint (tools/lint.sh)"
 tools/budget.sh 8 && ok "size and idle budget" || bad "budget (tools/budget.sh)"
@@ -80,7 +80,7 @@ tools/budget.sh 8 && ok "size and idle budget" || bad "budget (tools/budget.sh)"
 step "unit tests"
 cargo test --release --locked --workspace --quiet --manifest-path "$ROOT/shell/Cargo.toml" >"$TMP/test.log" 2>&1 && ok "cargo test" || { tail -20 "$TMP/test.log"; bad "cargo test"; }
 # a package manager's build (Nix, distro packages): the updater is off (docs/PACKAGING.md)
-cargo test --release --locked -p yami-shell --features package-managed --quiet --manifest-path "$ROOT/shell/Cargo.toml" package_manager_owns_updates >"$TMP/managed.log" 2>&1 && ok "cargo test (package-managed)" || { tail -20 "$TMP/managed.log"; bad "cargo test --features package-managed"; }
+cargo test --release --locked -p nemo-shell --features package-managed --quiet --manifest-path "$ROOT/shell/Cargo.toml" package_manager_owns_updates >"$TMP/managed.log" 2>&1 && ok "cargo test (package-managed)" || { tail -20 "$TMP/managed.log"; bad "cargo test --features package-managed"; }
 
 step "scripts"
 for f in "$ROOT"/install.sh "$ROOT"/installer/*.sh "$ROOT"/installer/lang/*.sh "$ROOT"/tools/*.sh "$ROOT"/packaging/*.sh; do
@@ -99,21 +99,21 @@ fi
 
 step "niri config"
 if command -v niri >/dev/null; then
-  # what a new home gets: the starting config.kdl with yami's part (base, binds, rules) through one
+  # what a new home gets: the starting config.kdl with nemo's part (base, binds, rules) through one
   # include, and a config of one's own with the include line added at its top
   h="$TMP/niri-home"
   box=(env -u DBUS_SESSION_BUS_ADDRESS -u NIRI_CONFIG HOME="$h" XDG_CONFIG_HOME= XDG_STATE_HOME= XDG_CACHE_HOME= XDG_DATA_HOME= XDG_RUNTIME_DIR="$h" NIRI_SOCKET= WAYLAND_DISPLAY=)
   mkdir -p "$h"
   if "${box[@]}" "$BIN" niri connect >/dev/null && "${box[@]}" "$BIN" niri write && "${box[@]}" niri validate -c "$h/.config/niri/config.kdl" >/dev/null 2>&1; then
-    ok "the starting config with yami's part validates"
+    ok "the starting config with nemo's part validates"
   else
     bad "niri validate: the starting config"
   fi
   printf '// mine\ninput {\n}\nbinds {\n    Mod+Space { spawn "true"; }\n}\n' >"$h/.config/niri/config.kdl"
-  if "${box[@]}" "$BIN" niri connect >/dev/null && grep -q "yami/niri/yami.kdl" "$h/.config/niri/config.kdl" && "${box[@]}" niri validate -c "$h/.config/niri/config.kdl" >/dev/null 2>&1; then
-    ok "a config of one's own with yami's line validates"
+  if "${box[@]}" "$BIN" niri connect >/dev/null && grep -q "nemo/niri/nemo.kdl" "$h/.config/niri/config.kdl" && "${box[@]}" niri validate -c "$h/.config/niri/config.kdl" >/dev/null 2>&1; then
+    ok "a config of one's own with nemo's line validates"
   else
-    bad "niri validate: a config of one's own with yami's line"
+    bad "niri validate: a config of one's own with nemo's line"
   fi
 else
   echo "niri not installed, skipped"

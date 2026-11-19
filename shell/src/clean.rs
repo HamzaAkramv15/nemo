@@ -1,17 +1,17 @@
-// `yami clean`: кеш сборки — исходники yami-niri и target шелла. Это гигабайты, которые нужны
-// только следующей сборке: установленные бинарники и форк им не нужны, `yami update` соберёт заново.
-// Размер показывает и `yami doctor`.
+// `nemo clean`: кеш сборки — исходники nemo-niri и target шелла. Это гигабайты, которые нужны
+// только следующей сборке: установленные бинарники и форк им не нужны, `nemo update` соберёт заново.
+// Размер показывает и `nemo doctor`.
 
 use crate::cmd::Sty;
 use std::os::unix::fs::MetadataExt;
 use std::path::{Path, PathBuf};
 use std::process::Command;
 
-/// что считается кешем сборки: (подпись, путь, это дерево yami-niri)
+/// что считается кешем сборки: (подпись, путь, это дерево nemo-niri)
 fn targets() -> Vec<(String, PathBuf, bool)> {
-    let base = yami_px::paths::cache_dir().join("yami");
-    let src = std::env::var_os("YAMI_NIRI_SRC").map(PathBuf::from).unwrap_or_else(|| base.join("niri-src"));
-    vec![(crate::tf!("исходники yami-niri", "yami-niri sources", "código-fonte do yami-niri"), src, true), (crate::tf!("сборка шелла", "shell build", "compilação do shell"), base.join("target"), false)]
+    let base = nemo_px::paths::cache_dir().join("nemo");
+    let src = nemo_px::paths::env_os("NEMO_NIRI_SRC").map(PathBuf::from).unwrap_or_else(|| base.join("niri-src"));
+    vec![(crate::tf!("исходники nemo-niri", "nemo-niri sources", "código-fonte do nemo-niri"), src, true), (crate::tf!("сборка шелла", "shell build", "compilação do shell"), base.join("target"), false)]
 }
 
 /// занято на диске (блоки, как у du); ссылки не разворачиваются
@@ -42,19 +42,19 @@ pub fn total() -> u64 {
     targets().iter().filter(|t| t.1.exists()).map(|t| size(&t.1)).sum()
 }
 
-/// папка исходников форка: в ней только yami-niri и yami-smithay. YAMI_NIRI_SRC, указавший по ошибке
+/// папка исходников форка: в ней только nemo-niri и nemo-smithay. NEMO_NIRI_SRC, указавший по ошибке
 /// на дом или другую папку, не удаляется целиком
 fn niri_src(p: &Path) -> bool {
     let Ok(rd) = std::fs::read_dir(p) else { return false };
     let names: Vec<_> = rd.flatten().map(|e| e.file_name()).collect();
-    names.iter().all(|n| n == "yami-niri" || n == "yami-smithay")
+    names.iter().all(|n| n == "nemo-niri" || n == "nemo-smithay")
 }
 
-/// дерево yami-niri с работой над патчами: правки или коммиты не из серии (их делает не yami@localhost)
+/// дерево nemo-niri с работой над патчами: правки или коммиты не из серии (их делает не nemo@localhost)
 fn dev_tree(src: &Path) -> bool {
     let git = |d: &Path, a: &[&str]| Command::new("git").arg("-C").arg(d).args(a).output().map(|o| String::from_utf8_lossy(&o.stdout).to_string()).unwrap_or_default();
-    ["yami-niri", "yami-smithay"].iter().map(|n| src.join(n)).filter(|d| d.join(".git").exists()).any(|d| {
-        !git(&d, &["status", "--porcelain"]).trim().is_empty() || git(&d, &["log", "--format=%ce", "HEAD", "--not", "--remotes"]).lines().any(|l| l != "yami@localhost")
+    ["nemo-niri", "nemo-smithay"].iter().map(|n| src.join(n)).filter(|d| d.join(".git").exists()).any(|d| {
+        !git(&d, &["status", "--porcelain"]).trim().is_empty() || git(&d, &["log", "--format=%ce", "HEAD", "--not", "--remotes"]).lines().any(|l| l != "nemo@localhost")
     })
 }
 
@@ -79,7 +79,7 @@ pub fn run(y: &Sty, a: &[&str]) -> i32 {
         let sz = size(&p);
         let line = |mark: String, note: &str| println!("   {mark} {:<22}{:>9}  {}", what, human(sz), y.dim(note));
         if niri && !niri_src(&p) {
-            line(y.bad("✕"), &crate::tf!("это не папка исходников yami-niri (YAMI_NIRI_SRC?): не трогаю", "not a yami-niri source folder (YAMI_NIRI_SRC?): left alone", "não é uma pasta de código-fonte do yami-niri (YAMI_NIRI_SRC?): preservada"));
+            line(y.bad("✕"), &crate::tf!("это не папка исходников nemo-niri (NEMO_NIRI_SRC?): не трогаю", "not a nemo-niri source folder (NEMO_NIRI_SRC?): left alone", "não é uma pasta de código-fonte do nemo-niri (NEMO_NIRI_SRC?): preservada"));
         } else if niri && !force && dev_tree(&p) {
             line(y.warn("·"), &crate::tf!("в дереве твоя работа над патчами: оставлено (--force — всё равно)", "your patch work is in the tree: kept (--force to remove anyway)", "seus patches estão na árvore: preservados (--force para remover mesmo assim)"));
         } else if dry {
@@ -97,7 +97,7 @@ pub fn run(y: &Sty, a: &[&str]) -> i32 {
     if !found {
         println!("   {} {}", y.ok("✓"), crate::tf!("кеша нет, чистить нечего", "no cache, nothing to clean", "sem cache, nada para limpar"));
     } else if !dry && freed > 0 {
-        println!("\n {} {}", y.ok("✓"), crate::tf!("освобождено {}; следующее обновление соберёт заново (yami-niri уже стоит и этим не затронут)", "freed {}; the next update rebuilds (the installed yami-niri is untouched)", "{} liberados; a próxima atualização recompila (o yami-niri instalado é preservado)", human(freed)));
+        println!("\n {} {}", y.ok("✓"), crate::tf!("освобождено {}; следующее обновление соберёт заново (nemo-niri уже стоит и этим не затронут)", "freed {}; the next update rebuilds (the installed nemo-niri is untouched)", "{} liberados; a próxima atualização recompila (o nemo-niri instalado é preservado)", human(freed)));
     }
     println!();
     0

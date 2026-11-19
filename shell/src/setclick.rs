@@ -93,14 +93,14 @@ impl App {
                 self.theme_rerun();
                 return true;
             }
-            // части yami-agents: их файл настроек, не настройки шелла
+            // части nemo-agents: их файл настроек, не настройки шелла
             Act::SBool(k) if matches!(*k, "agent_polkit" | "agent_cast" | "automount" | "automount_open") => {
                 crate::agents::AgentsCfg::flip(k);
                 crate::agents::write_portals(&self.st.set);
                 self.dirty(&SKind::Modal);
             }
             Act::SBool(k) if k.starts_with("shot_") => {
-                // настройки скриншотов — файл yami-shot, а не настройки шелла
+                // настройки скриншотов — файл nemo-shot, а не настройки шелла
                 self.st.shot_cfg.fresh();
                 let c = &mut self.st.shot_cfg;
                 match *k {
@@ -198,7 +198,7 @@ impl App {
                     "session_restore" => s.session_restore = !s.session_restore,
                     "update_check" => s.update_check = !s.update_check,
                     "terminal_fish" => {
-                        // recolor читает настройки с диска: сохранить, потом переписать kitty/yami-shell.conf
+                        // recolor читает настройки с диска: сохранить, потом переписать kitty/nemo-shell.conf
                         s.terminal_fish = !s.terminal_fish;
                         self.settings_changed();
                         self.save_now();
@@ -341,7 +341,7 @@ impl App {
                 }
                 "theme_rerun" => self.theme_rerun(),
                 "templates_open" => {
-                    let d = crate::config::config_dir().join("yami/templates");
+                    let d = crate::config::config_dir().join("nemo/templates");
                     crate::prefs::templates_example(&d);
                     App::open_dir(d.display().to_string());
                 }
@@ -373,7 +373,7 @@ impl App {
                 // стиль тянет за собой то, что без него выглядит чужим: проявление, значки, матовость
                 "preset" => {
                     let plain = s.preset != "plain";
-                    s.preset = if plain { "plain" } else { "yami" }.into();
+                    s.preset = if plain { "plain" } else { "nemo" }.into();
                     s.reveal = if plain { "fade" } else { "dither" }.into();
                     s.icon_pixel = !plain;
                     s.glass = if plain { 1.0 } else { 0.55 };
@@ -512,7 +512,7 @@ impl App {
                     self.settings_changed();
                 }
                 "lang" => {
-                    s.lang = yami_px::i18n::next(&s.lang).into();
+                    s.lang = nemo_px::i18n::next(&s.lang).into();
                     self.settings_changed();
                 }
                 "wall_apply" => {

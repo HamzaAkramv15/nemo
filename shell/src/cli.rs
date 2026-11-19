@@ -1,28 +1,28 @@
-// Командная строка для тех, кто любит конфиги: yami-shell config …, yami-shell binds ….
+// Командная строка для тех, кто любит конфиги: nemo-shell config …, nemo-shell binds ….
 // Работающий шелл замечает правку файла сам (перечитывает по времени изменения).
 
 use crate::config::{settings_path, Settings};
 use serde_json::Value;
 
-const HELP: &str = "yami-shell config [list | get KEY | set KEY VALUE | reset [KEY] | check | path]
+const HELP: &str = "nemo-shell config [list | get KEY | set KEY VALUE | reset [KEY] | check | path]
   list            every key with its value; * marks a value changed from the default
   get KEY         one value as JSON
   set KEY VALUE   VALUE is JSON (true, 12, [\"a\"], {…}) or else a plain string
   reset [KEY]     back to the default: one key, or the whole file (a .bak copy is kept)
   check           keys with a bad value (ignored, default used) and unknown keys
   path            where the file is
-  kdl [Nemo]      what the shell writes to ~/.config/yami/niri/rules.kdl (Nemo: as for yami-niri)
+  kdl [Nemo]      what the shell writes to ~/.config/nemo/niri/rules.kdl (Nemo: as for nemo-niri)
   lite-auto       lite mode on when this machine is weak or virtual and the file has no `lite` yet
   seed K=V …      (the installer) set keys in the file as they are: true/false or a string; look=\"78 0 100 50\"
   restyle \"LIST\" C  (the installer) what to restyle: themeApps = LIST, cursor = Nemo or system
   portals         write niri-portals.conf for the modules that are installed
-Keys are camelCase, as in ~/.config/yami/shell.json. Reference: docs/CONFIG.md.
+Keys are camelCase, as in ~/.config/nemo/shell.json. Reference: docs/CONFIG.md.
 
-yami-shell binds [list | print | write]
+nemo-shell binds [list | print | write]
   list            every keybinding: id, keys, what it does
   print           the niri binds block the shell writes
-  write           write ~/.config/yami/niri/binds.kdl now (the shell does it on start)
-Change one: yami-shell config set binds '{\"terminal\": \"Mod+Return\"}' (\"\" turns it off).";
+  write           write ~/.config/nemo/niri/binds.kdl now (the shell does it on start)
+Change one: nemo-shell config set binds '{\"terminal\": \"Mod+Return\"}' (\"\" turns it off).";
 
 pub fn file_json() -> serde_json::Map<String, Value> {
     std::fs::read_to_string(settings_path()).ok().and_then(|t| serde_json::from_str::<Value>(&t).ok()).and_then(|v| v.as_object().cloned()).unwrap_or_default()
@@ -43,7 +43,7 @@ fn tidy(v: &Value) -> Value {
 }
 
 /// шелл перечитывает настройки сразу, а не когда заметит новый файл: иначе следующая команда
-/// (`yami night …`, любая, что сохраняет настройки шелла) успела бы записать поверх правки его
+/// (`nemo night …`, любая, что сохраняет настройки шелла) успела бы записать поверх правки его
 /// прежнее состояние. Шелла нет — молча
 fn tell_shell() {
     let _ = crate::ipc::send("reload");
@@ -90,7 +90,7 @@ fn restyle(list: &str, cursor: &str) -> i32 {
     if cursor == "system" {
         d.insert("cursor".into(), "system".into());
     } else if matches!(d.get("cursor").and_then(|v| v.as_str()), None | Some("system")) {
-        d.insert("cursor".into(), "yami".into());
+        d.insert("cursor".into(), "nemo".into());
     }
     if d == before && settings_path().exists() {
         return 0;
@@ -119,14 +119,14 @@ pub fn config(args: &[String]) -> i32 {
             match cur.get(*k) {
                 Some(v) => println!("{}", serde_json::to_string_pretty(&tidy(v)).unwrap_or_default()),
                 None => {
-                    eprintln!("no such key: {k} (yami-shell config list)");
+                    eprintln!("no such key: {k} (nemo-shell config list)");
                     return 2;
                 }
             }
         }
         ["set", k, v] => {
             if !defaults().contains_key(*k) {
-                eprintln!("no such key: {k} (yami-shell config list)");
+                eprintln!("no such key: {k} (nemo-shell config list)");
                 return 2;
             }
             let val: Value = serde_json::from_str(v).unwrap_or_else(|_| Value::String(v.to_string()));
@@ -174,8 +174,8 @@ pub fn config(args: &[String]) -> i32 {
             tell_shell();
         }
         ["kdl"] | ["kdl", _] => {
-            // что шелл пишет в ~/.config/yami/niri/rules.kdl; `kdl yami` — как для yami-niri
-            let lvl = if a.get(1) == Some(&"yami") { u32::MAX } else { crate::niri::config_level(crate::niri::fork_level()) };
+            // что шелл пишет в ~/.config/nemo/niri/rules.kdl; `kdl nemo` — как для nemo-niri
+            let lvl = if a.get(1) == Some(&"nemo") { u32::MAX } else { crate::niri::config_level(crate::niri::fork_level()) };
             print!("{}", Settings::load().fx_kdl(lvl, false));
         }
         // установщик, чистая установка: слабая или виртуальная машина — сразу лёгкий режим;

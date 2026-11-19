@@ -1,7 +1,7 @@
 // Где человек: без GeoClue и без IP-адреса. Часовой пояс системы (/etc/localtime → Africa/Cairo) уже
 // называет город, а геокодер Open-Meteo по имени города отвечает несколькими местами (Cairo в Египте
 // и Cairo в Иллинойсе): берётся то, чьё время совпадает с часовым поясом системы. Наружу уходит одно
-// слово — имя города, то же, что и при вводе его руками. Ответ лежит в ~/.cache/yami/location.json
+// слово — имя города, то же, что и при вводе его руками. Ответ лежит в ~/.cache/nemo/location.json
 // и обновляется, когда сменился часовой пояс или прошёл месяц. Для погоды (`weatherCity` = auto) и
 // ночного света по солнцу (`nightGeo` = auto).
 // i18n: inline pairs
@@ -34,7 +34,7 @@ pub fn pick<'a>(results: &'a Value, tz: &str) -> Option<&'a Value> {
 }
 
 fn cache_path() -> std::path::PathBuf {
-    yami_px::paths::cache_dir().join("yami/location.json")
+    nemo_px::paths::cache_dir().join("nemo/location.json")
 }
 
 /// сохранённое место, если оно для нынешнего часового пояса и не старше месяца
@@ -100,7 +100,7 @@ mod tests {
         assert!(!super::is_auto("Cairo"));
     }
 
-    /// с сетью и своим часовым поясом: `cargo test -p yami-shell live_location -- --ignored --nocapture`
+    /// с сетью и своим часовым поясом: `cargo test -p nemo-shell live_location -- --ignored --nocapture`
     #[test]
     #[ignore]
     fn live_location() {

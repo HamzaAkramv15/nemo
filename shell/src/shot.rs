@@ -1,7 +1,7 @@
 // Снимки панелей без Wayland: рисует в память и пишет PNG. Чтобы проверить вид и перевод,
 // не трогая экран пользователя (и не открывая ничего поверх его игры).
 //
-//   yami-shell shot [ЦЕЛЬ…] [--lang ru|en] [--theme dark|light] [--defaults] [--transparent] [-o ПАПКА]
+//   nemo-shell shot [ЦЕЛЬ…] [--lang ru|en] [--theme dark|light] [--defaults] [--transparent] [-o ПАПКА]
 //
 // Без цели — все панели. При --lang en печатает надписи, оставшиеся русскими, и выходит с 1.
 // Окна, программы и уведомление — мок-овые (снимок не зависит от машины), датчики — настоящие.
@@ -178,7 +178,7 @@ const TARGETS: &[&str] = &[
 ];
 
 /// снимки тесноты: обрезка многоточием там задумана (--fit её не считает)
-const CROWD: &[&str] = &["bar:pill", "bar:tasks-crowd"];
+const CROWD: &[&str] = &["bar:pill", "bar:tasks-crowd", "bar:island-crowd"];
 
 /// надписи, которые и в английском интерфейсе пишутся по-русски
 const NATIVE: &[&str] = &["Русский"]; // i18n-ok
@@ -203,12 +203,12 @@ pub fn run(args: &[String]) -> i32 {
             "--theme" => mode = it.next().map(|m| m == "light"),
             "--transparent" => CLEAR.store(true, std::sync::atomic::Ordering::Relaxed),
             "-h" | "--help" | "list" => {
-                println!("yami-shell shot [TARGET…] [--lang CODE] [--defaults] [--fit] [--transparent] [-o DIR]\ntargets: {}", TARGETS.join(" "));
+                println!("nemo-shell shot [TARGET…] [--lang CODE] [--defaults] [--fit] [--transparent] [-o DIR]\ntargets: {}", TARGETS.join(" "));
                 return 0;
             }
             t if TARGETS.contains(&t) => targets.push(t.to_string()),
             t => {
-                eprintln!("shot: unknown target {t}; `yami-shell shot list`");
+                eprintln!("shot: unknown target {t}; `nemo-shell shot list`");
                 return 2;
             }
         }
@@ -224,9 +224,9 @@ pub fn run(args: &[String]) -> i32 {
         set.light = l;
     }
     crate::i18n::set(&set.lang);
-    yami_px::rtl::set_digits(set.arabic_digits);
-    yami_px::time::set_hour12(set.clock12);
-    yami_px::gfx::set_vector_icons(set.vector_icons());
+    nemo_px::rtl::set_digits(set.arabic_digits);
+    nemo_px::time::set_hour12(set.clock12);
+    nemo_px::gfx::set_vector_icons(set.vector_icons());
     let mut res = Res { icons: Icons::new(&set.icon_theme), fonts: Fonts::with(&set.font_family()), font: set.font_family(), iset: crate::app::icon_set(&set.icon_theme) };
     res.icons.set_style(crate::theme::Theme::new(set.accent_rgb(), set.tint, set.glass, set.lift, set.inner, set.light).icon_ramp(), set.icon_pixel, set.icon_tint);
     let mut st = State::new(set, mock_niri());
@@ -239,14 +239,14 @@ pub fn run(args: &[String]) -> i32 {
         return 2;
     }
     crate::i18n::audit(crate::i18n::translated());
-    yami_px::gfx::watch_text(fit);
+    nemo_px::gfx::watch_text(fit);
     let (mut bad, mut loose) = (0, 0);
     for t in &targets {
         let path = out.join(format!("{}.png", t.replace(':', "-")));
         shoot(&mut st, &mut res, t, &path);
         if fit {
             // эти снимки и проверяют тесноту: там многоточие — задуманное
-            let p: Vec<String> = yami_px::gfx::fit_report().into_iter().filter(|p| !(CROWD.contains(&t.as_str()) && p.starts_with("cut "))).collect();
+            let p: Vec<String> = nemo_px::gfx::fit_report().into_iter().filter(|p| !(CROWD.contains(&t.as_str()) && p.starts_with("cut "))).collect();
             loose += p.len();
             for s in p {
                 println!("{}  layout: {s}", path.display());
@@ -436,15 +436,15 @@ fn shoot(st: &mut State, res: &mut Res, target: &str, path: &Path) {
                 let tpl = |file: &str, output: &str, state: &str, keys: &[&str]| crate::restyle::Tpl { file: file.into(), output: output.into(), state: state.into(), keys: keys.iter().map(|k| k.to_string()).collect() };
                 st.set.templates_off = vec!["dunst".into()];
                 st.restyle = crate::restyle::Status {
-                    fetch: Some("~/.config/fastfetch/yami.jsonc".into()),
+                    fetch: Some("~/.config/fastfetch/nemo.jsonc".into()),
                     starship: Some("catppuccin_mocha".into()),
                     tpls: vec![
-                        tpl("equibop.css", "~/.config/equibop/themes/yami.css", "ok", &[]),
+                        tpl("equibop.css", "~/.config/equibop/themes/nemo.css", "ok", &[]),
                         tpl("waybar.css", "~/.config/waybar/colors.css", "hand", &[]),
-                        tpl("rofi.rasi", "~/.config/rofi/yami.rasi", "unknown", &["acccent"]),
-                        tpl("vesktop-a-very-long-template-name.css", "~/.config/vesktop/themes/a/very/deep/folder/with/a/long/name/yami.theme.css", "ok", &[]),
-                        tpl("dunst", "~/.config/dunst/dunstrc.d/yami.conf", "off", &[]),
-                        tpl("helix", "~/.config/helix/themes/yami.toml", "ok", &[]),
+                        tpl("rofi.rasi", "~/.config/rofi/nemo.rasi", "unknown", &["acccent"]),
+                        tpl("vesktop-a-very-long-template-name.css", "~/.config/vesktop/themes/a/very/deep/folder/with/a/long/name/nemo.theme.css", "ok", &[]),
+                        tpl("dunst", "~/.config/dunst/dunstrc.d/nemo.conf", "off", &[]),
+                        tpl("helix", "~/.config/helix/themes/nemo.toml", "ok", &[]),
                     ],
                 };
             }
@@ -820,7 +820,7 @@ fn shoot(st: &mut State, res: &mut Res, target: &str, path: &Path) {
                 let img = image::RgbaImage::from_fn(w, h, |x, y| image::Rgba([(x * 255 / w) as u8, 40, (y * 255 / h) as u8, 255]));
                 let mut n = mock_note();
                 n.id = i as u32 + 1;
-                n.app = "yami-screenshot".into();
+                n.app = "nemo-screenshot".into();
                 n.summary = "скриншот сохранён и скопирован".into();
                 n.body = "~/Pictures/Screenshots/shot-1200.png".into();
                 n.actions = vec![("default".into(), "открыть".into()), ("folder".into(), "в папке".into())];
@@ -892,7 +892,7 @@ fn shoot(st: &mut State, res: &mut Res, target: &str, path: &Path) {
                 if !crate::bar::vert(&st.set) {
                     crate::wall::draw(&mut ui, st, w, h);
                 }
-                yami_px::gfx::text_layer();
+                nemo_px::gfx::text_layer();
                 if crate::bar::vert(&st.set) {
                     let (m, side, th) = crate::bar::geo(&st.set, h);
                     ui.cv.ox = if st.set.bar_pos == "right" { w - m - th } else { m };
@@ -919,7 +919,7 @@ fn shoot(st: &mut State, res: &mut Res, target: &str, path: &Path) {
             "widget" => crate::widgets::draw(&mut ui, st, 900, w, h),
             "grid" => {
                 crate::wall::draw(&mut ui, st, w, h);
-                yami_px::gfx::text_layer();
+                nemo_px::gfx::text_layer();
                 crate::widgets::draw_grid(&mut ui, st, w, h);
                 ui.cv.ox = (w - crate::widgets::EDITBAR_W) / 2;
                 ui.cv.oy = 40;
@@ -940,7 +940,7 @@ fn shoot(st: &mut State, res: &mut Res, target: &str, path: &Path) {
     save_png(&buf, w, h, path);
 }
 
-const ICON_APPS: &[&str] = &["librewolf", "firefox", "kitty", "org.telegram.desktop", "steam", "discord", "chromium", "spotify", "obs", "code", "gimp", "vlc", "yami-files", "yami-view", "yami-play", "no-such-app"];
+const ICON_APPS: &[&str] = &["librewolf", "firefox", "kitty", "org.telegram.desktop", "steam", "discord", "chromium", "spotify", "obs", "code", "gimp", "vlc", "nemo-files", "nemo-view", "nemo-play", "no-such-app"];
 
 /// сетка `shot icons`: ряды — вид (как есть / пиксельные / в тонах палитры) × размер (48, 40, 24)
 fn icons_grid(ui: &mut Ui, st: &State) {
@@ -984,7 +984,7 @@ fn mock_niri() -> Niri {
     for i in 1..=3u64 {
         n.ws.push(Ws { id: i, idx: i as u32, output: String::new(), active: i == 1, focused: i == 1, ..Default::default() });
     }
-    for (id, app, title) in [(1u64, "kitty", "~/projects/yami"), (2, "firefox", "niri wiki — Firefox")] {
+    for (id, app, title) in [(1u64, "kitty", "~/projects/nemo"), (2, "firefox", "niri wiki — Firefox")] {
         n.wins.push(Win { id, app_id: app.into(), title: title.into(), ws: Some(1), focused: id == 1, ..Default::default() });
     }
     n.kb_names = vec!["English (US)".into()];
@@ -1120,7 +1120,7 @@ fn mock_privacy(st: &mut State) {
     st.camera = vec!["obs".into()];
     st.audio.ready = true;
     st.niri.cast_only = true;
-    st.niri.wins.push(Win { id: 77, app_id: "kitty".into(), title: "~/src/yami".into(), ws: Some(1), ..Default::default() });
+    st.niri.wins.push(Win { id: 77, app_id: "kitty".into(), title: "~/src/nemo".into(), ws: Some(1), ..Default::default() });
     st.niri.casts = vec![
         Cast { stream: 1, session: 1, pipewire: true, active: true, output: "DP-2".into(), pw_node: Some(90), who: "OBS Studio".into(), ..Default::default() },
         Cast { stream: 2, session: 2, pipewire: true, active: false, window: Some(77), ..Default::default() },

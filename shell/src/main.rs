@@ -1,11 +1,11 @@
-// YAMI // шелл для niri на Rust: бар, лаунчер, буфер, питание, настройки, уведомления,
+// NEMO // шелл для niri на Rust: бар, лаунчер, буфер, питание, настройки, уведомления,
 // трей, всплывашки (календарь, звук, сеть, bluetooth, система), виджеты рабочего стола,
 // заголовки окон в режиме «стол», блокировка. Рисует сам, пикселями, в shm — без тулкитов.
 //
-//   yami-shell                запустить (так зовёт niri)
-//   yami <команда>            то же, что yami-shell <команда>: справка — `yami help` (cmd.rs)
+//   nemo-shell                запустить (так зовёт niri)
+//   nemo <команда>            то же, что nemo-shell <команда>: справка — `nemo help` (cmd.rs)
 
-pub use yami_px::{font, gfx, icons, theme};
+pub use nemo_px::{font, gfx, icons, theme};
 
 mod agents;
 mod animtab;
@@ -113,6 +113,7 @@ mod wizinst;
 mod wizpages;
 
 fn main() {
+    nemo_px::paths::migrate_legacy();
     // sudo спрашивает пароль для установки модулей из первой настройки (wizinst.rs)
     if wizinst::askpass() {
         return;
@@ -126,9 +127,9 @@ fn main() {
         libc::mallopt(libc::M_ARENA_MAX, 2);
     }
     let args: Vec<String> = std::env::args().collect();
-    // `yami` (ссылка на этот бинарь) без команды — справка; `yami-shell` без команды — шелл
+    // `nemo` (ссылка на этот бинарь) без команды — справка; `nemo-shell` без команды — шелл
     let me = args.first().map(|a| a.rsplit('/').next().unwrap_or(a).to_string()).unwrap_or_default();
-    if args.len() == 1 && me != "yami" && me != "nemo" {
+    if args.len() == 1 && me != "nemo" && me != "nemo" {
         app::run();
         return;
     }

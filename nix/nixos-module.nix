@@ -1,7 +1,7 @@
-# NixOS: programs.yami. The system half of what install.sh does: niri, the services the shell talks
+# NixOS: programs.nemo. The system half of what install.sh does: niri, the services the shell talks
 # to (NetworkManager, BlueZ, udisks, gvfs, polkit, power profiles, the keyring), the portals with
-# yami's file dialog and screen-share picker, fonts, the commands the shell runs, and the login
-# screen: greetd starting yami-greet inside niri. The home half (niri's config, settings) is the
+# nemo's file dialog and screen-share picker, fonts, the commands the shell runs, and the login
+# screen: greetd starting nemo-greet inside niri. The home half (niri's config, settings) is the
 # Home Manager module.
 self:
 {
@@ -12,12 +12,12 @@ self:
 }:
 
 let
-  cfg = config.programs.yami;
+  cfg = config.programs.nemo;
   run = import ./runtime.nix pkgs;
   niri = config.programs.niri.package;
   # greetd's environment is bare: the session script gets niri, the tools it calls and the folder
   # with the sessions NixOS knows (niri's among them)
-  session = pkgs.writeShellScript "yami-greet-session" ''
+  session = pkgs.writeShellScript "nemo-greet-session" ''
     export PATH=${
       lib.makeBinPath [
         niri
@@ -27,18 +27,18 @@ let
       ]
     }:$PATH
     export XDG_DATA_DIRS=${config.services.displayManager.sessionData.desktops}/share
-    exec ${cfg.package}/libexec/yami/greet-session
+    exec ${cfg.package}/libexec/nemo/greet-session
   '';
 in
 {
-  options.programs.yami = {
-    enable = lib.mkEnableOption "yami, the pixel-art desktop on niri";
+  options.programs.nemo = {
+    enable = lib.mkEnableOption "nemo, the pixel-art desktop on niri";
 
     package = lib.mkOption {
       type = lib.types.package;
-      default = self.packages.${pkgs.stdenv.hostPlatform.system}.yami;
-      defaultText = lib.literalExpression "yami.packages.\${system}.yami";
-      description = "The yami package (built with updates handed to Nix).";
+      default = self.packages.${pkgs.stdenv.hostPlatform.system}.nemo;
+      defaultText = lib.literalExpression "nemo.packages.\${system}.nemo";
+      description = "The nemo package (built with updates handed to Nix).";
     };
 
     loginScreen = {
@@ -46,7 +46,7 @@ in
         type = lib.types.bool;
         default = true;
         description = ''
-          yami's login screen: greetd starts yami-greet inside niri, with the lock screen's look.
+          nemo's login screen: greetd starts nemo-greet inside niri, with the lock screen's look.
           Turn it off to keep another display manager.
         '';
       };
@@ -56,7 +56,7 @@ in
         example = "alice";
         description = ''
           Whose shell publishes the look of the login screen (palette, wallpaper, language, screens
-          and keyboard layouts) into {file}`/var/lib/yami-greet/look`. Without it the login screen
+          and keyboard layouts) into {file}`/var/lib/nemo-greet/look`. Without it the login screen
           keeps its own default look.
         '';
       };
@@ -77,7 +77,7 @@ in
     appTheme = lib.mkOption {
       type = lib.types.bool;
       default = true;
-      description = "qt6ct and adw-gtk3: Qt and GTK apps in the palette (`yami-shell recolor` writes their configs).";
+      description = "qt6ct and adw-gtk3: Qt and GTK apps in the palette (`nemo-shell recolor` writes their configs).";
     };
   };
 
@@ -103,7 +103,7 @@ in
         networking.networkmanager.enable = lib.mkDefault true;
         hardware.bluetooth.enable = lib.mkDefault true;
 
-        # FileChooser from yami-files, ScreenCast from yami-agents, the rest from GNOME's and GTK's portals; the
+        # FileChooser from nemo-files, ScreenCast from nemo-agents, the rest from GNOME's and GTK's portals; the
         # shell rewrites ~/.config/xdg-desktop-portal/niri-portals.conf (settings → services)
         xdg.portal = {
           enable = true;
@@ -121,16 +121,16 @@ in
             "org.freedesktop.impl.portal.Notification" = lib.mkDefault [ "gtk" ];
             "org.freedesktop.impl.portal.Secret" = lib.mkDefault [ "gnome-keyring" ];
             "org.freedesktop.impl.portal.FileChooser" = lib.mkDefault [
-              "yami"
+              "nemo"
               "gtk"
             ];
             "org.freedesktop.impl.portal.ScreenCast" = lib.mkDefault [
-              "yami-agents"
+              "nemo-agents"
               "gnome"
             ];
           };
         };
-        # «show in folder» (org.freedesktop.FileManager1) starts yami-files
+        # «show in folder» (org.freedesktop.FileManager1) starts nemo-files
         services.dbus.packages = [ cfg.package ];
       }
 
@@ -142,16 +142,16 @@ in
             user = "greeter";
           };
         };
-        # what yami-greet reads: the look (the user's shell writes it), its memory and its log
+        # what nemo-greet reads: the look (the user's shell writes it), its memory and its log
         systemd.tmpfiles.rules =
           [
-            "d /var/lib/yami-greet 0755 root root -"
-            "d /var/lib/yami-greet/state 0700 greeter greeter -"
-            "d /var/lib/yami-greet/log 0755 greeter greeter -"
+            "d /var/lib/nemo-greet 0755 root root -"
+            "d /var/lib/nemo-greet/state 0700 greeter greeter -"
+            "d /var/lib/nemo-greet/log 0755 greeter greeter -"
           ]
           ++ lib.optional (
             cfg.loginScreen.user != null
-          ) "d /var/lib/yami-greet/look 0755 ${cfg.loginScreen.user} - -";
+          ) "d /var/lib/nemo-greet/look 0755 ${cfg.loginScreen.user} - -";
       })
     ]
   );

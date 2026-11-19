@@ -1,6 +1,6 @@
 // Вид модуля: цвета, стиль, шрифт, язык, анимации. Источники по порядку:
-//   ~/.config/yami/style.json        общий вид всех модулей (его пишет шелл, первая настройка или человек);
-//   ~/.config/yami/style.<app>.json  свой вид модуля, только отличия;
+//   ~/.config/nemo/style.json        общий вид всех модулей (его пишет шелл, первая настройка или человек);
+//   ~/.config/nemo/style.<app>.json  свой вид модуля, только отличия;
 //   нет style.json, но есть настройки шелла — они (шелл ещё не успел выложить файл);
 //   нет ничего — пресет plain: нейтральный вид, светлая или тёмная тема как в системе.
 // Файлы перечитываются, когда меняются: модули перекрашиваются без перезапуска.
@@ -31,7 +31,7 @@ pub struct Look {
     pub font_shell: String,
     pub font_files: String,
     pub font_view: String,
-    /// команда «сделать обоями» вне шелла yami: {} заменяется на путь (пусто — пункта нет)
+    /// команда «сделать обоями» вне шелла nemo: {} заменяется на путь (пусто — пункта нет)
     pub wallpaper_cmd: String,
     /// нейтральный пресет: у него свой шрифт по умолчанию
     plain: bool,
@@ -106,7 +106,7 @@ impl Look {
         l
     }
 
-    /// вид из JSON: style.json, настройки шелла (там нет ключа preset — значит, вид yami) или копия,
+    /// вид из JSON: style.json, настройки шелла (там нет ключа preset — значит, вид nemo) или копия,
     /// которую шелл выкладывает экрану входа
     pub fn from_json(v: &Value, light: Option<bool>) -> Look {
         let f = |k: &str, d: f32| v.get(k).and_then(|x| x.as_f64()).map(|x| x as f32).unwrap_or(d);
@@ -160,7 +160,7 @@ impl Look {
         }
     }
 
-    /// шрифт приложения: свой или общий; пустой общий — Tiny5 у вида yami и системный у нейтрального
+    /// шрифт приложения: свой или общий; пустой общий — Tiny5 у вида nemo и системный у нейтрального
     pub fn font(&self, app: &str) -> &str {
         let own = match app {
             "files" => &self.font_files,
@@ -189,7 +189,7 @@ impl Look {
         }
     }
 
-    /// можно ли сделать картинку обоями: шелл yami или своя команда в style.json
+    /// можно ли сделать картинку обоями: шелл nemo или своя команда в style.json
     pub fn can_set_wallpaper(&self) -> bool {
         crate::paths::shell_settings().exists() || !self.wallpaper_cmd.is_empty()
     }
@@ -218,7 +218,7 @@ mod tests {
     use serde_json::json;
 
     #[test]
-    fn settings_without_a_preset_keep_the_yami_look() {
+    fn settings_without_a_preset_keep_the_nemo_look() {
         let l = Look::from_json(&json!({ "palette": "ash" }), Some(false));
         assert_eq!(l.style, Style::PIXEL);
         assert_eq!(l.font("files"), "");

@@ -1,11 +1,11 @@
-// niri's config: yours. yami adds itself with the one include line below: its niri look, keys,
-// window rules, colours and screens, written by the shell into ~/.config/yami/niri (each part can be
-// switched off in yami's settings → system → niri). What you write after that line wins.
+// niri's config: yours. nemo adds itself with the one include line below: its niri look, keys,
+// window rules, colours and screens, written by the shell into ~/.config/nemo/niri (each part can be
+// switched off in nemo's settings → system → niri). What you write after that line wins.
 // The niri wiki: https://yalter.github.io/niri/Configuration:-Introduction
 
-// yami: its niri look, keys, window rules, colours and screens (~/.config/yami/niri).
-// What you write below wins. `yami niri disconnect` takes these lines out.
-include optional=true "~/.config/yami/niri/yami.kdl"
+// nemo: its niri look, keys, window rules, colours and screens (~/.config/nemo/niri).
+// What you write below wins. `nemo niri disconnect` takes these lines out.
+include optional=true "~/.config/nemo/niri/nemo.kdl"
 
 // ─── your settings ─────────────────────────────────────────────────────────
 // for example:

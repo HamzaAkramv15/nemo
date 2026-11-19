@@ -1,7 +1,7 @@
-// Итог перекраски программ и своих шаблонов (#27). yami-shell recolor пишет его в
-// ~/.local/state/yami/restyle.json: шаблон записан, изменён руками (не перезаписан), с опечаткой в
-// {{цвете}}, без строки yami-output, с путём вне разрешённых папок; fastfetch со своим config.jsonc,
-// starship со своей палитрой. Шелл показывает это в настройках → цвет → программы, yami templates —
+// Итог перекраски программ и своих шаблонов (#27). nemo-shell recolor пишет его в
+// ~/.local/state/nemo/restyle.json: шаблон записан, изменён руками (не перезаписан), с опечаткой в
+// {{цвете}}, без строки nemo-output, с путём вне разрешённых папок; fastfetch со своим config.jsonc,
+// starship со своей палитрой. Шелл показывает это в настройках → цвет → программы, nemo templates —
 // в терминале. Папку шаблонов шелл сверяет раз в 5 с: изменилась — recolor --templates.
 
 use crate::app::*;
@@ -21,7 +21,7 @@ pub struct Tpl {
 pub struct Status {
     /// fastfetch: свой config.jsonc не тронут, наш вид — в этом файле
     pub fetch: Option<String>,
-    /// starship: выбрана своя палитра (не yami)
+    /// starship: выбрана своя палитра (не nemo)
     pub starship: Option<String>,
     pub tpls: Vec<Tpl>,
 }
@@ -43,7 +43,7 @@ pub fn load() -> Status {
 /// удалённого файла
 pub fn stamp() -> u64 {
     use std::hash::{Hash, Hasher};
-    let mut v: Vec<(String, u64, u128)> = std::fs::read_dir(crate::config::config_dir().join("yami/templates"))
+    let mut v: Vec<(String, u64, u128)> = std::fs::read_dir(crate::config::config_dir().join("nemo/templates"))
         .map(|rd| {
             rd.flatten()
                 .filter_map(|e| {
@@ -67,7 +67,7 @@ pub fn note(t: &Tpl) -> String {
         "off" => crate::tf!("выключен — {} не пишется", "off: {} is not written", "desligado: {} não é gravado", t.output),
         "hand" => crate::tf!("изменён руками — не перезаписан", "changed by hand: not overwritten", "alterado à mão: não sobrescrito"),
         "unknown" => crate::tf!("нет таких цветов: {} — файл не записан", "no such colours: {}; the file is not written", "cores inexistentes: {}; o arquivo não foi gravado", t.keys.join(", ")),
-        "nooutput" => crate::tf!("нет строки «yami-output: ~/путь» — некуда писать", "no “yami-output: ~/path” line: nowhere to write", "sem a linha “yami-output: ~/caminho”: não há onde gravar"),
+        "nooutput" => crate::tf!("нет строки «nemo-output: ~/путь» — некуда писать", "no “nemo-output: ~/path” line: nowhere to write", "sem a linha “nemo-output: ~/caminho”: não há onde gravar"),
         "outside" => crate::tf!("{} вне ~/.config, ~/.local/share и ~/.cache — не пишется", "{} is outside ~/.config, ~/.local/share and ~/.cache: not written", "{} fica fora de ~/.config, ~/.local/share e ~/.cache: não gravado", t.output),
         _ => crate::tf!("не читается (не текст?)", "unreadable (not text?)", "ilegível (não é texto?)"),
     }
@@ -77,10 +77,10 @@ pub fn note(t: &Tpl) -> String {
 pub fn app_notes(s: &Status) -> Vec<String> {
     let mut v = Vec::new();
     if let Some(f) = &s.fetch {
-        v.push(crate::tf!("fastfetch: твой config.jsonc не тронут, вид yami — в {} (fastfetch -c {})", "fastfetch: your config.jsonc is kept, yami's look is in {} (fastfetch -c {})", "fastfetch: seu config.jsonc foi mantido, o visual do yami está em {} (fastfetch -c {})", f, f));
+        v.push(crate::tf!("fastfetch: твой config.jsonc не тронут, вид nemo — в {} (fastfetch -c {})", "fastfetch: your config.jsonc is kept, nemo's look is in {} (fastfetch -c {})", "fastfetch: seu config.jsonc foi mantido, o visual do nemo está em {} (fastfetch -c {})", f, f));
     }
     if let Some(p) = &s.starship {
-        v.push(crate::tf!("starship: выбрана твоя палитра «{}»; цвета yami рядом — palette = \"yami\"", "starship: your palette “{}” stays chosen; yami's colours are next to it: palette = \"yami\"", "starship: sua paleta “{}” continua escolhida; as cores do yami estão ao lado: palette = \"yami\"", p));
+        v.push(crate::tf!("starship: выбрана твоя палитра «{}»; цвета nemo рядом — palette = \"nemo\"", "starship: your palette “{}” stays chosen; nemo's colours are next to it: palette = \"nemo\"", "starship: sua paleta “{}” continua escolhida; as cores do nemo estão ao lado: palette = \"nemo\"", p));
     }
     v
 }
@@ -112,7 +112,7 @@ pub fn draw(ui: &mut Ui, st: &State, b: R, mut y: i32) -> i32 {
 }
 
 impl App {
-    /// свои шаблоны заново (force — имя изменённого руками: перезаписать, прежний — *.bak-yami)
+    /// свои шаблоны заново (force — имя изменённого руками: перезаписать, прежний — *.bak-nemo)
     pub fn templates_run(&mut self, force: Option<String>) {
         let tx = self.tx.clone();
         std::thread::spawn(move || {
@@ -141,7 +141,7 @@ impl App {
     }
 }
 
-/// yami templates [force ИМЯ]: отрисовать свои шаблоны и сказать, что вышло
+/// nemo templates [force ИМЯ]: отрисовать свои шаблоны и сказать, что вышло
 pub fn cli(y: &crate::cmd::Sty, args: &[&str]) -> i32 {
     let mut c = crate::proc::recolor();
     c.arg("--templates");
@@ -159,7 +159,7 @@ pub fn cli(y: &crate::cmd::Sty, args: &[&str]) -> i32 {
     let s = load();
     y.section(&crate::tf!("свои шаблоны", "your templates", "seus modelos"));
     if s.tpls.is_empty() {
-        println!("   {}", y.dim(&crate::tf!("нет: файлы кладутся в ~/.config/yami/templates (пример — example.md)", "none: files go into ~/.config/yami/templates (see example.md)", "nenhum: os arquivos ficam em ~/.config/yami/templates (veja example.md)")));
+        println!("   {}", y.dim(&crate::tf!("нет: файлы кладутся в ~/.config/nemo/templates (пример — example.md)", "none: files go into ~/.config/nemo/templates (see example.md)", "nenhum: os arquivos ficam em ~/.config/nemo/templates (veja example.md)")));
     }
     let mut bad = 0;
     for t in &s.tpls {

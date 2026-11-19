@@ -99,7 +99,7 @@ impl App {
             let st = &self.st;
             // появление: проявление узором группы (настройки → анимации) + всплытие
             let group = anim_group(&s.kind);
-            let style = yami_px::gfx::Reveal::from_id(st.set.reveal_for(group, s.closing));
+            let style = nemo_px::gfx::Reveal::from_id(st.set.reveal_for(group, s.closing));
             let (k, finished) = match s.kind {
                 SKind::Modal | SKind::Popup | SKind::Menu | SKind::Dim | SKind::Catcher | SKind::Osd | SKind::EditBar | SKind::Widget(_) | SKind::Dock | SKind::CurtainBadge => reveal_of(st, &s, group),
                 _ => (1.0, true),
@@ -252,7 +252,7 @@ impl App {
 /// отпечаток кадра: размер и пиксели (FNV по 64-битным словам — на бар ~30 мкс)
 fn frame_hash(px: &[u32], dims: [i32; 4]) -> u64 {
     // FNV-1a по 8-байтным словам, а не по байтам: кадр — сотни килобайт, умножений в 8 раз меньше
-    let mut h = yami_px::FNV0;
+    let mut h = nemo_px::FNV0;
     let mut eat = |v: u64| h = (h ^ v).wrapping_mul(0x0000_0100_0000_01b3);
     for d in dims {
         eat(d as u32 as u64);

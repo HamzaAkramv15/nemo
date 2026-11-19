@@ -6,12 +6,12 @@ use crate::config::{self, Settings};
 use crate::font::Fonts;
 
 
-/// пустая папка шаблонов получает пример (выключенный: без строки yami-output он не пишется)
+/// пустая папка шаблонов получает пример (выключенный: без строки nemo-output он не пишется)
 pub fn templates_example(d: &std::path::Path) {
     let _ = std::fs::create_dir_all(d);
     let empty = std::fs::read_dir(d).map(|mut r| r.next().is_none()).unwrap_or(false);
     if empty {
-        let ex = "# yami template example: copy this file, put your app's colour config below and add the line\n# «yami-output: ~/.config/APP/colors» (where to write) and, if the app can reload,\n# «yami-reload: USR1 APP». Colours: {{accent}} {{deep}} {{bright}} {{bg}} {{panel}} {{surface}}\n# {{border}} {{text}} {{textDim}} {{textFaint}} {{foreground}} {{background}} {{cursor}} {{color0}}…{{color15}};\n# {{accent.strip}} — without «#», {{accent.rgb}} — «r, g, b». Files ending in .md are skipped.\n";
+        let ex = "# nemo template example: copy this file, put your app's colour config below and add the line\n# «nemo-output: ~/.config/APP/colors» (where to write) and, if the app can reload,\n# «nemo-reload: USR1 APP». Colours: {{accent}} {{deep}} {{bright}} {{bg}} {{panel}} {{surface}}\n# {{border}} {{text}} {{textDim}} {{textFaint}} {{foreground}} {{background}} {{cursor}} {{color0}}…{{color15}};\n# {{accent.strip}} — without «#», {{accent.rgb}} — «r, g, b». Files ending in .md are skipped.\n";
         let _ = std::fs::write(d.join("example.md"), ex);
     }
 }
@@ -20,10 +20,10 @@ pub fn templates_example(d: &std::path::Path) {
 pub fn write_style(s: &Settings) {
     let mut v = s.style_value();
     if let Some(o) = v.as_object_mut() {
-        o.insert("_".into(), "written by yami-shell (settings → look); what one module does differently goes to style.<module>.json".into());
+        o.insert("_".into(), "written by nemo-shell (settings → look); what one module does differently goes to style.<module>.json".into());
     }
     let t = serde_json::to_string_pretty(&v).unwrap_or_default() + "\n";
-    let _ = config::write_atomic(&config::config_dir().join("yami/style.json"), &t);
+    let _ = config::write_atomic(&config::config_dir().join("nemo/style.json"), &t);
 }
 
 impl App {
@@ -31,15 +31,15 @@ impl App {
     pub fn settings_changed(&mut self) {
         let s = &self.st.set;
         crate::i18n::set(&s.lang);
-        yami_px::time::set_hour12(s.clock12);
-        yami_px::rtl::set_digits(s.arabic_digits);
-    yami_px::gfx::set_vector_icons(s.vector_icons());
+        nemo_px::time::set_hour12(s.clock12);
+        nemo_px::rtl::set_digits(s.arabic_digits);
+    nemo_px::gfx::set_vector_icons(s.vector_icons());
         if s.font_family() != self.res.font {
             self.res.font = s.font_family();
             self.res.fonts = Fonts::with(&self.res.font);
         }
         // тот же разбор, что у модулей: шелл и модули не могут разойтись во внешности
-        self.st.t = yami_px::look::Look::from_json(&s.style_value(), Some(s.light)).theme;
+        self.st.t = nemo_px::look::Look::from_json(&s.style_value(), Some(s.light)).theme;
         crate::prefs::write_style(s);
         // уход карточек уведомлений (настройки → анимации)
         self.st.notifs.leave_s = crate::notif::leave_s(s);
@@ -93,7 +93,7 @@ impl App {
             self.set_mtime = m;
             let s = Settings::load();
             if s != self.st.set {
-                // правка извне (своя тема, yami config set, руками): шрифты и курсор программ
+                // правка извне (своя тема, nemo config set, руками): шрифты и курсор программ
                 // recolor перекрашивает сам только со сменой палитры — их входы сверяем отдельно
                 let fonts = |s: &Settings| (s.font_ui.clone(), s.font_mono.clone(), s.font_pt, s.font_size, s.browser_font, s.browser_menus);
                 let cursor = |s: &Settings| (s.cursor.clone(), s.cursor_size);
@@ -114,7 +114,7 @@ impl App {
         }
     }
 
-    /// палитра для остальных программ; yami-shell recolor перекрашивает их и рисует обои
+    /// палитра для остальных программ; nemo-shell recolor перекрашивает их и рисует обои
     pub fn write_palette(&mut self) {
         let j = self.st.t.palette_json();
         if j == self.palette_written {
@@ -156,7 +156,7 @@ impl App {
     }
 
     /// пиксельность одним ползунком (настройки → вид): шрифты шелла, файлов, просмотра и программ,
-    /// пиксельные значки и курсор. 3 — всё пиксельное (как по умолчанию), 2 — только yami (GTK и Qt
+    /// пиксельные значки и курсор. 3 — всё пиксельное (как по умолчанию), 2 — только nemo (GTK и Qt
     /// гладкие), 1 — мягче (пиксельные только панели шелла), 0 — гладко везде
     pub fn set_pixel_level(&mut self, lvl: usize) {
         if lvl == crate::settabs::pixel_level(&self.st.set) {
@@ -164,13 +164,13 @@ impl App {
         }
         let (shell, apps, ui, icons, cursor) = match lvl {
             0 => ("sans", "sans", "sans", false, "system"),
-            1 => ("", "sans", "sans", false, "yami"),
-            2 => ("", "", "sans", true, "yami"),
-            _ => ("", "", "", true, "yami"),
+            1 => ("", "sans", "sans", false, "nemo"),
+            2 => ("", "", "sans", true, "nemo"),
+            _ => ("", "", "", true, "nemo"),
         };
         let s = &mut self.st.set;
-        // свой набор курсоров (не yami и не system) ползунок не трогает: его выбрали руками
-        let cursor = if matches!(s.cursor.as_str(), "yami" | "system" | "") { cursor } else { s.cursor.as_str() }.to_string();
+        // свой набор курсоров (не nemo и не system) ползунок не трогает: его выбрали руками
+        let cursor = if matches!(s.cursor.as_str(), "nemo" | "system" | "") { cursor } else { s.cursor.as_str() }.to_string();
         let (ui_new, cur_new) = (s.font_ui != ui, s.cursor != cursor);
         s.font_shell = shell.into();
         s.font_files = apps.into();
@@ -232,9 +232,9 @@ impl App {
         self.st.plugins.sync(&on_bar, &self.tx);
     }
 
-    /// rules.kdl и yami.kdl — только если другие: каждая запись — перечитывание конфига niri
+    /// rules.kdl и nemo.kdl — только если другие: каждая запись — перечитывание конфига niri
     pub fn write_fx(&mut self) {
-        crate::niricfg::write_yami(&self.st.set);
+        crate::niricfg::write_nemo(&self.st.set);
         let p = crate::dirs::niri_dir().join("rules.kdl");
         let text = self.st.set.fx_kdl(crate::niri::config_level(self.st.niri.level), self.st.curtain.is_some());
         if std::fs::read_to_string(&p).ok().as_deref() != Some(text.as_str()) {
@@ -297,17 +297,17 @@ pub fn settings_get_f32(s: &Settings, key: &str) -> f32 {
     }
 }
 
-/// kitty снова в цветах палитры: наш yami.conf рядом и одна строка include в конце kitty.conf (как у
+/// kitty снова в цветах палитры: наш nemo.conf рядом и одна строка include в конце kitty.conf (как у
 /// установщика); остальной kitty.conf — человека
 pub fn kitty_attach() {
     let dir = config::config_dir().join("kitty");
     let _ = std::fs::create_dir_all(&dir);
-    let _ = config::write_atomic(&dir.join("yami.conf"), include_str!("../../config/kitty/yami.conf"));
+    let _ = config::write_atomic(&dir.join("nemo.conf"), include_str!("../../config/kitty/nemo.conf"));
     let conf = dir.join("kitty.conf");
     let t = std::fs::read_to_string(&conf).unwrap_or_default();
-    if !t.lines().any(|l| l.trim() == "include yami.conf") {
+    if !t.lines().any(|l| l.trim() == "include nemo.conf") {
         let sep = if t.is_empty() || t.ends_with('\n') { "" } else { "\n" };
-        let text = format!("{t}{sep}\n# YAMI: settings → color → apps → kitty off takes this line out\ninclude yami.conf\n");
+        let text = format!("{t}{sep}\n# NEMO: settings → color → apps → kitty off takes this line out\ninclude nemo.conf\n");
         // ссылка (stow, Home Manager) остаётся ссылкой: пишем сквозь неё, а не подменяем файлом
         let _ = if conf.is_symlink() { std::fs::write(&conf, text) } else { config::write_atomic(&conf, &text) };
     }

@@ -11,29 +11,29 @@
 #   tools/release.sh --publish X.Y.Z   the GitHub release of a pushed tag again (notes, binaries)
 #   tools/release.sh --keygen          make the signing key and trust it in keys/allowed_signers
 #
-# Made here, in this order: the changelog section (both languages); yami-px signed at the commit the
+# Made here, in this order: the changelog section (both languages); nemo-px signed at the commit the
 # modules build against (a new patch version once its tag is public); each module that changed since its
 # tag in modules.lock gets the release's version and a signed tag of it, the rest keep theirs; the
-# shell's versions, modules.lock, flake.nix and flake.lock (yami-dev flake-lock, no nix needed); the ready
+# shell's versions, modules.lock, flake.nix and flake.lock (nemo-dev flake-lock, no nix needed); the ready
 # binaries (tools/dist.sh: archive, .deb, single files, signed SHA256SUMS) and the packages' sums (Arch,
 # Fedora, Gentoo); tools/check.sh; the commit «release: X.Y.Z» and its signed tag. The release key's
 # passphrase is asked once, for an ssh-agent that lives as long as this script.
 # Published: the new module tags (a repository is created on GitHub the first time), the shell's main and
-# the yami-px tag, a draft GitHub release with the binaries, the tag vX.Y.Z, then the draft goes public.
+# the nemo-px tag, a draft GitHub release with the binaries, the tag vX.Y.Z, then the draft goes public.
 set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT"
-MODS="${YAMI_MODULES_DIR:-$ROOT/../yami-modules}"
-# git here talks to the real GitHub. yami-modules/env.sh, sourced in the shell this runs from, would point
+MODS="${NEMO_MODULES_DIR:-$ROOT/../nemo-modules}"
+# git here talks to the real GitHub. nemo-modules/env.sh, sourced in the shell this runs from, would point
 # github.com at the working copies: the release would check and push them instead (cargo: modcargo below)
 unset GIT_CONFIG_COUNT GIT_CONFIG_KEY_0 GIT_CONFIG_VALUE_0
-OWNER="${YAMI_RELEASE_OWNER:-HamzaAkramv15}"
-# repository name on GitHub: the shell is «nemo», its modules «nemo-files», … (the local folders keep the yami-* names)
-rname() { case $1 in yami) echo nemo ;; yami-*) echo "nemo-${1#yami-}" ;; *) echo "$1" ;; esac; }
+OWNER="${NEMO_RELEASE_OWNER:-HamzaAkramv15}"
+# repository name on GitHub: the shell is «nemo», its modules «nemo-files», … (the local folders keep the nemo-* names)
+rname() { case $1 in nemo) echo nemo ;; nemo-*) echo "nemo-${1#nemo-}" ;; *) echo "$1" ;; esac; }
 # tools/test-updates.sh (scenario «release») swaps these for stand-ins: the binaries, the tree check
-DIST="${YAMI_RELEASE_DIST:-$ROOT/tools/dist.sh}"
-# YAMI_RELEASE_CHECK: a command line for the stand-in (no spaces in it); the real one by its path, which may hold one
-run_check() { if [[ -n ${YAMI_RELEASE_CHECK:-} ]]; then $YAMI_RELEASE_CHECK; else "$ROOT/tools/check.sh" --fast; fi; }
+DIST="${NEMO_RELEASE_DIST:-$ROOT/tools/dist.sh}"
+# NEMO_RELEASE_CHECK: a command line for the stand-in (no spaces in it); the real one by its path, which may hold one
+run_check() { if [[ -n ${NEMO_RELEASE_CHECK:-} ]]; then $NEMO_RELEASE_CHECK; else "$ROOT/tools/check.sh" --fast; fi; }
 RU=0
 case "${LC_ALL:-${LC_MESSAGES:-${LANG:-}}}" in ru*) RU=1 ;; esac
 t() { if ((RU)); then printf '%s' "$1"; else printf '%s' "$2"; fi; }
@@ -41,8 +41,8 @@ say() { printf '\e[38;2;196;22;28m▪\e[0m %s\n' "$*"; }
 head_() { printf '\e[1m── %s\e[0m\n' "$*"; }
 die() { printf '\e[31m✕ %s\e[0m\n' "$*" >&2; exit 1; }
 KEYS=keys/allowed_signers
-STATE_DIR="$(git rev-parse --git-common-dir)/yami-release"
-dev() { cargo run --release -q -p yami-dev --manifest-path "$ROOT/shell/Cargo.toml" -- "$@"; }
+STATE_DIR="$(git rev-parse --git-common-dir)/nemo-release"
+dev() { cargo run --release -q -p nemo-dev --manifest-path "$ROOT/shell/Cargo.toml" -- "$@"; }
 modules() { awk '$1 !~ /^#/ && NF == 2 { print $1, $2 }' "$ROOT/modules.lock"; }
 ver_ok() { [[ $1 =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; }
 newer() { [[ "$(printf '%s\n%s\n' "$1" "$2" | sort -V | tail -n1)" == "$1" && $1 != "$2" ]]; }
@@ -139,7 +139,7 @@ $n
 bash <(curl -fsSL https://raw.githubusercontent.com/$OWNER/nemo/v$v/install.sh)
 \`\`\`
 
-Already on yami: settings → updates → **update**, or \`yami update apply\`.
+Already on nemo: settings → updates → **update**, or \`nemo update apply\`.
 
 Ready binaries for x86_64 with glibc 2.34 or newer, no compiler needed; otherwise it builds from source (Arch, Fedora, Debian/Ubuntu, openSUSE, Void, Alpine, Gentoo, NixOS). Packages are attached below. The tag and SHA256SUMS are signed; check the tag with
 \`git -c gpg.ssh.allowedSignersFile=keys/allowed_signers verify-tag v$v\`.
@@ -149,8 +149,8 @@ EOF
 }
 assets() { # ver: the files attached to the release
   local v=$1 f
-  for f in "yami-$v-x86_64-linux.tar.gz" yami-shell_"$v"_amd64.deb yami-files_"$v"_amd64.deb yami-view_"$v"_amd64.deb \
-    yami-play_"$v"_amd64.deb yami-shot_"$v"_amd64.deb yami-greet_"$v"_amd64.deb yami-files yami-view yami-play yami-shot SHA256SUMS SHA256SUMS.sig; do
+  for f in "nemo-$v-x86_64-linux.tar.gz" nemo-shell_"$v"_amd64.deb nemo-files_"$v"_amd64.deb nemo-view_"$v"_amd64.deb \
+    nemo-play_"$v"_amd64.deb nemo-shot_"$v"_amd64.deb nemo-greet_"$v"_amd64.deb nemo-files nemo-view nemo-play nemo-shot SHA256SUMS SHA256SUMS.sig; do
     printf '%s\n' "dist/$f"
   done
 }
@@ -159,7 +159,7 @@ dist_ok() { # ver
   local v=$1 f who
   while read -r f; do [[ -s $f ]] || { echo "$f"; return 1; }; done < <(assets "$v")
   who="$(ssh-keygen -Y find-principals -f "$KEYS" -s dist/SHA256SUMS.sig 2>/dev/null | head -n1)"
-  [[ -n $who ]] && ssh-keygen -q -Y verify -f "$KEYS" -I "$who" -n yami-release -s dist/SHA256SUMS.sig <dist/SHA256SUMS >/dev/null 2>&1 || { echo "SHA256SUMS.sig"; return 1; }
+  [[ -n $who ]] && ssh-keygen -q -Y verify -f "$KEYS" -I "$who" -n nemo-release -s dist/SHA256SUMS.sig <dist/SHA256SUMS >/dev/null 2>&1 || { echo "SHA256SUMS.sig"; return 1; }
   (cd dist && sha256sum -c --quiet SHA256SUMS) >/dev/null 2>&1 || { echo "SHA256SUMS"; return 1; }
 }
 gh_ok() { command -v gh >/dev/null && gh auth status >/dev/null 2>&1; }
@@ -169,8 +169,8 @@ gh_ok() { command -v gh >/dev/null && gh auth status >/dev/null 2>&1; }
 counter_release() {
   gh release view installs >/dev/null 2>&1 && return 0
   local f
-  f="$(mktemp -d)/yami-installs.txt"
-  printf '%s\n' "yami install counter: install.sh downloads this file once per machine, so its download" \
+  f="$(mktemp -d)/nemo-installs.txt"
+  printf '%s\n' "nemo install counter: install.sh downloads this file once per machine, so its download" \
     "count is the number of installs. Nothing is sent with it. See docs/SECURITY.md, «Install count»." >"$f"
   gh release create installs --title "install counter (not a release)" --notes "The download count of this file is the «installs» badge in the README. See docs/SECURITY.md." --prerelease --latest=false "$f" >/dev/null &&
     say "$(t "счётчик установок создан" "install counter created")" || say "$(t "счётчик не создался" "the counter was not created")"
@@ -187,11 +187,11 @@ github_release() { # ver [--draft]
   fi
   mapfile -t up < <(assets "$v")
   if gh release view "v$v" >/dev/null 2>&1; then
-    gh release edit "v$v" --title "yami $v" --notes "$(notes "$v")" >/dev/null
+    gh release edit "v$v" --title "nemo $v" --notes "$(notes "$v")" >/dev/null
   elif [[ $draft == --draft ]]; then
-    gh release create "v$v" --draft --target "$(git rev-parse "v$v^{commit}")" --title "yami $v" --notes "$(notes "$v")" >/dev/null
+    gh release create "v$v" --draft --target "$(git rev-parse "v$v^{commit}")" --title "nemo $v" --notes "$(notes "$v")" >/dev/null
   else
-    gh release create "v$v" --verify-tag --title "yami $v" --notes "$(notes "$v")" --latest="$(latest_of "$v")" >/dev/null
+    gh release create "v$v" --verify-tag --title "nemo $v" --notes "$(notes "$v")" --latest="$(latest_of "$v")" >/dev/null
   fi
   gh release upload "v$v" --clobber "${up[@]}" >/dev/null
 }
@@ -231,9 +231,9 @@ push_release() { # ver
       say "$(t "отправлен" "pushed")"
     fi
   done < <(modules)
-  # 2. the shell's main and the tag of yami-px its modules build against
+  # 2. the shell's main and the tag of nemo-px its modules build against
   px="px-v$(sed -n 's/^version = "\(.*\)"/\1/p' shell/px/Cargo.toml | head -n1)"
-  head_ "yami main, $px"
+  head_ "nemo main, $px"
   if remote_has "$ROOT" "refs/tags/$px" "$(git rev-parse "refs/tags/$px")"; then
     git push -q origin "refs/tags/v$v^{commit}:refs/heads/main"
   else
@@ -241,13 +241,13 @@ push_release() { # ver
   fi
   # 3. the release as a draft with its binaries, 4. the tag (clients see the version from here on),
   # 5. the draft goes public
-  head_ "yami $v"
+  head_ "nemo $v"
   github_release "$v" --draft
   git push -q origin "refs/tags/v$v"
   gh release edit "v$v" --draft=false --latest="$(latest_of "$v")" >/dev/null
   counter_release
   note phase pushed
-  say "$(t "опубликовано: yami $v у всех в настройках → обновления" "published: yami $v is in everyone's settings → updates")"
+  say "$(t "опубликовано: nemo $v у всех в настройках → обновления" "published: nemo $v is in everyone's settings → updates")"
 }
 
 status() { # [ver]
@@ -258,10 +258,10 @@ status() { # [ver]
   fi
   st="$(state_file "$v")"
   case "$(phase "$st")" in
-    making) say "yami $v: $(t "делается (или оборвался: --undo $v)" "being made (or cut short: --undo $v)")" ;;
-    made) say "yami $v: $(t "сделан здесь, не опубликован" "made here, not published")" ;;
-    pushed) say "yami $v: $(t "опубликован" "published")" ;;
-    *) say "yami $v: $(t "здесь не делался" "not made here")" ;;
+    making) say "nemo $v: $(t "делается (или оборвался: --undo $v)" "being made (or cut short: --undo $v)")" ;;
+    made) say "nemo $v: $(t "сделан здесь, не опубликован" "made here, not published")" ;;
+    pushed) say "nemo $v: $(t "опубликован" "published")" ;;
+    *) say "nemo $v: $(t "здесь не делался" "not made here")" ;;
   esac
   where() { # dir ref
     here="$(git -C "$1" rev-parse -q --verify "$2" >/dev/null 2>&1 && t "здесь" "here" || t "нет" "no")"
@@ -280,13 +280,13 @@ status() { # [ver]
 
 # ── making a release here ───────────────────────────────────────────────────
 px_ver() { sed -n 's/^version = "\(.*\)"/\1/p' shell/px/Cargo.toml | head -n1; }
-px_of() { grep -A2 '^name = "yami-px"$' "$1/Cargo.lock" 2>/dev/null | sed -n 's/.*#\([0-9a-f]*\)".*/\1/p'; }
+px_of() { grep -A2 '^name = "nemo-px"$' "$1/Cargo.lock" 2>/dev/null | sed -n 's/.*#\([0-9a-f]*\)".*/\1/p'; }
 crate_ver() { # file version: only the [package] version (the file's first `version =` line)
   sed -i "0,/^version = \".*\"/s//version = \"$2\"/" "$1"
 }
-# cargo in a module: it takes yami-px by its tag from github.com/<owner>/yami, and this release's tag is not
+# cargo in a module: it takes nemo-px by its tag from github.com/<owner>/nemo, and this release's tag is not
 # there before --push, so cargo (and only cargo) reads that address from this repository. Nothing else of
-# the owner's goes through cargo in a module, so the prefix catches only yami-px
+# the owner's goes through cargo in a module, so the prefix catches only nemo-px
 modcargo() { # dir, cargo arguments…
   local d=$1
   shift
@@ -315,7 +315,7 @@ preflight() { # ver
   done < <(modules)
   ok "$(t "модули" "modules"): $(modules | wc -l)"
   git ls-remote origin HEAD >/dev/null 2>&1 && ok "GitHub" || no "$(t "GitHub не отвечает: нужно знать, что там уже есть" "GitHub does not answer: the release needs to know what is there")"
-  dev check-docs >/dev/null 2>&1 && ok "$(t "документы EN и RU" "the EN and RU docs")" || no "$(t "документы EN и RU расходятся (yami-dev check-docs)" "the EN and RU docs differ (yami-dev check-docs)")"
+  dev check-docs >/dev/null 2>&1 && ok "$(t "документы EN и RU" "the EN and RU docs")" || no "$(t "документы EN и RU расходятся (nemo-dev check-docs)" "the EN and RU docs differ (nemo-dev check-docs)")"
   local f h
   for f in CHANGELOG.md:Unreleased CHANGELOG.ru.md:"Не выпущено"; do
     h="${f#*:}"
@@ -356,10 +356,10 @@ make_release() { # ver
   dev changelog "$v" || die "$(t "в «Unreleased» CHANGELOG.md или «Не выпущено» CHANGELOG.ru.md пусто" "«Unreleased» in CHANGELOG.md or «Не выпущено» in CHANGELOG.ru.md is empty")"
   if [[ -t 0 && -n ${EDITOR:-} ]]; then "$EDITOR" CHANGELOG.md CHANGELOG.ru.md; fi
 
-  # ── yami-px: the commit the modules build against, signed ─────────────
+  # ── nemo-px: the commit the modules build against, signed ─────────────
   local px pxt pxc changed=1 on_gh=0
   px="$(px_ver)" pxt="px-v$(px_ver)"
-  head_ "yami-px $pxt"
+  head_ "nemo-px $pxt"
   git ls-remote --exit-code --tags origin "refs/tags/$pxt" >/dev/null 2>&1 && on_gh=1
   note_tag "$ROOT" "$pxt"
   # a clone without the tag GitHub has: take it from there
@@ -371,7 +371,7 @@ make_release() { # ver
     # a public tag never moves: the next patch version
     local n="${px%.*}.$((${px##*.} + 1))"
     crate_ver shell/px/Cargo.toml "$n"
-    cargo update -q -p yami-px --offline --manifest-path shell/Cargo.toml
+    cargo update -q -p nemo-px --offline --manifest-path shell/Cargo.toml
     git add shell/px/Cargo.toml shell/Cargo.lock
     git commit -q -m "px: $n"
     pxt="px-v$n" on_gh=0
@@ -380,9 +380,9 @@ make_release() { # ver
   fi
   # not public yet: signed at the commit (moved to this one when px changed since)
   if ((changed)); then
-    gs tag -f -s "$pxt" -m "yami-px ${pxt#px-v}" HEAD >/dev/null
+    gs tag -f -s "$pxt" -m "nemo-px ${pxt#px-v}" HEAD >/dev/null
   elif ((!on_gh)) && ! signed_tag "$ROOT" "$pxt"; then
-    gs tag -f -s "$pxt" -m "yami-px ${pxt#px-v}" "$(git rev-parse "$pxt^{commit}")" >/dev/null
+    gs tag -f -s "$pxt" -m "nemo-px ${pxt#px-v}" "$(git rev-parse "$pxt^{commit}")" >/dev/null
   fi
   pxc="$(git rev-parse "$pxt^{commit}")"
   # a public tag is what it is (it cannot change); one signed here must check out
@@ -394,14 +394,14 @@ make_release() { # ver
   while read -r repo tag; do
     d="$MODS/$repo"
     head_ "$repo"
-    # built against another yami-px: take this one
+    # built against another nemo-px: take this one
     if [[ -f $d/Cargo.lock && -n "$(px_of "$d")" && "$(px_of "$d")" != "$pxc" ]]; then
-      sed -i "s|\(yami-px = {[^}]*tag = \"\)px-v[^\"]*\"|\1$pxt\"|" "$d/Cargo.toml"
-      modcargo "$d" update -q -p yami-px
+      sed -i "s|\(nemo-px = {[^}]*tag = \"\)px-v[^\"]*\"|\1$pxt\"|" "$d/Cargo.toml"
+      modcargo "$d" update -q -p nemo-px
       [[ "$(px_of "$d")" == "$pxc" ]] || die "$repo: $(t "не взял" "did not take") $pxt"
       git -C "$d" add Cargo.toml Cargo.lock
-      git -C "$d" commit -q -m "take yami-px $pxt"
-      say "yami-px → $pxt"
+      git -C "$d" commit -q -m "take nemo-px $pxt"
+      say "nemo-px → $pxt"
     fi
     t2=$tag
     if ! git -C "$d" rev-parse -q --verify "refs/tags/$tag" >/dev/null || [[ -n "$(git -C "$d" rev-list "$tag..HEAD")" ]]; then
@@ -428,14 +428,14 @@ make_release() { # ver
     lock_new+="$repo $t2"$'\n'
   done < <(modules)
   printf '%s' "$lock_new" >modules.lock
-  # the flake's inputs follow modules.lock, flake.lock their tags (yami-dev computes what nix would)
+  # the flake's inputs follow modules.lock, flake.lock their tags (nemo-dev computes what nix would)
   while read -r repo tag; do
     sed -i "s|url = \"github:$OWNER/$(rname "$repo")/[^\"]*\";|url = \"github:$OWNER/$(rname "$repo")/$tag\";|" flake.nix
   done < <(modules)
-  dev flake-lock "$MODS" >/dev/null || die "yami-dev flake-lock"
+  dev flake-lock "$MODS" >/dev/null || die "nemo-dev flake-lock"
 
   # ── the shell's versions ──────────────────────────────────────────────
-  head_ "yami $cur → $v"
+  head_ "nemo $cur → $v"
   echo "$v" >VERSION
   local crates=(shell/Cargo.toml shell/*/Cargo.toml) f
   for f in "${crates[@]}"; do
@@ -449,18 +449,18 @@ make_release() { # ver
   head_ "$(t "готовые бинари" "ready binaries")"
   rm -f dist/SHA256SUMS dist/SHA256SUMS.sig
   SOURCE_DATE_EPOCH=$epoch "$DIST" --deb --loose --strict --sign "$PUB" >"$STATE_DIR/dist.log" 2>&1 || { tail -n 30 "$STATE_DIR/dist.log"; die "tools/dist.sh"; }
-  grep -E '^  yami-[a-z]+ +[0-9]+ KiB' "$STATE_DIR/dist.log" || true
+  grep -E '^  nemo-[a-z]+ +[0-9]+ KiB' "$STATE_DIR/dist.log" || true
   dist_ok "$v" >/dev/null || die "tools/dist.sh"
-  archive="dist/yami-$v-x86_64-linux.tar.gz"
+  archive="dist/nemo-$v-x86_64-linux.tar.gz"
   sed -i -e "s/^pkgver=.*/pkgver=$v/" -e "s/^pkgrel=.*/pkgrel=1/" \
     -e "s/^sha256sums=.*/sha256sums=('$(sha256sum "$archive" | cut -d' ' -f1)') # tools\/release.sh writes it/" packaging/arch/PKGBUILD
-  sed -i -e "s/^\(Version:[[:space:]]*\).*/\1$v/" -e "s/^\(Release:[[:space:]]*\).*/\11%{?dist}/" packaging/fedora/yami.spec
+  sed -i -e "s/^\(Version:[[:space:]]*\).*/\1$v/" -e "s/^\(Release:[[:space:]]*\).*/\11%{?dist}/" packaging/fedora/nemo.spec
   local old
-  old="$(git ls-files 'packaging/gentoo/yami-bin-*.ebuild' | head -n1)"
-  [[ $old == "packaging/gentoo/yami-bin-$v.ebuild" ]] || git mv "$old" "packaging/gentoo/yami-bin-$v.ebuild"
+  old="$(git ls-files 'packaging/gentoo/nemo-bin-*.ebuild' | head -n1)"
+  [[ $old == "packaging/gentoo/nemo-bin-$v.ebuild" ]] || git mv "$old" "packaging/gentoo/nemo-bin-$v.ebuild"
   printf 'DIST %s %s BLAKE2B %s SHA512 %s\n' "${archive##*/}" "$(stat -c %s "$archive")" "$(b2sum "$archive" | cut -d' ' -f1)" "$(sha512sum "$archive" | cut -d' ' -f1)" >packaging/gentoo/Manifest
   git add packaging
-  say "PKGBUILD, yami.spec, yami-bin-$v.ebuild + Manifest"
+  say "PKGBUILD, nemo.spec, nemo-bin-$v.ebuild + Manifest"
 
   head_ "tools/check.sh"
   run_check >"$STATE_DIR/check.log" 2>&1 || { tail -n 20 "$STATE_DIR/check.log"; die "tools/check.sh"; }
@@ -469,7 +469,7 @@ make_release() { # ver
   git add VERSION CHANGELOG.md CHANGELOG.ru.md modules.lock flake.nix flake.lock shell/Cargo.lock "${crates[@]}"
   GIT_AUTHOR_DATE="@$epoch +0000" GIT_COMMITTER_DATE="@$epoch +0000" git commit -q -m "release: $v"
   note_tag "$ROOT" "v$v"
-  gs tag -s "v$v" -m "yami $v" >/dev/null
+  gs tag -s "v$v" -m "nemo $v" >/dev/null
   verified "$ROOT" "v$v" || die "v$v: $(t "подпись не сходится" "the signature does not check out")"
   note phase made
   say "$(t "готово здесь: тег v$v подписан, ничего не отправлено" "made here: tag v$v signed, nothing sent")"
@@ -490,22 +490,22 @@ case ${1:-} in
   --push) ver_ok "${2:-}" || die "tools/release.sh --push X.Y.Z"; STATE="$(state_file "$2")"; push_release "$2" ;;
   --undo) ver_ok "${2:-}" || die "tools/release.sh --undo X.Y.Z"; undo "$2" ;;
   --status) status "${2:-}" ;;
-  --check) ver_ok "${2:-}" || die "tools/release.sh --check X.Y.Z"; head_ "yami $2: $(t "готово ли всё к выпуску" "is everything ready for the release")"; if preflight "$2"; then say "$(t "можно: tools/release.sh $2" "ready: tools/release.sh $2")"; else exit 1; fi ;;
+  --check) ver_ok "${2:-}" || die "tools/release.sh --check X.Y.Z"; head_ "nemo $2: $(t "готово ли всё к выпуску" "is everything ready for the release")"; if preflight "$2"; then say "$(t "можно: tools/release.sh $2" "ready: tools/release.sh $2")"; else exit 1; fi ;;
   --publish)
     ver_ok "${2:-}" || die "tools/release.sh --publish X.Y.Z"
     gh_ok || die "$(t "gh не вошёл: gh auth login" "gh is not logged in: gh auth login")"
     git ls-remote --exit-code --tags origin "refs/tags/v$2" >/dev/null 2>&1 || die "$(t "тега v$2 нет на GitHub" "the tag v$2 is not on GitHub")"
     github_release "$2"
     counter_release
-    say "$(t "релиз на GitHub: yami $2" "GitHub release: yami $2")" ;;
+    say "$(t "релиз на GitHub: nemo $2" "GitHub release: nemo $2")" ;;
   --keygen)
-    key="$HOME/.ssh/yami-release"
-    [[ -f $key ]] || ssh-keygen -t ed25519 -C "yami release" -f "$key"
+    key="$HOME/.ssh/nemo-release"
+    [[ -f $key ]] || ssh-keygen -t ed25519 -C "nemo release" -f "$key"
     git config gpg.format ssh
     git config user.signingkey "$key.pub"
     who="$(git config user.email || git config user.name)"
     grep -qF "$(cut -d' ' -f2 "$key.pub")" "$KEYS" ||
-      printf '%s namespaces="git,yami-release" %s\n' "$who" "$(cut -d' ' -f1,2 "$key.pub")" >>"$KEYS"
+      printf '%s namespaces="git,nemo-release" %s\n' "$who" "$(cut -d' ' -f1,2 "$key.pub")" >>"$KEYS"
     say "$(t "ключ: $key (храни его; без него выпуски не подписать)" "key: $key (keep it safe; releases cannot be signed without it)")"
     say "$(t "закоммить $KEYS: с версии, где он есть, ставятся только подписанные выпуски" "commit $KEYS: from the version that has it, only signed releases are installed")" ;;
   *) make_release "${1:-}" ;;

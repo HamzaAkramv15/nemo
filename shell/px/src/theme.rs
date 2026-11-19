@@ -1,5 +1,5 @@
 // Тема из одного акцента: все оттенки выводятся из него.
-// Набор цветов уходит в ~/.local/state/yami/palette.json — по нему tools/theme.py
+// Набор цветов уходит в ~/.local/state/nemo/palette.json — по нему tools/theme.py
 // перекрашивает Qt, KDE, GTK, kitty, fastfetch, рамки niri и рисует обои.
 
 use crate::gfx::C;

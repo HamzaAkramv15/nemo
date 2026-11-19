@@ -162,7 +162,7 @@ impl App {
             Msg::SysUpd(f) => {
                 self.st.sys_upd.found = Some(f);
                 self.st.sys_upd.checking = false;
-                self.st.sys_upd.at = yami_px::time::unix_now();
+                self.st.sys_upd.at = nemo_px::time::unix_now();
                 self.dirty(&SKind::Modal);
             }
             Msg::Clip(lines) => {
@@ -255,7 +255,7 @@ impl App {
         let turned_on = was.present && !was.powered;
         let first = !was.present && {
             let dir = std::env::var_os("XDG_RUNTIME_DIR").map(std::path::PathBuf::from);
-            dir.is_some_and(|d| std::fs::OpenOptions::new().write(true).create_new(true).open(d.join("yami-bt-reconnected")).is_ok())
+            dir.is_some_and(|d| std::fs::OpenOptions::new().write(true).create_new(true).open(d.join("nemo-bt-reconnected")).is_ok())
         };
         if turned_on || first {
             crate::net::bt_reconnect(b.devices.iter().filter(|d| d.reconnectable()).map(|d| d.path.clone()).collect(), self.tx.clone());

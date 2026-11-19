@@ -2,13 +2,13 @@
 // при английском текст подменяется по таблице прямо при отрисовке (ui.text*), поэтому язык
 // переключается на лету. Строки с подстановками — макросом tf!("…", "…", "…", args).
 // Третий язык — бразильский португальский: таблица PT_BR (i18n_pt_br.rs) от английского, у tf! —
-// третий шаблон. Какой язык — решает yami_px::i18n (общий выбор для всех программ).
+// третий шаблон. Какой язык — решает nemo_px::i18n (общий выбор для всех программ).
 
 use std::collections::HashMap;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Mutex, OnceLock};
 
-pub use yami_px::i18n::{code, en, pt_br, set, translated};
+pub use nemo_px::i18n::{code, en, pt_br, set, translated};
 
 /// `shot`: собирать надписи, которые остались без перевода
 static AUDIT: AtomicBool = AtomicBool::new(false);
@@ -25,7 +25,7 @@ pub fn tr(s: &str) -> &str {
     // (остальные языки переводятся по частям: без строки — английская)
     let known = table().contains_key(s);
     // названия языков (Русский, Українська) не переводятся нарочно
-    let name = yami_px::i18n::LANGS.iter().any(|l| l.1 == s);
+    let name = nemo_px::i18n::LANGS.iter().any(|l| l.1 == s);
     // украинский сам кириллица: там выдаёт русский только буква, которой в нём нет (ы э ъ ё)
     let ru = if code() == "uk" { s.chars().any(|c| matches!(c, 'ы' | 'э' | 'ъ' | 'ё' | 'Ы' | 'Э' | 'Ё')) } else { s.chars().any(|c| matches!(c, 'а'..='я' | 'А'..='Я' | 'ё' | 'Ё')) };
     let missing = (!known && !name && ru) || (pt_br() && known && !lang_table().is_some_and(|t| t.contains_key(english)));
@@ -93,10 +93,10 @@ fn lang_table() -> Option<&'static HashMap<&'static str, &'static str>> {
 }
 
 /// строка tf! на языке без своего шаблона в коде: out собрана по английскому шаблону en, значения
-/// переезжают в шаблон языка (yami_px::i18n::refill); нет строки в таблице — остаётся английская
+/// переезжают в шаблон языка (nemo_px::i18n::refill); нет строки в таблице — остаётся английская
 pub fn localize(en: &str, out: String) -> String {
     match lang_table().and_then(|t| t.get(en)) {
-        Some(to) => yami_px::i18n::refill(en, &out, to).unwrap_or(out),
+        Some(to) => nemo_px::i18n::refill(en, &out, to).unwrap_or(out),
         None => out,
     }
 }
@@ -126,11 +126,11 @@ const PAIRS: &[(&str, &str)] = &[
     ("стиль", "style"),
     ("стиль всех модулей", "style of all modules"),
     ("скриншоты не установлены", "screenshots are not installed"),
-    ("модуль yami-shot ставится из первой настройки: nemo setup", "the yami-shot module is installed from the first-run setup: nemo setup"),
+    ("модуль nemo-shot ставится из первой настройки: nemo setup", "the nemo-shot module is installed from the first-run setup: nemo setup"),
     // экран входа (login.rs)
     ("экран входа", "login screen"),
-    ("экран входа: greetd + yami-greet", "login screen: greetd + yami-greet"),
-    ("не установлен: модуль yami-greet ставится из nemo setup", "not installed: the yami-greet module comes from nemo setup"),
+    ("экран входа: greetd + nemo-greet", "login screen: greetd + nemo-greet"),
+    ("не установлен: модуль nemo-greet ставится из nemo setup", "not installed: the nemo-greet module comes from nemo setup"),
     ("настройки ниже применятся, когда он появится", "the settings below apply once it is installed"),
     ("greetd — менеджер входа", "greetd is the login manager"),
     ("greetd не включён: nemo setup", "greetd is not enabled: nemo setup"),
@@ -154,7 +154,7 @@ const PAIRS: &[(&str, &str)] = &[
     ("цифры на цифровом блоке сразу", "the number pad types digits at once"),
     ("отдать вид сейчас", "send the look now"),
     ("журнал", "log"),
-    ("«посмотреть» — экран входа поверх стола: пароль yami или esc", "«preview»: the login screen over the desktop, password yami or esc"),
+    ("«посмотреть» — экран входа поверх стола: пароль nemo или esc", "«preview»: the login screen over the desktop, password nemo or esc"),
     ("посмотреть", "preview"),
     ("кто и как входит", "who logs in and how"),
     // ── батарея, Wi-Fi, bluetooth ──
@@ -472,7 +472,7 @@ const PAIRS: &[(&str, &str)] = &[
     ("пиксельность", "pixel look"),
     ("гладко", "smooth"),
     ("мягче", "softer"),
-    ("только Nemo", "yami only"),
+    ("только Nemo", "nemo only"),
     ("всё пиксельное", "all pixel"),
     ("лёгкий режим", "lite mode"),
     ("без размытия и анимаций", "no blur, no animations"),
@@ -498,7 +498,7 @@ const PAIRS: &[(&str, &str)] = &[
     ("память шелла", "shell memory"),
     ("работает", "uptime"),
     ("стоковый", "stock"),
-    ("yami-niri (форк)", "yami-niri (fork)"),
+    ("nemo-niri (форк)", "nemo-niri (fork)"),
     ("окон", "windows"),
     ("уведомлений в истории", "notifications in history"),
     ("команды", "commands"),
@@ -584,7 +584,7 @@ const PAIRS: &[(&str, &str)] = &[
     ("погода: город — в настройках → службы → сеть", "weather: the city goes in settings → services → network"),
     ("спрашиваю open-meteo.com…", "asking open-meteo.com…"),
     ("скрипт не выбран: настройки виджета → скрипт", "no script chosen: widget settings → script"),
-    ("положи исполняемый скрипт в ~/.config/yami/scripts (как модуль бара)", "put an executable script into ~/.config/yami/scripts (like a bar module)"),
+    ("положи исполняемый скрипт в ~/.config/nemo/scripts (как модуль бара)", "put an executable script into ~/.config/nemo/scripts (like a bar module)"),
     ("везде", "everywhere"),
     ("узор", "pattern"),
     ("по панелям", "per panel"),
@@ -620,9 +620,9 @@ const PAIRS: &[(&str, &str)] = &[
     ("скругления, тени, обычные шрифты", "rounded corners, shadows, plain fonts"),
     ("светлый текст на тёмном", "light text on dark"),
     ("тёмный текст на светлом", "dark text on light"),
-    ("yami не переписывает конфиг niri: в его начало встаёт одна строка include, и всё, что ниже неё, главнее. Конфига нет — Nemo положит свой стартовый.", "yami does not rewrite niri's config: one include line goes at its top, and everything below it wins. No config: Nemo puts its starting one."),
+    ("nemo не переписывает конфиг niri: в его начало встаёт одна строка include, и всё, что ниже неё, главнее. Конфига нет — Nemo положит свой стартовый.", "nemo does not rewrite niri's config: one include line goes at its top, and everything below it wins. No config: Nemo puts its starting one."),
     ("заменить стартовым Nemo", "replace with Nemo's starting one"),
-    ("заменить: твой файл уйдёт в копию рядом, config.kdl.bak-yami-…", "replace: your file is kept as a copy next to it, config.kdl.bak-yami-…"),
+    ("заменить: твой файл уйдёт в копию рядом, config.kdl.bak-nemo-…", "replace: your file is kept as a copy next to it, config.kdl.bak-nemo-…"),
     ("что приносит Nemo", "what Nemo brings"),
     ("другие программы в конфиге niri", "other programs in niri's config"),
     ("ничего, что спорило бы с Nemo: ни второго бара, ни своих уведомлений", "nothing that would clash with Nemo: no second bar, no notifications of its own"),
@@ -650,7 +650,7 @@ const PAIRS: &[(&str, &str)] = &[
     ("управление", "controls"),
     ("раскладки клавиатуры и главные сочетания", "keyboard layouts and the main shortcuts"),
     ("подключим к niri", "connect to niri"),
-    ("одна строка в его конфиге — и заработают клавиши, вид и правила окон", "one line in its config and yami's keys, look and window rules work"),
+    ("одна строка в его конфиге — и заработают клавиши, вид и правила окон", "one line in its config and nemo's keys, look and window rules work"),
     ("каждая — отдельная и работает без шелла", "each is separate and works without the shell"),
     ("уведомления и службы", "notifications and services"),
     ("что шелл берёт на себя", "what the shell takes care of"),
@@ -695,7 +695,7 @@ const PAIRS: &[(&str, &str)] = &[
     ("Стоит то, что поставлено пакетами.", "What is installed came with its package."),
     ("Отмеченные поставятся, снятые уйдут.", "Ticked ones get installed, unticked ones removed."),
     ("отметь, что поставить или убрать; ход установки виден здесь", "tick what to install or remove; the progress shows here"),
-    ("уведомления Nemo", "yami notifications"),
+    ("уведомления Nemo", "nemo notifications"),
     ("обложки из интернета", "covers from the internet"),
     ("выкл — только то, что отдаёт плеер", "off: only what the player gives"),
     ("тексты песен из интернета", "lyrics from the internet"),
@@ -712,8 +712,8 @@ const PAIRS: &[(&str, &str)] = &[
     ("свой экран входа", "our own login screen"),
     ("GameMode и MangoHud", "GameMode and MangoHud"),
     ("наш niri, сборка 5–25 минут", "our niri, a 5–25 min build"),
-    ("yami поставлен пакетом: модули ставит менеджер пакетов — пакеты yami-files, yami-view, yami-play, yami-shot, yami-greet", "yami came as a package: the package manager installs the modules, packages yami-files, yami-view, yami-play, yami-shot, yami-greet"),
-    ("ставить нечем: нет ни исходников Nemo, ни git. Каждый модуль ставится и сам: yami-files install", "nothing to install with: neither the Nemo sources nor git. Each module installs itself too: yami-files install"),
+    ("nemo поставлен пакетом: модули ставит менеджер пакетов — пакеты nemo-files, nemo-view, nemo-play, nemo-shot, nemo-greet", "nemo came as a package: the package manager installs the modules, packages nemo-files, nemo-view, nemo-play, nemo-shot, nemo-greet"),
+    ("ставить нечем: нет ни исходников Nemo, ни git. Каждый модуль ставится и сам: nemo-files install", "nothing to install with: neither the Nemo sources nor git. Each module installs itself too: nemo-files install"),
     ("готово: модули на месте", "done: the modules are in place"),
     ("ещё раз", "again"),
     ("неверный пароль, ещё раз", "wrong password, again"),
@@ -759,13 +759,13 @@ const PAIRS: &[(&str, &str)] = &[
     ("файл png с датой в имени", "a png named by date"),
     ("открыть", "open"),
     // окна
-    ("app-id окна: niri msg windows · правила пишутся в ~/.config/yami/niri/rules.kdl", "window app-id: niri msg windows · rules go to ~/.config/yami/niri/rules.kdl"),
+    ("app-id окна: niri msg windows · правила пишутся в ~/.config/nemo/niri/rules.kdl", "window app-id: niri msg windows · rules go to ~/.config/nemo/niri/rules.kdl"),
     ("app-id через запятую: org.telegram.desktop, imv", "app-ids, comma separated: org.telegram.desktop, imv"),
     ("в правом нижнем углу", "bottom right corner"),
     ("высота", "height"),
     ("картинка в картинке", "picture-in-picture"),
     ("плавающие окна", "floating windows"),
-    ("Telegram, yami-view, mpv…", "Telegram viewer, yami-view, mpv…"),
+    ("Telegram, nemo-view, mpv…", "Telegram viewer, nemo-view, mpv…"),
     ("свои программы", "your apps"),
     ("фото и видео", "photos and videos"),
     ("ширина", "width"),
@@ -815,7 +815,7 @@ const PAIRS: &[(&str, &str)] = &[
     ("экраны → VRR «в играх»", "screens → VRR «in games»"),
     ("разрывы (tearing)", "tearing"),
     ("меньше задержка, возможны разрывы", "less lag, tearing possible"),
-    ("нужен yami-niri (наш форк)", "needs yami-niri (our fork)"),
+    ("нужен nemo-niri (наш форк)", "needs nemo-niri (our fork)"),
     ("большой кеш шейдеров", "big shader cache"),
     ("меньше фризов в новых сценах", "fewer stutters in new scenes"),
     ("Proton и драйвер (со следующего входа)", "Proton and the driver (from the next login)"),
@@ -841,12 +841,12 @@ const PAIRS: &[(&str, &str)] = &[
     ("тема браузера — твоя, не трогаем", "the browser theme stays yours"),
     ("пиксельный шрифт", "pixel font"),
     ("в меню, не на сайтах", "menus and toolbars, not web pages"),
-    ("браузер подхватит при следующем запуске. Любой другой шрифт: yami-shell config set fontShell \"Имя\"", "the browser picks it up on its next start. Any other font: yami-shell config set fontShell \"Name\""),
+    ("браузер подхватит при следующем запуске. Любой другой шрифт: nemo-shell config set fontShell \"Имя\"", "the browser picks it up on its next start. Any other font: nemo-shell config set fontShell \"Name\""),
     ("как у шелла", "as the shell"),
     ("Monocraft (пиксельный)", "Monocraft (pixel)"),
     ("Tiny5 (пиксельный)", "Tiny5 (pixel)"),
     ("файл настроек", "settings file"),
-    ("или: yami-shell config list", "or: yami-shell config list"),
+    ("или: nemo-shell config list", "or: nemo-shell config list"),
     // обои (wall.rs)
     ("обои", "wallpaper"),
     ("значки", "icons"),
@@ -921,7 +921,7 @@ const PAIRS: &[(&str, &str)] = &[
     ("окно пароля polkit", "polkit password window"),
     ("выкл — другой агент", "off: another agent"),
     ("порталы", "portals"),
-    ("диалог файлов yami-files", "yami-files file dialog"),
+    ("диалог файлов nemo-files", "nemo-files file dialog"),
     ("выкл — диалог GTK", "off: the GTK dialog"),
     ("выбор экрана для трансляций", "screen-share picker"),
     ("выкл — окно GNOME", "off: the GNOME window"),
@@ -997,9 +997,9 @@ const PAIRS: &[(&str, &str)] = &[
     ("тема Nemo", "the Nemo theme"),
     ("меню: userChrome.css", "menus: userChrome.css"),
     ("только наш конфиг", "only a config Nemo wrote"),
-    ("выключенную программу Nemo не трогает; всегда в палитре: шелл, экран входа, рамки niri, свои шаблоны. Курсор — окна → курсор", "yami leaves a program that is off alone; always in the palette: the shell, login screen, niri borders, your templates. The cursor: windows → cursor"),
+    ("выключенную программу Nemo не трогает; всегда в палитре: шелл, экран входа, рамки niri, свои шаблоны. Курсор — окна → курсор", "nemo leaves a program that is off alone; always in the palette: the shell, login screen, niri borders, your templates. The cursor: windows → cursor"),
     ("свои шаблоны", "your templates"),
-    ("файл в ~/.config/yami/templates — конфиг программы, где цвета записаны как {{accent}}, {{bg}}, {{text}}, {{color1}}… (.strip — без #, .rgb — r, g, b). Строка «yami-output: ~/путь» — куда писать, «yami-reload: USR1 программа» — кому сказать перечитать. Изменённый руками файл не перезаписывается, шаблон с неизвестным цветом не пишется; правка в папке шаблонов применяется сама.", "a file in ~/.config/yami/templates is an app config with colours written as {{accent}}, {{bg}}, {{text}}, {{color1}}… (.strip — without #, .rgb — r, g, b). A line “yami-output: ~/path” says where to write, “yami-reload: USR1 app” whom to tell to reload. A file changed by hand is not overwritten, a template with an unknown colour is not written; edits in the templates folder apply by themselves."),
+    ("файл в ~/.config/nemo/templates — конфиг программы, где цвета записаны как {{accent}}, {{bg}}, {{text}}, {{color1}}… (.strip — без #, .rgb — r, g, b). Строка «nemo-output: ~/путь» — куда писать, «nemo-reload: USR1 программа» — кому сказать перечитать. Изменённый руками файл не перезаписывается, шаблон с неизвестным цветом не пишется; правка в папке шаблонов применяется сама.", "a file in ~/.config/nemo/templates is an app config with colours written as {{accent}}, {{bg}}, {{text}}, {{color1}}… (.strip — without #, .rgb — r, g, b). A line “nemo-output: ~/path” says where to write, “nemo-reload: USR1 app” whom to tell to reload. A file changed by hand is not overwritten, a template with an unknown colour is not written; edits in the templates folder apply by themselves."),
     ("папка шаблонов", "templates folder"),
     ("перезаписать", "overwrite"),
     ("перекрасить сейчас", "recolour now"),
@@ -1008,7 +1008,7 @@ const PAIRS: &[(&str, &str)] = &[
     ("выкл — зрители их не видят", "off — viewers do not see them"),
     ("где на экране", "where on the screen"),
     ("сервер", "server"),
-    ("сервер уведомлений Nemo", "yami notification server"),
+    ("сервер уведомлений Nemo", "nemo notification server"),
     ("выкл — mako, dunst и т.п. (после перезапуска шелла)", "off — mako, dunst and the like (after a shell restart)"),
     ("внешний вид", "appearance"),
     ("рабочий стол", "desktop"),

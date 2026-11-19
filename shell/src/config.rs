@@ -1,14 +1,14 @@
-// Настройки шелла: ~/.config/yami/shell.json (до 3.0 — ~/.config/yami-shell.json, его переносит
+// Настройки шелла: ~/.config/nemo/shell.json (до 3.0 — ~/.config/nemo-shell.json, его переносит
 // dirs.rs, а до переноса читается он). Меняются в панели настроек (Mod+S),
 // перетаскиванием виджетов и руками — файл перечитывается на лету.
 
 use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
 
-pub use yami_px::paths::{config_dir, data_dir, home, state_dir, write_atomic};
+pub use nemo_px::paths::{config_dir, data_dir, home, state_dir, write_atomic};
 
 pub fn settings_path() -> PathBuf {
-    yami_px::paths::shell_settings()
+    nemo_px::paths::shell_settings()
 }
 
 /// анимация одной группы панелей (настройки → анимации): узор появления и закрытия ("" — общий
@@ -105,7 +105,7 @@ impl Widget {
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq)]
 #[serde(default, rename_all = "camelCase")]
 pub struct Settings {
-    /// язык интерфейса: "" — по языку системы, иначе код из yami_px::i18n::LANGS ("ru", "en", "pt-BR", "de"…)
+    /// язык интерфейса: "" — по языку системы, иначе код из nemo_px::i18n::LANGS ("ru", "en", "pt-BR", "de"…)
     pub lang: String,
     // цвет: пресет или свой акцент (#rrggbb, пусто — пресет)
     pub palette: String,
@@ -113,7 +113,7 @@ pub struct Settings {
     pub tint: f32,
     /// светлая тема (бумага вместо графита) для шелла и всего, что красит recolor
     pub light: bool,
-    /// общий вид всех модулей (style.json): yami — пиксельный, plain — нейтральный
+    /// общий вид всех модулей (style.json): nemo — пиксельный, plain — нейтральный
     pub preset: String,
     /// notch | round | square; пусто — как у пресета
     pub corners: String,
@@ -139,7 +139,7 @@ pub struct Settings {
     /// xray (по умолчанию у niri): размывается только обои, окна за панелью видны резко; выкл —
     /// размывается всё под панелью, и вид не зависит от того, есть ли за ней окно. Дороже для видеокарты
     pub blur_xray: bool,
-    /// значки шелла: "" — по стилю (пиксельные у yami, обычные у нейтрального), pixel, normal —
+    /// значки шелла: "" — по стилю (пиксельные у nemo, обычные у нейтрального), pixel, normal —
     /// векторные со сглаживанием (px::vicon; значка нет в таблице — рисуется пиксельный)
     pub icon_style: String,
     /// kitty запускает fish, если он стоит: подсказки по истории и подсветка из коробки (kitty.conf:
@@ -148,7 +148,7 @@ pub struct Settings {
     pub animations: bool,
     /// множитель длительности анимаций: 0.5 — быстрее, 2 — медленнее
     pub anim_speed: f32,
-    /// узор проявления: dither | scan | noise | wipe | blocks (yami-px gfx::Reveal)
+    /// узор проявления: dither | scan | noise | wipe | blocks (nemo-px gfx::Reveal)
     pub reveal: String,
     /// крупность клеток проявления, 1–4
     pub reveal_grain: i32,
@@ -161,8 +161,8 @@ pub struct Settings {
     /// лёгкий режим для слабых и виртуальных машин (lite.rs): без размытия, без анимаций шелла
     /// и niri, неактивные окна непрозрачные; свои настройки эффектов при этом не меняются
     pub lite: bool,
-    /// части yami в конфиге niri (niricfg.rs): вид niri от yami, клавиши, правила окон, цвета и
-    /// курсор, экраны. Выключенная часть просто не включается в yami.kdl: тогда решает твой config.kdl
+    /// части nemo в конфиге niri (niricfg.rs): вид niri от nemo, клавиши, правила окон, цвета и
+    /// курсор, экраны. Выключенная часть просто не включается в nemo.kdl: тогда решает твой config.kdl
     pub niri_look: bool,
     pub niri_keys: bool,
     pub niri_rules: bool,
@@ -172,7 +172,7 @@ pub struct Settings {
     pub stacking: bool,
     pub titlebars: bool,
     pub icon_theme: String,
-    /// значки программ пиксельными: чистая сетка 16–30 клеток (yami-px pixelate)
+    /// значки программ пиксельными: чистая сетка 16–30 клеток (nemo-px pixelate)
     pub icon_pixel: bool,
     /// пиксельные значки — в 4 тонах палитры, а не в своих цветах
     pub icon_tint: bool,
@@ -193,7 +193,7 @@ pub struct Settings {
     pub wall_accent: bool,
     /// схема палитры из обоев (wall.rs SCHEMES)
     pub wall_scheme: String,
-    /// свои шаблоны, которые выключены (имена файлов в ~/.config/yami/templates)
+    /// свои шаблоны, которые выключены (имена файлов в ~/.config/nemo/templates)
     pub templates_off: Vec<String>,
     /// GTK 4 / libadwaita тоже в цветах палитры (при включённом gtk в themeApps)
     pub theme_gtk4: bool,
@@ -221,7 +221,7 @@ pub struct Settings {
     pub privacy_cam: bool,
     pub privacy_screen: bool,
     /// чужие программы, которые recolor красит по палитре (THEME_APPS; настройки → цвет → программы,
-    /// установщик); выключенную yami не трогает. До 2.7 — appThemes: foot, cava, starship сверх остальных
+    /// установщик); выключенную nemo не трогает. До 2.7 — appThemes: foot, cava, starship сверх остальных
     pub theme_apps: Vec<String>,
     pub clock_seconds: bool,
     pub clock_date: bool,
@@ -280,7 +280,7 @@ pub struct Settings {
     /// край экрана с баром: "top" или "bottom"
     pub bar_pos: String,
 
-    // экран входа (yami-greet: login.rs выкладывает их в look.json)
+    // экран входа (nemo-greet: login.rs выкладывает их в look.json)
     /// "list" — пользователи списком, "name" — имя вводят сами (список не показывается)
     pub greet_users: String,
     /// обои экрана входа: "desktop" — как на столе, "pixel" — пиксельные из палитры, "plain" — цвет темы
@@ -363,7 +363,7 @@ pub struct Settings {
     pub dock_trash: bool,
     pub dock_pins: Vec<String>,
 
-    // курсор: yami (пиксельный в палитре) | system
+    // курсор: nemo (пиксельный в палитре) | system
     pub cursor: String,
     pub cursor_size: i32,
     /// UI-шрифт программ (GTK, Qt, kitty, браузер), px по сетке Tiny5: 0 — по экрану, 16 | 24 | 32
@@ -371,7 +371,7 @@ pub struct Settings {
     // шрифты (вкладка «шрифты»): семейства fontconfig, "" — по умолчанию
     /// шелл: "" — Tiny5 (пиксельный)
     pub font_shell: String,
-    /// yami-files и yami-view: "" — как у шелла
+    /// nemo-files и nemo-view: "" — как у шелла
     pub font_files: String,
     pub font_view: String,
     /// программы (GTK, Qt): "" — Tiny5, "sans" — системный, иначе семейство
@@ -407,7 +407,7 @@ pub struct Settings {
     // игры (games.rs): правила игровых окон и игровой режим
     pub game_fullscreen: bool,
     pub game_vrr: bool,
-    /// разрывы ради задержки: только на yami-niri
+    /// разрывы ради задержки: только на nemo-niri
     pub game_tearing: bool,
     pub game_cache: bool,
     pub game_dnd: bool,
@@ -459,7 +459,7 @@ pub struct Settings {
     pub media_view: String,
     /// свои имена звуковых устройств: имя PipeWire (`pactl list sinks`) → как показывать
     pub audio_names: std::collections::BTreeMap<String, String>,
-    /// портал: диалог файлов yami-files (иначе GTK)
+    /// портал: диалог файлов nemo-files (иначе GTK)
     pub portal_files: bool,
 
     // обновления (update.rs)
@@ -641,7 +641,7 @@ impl Default for Settings {
             anim_speed: 1.0,
             reveal: "dither".into(),
             reveal_grain: 1,
-            preset: "yami".into(),
+            preset: "nemo".into(),
             corners: String::new(),
             radius: -1,
             shadow: "soft".into(),
@@ -762,7 +762,7 @@ impl Default for Settings {
             dock_running: true,
             dock_launcher: true,
             dock_trash: true,
-            cursor: "yami".into(),
+            cursor: "nemo".into(),
             cursor_size: 24,
             font_size: 0,
             font_shell: "sans".into(),
@@ -773,7 +773,7 @@ impl Default for Settings {
             font_pt: 0,
             browser_menus: true,
             browser_font: false,
-            dock_pins: ["yami-files", "kitty", "librewolf", "firefox", "chromium", "org.telegram.desktop", "steam", "yami-view"].iter().map(|s| s.to_string()).collect(),
+            dock_pins: ["nemo-files", "kitty", "librewolf", "firefox", "chromium", "org.telegram.desktop", "steam", "nemo-view"].iter().map(|s| s.to_string()).collect(),
             widgets: vec![
                 Widget { id: 1, x: 48, y: 72, frame: false, ..Widget::new(1, "clock") },
             ],
@@ -836,7 +836,7 @@ impl Settings {
                 s.migrate_seps();
                 // Bibata больше не ставится: свой пиксельный курсор
                 if s.cursor == "bibata" {
-                    s.cursor = "yami".into();
+                    s.cursor = "nemo".into();
                 }
                 // виджета агента больше нет
                 s.widgets.retain(|w| w.kind != "agent");
@@ -847,10 +847,16 @@ impl Settings {
         }
     }
 
-    /// строки из файла (правка руками, `yami import`, чужая тема) уходят в конфиги niri, kitty,
+    /// строки из файла (правка руками, `nemo import`, чужая тема) уходят в конфиги niri, kitty,
     /// GTK и Qt: имена — без управляющих символов, кавычек и разделителей (иначе перевод строки
     /// в имени шрифта дописал бы в kitty.conf свою команду), акцент — только #rrggbb
     pub fn sanitize(&mut self) {
+        // до переименования эти значения назывались yami
+        for v in [&mut self.preset, &mut self.cursor] {
+            if v == "yami" {
+                *v = "nemo".into();
+            }
+        }
         let name = |s: &mut String| {
             s.retain(|c| !c.is_control() && !"\"\\'`$;,{}<>|&#=".contains(c));
             if s.chars().count() > 64 {
@@ -860,7 +866,7 @@ impl Settings {
         for f in [&mut self.font_shell, &mut self.font_files, &mut self.font_view, &mut self.font_ui, &mut self.font_mono, &mut self.icon_theme, &mut self.cursor] {
             name(f);
         }
-        self.lang = yami_px::i18n::normalize(&self.lang).into();
+        self.lang = nemo_px::i18n::normalize(&self.lang).into();
         // плитки панели: только известные, без повторов, не больше ряда
         let mut seen = std::collections::HashSet::new();
         self.control_tiles.retain(|k| crate::control::TILES.iter().any(|t| t.0 == k) && seen.insert(k.clone()));
@@ -899,7 +905,7 @@ impl Settings {
         self.font_pt = self.font_pt.clamp(0, 48);
         self.binds.retain(|_, k| k.is_empty() || crate::keys::key_ok(k));
         self.custom_binds.retain(|c| c.key.is_empty() || crate::keys::key_ok(&c.key));
-        // модули-скрипты: только имя файла в ~/.config/yami/scripts; «rec» (повтор) убран
+        // модули-скрипты: только имя файла в ~/.config/nemo/scripts; «rec» (повтор) убран
         for l in [&mut self.bar_left, &mut self.bar_center, &mut self.bar_right] {
             l.retain(|m| m != "rec" && m.strip_prefix("x:").is_none_or(crate::plugins::name_ok));
         }
@@ -996,7 +1002,7 @@ impl Settings {
         // всегда через Value: разбор Settings прямо из текста — ещё ~100 КБ кода в бинаре (второй
         // экземпляр serde-посетителя на ~200 полей) ради микросекунд на файл в несколько КБ
         let Some(user) = serde_json::from_str::<serde_json::Value>(text).ok().and_then(|v| if let serde_json::Value::Object(m) = v { Some(m) } else { None }) else {
-            eprintln!("yami-shell: {} is not JSON, defaults used", settings_path().display());
+            eprintln!("nemo-shell: {} is not JSON, defaults used", settings_path().display());
             return Settings::default();
         };
         if let Ok(s) = serde_json::from_value::<Settings>(serde_json::Value::Object(user.clone())) {
@@ -1010,7 +1016,7 @@ impl Settings {
             }
         }
         for k in &bad {
-            eprintln!("yami-shell: bad value for {k} in the settings, default used");
+            eprintln!("nemo-shell: bad value for {k} in the settings, default used");
         }
         serde_json::from_value(serde_json::Value::Object(v)).unwrap_or_default()
     }
@@ -1192,7 +1198,7 @@ impl Settings {
         serde_json::to_string_pretty(self).unwrap_or_default() + "\n"
     }
 
-    /// то, что шелл отдаёт всем модулям (~/.config/yami/style.json); те же ключи читает yami_px::look.
+    /// то, что шелл отдаёт всем модулям (~/.config/nemo/style.json); те же ключи читает nemo_px::look.
     /// Необязательное выкладывается, только когда задано: иначе решает пресет
     pub fn style_value(&self) -> serde_json::Value {
         const KEYS: [&str; 21] = [
@@ -1255,7 +1261,7 @@ impl Settings {
             l.push("// photo and video viewers open as a floating window, not as a new column".into());
             l.push("window-rule {".into());
             l.push("    match app-id=r#\"(?i)(telegram|ayugram|64gram|kotatogram)\"# title=r#\"^(Media viewer|Просмотр медиа|Медиапросмотрщик)$\"#".into()); // i18n-ok
-            for id in ["yami-view", "yami-play", "imv", "feh", "nsxiv", "sxiv", "org\\.gnome\\.Loupe", "org\\.gnome\\.eog", "org\\.kde\\.gwenview", "qimgv", "swayimg", "mpv", "vlc", "org\\.gnome\\.Showtime"] {
+            for id in ["nemo-view", "nemo-play", "imv", "feh", "nsxiv", "sxiv", "org\\.gnome\\.Loupe", "org\\.gnome\\.eog", "org\\.kde\\.gwenview", "qimgv", "swayimg", "mpv", "vlc", "org\\.gnome\\.Showtime"] {
                 l.push(format!("    match app-id=r#\"^{id}$\"#"));
             }
             l.push("    open-floating true".into());
@@ -1291,7 +1297,7 @@ impl Settings {
 
     /// отступы и рамка окон: gaps — между окнами и у краёв; struts добирают край до заданного
     /// (бывают и отрицательными, если край уже промежутка). struts в niri не сливаются между
-    /// файлами: свои в user.kdl заменят эти целиком. Рамка — толщина (цвета — yami-colors.kdl)
+    /// файлами: свои в user.kdl заменят эти целиком. Рамка — толщина (цвета — nemo-colors.kdl)
     fn layout_kdl(&self, l: &mut Vec<String>) {
         let g = self.num("win_gap");
         l.push("// window gaps and border (settings → windows): between windows, from the screen edges".into());
@@ -1376,7 +1382,7 @@ impl Settings {
     /// `show-only-in`; ≥ 5 — `hide-from`); curtain — шторка опущена (без `show-only-in` тогда
     /// прячутся окна). Матовость — размытие под терминалами (панели шелла — своим регионом)
     pub fn fx_kdl(&self, lvl: u32, curtain: bool) -> String {
-        let mut l: Vec<String> = vec!["// yami: written by the shell (settings → look, windows, games, services). Do not edit by hand: it is rewritten.".into(), String::new()];
+        let mut l: Vec<String> = vec!["// nemo: written by the shell (settings → look, windows, games, services). Do not edit by hand: it is rewritten.".into(), String::new()];
         self.float_kdl(&mut l);
         self.layout_kdl(&mut l);
         self.corners_kdl(&mut l);
@@ -1403,7 +1409,7 @@ impl Settings {
         }
         if !self.blur_xray && self.blur_on() {
             // панели шелла: без xray размытие берёт и окна за ними, а не только обои
-            for s in ["layer-rule {", "    match namespace=\"^yami-(bar|popup|menu|notif|dock|osd)$\"", "    background-effect { xray false; }", "}", ""] {
+            for s in ["layer-rule {", "    match namespace=\"^nemo-(bar|popup|menu|notif|dock|osd)$\"", "    background-effect { xray false; }", "}", ""] {
                 l.push(s.into());
             }
         }

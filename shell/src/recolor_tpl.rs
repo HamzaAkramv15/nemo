@@ -1,8 +1,8 @@
-// Свои шаблоны перекраски: файлы в ~/.config/yami/templates. Строка «yami-output: ~/путь» — куда писать,
-// «yami-reload: USR1 программа» — кому послать сигнал (USR1, USR2 или HUP); {{accent}}, {{bg}}, {{color4}}…
+// Свои шаблоны перекраски: файлы в ~/.config/nemo/templates. Строка «nemo-output: ~/путь» — куда писать,
+// «nemo-reload: USR1 программа» — кому послать сигнал (USR1, USR2 или HUP); {{accent}}, {{bg}}, {{color4}}…
 // — цвета (.strip — без «#», .rgb — «r, g, b»). Пишем только в ~/.config, ~/.local/share и ~/.cache и
 // только в свой файл: изменённый руками не перезаписываем, пока не попросят (force: прежний файл
-// остаётся как *.bak-yami). Шаблон с неизвестным {{именем}} не пишется: опечатка не должна ломать
+// остаётся как *.bak-nemo). Шаблон с неизвестным {{именем}} не пишется: опечатка не должна ломать
 // конфиг программы. Итог каждого — в restyle.json.
 
 use crate::recolor::*;
@@ -50,10 +50,10 @@ fn keys_map(s: &str, mut f: impl FnMut(&str, Option<&str>) -> String) -> String 
     out
 }
 
-/// «yami-output: X» или «yami-reload: X» в строке: (output?, X без пробелов по краям)
+/// «nemo-output: X» или «nemo-reload: X» в строке: (output?, X без пробелов по краям)
 fn directive(line: &str) -> Option<(bool, &str)> {
     let mut from = 0;
-    while let Some(at) = line[from..].find("yami-") {
+    while let Some(at) = line[from..].find("nemo-") {
         let at = from + at;
         let rest = &line[at + 5..];
         let found = rest.strip_prefix("output:").map(|r| (true, r)).or_else(|| rest.strip_prefix("reload:").map(|r| (false, r)));
@@ -128,7 +128,7 @@ fn good_prog(s: &str) -> bool {
 }
 
 pub fn templates(cx: &Cx, p: &P, force: Option<&str>) -> Res {
-    let d = cx.cfg.join("yami/templates");
+    let d = cx.cfg.join("nemo/templates");
     if !d.is_dir() {
         return cx.status("templates", Some(json!([])));
     }
@@ -228,7 +228,7 @@ fn one(cx: &Cx, f: &Path, name: &str, cols: &HashMap<String, String>, sums: &mut
                 mark(&mut row, "hand");
                 return row;
             }
-            let bak = real.with_file_name(format!("{}.bak-yami", real.file_name().map(|n| n.to_string_lossy().to_string()).unwrap_or_default()));
+            let bak = real.with_file_name(format!("{}.bak-nemo", real.file_name().map(|n| n.to_string_lossy().to_string()).unwrap_or_default()));
             let _ = std::fs::copy(&real, bak);
         }
     }
@@ -259,8 +259,8 @@ mod tests {
         assert_eq!(key_at("{{ accent.strip }}x", 0).map(|(a, b, c)| (a.to_string(), b.map(String::from), c)), Some(("accent".into(), Some("strip".into()), 18)));
         assert!(key_at("{{1a}}", 0).is_none());
         assert_eq!(keys_map("a{{b}}c {{ b.foo }}", |n, _| n.to_uppercase()), "aBc {{ b.foo }}");
-        assert_eq!(directive("# yami-output: ~/.config/x  \n"), Some((true, "~/.config/x")));
-        assert_eq!(directive("-- yami-reload:   USR1 foot"), Some((false, "USR1 foot")));
-        assert_eq!(directive("yami-output:   "), None);
+        assert_eq!(directive("# nemo-output: ~/.config/x  \n"), Some((true, "~/.config/x")));
+        assert_eq!(directive("-- nemo-reload:   USR1 foot"), Some((false, "USR1 foot")));
+        assert_eq!(directive("nemo-output:   "), None);
     }
 }

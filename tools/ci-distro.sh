@@ -89,7 +89,7 @@ RUSTFLAGS="-D warnings" cargo build --release --locked --workspace --manifest-pa
 
 say "installer dry run"
 # the installer runs as a user: a throwaway one with its own home
-id yamici >/dev/null 2>&1 || useradd -m yamici 2>/dev/null || adduser -D yamici
-su yamici -s /bin/bash -c "cd '$ROOT' && ./install.sh --yes --dry-run --no-anim --no-sudo --no-count --lang en" >/tmp/dry.log 2>&1 || { tail -40 /tmp/dry.log; exit 1; }
+id nemoci >/dev/null 2>&1 || useradd -m nemoci 2>/dev/null || adduser -D nemoci
+su nemoci -s /bin/bash -c "cd '$ROOT' && ./install.sh --yes --dry-run --no-anim --no-sudo --no-count --lang en" >/tmp/dry.log 2>&1 || { tail -40 /tmp/dry.log; exit 1; }
 tail -5 /tmp/dry.log
 echo "distro check: all good ($FAM)"

@@ -1,5 +1,5 @@
 #!/bin/sh
-# yami-script: the Wi-Fi network you are on and its signal strength
+# nemo-script: the Wi-Fi network you are on and its signal strength
 line=$(nmcli -t -f ACTIVE,SSID,SIGNAL device wifi 2>/dev/null | awk -F: '$1 == "yes" { print $2 ":" $3; exit }')
 if [ -z "$line" ]; then printf '{"text":"no wifi","icon":"wifi","color":"dim","interval":10}\n'; exit 0; fi
 ssid=${line%:*}; sig=${line##*:}

@@ -1,8 +1,8 @@
 // Наборы значков и курсоров: какие установлены (~/.local/share/icons, ~/.icons, системные), превью
 // для настроек → вид (значки — шесть программ набора в выбранном виде, курсор — его стрелка из
-// файла Xcursor), свой набор из архива или папки в ~/.local/share/icons; yami icons / yami cursor.
+// файла Xcursor), свой набор из архива или папки в ~/.local/share/icons; nemo icons / nemo cursor.
 // Превью строит нить (Msg::Sets), пока открыта вкладка «вид»; настройки закрылись — память
-// отдаётся (sets_free). Применяет выбор yami-shell recolor: --icons (GTK, Qt), --cursor (niri, GTK, X11).
+// отдаётся (sets_free). Применяет выбор nemo-shell recolor: --icons (GTK, Qt), --cursor (niri, GTK, X11).
 
 use crate::app::*;
 use crate::font::PX;
@@ -39,13 +39,13 @@ fn good_name(n: &str) -> bool {
         && n.len() <= 64
         && !n.starts_with('.')
         && !n.chars().any(|c| c.is_control() || "/\"\\'`$;,{}<>|&#=".contains(c))
-        && !matches!(n, "default" | "hicolor" | "locolor" | "yami-cursor")
+        && !matches!(n, "default" | "hicolor" | "locolor" | "nemo-cursor")
         && !generated(n)
 }
 
-/// пиксельный курсор, который recolor рисует в палитре: yami-<акцент>[-l]
+/// пиксельный курсор, который recolor рисует в палитре: nemo-<акцент>[-l]
 fn generated(n: &str) -> bool {
-    let Some(rest) = n.strip_prefix("yami-") else { return false };
+    let Some(rest) = n.strip_prefix("nemo-") else { return false };
     let hex = rest.strip_suffix("-l").unwrap_or(rest);
     hex.len() == 6 && hex.bytes().all(|b| b.is_ascii_hexdigit())
 }
@@ -62,7 +62,7 @@ pub fn installed() -> Vec<Found> {
                 if !good_name(&name) || !dir.is_dir() {
                     return None;
                 }
-                let txt = yami_px::paths::read_capped(&dir.join("index.theme"), 1 << 20).map(|d| String::from_utf8_lossy(&d).into_owned()).unwrap_or_default();
+                let txt = nemo_px::paths::read_capped(&dir.join("index.theme"), 1 << 20).map(|d| String::from_utf8_lossy(&d).into_owned()).unwrap_or_default();
                 let ini = crate::icons::parse_ini(&txt);
                 let head = ini.iter().find(|(n, _)| n == "Icon Theme").map(|(_, m)| m);
                 // Hidden прячет набор из выбора; Adwaita — основа GTK и прячется тоже, но выбрать её нужно
@@ -76,7 +76,7 @@ pub fn installed() -> Vec<Found> {
                 Some(Found { name, title, dir, icons, cursors })
             })
             .collect();
-        here.sort_by(|a, b| yami_px::paths::natural(&a.name.to_lowercase(), &b.name.to_lowercase()));
+        here.sort_by(|a, b| nemo_px::paths::natural(&a.name.to_lowercase(), &b.name.to_lowercase()));
         for f in here {
             if let Some(old) = out.iter_mut().find(|o| o.name == f.name) {
                 // тот же набор в другом корне: курсоры могут лежать отдельно от значков
@@ -112,7 +112,7 @@ pub fn build(ramp: [u32; 5], pixel: bool, tint: bool) -> Sets {
     let sys = crate::icons::system_theme();
     let mut icons = vec![Card { name: String::new(), title: crate::tf!("как в системе: {}", "as the system: {}", "como no sistema: {}", sys), imgs: preview("") }];
     icons.extend(all.iter().filter(|f| f.icons).map(|f| Card { name: f.name.clone(), title: f.title.clone(), imgs: preview(&f.name) }));
-    let mut cursors = vec![Card { name: "yami".into(), title: crate::tf!("пиксельный, в цвет палитры", "pixel, in the palette", "pixel, na paleta"), imgs: vec![] }];
+    let mut cursors = vec![Card { name: "nemo".into(), title: crate::tf!("пиксельный, в цвет палитры", "pixel, in the palette", "pixel, na paleta"), imgs: vec![] }];
     cursors.extend(all.iter().filter(|f| f.cursors).map(|f| Card { name: f.name.clone(), title: f.title.clone(), imgs: cursor_img(&f.dir, 32).into_iter().collect() }));
     cursors.push(Card { name: "system".into(), title: crate::tf!("не трогать", "leave alone", "não mexer"), imgs: vec![] });
     Sets { icons, cursors }
@@ -126,7 +126,7 @@ pub fn cursor_img(dir: &Path, want: u32) -> Option<Img> {
 /// файл Xcursor: заголовок «Xcur», оглавление (тип, номинальный размер, смещение), картинки
 /// ARGB с предумноженной альфой — как холст шелла
 fn xcursor(p: &Path, want: u32) -> Option<Img> {
-    let d = yami_px::paths::read_capped(p, 8 << 20)?;
+    let d = nemo_px::paths::read_capped(p, 8 << 20)?;
     if d.get(..4)? != b"Xcur" {
         return None;
     }
@@ -159,11 +159,11 @@ fn half(i: &Img) -> Img {
 /// ~/.local/share/icons, по папке на набор (в ней index.theme или cursors/). Свой с тем же
 /// именем заменяется, системный остаётся (свой его перекрывает). Возвращает имена наборов
 pub fn install(src: &Path) -> Result<Vec<String>, String> {
-    let dest = yami_px::paths::data_dir().join("icons");
+    let dest = nemo_px::paths::data_dir().join("icons");
     std::fs::create_dir_all(&dest).map_err(|e| e.to_string())?;
     let meta = std::fs::metadata(src).map_err(|e| format!("{}: {e}", src.display()))?;
     // распаковка — рядом с целью: переезд на место тогда rename, а не копия
-    let work = dest.join(format!(".yami-add-{}-{}", std::process::id(), crate::clock::unix_now()));
+    let work = dest.join(format!(".nemo-add-{}-{}", std::process::id(), crate::clock::unix_now()));
     {
         use std::os::unix::fs::DirBuilderExt;
         std::fs::DirBuilder::new().mode(0o700).create(&work).map_err(|e| e.to_string())?;
@@ -286,7 +286,7 @@ fn cards(ui: &mut Ui, cards: &[Card], sel: &str, b: R, y: i32, act: fn(usize) ->
             let pr = R::new(r.x + 6, r.y + 6, 44, ch - 12);
             ui.cv.pxbox(pr, &BoxStyle::new(t.code_bg, t.border));
             match c.name.as_str() {
-                "yami" => yami_arrow(ui, pr, 3),
+                "nemo" => nemo_arrow(ui, pr, 3),
                 "system" => ui.cv.icon("cursor", pr.x + (pr.w - 14) / 2, pr.y + (pr.h - 14) / 2, 2, t.text_faint),
                 _ => {
                     if let Some(img) = c.imgs.first() {
@@ -313,8 +313,8 @@ fn cards(ui: &mut Ui, cards: &[Card], sel: &str, b: R, y: i32, act: fn(usize) ->
     y + (cards.len() as i32 + cols - 1) / cols * (ch + gap)
 }
 
-/// пиксельная стрелка yami (та же, что рисует yami-shell recolor) клетками по k px в r
-pub fn yami_arrow(ui: &mut Ui, r: R, k: i32) {
+/// пиксельная стрелка nemo (та же, что рисует nemo-shell recolor) клетками по k px в r
+pub fn nemo_arrow(ui: &mut Ui, r: R, k: i32) {
     const ARROW: [&str; 12] = ["o...........", "oo..........", "obo.........", "oaao........", "oaaao.......", "oaaaao......", "oaaaaao.....", "oaaaaaao....", "oaaaoooo....", "oaoao.......", "oo.oao......", "o...oo......"];
     let t = ui.t;
     let (ox, oy) = (r.x + (r.w - 8 * k) / 2, r.y + (r.h - 12 * k) / 2);
@@ -356,7 +356,7 @@ pub fn draw_cursors(ui: &mut Ui, st: &State, b: R, mut y: i32) -> i32 {
     crate::settings::opt_btn(ui, R::new(b.x, y, (b.w - 20) / 2, 26), "размер", &format!("{} px", s.cursor_size), Act::SCycle("cursor_size"));
     y += 36;
     if let Some(sets) = &st.sets {
-        let sel = if s.cursor.is_empty() { "yami" } else { s.cursor.as_str() };
+        let sel = if s.cursor.is_empty() { "nemo" } else { s.cursor.as_str() };
         y = cards(ui, &sets.cursors, sel, b, y, Act::SCursorSet, true);
     }
     add_row(ui, st, b, y)
@@ -391,12 +391,12 @@ impl App {
         self.st.sets_note.clear();
     }
 
-    /// свой набор: окно выбора yami-files (настройки на это время закрыты — они слой поверх
+    /// свой набор: окно выбора nemo-files (настройки на это время закрыты — они слой поверх
     /// окон), потом установка в нити и снова «вид»
     pub fn sets_add(&mut self) {
         self.close_modal();
         let tx = self.tx.clone();
-        let from = yami_px::paths::xdg_dir("DOWNLOAD").filter(|d| d.is_dir()).unwrap_or_else(crate::config::home);
+        let from = nemo_px::paths::xdg_dir("DOWNLOAD").filter(|d| d.is_dir()).unwrap_or_else(crate::config::home);
         let title = crate::i18n::tr("набор значков или курсоров").to_string();
         std::thread::spawn(move || {
             let pats = ["tar.gz", "tgz", "tar.xz", "txz", "tar.bz2", "tar.zst", "tar", "zip", "7z"].map(|e| format!("*.{e}")).join(";");
@@ -430,9 +430,9 @@ impl App {
     }
 }
 
-// ── yami icons / yami cursor ────────────────────────────────────────────────
+// ── nemo icons / nemo cursor ────────────────────────────────────────────────
 
-/// yami icons [ИМЯ|auto|add ПУТЬ] и yami cursor [ИМЯ|yami|system|size N|add ПУТЬ]
+/// nemo icons [ИМЯ|auto|add ПУТЬ] и nemo cursor [ИМЯ|nemo|system|size N|add ПУТЬ]
 pub fn cli(y: &crate::cmd::Sty, cursor: bool, args: &[&str]) -> i32 {
     let mut s = crate::config::Settings::load();
     let all = installed();
@@ -447,9 +447,9 @@ pub fn cli(y: &crate::cmd::Sty, cursor: bool, args: &[&str]) -> i32 {
         [] => {
             if cursor {
                 y.section(&crate::tf!("курсоры", "cursors", "cursores"));
-                let cur = if s.cursor.is_empty() { "yami" } else { s.cursor.as_str() };
+                let cur = if s.cursor.is_empty() { "nemo" } else { s.cursor.as_str() };
                 let row = |name: &str, note: &str| println!("   {} {}  {}", if name == cur { y.acc("●") } else { " ".into() }, y.bold(&format!("{name:<24}")), y.dim(note));
-                row("yami", &crate::tf!("пиксельный, в цвет палитры", "pixel, in the palette", "pixel, na paleta"));
+                row("nemo", &crate::tf!("пиксельный, в цвет палитры", "pixel, in the palette", "pixel, na paleta"));
                 for f in all.iter().filter(|f| f.cursors) {
                     row(&f.name, &f.dir.display().to_string());
                 }
@@ -488,7 +488,7 @@ pub fn cli(y: &crate::cmd::Sty, cursor: bool, args: &[&str]) -> i32 {
         },
         [name] => {
             let name = *name;
-            let ok = if cursor { matches!(name, "yami" | "system") || all.iter().any(|f| f.cursors && f.name == name) } else { name == "auto" || all.iter().any(|f| f.icons && f.name == name) };
+            let ok = if cursor { matches!(name, "nemo" | "system") || all.iter().any(|f| f.cursors && f.name == name) } else { name == "auto" || all.iter().any(|f| f.icons && f.name == name) };
             if !ok {
                 eprintln!(" {} {}", y.bad("✕"), crate::tf!("нет такого набора: {} (список — без аргумента)", "no such set: {} (run without arguments for the list)", "conjunto inexistente: {} (sem argumentos mostra a lista)", name));
                 return 1;

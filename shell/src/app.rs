@@ -186,7 +186,7 @@ pub enum Msg {
     Weather(crate::weather::Weather),
     /// свои темы (themetab.rs): список, что сделано, применена ли тема (перечитать настройки)
     Themes(Vec<crate::bundle::Card>, String, bool),
-    /// yami подключён к конфигу niri или убран из него (нить кнопки во вкладке «система»)
+    /// nemo подключён к конфигу niri или убран из него (нить кнопки во вкладке «система»)
     NiriLink(crate::niricfg::Status, String),
     /// ход установки модулей из первой настройки (wizinst.rs)
     Install(crate::wizinst::Ev),
@@ -205,7 +205,7 @@ pub enum Msg {
     WallsListed(u64, std::path::PathBuf, Vec<std::path::PathBuf>, usize),
     /// миниатюра для выбора обоев (walls.rs): номер открытия, клетка, картинка
     WallThumb(u64, usize, Option<crate::gfx::Img>),
-    /// ответ окна выбора yami-files из выбора обоев: папка ли, что выбрано, вернуться ли в настройки
+    /// ответ окна выбора nemo-files из выбора обоев: папка ли, что выбрано, вернуться ли в настройки
     WallsAsked(bool, Option<String>, bool),
     /// папка обоев из окна выбора, открытого из настроек (None — отменили)
     WallDir(Option<String>),
@@ -341,7 +341,7 @@ pub struct State {
     pub game: crate::games::GameMode,
     /// что есть для игр (проверяется при открытии вкладки «игры»)
     pub game_probe: crate::gameboost::Probe,
-    /// конфиг niri: подключён ли yami (вкладка «система» открылась — tab_probe) и что вышло из кнопки
+    /// конфиг niri: подключён ли nemo (вкладка «система» открылась — tab_probe) и что вышло из кнопки
     pub niri_link: crate::niricfg::Status,
     /// первая настройка открыта (окно настроек в виде шагов) и пора ли её открыть (первый вход)
     pub welcome: Option<crate::welcome::Welcome>,
@@ -353,7 +353,7 @@ pub struct State {
     pub niri_note: String,
     pub night: crate::night::Night,
     pub caffeine: crate::caffeine::Caffeine,
-    /// модули бара из скриптов (~/.config/yami/scripts)
+    /// модули бара из скриптов (~/.config/nemo/scripts)
     pub plugins: crate::plugins::Plugins,
     pub session: crate::session::Session,
     /// skwd-wall: что выбрано, его палитра, где рисует сам (skwd.rs)
@@ -373,7 +373,7 @@ pub struct State {
     pub search_field: Field,
     /// «сбросить страницу» нажата один раз: вкладка и когда (второй щелчок в течение пяти секунд сбрасывает)
     pub reset_armed: Option<(&'static str, Instant)>,
-    /// настройки yami-shot (вкладка «скриншоты»)
+    /// настройки nemo-shot (вкладка «скриншоты»)
     pub shot_cfg: crate::shotcfg::ShotCfg,
     pub shot_field: Field,
     pub float_field: Field,
@@ -432,7 +432,7 @@ pub struct App {
     pub(crate) frac_mgr: Option<frac_mgr::WpFractionalScaleManagerV1>,
     /// логический холст перед увеличением (HiDPI); большой — освобождается сразу
     pub(crate) scratch: Vec<u32>,
-    /// когда отдать ядру код, который больше не исполняется (yami_px::shed_code): через 30 с после
+    /// когда отдать ядру код, который больше не исполняется (nemo_px::shed_code): через 30 с после
     /// старта и после закрытия настроек или выбора обоев (их код велик, а нужен изредка)
     pub(crate) shed_at: Option<Instant>,
     /// нить сна ждёт здесь «заперто», чтобы отпустить сон (sleep.rs)
@@ -493,7 +493,7 @@ pub(crate) const LOCK_BASE: u32 = u32::MAX - 64;
 
 impl State {
     pub fn new(set: Settings, niri: Niri) -> State {
-        let _ = yami_px::look::Look::from_json(&set.style_value(), Some(set.light));
+        let _ = nemo_px::look::Look::from_json(&set.style_value(), Some(set.light));
         State {
             t: Theme::new(set.accent_rgb(), set.tint, set.glass, set.lift, set.inner, set.light).apply(),
             niri,
@@ -628,15 +628,15 @@ pub fn run() {
     crate::proc::note_inherited();
     // настроек ещё нет совсем (шелл поставлен пакетом, установщик не запускался): первый вход —
     // с первой настройкой, как после install.sh
-    if !yami_px::paths::shell_settings().exists() && !crate::config::state_dir().join("install.json").exists() {
+    if !nemo_px::paths::shell_settings().exists() && !crate::config::state_dir().join("install.json").exists() {
         let _ = std::fs::create_dir_all(crate::config::state_dir());
         let _ = std::fs::write(crate::config::state_dir().join("first-run"), "");
     }
-    // файлы старых версий — в ~/.config/yami (dirs.rs); команды читают и старые, пока шелл их не перенёс
+    // файлы старых версий — в ~/.config/nemo (dirs.rs); команды читают и старые, пока шелл их не перенёс
     crate::dirs::migrate();
     // из TTY или по ssh: понятная строка вместо паники
     let Ok(conn) = Connection::connect_to_env() else {
-        eprintln!("yami-shell: no Wayland display (start it inside niri, or set WAYLAND_DISPLAY)");
+        eprintln!("nemo-shell: no Wayland display (start it inside niri, or set WAYLAND_DISPLAY)");
         std::process::exit(1);
     };
     let (globals, mut queue) = registry_queue_init::<App>(&conn).expect("wayland registry");
@@ -665,9 +665,9 @@ pub fn run() {
 
     let set = Settings::load();
     crate::i18n::set(&set.lang);
-    yami_px::rtl::set_digits(set.arabic_digits);
-    yami_px::time::set_hour12(set.clock12);
-    yami_px::gfx::set_vector_icons(set.vector_icons());
+    nemo_px::rtl::set_digits(set.arabic_digits);
+    nemo_px::time::set_hour12(set.clock12);
+    nemo_px::gfx::set_vector_icons(set.vector_icons());
     let iset = icon_set(&set.icon_theme);
     let mut icons = Icons::new(&iset);
     icons.set_style(Theme::new(set.accent_rgb(), set.tint, set.glass, set.lift, set.inner, set.light).icon_ramp(), set.icon_pixel, set.icon_tint);
@@ -754,8 +754,8 @@ pub fn run() {
     // только есть экран; закрытие снимает метку)
     app.st.welcome_due = crate::config::state_dir().join("first-run").exists();
     // окна паролей, показ экрана и автоподключение — отдельная служба; второй экземпляр выйдет сам
-    if crate::proc::have("yami-agents") {
-        App::spawn(&["yami-agents".to_string()]);
+    if crate::proc::have("nemo-agents") {
+        App::spawn(&["nemo-agents".to_string()]);
     }
     crate::profile::refresh(None, tx.clone());
     audio::spawn(tx.clone());
@@ -792,7 +792,7 @@ pub fn run() {
     if crate::lock::was_locked() {
         app.lock_now();
     } else {
-        // метки нет или она от прошлого niri (шелл упал под замком, потом новый вход): yami-agents не должен
+        // метки нет или она от прошлого niri (шелл упал под замком, потом новый вход): nemo-agents не должен
         // считать этот сеанс запертым
         crate::lock::flag(false);
     }
@@ -812,7 +812,7 @@ pub fn run() {
         use std::os::unix::process::CommandExt;
         let args: Vec<String> = std::env::args().skip(1).collect();
         drop(app);
-        let e = std::process::Command::new(yami_px::paths::self_exe()).args(args).exec();
+        let e = std::process::Command::new(nemo_px::paths::self_exe()).args(args).exec();
         eprintln!("restart: {e}");
         std::process::exit(1);
     }
@@ -1003,7 +1003,7 @@ impl App {
         }
         for n in names {
             if self.find_on(&SKind::Wall, &n).is_none() && !self.skwd_draws(&n) {
-                let id = self.mk(SKind::Wall, &n, Layer::Background, "yami-wall", Anchor::all(), (0, 0), (0, 0, 0, 0), -1, KeyboardInteractivity::None);
+                let id = self.mk(SKind::Wall, &n, Layer::Background, "nemo-wall", Anchor::all(), (0, 0), (0, 0, 0, 0), -1, KeyboardInteractivity::None);
                 // мышь сквозь обои: щёлкать на них нечего, а вход и выход курсора перерисовывали
                 // бы всю картинку
                 if let Some(s) = self.surfs.get_mut(&id) {

@@ -1,6 +1,6 @@
-# yami-output: ~/.config/helix/themes/yami.toml
-# yami-reload: USR1 hx
-# yami: the palette as a helix theme; in config.toml: theme = "yami"
+# nemo-output: ~/.config/helix/themes/nemo.toml
+# nemo-reload: USR1 hx
+# nemo: the palette as a helix theme; in config.toml: theme = "nemo"
 
 "ui.background" = { bg = "bg" }
 "ui.text" = "text"

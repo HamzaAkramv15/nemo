@@ -1,4 +1,4 @@
-# Home Manager: programs.yami. The home half of what install.sh does. The shell edits its own files
+# Home Manager: programs.nemo. The home half of what install.sh does. The shell edits its own files
 # at run time (settings, keys, screens, portals), so those are seeded once and stay writable; only
 # files the shell never writes are links. Based on the module TheCodedKid wrote for #1.
 self:
@@ -10,10 +10,10 @@ self:
 }:
 
 let
-  cfg = config.programs.yami;
+  cfg = config.programs.nemo;
   run = import ./runtime.nix pkgs;
   cfgDir = config.xdg.configHome;
-  share = "${cfg.package}/share/yami";
+  share = "${cfg.package}/share/nemo";
   json = pkgs.formats.json { };
   mimeOf =
     app:
@@ -23,17 +23,17 @@ let
       );
     in
     lib.filter (m: m != "") (lib.splitString ";" (lib.removePrefix "MimeType=" line));
-  defaults = lib.genAttrs [ "yami-files" "yami-view" "yami-play" ] (app: "${app}.desktop");
+  defaults = lib.genAttrs [ "nemo-files" "nemo-view" "nemo-play" ] (app: "${app}.desktop");
 in
 {
-  options.programs.yami = {
-    enable = lib.mkEnableOption "yami, the pixel-art shell for niri";
+  options.programs.nemo = {
+    enable = lib.mkEnableOption "nemo, the pixel-art shell for niri";
 
     package = lib.mkOption {
       type = lib.types.package;
-      default = self.packages.${pkgs.stdenv.hostPlatform.system}.yami;
-      defaultText = lib.literalExpression "yami.packages.\${system}.yami";
-      description = "The yami package (built with updates handed to Nix).";
+      default = self.packages.${pkgs.stdenv.hostPlatform.system}.nemo;
+      defaultText = lib.literalExpression "nemo.packages.\${system}.nemo";
+      description = "The nemo package (built with updates handed to Nix).";
     };
 
     settings = lib.mkOption {
@@ -47,7 +47,7 @@ in
         }
       '';
       description = ''
-        Keys of {file}`~/.config/yami/shell.json` (camelCase, see docs/CONFIG.md). Merged into the
+        Keys of {file}`~/.config/nemo/shell.json` (camelCase, see docs/CONFIG.md). Merged into the
         file on every activation: these keys win, everything else set in the settings panel stays.
       '';
     };
@@ -56,12 +56,12 @@ in
       type = lib.types.bool;
       default = true;
       description = ''
-        Connect yami to niri's {file}`~/.config/niri/config.kdl`, like install.sh: one include line
-        at its top brings yami's part ({file}`~/.config/yami/niri/yami.kdl`: the shell, its keys,
+        Connect nemo to niri's {file}`~/.config/niri/config.kdl`, like install.sh: one include line
+        at its top brings nemo's part ({file}`~/.config/nemo/niri/nemo.kdl`: the shell, its keys,
         window rules, colours and niri look), and what you write below it wins. Without a config
-        yami's starting one is written. A config.kdl that is a link into the Nix store (niri's
+        nemo's starting one is written. A config.kdl that is a link into the Nix store (niri's
         config made by home-manager) is left alone: add
-        `include optional=true "~/.config/yami/niri/yami.kdl"` to it yourself.
+        `include optional=true "~/.config/nemo/niri/nemo.kdl"` to it yourself.
       '';
     };
 
@@ -69,14 +69,14 @@ in
       type = lib.types.bool;
       default = config.programs.kitty.enable;
       defaultText = lib.literalExpression "config.programs.kitty.enable";
-      description = "Link yami's kitty look and include it from programs.kitty.";
+      description = "Link nemo's kitty look and include it from programs.kitty.";
     };
 
     defaultApplications = lib.mkOption {
       type = lib.types.bool;
       default = true;
       description = ''
-        yami-files for folders, yami-view for pictures and yami-play for video and music in
+        nemo-files for folders, nemo-view for pictures and nemo-play for video and music in
         xdg.mimeApps (takes effect with `xdg.mimeApps.enable`).
       '';
     };
@@ -84,7 +84,7 @@ in
     extraPackages = lib.mkOption {
       type = lib.types.listOf lib.types.package;
       default = run.base ++ run.apps ++ run.tools;
-      defaultText = lib.literalMD "the commands the shell calls (`yami doctor` lists them)";
+      defaultText = lib.literalMD "the commands the shell calls (`nemo doctor` lists them)";
       description = ''
         Programs the shell runs. On NixOS the system module installs them too; system services
         (NetworkManager, gvfs, udisks, polkit, greetd) belong there.
@@ -96,69 +96,69 @@ in
     home.packages = [ cfg.package ] ++ cfg.extraPackages;
 
     fonts.fontconfig.enable = true;
-    xdg.configFile."fontconfig/conf.d/50-yami-pixel.conf".source = "${share}/50-yami-pixel.conf";
+    xdg.configFile."fontconfig/conf.d/50-nemo-pixel.conf".source = "${share}/50-nemo-pixel.conf";
 
     # the file dialog and screen-share portal and «show in folder», where install.sh puts them
     xdg.dataFile = {
-      "xdg-desktop-portal/portals/yami.portal".source =
-        "${cfg.package}/share/xdg-desktop-portal/portals/yami.portal";
-      "dbus-1/services/org.freedesktop.impl.portal.desktop.yami.service".source =
-        "${cfg.package}/share/dbus-1/services/org.freedesktop.impl.portal.desktop.yami.service";
+      "xdg-desktop-portal/portals/nemo.portal".source =
+        "${cfg.package}/share/xdg-desktop-portal/portals/nemo.portal";
+      "dbus-1/services/org.freedesktop.impl.portal.desktop.nemo.service".source =
+        "${cfg.package}/share/dbus-1/services/org.freedesktop.impl.portal.desktop.nemo.service";
       "dbus-1/services/org.freedesktop.FileManager1.service".source =
         "${cfg.package}/share/dbus-1/services/org.freedesktop.FileManager1.service";
-      "xdg-desktop-portal/portals/yami-agents.portal".source =
-        "${cfg.package}/share/xdg-desktop-portal/portals/yami-agents.portal";
-      "dbus-1/services/org.freedesktop.impl.portal.desktop.yamiagents.service".source =
-        "${cfg.package}/share/dbus-1/services/org.freedesktop.impl.portal.desktop.yamiagents.service";
+      "xdg-desktop-portal/portals/nemo-agents.portal".source =
+        "${cfg.package}/share/xdg-desktop-portal/portals/nemo-agents.portal";
+      "dbus-1/services/org.freedesktop.impl.portal.desktop.nemoagents.service".source =
+        "${cfg.package}/share/dbus-1/services/org.freedesktop.impl.portal.desktop.nemoagents.service";
     };
 
-    xdg.configFile."kitty/yami.conf" = lib.mkIf cfg.kitty { source = "${share}/yami.conf"; };
-    programs.kitty.extraConfig = lib.mkIf cfg.kitty (lib.mkAfter "include yami.conf");
+    xdg.configFile."kitty/nemo.conf" = lib.mkIf cfg.kitty { source = "${share}/nemo.conf"; };
+    programs.kitty.extraConfig = lib.mkIf cfg.kitty (lib.mkAfter "include nemo.conf");
 
     xdg.mimeApps.defaultApplications = lib.mkIf cfg.defaultApplications (
       {
-        "inode/directory" = defaults.yami-files;
+        "inode/directory" = defaults.nemo-files;
       }
-      // lib.genAttrs (mimeOf "yami-view") (_: defaults.yami-view)
-      // lib.genAttrs (mimeOf "yami-play") (_: defaults.yami-play)
+      // lib.genAttrs (mimeOf "nemo-view") (_: defaults.nemo-view)
+      // lib.genAttrs (mimeOf "nemo-play") (_: defaults.nemo-play)
     );
 
-    home.activation.yami = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-      yami_cfg=${lib.escapeShellArg cfgDir}
+    home.activation.nemo = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+      nemo_cfg=${lib.escapeShellArg cfgDir}
 
       # settings: declared keys over what the panel saved
       ${lib.optionalString (cfg.settings != { }) ''
-        yami_json="$yami_cfg/yami/shell.json"
-        run mkdir -p "$yami_cfg/yami"
-        # before yami 3.0 the file lay in ~/.config; the shell moves it too, this only comes first
-        if [[ -f "$yami_cfg/yami-shell.json" && ! -e "$yami_json" ]]; then
-          run mv "$yami_cfg/yami-shell.json" "$yami_json"
+        nemo_json="$nemo_cfg/nemo/shell.json"
+        run mkdir -p "$nemo_cfg/nemo"
+        # before nemo 3.0 the file lay in ~/.config; the shell moves it too, this only comes first
+        if [[ -f "$nemo_cfg/nemo-shell.json" && ! -e "$nemo_json" ]]; then
+          run mv "$nemo_cfg/nemo-shell.json" "$nemo_json"
         fi
-        if [[ ! -e "$yami_json" && ! -v DRY_RUN ]]; then
-          echo '{}' >"$yami_json"
+        if [[ ! -e "$nemo_json" && ! -v DRY_RUN ]]; then
+          echo '{}' >"$nemo_json"
         fi
-        if [[ -e "$yami_json" ]] && ! ${pkgs.jq}/bin/jq -e 'type == "object"' "$yami_json" >/dev/null 2>&1; then
-          warnEcho "yami: $yami_json is not a JSON object, programs.yami.settings not applied"
+        if [[ -e "$nemo_json" ]] && ! ${pkgs.jq}/bin/jq -e 'type == "object"' "$nemo_json" >/dev/null 2>&1; then
+          warnEcho "nemo: $nemo_json is not a JSON object, programs.nemo.settings not applied"
         elif [[ ! -v DRY_RUN ]]; then
-          ${pkgs.jq}/bin/jq --indent 2 -s '.[0] * .[1]' "$yami_json" ${json.generate "yami-shell-settings.json" cfg.settings} >"$yami_json.tmp" \
-            && mv -f "$yami_json.tmp" "$yami_json"
+          ${pkgs.jq}/bin/jq --indent 2 -s '.[0] * .[1]' "$nemo_json" ${json.generate "nemo-shell-settings.json" cfg.settings} >"$nemo_json.tmp" \
+            && mv -f "$nemo_json.tmp" "$nemo_json"
         fi
       ''}
 
       # portals: the shell rewrites this file (settings → services), so a copy, once
-      if [[ ! -e "$yami_cfg/xdg-desktop-portal/niri-portals.conf" ]]; then
-        run ${pkgs.coreutils}/bin/install -Dm644 ${share}/niri-portals.conf "$yami_cfg/xdg-desktop-portal/niri-portals.conf"
+      if [[ ! -e "$nemo_cfg/xdg-desktop-portal/niri-portals.conf" ]]; then
+        run ${pkgs.coreutils}/bin/install -Dm644 ${share}/niri-portals.conf "$nemo_cfg/xdg-desktop-portal/niri-portals.conf"
       fi
 
       ${lib.optionalString cfg.niriConfig ''
         if [[ ! -v DRY_RUN ]]; then
-          ${cfg.package}/bin/yami-shell niri connect || warnEcho "yami: niri's config.kdl was left as it is (yami niri status)"
+          ${cfg.package}/bin/nemo-shell niri connect || warnEcho "nemo: niri's config.kdl was left as it is (nemo niri status)"
         fi
       ''}
 
-      # yami's part of niri (keys, window rules, its look) before the first login; the shell keeps it current
+      # nemo's part of niri (keys, window rules, its look) before the first login; the shell keeps it current
       if [[ ! -v DRY_RUN ]]; then
-        ${cfg.package}/bin/yami-shell niri write || true
+        ${cfg.package}/bin/nemo-shell niri write || true
       fi
     '';
   };

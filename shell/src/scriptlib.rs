@@ -1,5 +1,5 @@
 // Готовые скрипты для бара и виджетов: файлы лежат в config/scripts и вшиты в бинарь (сеть не
-// нужна, чужой код не скачивается). `yami scripts add NAME` кладёт копию в ~/.config/yami/scripts
+// нужна, чужой код не скачивается). `nemo scripts add NAME` кладёт копию в ~/.config/nemo/scripts
 // исполняемым файлом; дальше это обычный твой скрипт (plugins.rs): модуль `x:NAME` в настройках → бар
 // и источник виджета «скрипт». Свой файл с тем же именем не трогается.
 // i18n: inline pairs
@@ -30,9 +30,9 @@ pub const ALL: &[(&str, &str)] = &[
     ("moon", include_str!("../../config/scripts/moon")),
 ];
 
-/// строка «# yami-script: …» — что скрипт показывает
+/// строка «# nemo-script: …» — что скрипт показывает
 pub fn about(body: &str) -> &str {
-    body.lines().find_map(|l| l.strip_prefix("# yami-script:")).map(str::trim).unwrap_or("")
+    body.lines().find_map(|l| l.strip_prefix("# nemo-script:")).map(str::trim).unwrap_or("")
 }
 
 /// положить копию; false — такой файл уже есть (он твой) или записать не вышло
@@ -50,7 +50,7 @@ pub fn add(name: &str) -> Result<(), String> {
     std::fs::set_permissions(&p, std::fs::Permissions::from_mode(0o755)).map_err(|e| e.to_string())
 }
 
-/// `yami scripts [list | add NAME… | add all]`
+/// `nemo scripts [list | add NAME… | add all]`
 pub fn cli(y: &crate::cmd::Sty, args: &[&str]) -> i32 {
     match args {
         [] | ["list"] => {
@@ -92,7 +92,7 @@ mod tests {
         for (name, body) in super::ALL {
             assert!(crate::plugins::name_ok(name), "{name}");
             assert!(body.starts_with("#!/bin/sh\n"), "{name}: shebang");
-            assert!(!super::about(body).is_empty(), "{name}: no «# yami-script:» line");
+            assert!(!super::about(body).is_empty(), "{name}: no «# nemo-script:» line");
             assert!(body.contains("\"text\""), "{name}: prints no JSON text");
             assert!(body.contains("\"interval\""), "{name}: no interval");
         }

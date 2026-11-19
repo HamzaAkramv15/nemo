@@ -1,5 +1,5 @@
 #!/bin/sh
-# yami-script: load average (1 minute); turns amber above one task per core
+# nemo-script: load average (1 minute); turns amber above one task per core
 read -r l _ </proc/loadavg
 n=$(nproc 2>/dev/null || echo 1)
 c=text

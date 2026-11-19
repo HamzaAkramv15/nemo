@@ -1,8 +1,8 @@
 {
-  "format": "yami-bundle",
+  "format": "nemo-bundle",
   "version": 1,
   "kind": "theme",
-  "yami": "3.0.0",
+  "nemo": "3.0.0",
   "name": "High contrast",
   "keepWallpaper": true,
   "settings": {

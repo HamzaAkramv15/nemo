@@ -131,7 +131,7 @@ const SYS: &[(&str, &str, &str)] = &[
 ];
 
 fn clip_dir() -> std::path::PathBuf {
-    config::data_dir().join("yami-clip")
+    config::data_dir().join("nemo-clip")
 }
 
 /// папка закреплённого: только своя (0700) — там бывают пароли и ключи; старая папка с правами
@@ -223,7 +223,7 @@ impl LState {
                 }
                 let data = match &src {
                     Src::Line(l) => cliphist(&["decode"], l),
-                    Src::File(p) => yami_px::paths::read_capped(p, crate::icons::MAX_FILE).unwrap_or_default(),
+                    Src::File(p) => nemo_px::paths::read_capped(p, crate::icons::MAX_FILE).unwrap_or_default(),
                 };
                 let img = mime_of(&data).0.starts_with("image/").then(|| crate::icons::decode(&data, crate::icons::MAX_DECODE)).flatten().map(|d| {
                     // «как обложка»: середина картинки в пропорциях клетки
@@ -235,7 +235,7 @@ impl LState {
                     break;
                 }
             }
-            yami_px::trim_heap();
+            nemo_px::trim_heap();
         });
     }
     /// лаунчер закрыт: миниатюры — из памяти, нить — бросить
@@ -344,7 +344,7 @@ impl LState {
                     return Some(vec![]);
                 }
                 self.files.1.iter().map(|f| {
-                    let shown = yami_px::paths::pretty(f);
+                    let shown = nemo_px::paths::pretty(f);
                     let name = f.file_name().map(|n| n.to_string_lossy().to_string()).unwrap_or_default();
                     Item { kind: Kind::File(f.clone()), name, sub: shown, icon: if f.is_dir() { "folder".into() } else { "copy".into() } }
                 }).collect()
@@ -594,7 +594,7 @@ impl App {
                 if data.is_empty() {
                     return;
                 }
-                let id = format!("{:016x}", yami_px::fnv(yami_px::FNV0, &data));
+                let id = format!("{:016x}", nemo_px::fnv(nemo_px::FNV0, &data));
                 let mut pins = self.st.launcher.pins.clone();
                 if pins.iter().any(|p| p.id == id) {
                     return;

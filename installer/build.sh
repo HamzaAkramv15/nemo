@@ -15,9 +15,9 @@ plan_build() {
   # каждый модуль — своя строка: видно, что сейчас собирается
   local id
   for id in files view play shot; do
-    on "$id" && add "$(t "сборка:" "build:" "compilar:") yami-$id" do_build_module "$id"
+    on "$id" && add "$(t "сборка:" "build:" "compilar:") nemo-$id" do_build_module "$id"
   done
-  wants login && add "$(t "сборка:" "build:" "compilar:") yami-greet" do_build_greet
+  wants login && add "$(t "сборка:" "build:" "compilar:") nemo-greet" do_build_greet
   add "$(t "ставлю собранное" "installing what was built" "instalando o que foi compilado")" do_install_bins
   return 0
 }
@@ -73,13 +73,13 @@ built_mark() { # binary source-tree
   printf '%s\n' "${rev:--}" >"$CACHE/built-$1"
 }
 do_build_shell() {
-  rm -f "$CACHE/built-yami-shell" "$CACHE/built-yami-agents"
-  # the services (yami-agents) are part of the shell: built from the same tree, with it
-  src_installed yami-shell "$ROOT" && src_installed yami-agents "$ROOT" && return 99
+  rm -f "$CACHE/built-nemo-shell" "$CACHE/built-nemo-agents"
+  # the services (nemo-agents) are part of the shell: built from the same tree, with it
+  src_installed nemo-shell "$ROOT" && src_installed nemo-agents "$ROOT" && return 99
   need_rust || return 1
-  cargo_build "$ROOT/shell/Cargo.toml" -p yami-shell -p yami-agents || return 1
-  built_mark yami-shell "$ROOT"
-  built_mark yami-agents "$ROOT"
+  cargo_build "$ROOT/shell/Cargo.toml" -p nemo-shell -p nemo-agents || return 1
+  built_mark nemo-shell "$ROOT"
+  built_mark nemo-agents "$ROOT"
 }
 do_build_module() {
   local repo src
@@ -94,28 +94,27 @@ do_build_module() {
 # every build has passed: all at once. A record per binary says which source it came from
 do_install_bins() {
   local b rev any=0
-  for b in yami-shell yami-files yami-view yami-play yami-shot yami-agents; do
+  for b in nemo-shell nemo-files nemo-view nemo-play nemo-shot nemo-agents; do
     [[ -f $CACHE/built-$b ]] || continue
     put_bin "$b" || return 1
     any=1
   done
   ((any)) || return 99
-  # ready binaries: nothing worth keeping in the cache (yami-greet is taken after this step, login.sh)
-  ((PREBUILT)) && for b in yami-shell yami-files yami-view yami-play yami-shot yami-agents; do rm -f "$CACHE/target/release/$b"; done
+  # ready binaries: nothing worth keeping in the cache (nemo-greet is taken after this step, login.sh)
+  ((PREBUILT)) && for b in nemo-shell nemo-files nemo-view nemo-play nemo-shot nemo-agents; do rm -f "$CACHE/target/release/$b"; done
   # the separate setup program of the development tree is part of the shell now (`nemo setup`)
-  rm -f "$BIN/yami-setup" "$STATE/built/yami-setup"
-  # `yami <command>`: the same binary, help instead of the shell when started without a command
-  [[ -x $BIN/yami-shell ]] && ln -sfn yami-shell "$BIN/yami"
-  # `nemo` is the same program, unless another one already owns the name (Cinnamon's file manager is
-  # called nemo too): ours would come first in PATH and shadow it, so then only `yami` is ours
+  rm -f "$BIN/nemo-setup" "$STATE/built/nemo-setup"
+  # `nemo <command>`: the same binary, help instead of the shell when started without a command. Another program
+  # may already own the name (Cinnamon's file manager is called nemo too): ours would come first in PATH and
+  # shadow it, so then only `nemo-shell` is ours
   local taken=0 p
   while read -r p; do [[ $p == "$BIN/nemo" ]] || taken=1; done < <(type -ap nemo 2>/dev/null)
-  if [[ -x $BIN/yami-shell ]]; then
+  if [[ -x $BIN/nemo-shell ]]; then
     if ((taken)); then
-      [[ $(readlink "$BIN/nemo" 2>/dev/null) == yami-shell ]] && rm -f "$BIN/nemo"
-      note "$(t "команда nemo уже занята другой программой: наша — yami (то же самое)" "the command nemo belongs to another program: ours is yami (the same thing)" "o comando nemo já é de outro programa: o nosso é yami (a mesma coisa)")"
+      [[ $(readlink "$BIN/nemo" 2>/dev/null) == nemo-shell ]] && rm -f "$BIN/nemo"
+      note "$(t "команда nemo уже занята другой программой: наша — nemo-shell (то же самое)" "the command nemo belongs to another program: ours is nemo-shell (the same thing)" "o comando nemo já é de outro programa: o nosso é nemo-shell (o mesmo)")"
     else
-      ln -sfn yami-shell "$BIN/nemo"
+      ln -sfn nemo-shell "$BIN/nemo"
     fi
   fi
   # on Fedora: the update helper that applies only the updates that cannot hurt (tools/nemo-fedora-update)
@@ -123,7 +122,7 @@ do_install_bins() {
     install -Dm755 "$ROOT/tools/nemo-fedora-update" "$BIN/nemo-fedora-update"
   fi
   mkdir -p "$STATE/built"
-  for b in yami-shell yami-files yami-view yami-play yami-shot yami-agents; do
+  for b in nemo-shell nemo-files nemo-view nemo-play nemo-shot nemo-agents; do
     [[ -f $CACHE/built-$b ]] || continue
     rev="$(cat "$CACHE/built-$b")"
     if [[ $rev == - ]]; then rm -f "$STATE/built/$b"; else printf '%s\n' "$rev" >"$STATE/built/$b"; fi
@@ -133,6 +132,6 @@ do_install_bins() {
 do_build_greet() {
   need_rust || return 1
   local src
-  src="$(m_src yami-greet)" || return 1
+  src="$(m_src nemo-greet)" || return 1
   cargo_build "$src/Cargo.toml"
 }

@@ -3,7 +3,7 @@
 // на шаге — соответствующие вкладки настроек целиком (их draw как есть), поэтому мастер не беднее
 // настроек, но не похож на них. Страницы — wizpages.rs, установка модулей — wizinst.rs.
 // Открывается сама при первом входе (метка first-run: её кладёт установщик, а без настроек — сам
-// шелл, если его поставили пакетом), потом — `yami setup` и кнопка во вкладке «о шелле». Закрыть
+// шелл, если его поставили пакетом), потом — `nemo setup` и кнопка во вкладке «о шелле». Закрыть
 // нечаянно нельзя: крестик и Esc спрашивают, а закрытый не пройдя мастер ждёт: настройки возвращают
 // в него на тот же шаг, а метка хранит этот шаг до следующего входа. Метка снимается только в конце.
 
@@ -51,7 +51,7 @@ const ALL: &[Step] = &[
     step("done", "готово", "готово", "Nemo настроен. Всё это живёт в настройках (Mod+S), а мастер снова откроет команда nemo setup.", page::done, &[]),
 ];
 
-/// такой шаг есть (`yami setup STEP`)
+/// такой шаг есть (`nemo setup STEP`)
 pub fn has_step(id: &str) -> bool {
     ALL.iter().any(|s| s.id == id)
 }
@@ -74,13 +74,13 @@ const fn m(id: &'static str, name: &'static str, what: &'static str) -> Module {
 
 fn modules() -> Vec<Module> {
     vec![
-        m("files", "yami-files", "файлы, диалоги, флешки"),
-        m("view", "yami-view", "картинки с быстрыми правками"),
-        m("play", "yami-play", "видео и музыка (libmpv)"),
-        m("shot", "yami-shot", "скриншоты, текст и QR"),
-        m("login", "yami-greet", "свой экран входа"),
+        m("files", "nemo-files", "файлы, диалоги, флешки"),
+        m("view", "nemo-view", "картинки с быстрыми правками"),
+        m("play", "nemo-play", "видео и музыка (libmpv)"),
+        m("shot", "nemo-shot", "скриншоты, текст и QR"),
+        m("login", "nemo-greet", "свой экран входа"),
         m("games", "games", "GameMode и MangoHud"),
-        m("fork", "yami-niri", "наш niri, сборка 5–25 минут"),
+        m("fork", "nemo-niri", "наш niri, сборка 5–25 минут"),
     ]
 }
 
@@ -99,7 +99,7 @@ pub struct Here {
 impl Here {
     pub fn probe() -> Here {
         let h = crate::proc::have;
-        Here { files: h("yami-files"), view: h("yami-view"), play: h("yami-play"), shot: h("yami-shot"), agents: h("yami-agents"), greet: crate::login::installed() }
+        Here { files: h("nemo-files"), view: h("nemo-view"), play: h("nemo-play"), shot: h("nemo-shot"), agents: h("nemo-agents"), greet: crate::login::installed() }
     }
 
     /// всё стоит: снимки панелей (`shot`) одинаковы на любой машине
@@ -172,17 +172,17 @@ impl Welcome {
 
 /// метка «первая настройка не пройдена»; внутри — шаг, на котором остановились
 fn marker() -> std::path::PathBuf {
-    yami_px::paths::state_dir().join("first-run")
+    nemo_px::paths::state_dir().join("first-run")
 }
 
 fn has_steam() -> bool {
-    let h = yami_px::paths::home();
+    let h = nemo_px::paths::home();
     [".local/share/Steam", ".steam", ".var/app/com.valvesoftware.Steam"].iter().any(|d| h.join(d).is_dir()) || crate::proc::have("steam")
 }
 
-/// что из модулей стоит (games — по записи установщика, yami-niri — по сборке)
+/// что из модулей стоит (games — по записи установщика, nemo-niri — по сборке)
 fn probe_mods(mods: &mut [Module]) {
-    let comps = std::fs::read_to_string(yami_px::paths::state_dir().join("install.json")).ok().and_then(|t| serde_json::from_str::<serde_json::Value>(&t).ok()).and_then(|v| v["components"].as_str().map(str::to_string)).unwrap_or_default();
+    let comps = std::fs::read_to_string(nemo_px::paths::state_dir().join("install.json")).ok().and_then(|t| serde_json::from_str::<serde_json::Value>(&t).ok()).and_then(|v| v["components"].as_str().map(str::to_string)).unwrap_or_default();
     let here = Here::probe();
     for m in mods.iter_mut() {
         m.have = match m.id {
@@ -192,7 +192,7 @@ fn probe_mods(mods: &mut [Module]) {
             "shot" => here.shot,
             "login" => here.greet,
             "games" => comps.split_whitespace().any(|c| c == "games"),
-            "fork" => yami_px::paths::home().join(".local/lib/yami-niri/current/niri").exists(),
+            "fork" => nemo_px::paths::home().join(".local/lib/nemo-niri/current/niri").exists(),
             _ => false,
         };
         m.want = m.have;
@@ -262,8 +262,8 @@ pub fn draw(ui: &mut Ui, st: &State, w: i32, h: i32) {
         if cur.id == "done" && st.set.anim() {
             burst(ui, (x + COL - 34, 68), wz.since.elapsed().as_secs_f32());
         }
-        let (fw, _) = yami_px::brand::fish_size(4);
-        yami_px::brand::fish(ui, x + COL - fw - 10, 44, 4, 0.9);
+        let (fw, _) = nemo_px::brand::fish_size(4);
+        nemo_px::brand::fish(ui, x + COL - fw - 10, 44, 4, 0.9);
     }
     if wz.more.is_none() {
         ui.wrap(PX, R::new(x, 92, COL - 80, 40), cur.sub, t.text_dim, 2);
@@ -345,7 +345,7 @@ fn burst(ui: &mut Ui, (cx, cy): (i32, i32), el: f32) {
 /// вопрос перед выходом: поверх всего окна, главная кнопка — остаться
 fn leave_sheet(ui: &mut Ui, fr: R) {
     let t = ui.t;
-    yami_px::gfx::text_layer();
+    nemo_px::gfx::text_layer();
     ui.cv.fill(R::new(1, 1, fr.w - 2, fr.h - 2), t.bg.alpha(0.82));
     ui.zone(fr, Act::Block, Cur::Default);
     let (w, h) = (470, 218);
@@ -462,7 +462,7 @@ impl App {
         self.welcome_save();
         if let Some(wz) = self.st.welcome.as_mut() {
             wz.finished = true;
-            yami_px::ui::wipe(&mut wz.pass.text);
+            nemo_px::ui::wipe(&mut wz.pass.text);
         }
     }
 
@@ -484,7 +484,7 @@ impl App {
     /// окно настроек закрылось: мастер, который не пройден, ждёт (close_modal)
     pub fn welcome_park(&mut self) {
         let Some(mut w) = self.st.welcome.take() else { return };
-        yami_px::ui::wipe(&mut w.pass.text);
+        nemo_px::ui::wipe(&mut w.pass.text);
         w.pass = Field::default();
         w.ask = false;
         if w.finished {
@@ -660,7 +660,7 @@ impl App {
     }
 }
 
-/// для `yami-shell shot welcome:<шаг>[-состояние]`: мастер на шаге, модули и niri — выдуманные
+/// для `nemo-shell shot welcome:<шаг>[-состояние]`: мастер на шаге, модули и niri — выдуманные
 pub fn mock(st: &mut State, arg: &str) {
     let (id, state) = arg.split_once('-').unwrap_or((arg, ""));
     let steps: Vec<usize> = (0..ALL.len()).filter(|&i| ALL[i].id != "login").collect();
@@ -678,10 +678,10 @@ pub fn mock(st: &mut State, arg: &str) {
     match state {
         "busy" => {
             inst.running = true;
-            inst.step = Some((42, 100, "yami-view: build from source".into()));
-            inst.lines = vec!["Compiling yami-px v3.0.0".into(), "Compiling image v0.25.6".into(), "Compiling yami-view v3.0.0".into()];
+            inst.step = Some((42, 100, "nemo-view: build from source".into()));
+            inst.lines = vec!["Compiling nemo-px v3.0.0".into(), "Compiling image v0.25.6".into(), "Compiling nemo-view v3.0.0".into()];
         }
-        "failed" => inst.failed = Some("the disk is full: free a few gigabytes and run again · ~/.cache/yami/install.log".into()),
+        "failed" => inst.failed = Some("the disk is full: free a few gigabytes and run again · ~/.cache/nemo/install.log".into()),
         _ => {}
     }
     let others = if state == "others" {
@@ -692,7 +692,7 @@ pub fn mock(st: &mut State, arg: &str) {
     } else {
         vec![]
     };
-    st.niri_link = crate::niricfg::Status { path: yami_px::paths::home().join(".config/niri/config.kdl"), exists: true, connected: state != "others", niri_default: false };
+    st.niri_link = crate::niricfg::Status { path: nemo_px::paths::home().join(".config/niri/config.kdl"), exists: true, connected: state != "others", niri_default: false };
     st.niri_note = String::new();
     st.stab = ALL[steps[step]].id;
     st.sscroll = (0, st.stab);

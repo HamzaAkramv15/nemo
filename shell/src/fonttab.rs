@@ -1,7 +1,7 @@
 // Вкладка «шрифты»: свой шрифт шеллу и отдельно файлам и просмотрщику, программам (GTK, Qt),
 // терминалу; браузеру — только меню ПКМ в палитре и, по желанию, пиксельный шрифт.
 // Список — из установленных (fc-list) среди известных; любое другое семейство:
-// yami-shell config set fontShell "Имя".
+// nemo-shell config set fontShell "Имя".
 
 use crate::app::{App, State};
 use crate::gfx::R;
@@ -113,7 +113,7 @@ pub fn tab(ui: &mut Ui, st: &State, b: R) {
     ui.toggle(R::new(b.x, y, half, 40), "меню ПКМ в палитре", "тема браузера — твоя, не трогаем", s.browser_menus, Act::SBool("browser_menus"));
     ui.toggle(R::new(b.x + half + 20, y, half, 40), "пиксельный шрифт", "в меню, не на сайтах", s.browser_font, Act::SBool("browser_font"));
     y += 48;
-    ui.wrap(crate::font::PX, R::new(b.x, y, b.w, 40), "браузер подхватит при следующем запуске. Любой другой шрифт: yami-shell config set fontShell \"Имя\"", t.text_faint, 2);
+    ui.wrap(crate::font::PX, R::new(b.x, y, b.w, 40), "браузер подхватит при следующем запуске. Любой другой шрифт: nemo-shell config set fontShell \"Имя\"", t.text_faint, 2);
 }
 
 impl App {

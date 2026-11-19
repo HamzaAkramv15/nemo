@@ -1,8 +1,8 @@
 // Данные перекраски: рисунки клетками (курсор, значки программ, 闇) и большие текстовые заготовки QSS,
 // меню браузера и цветов niri. В заготовках {p['ключ']} и {выражение} подставляет recolor::pyf, {{ и }} — скобки.
 
-pub const QSS: &str = r###"/* YAMI: written by yami recolor. Пиксельный вид шелла поверх Fusion: фаски, рамки и
-   флажки — картинки 9-slice из палитры (qss/yami/), всё остальное — палитра qt6ct. */
+pub const QSS: &str = r###"/* NEMO: written by nemo recolor. Пиксельный вид шелла поверх Fusion: фаски, рамки и
+   флажки — картинки 9-slice из палитры (qss/nemo/), всё остальное — палитра qt6ct. */
 QToolTip {{ background: {p['panel']}; color: {p['text']}; border: 1px solid {p['accent']}; padding: 3px; }}
 QMenu {{ background: {p['panel']}; border: 1px solid {p['border']}; padding: 2px; }}
 QMenu::item {{ padding: 4px 18px 4px 10px; }}
@@ -54,7 +54,7 @@ QGroupBox {{ border: 1px solid {p['border']}; margin-top: 14px; padding-top: 4px
 QGroupBox::title {{ subcontrol-origin: margin; left: 8px; padding: 0 4px; color: {p['bright']}; }}
 "###;
 
-pub const FF_MENUS: &str = r###"/* YAMI: written by yami recolor (settings → fonts → browser). Delete the file to drop it.
+pub const FF_MENUS: &str = r###"/* NEMO: written by nemo recolor (settings → fonts → browser). Delete the file to drop it.
    Only the browser's menus: its theme, toolbars and tabs stay as they are. */
 :root {{
   --menu-background-color: {p['panel']} !important;
@@ -102,7 +102,7 @@ findbar, #statuspanel-label, .tab-label, .toolbarbutton-text, #identity-box, men
 menu, menuitem, menucaption {{ min-height: {px + 8}px !important; }}
 "###;
 
-pub const NIRI_KDL: &str = r###"// YAMI: пишет yami recolor по палитре шелла. Руками не править.
+pub const NIRI_KDL: &str = r###"// NEMO: пишет nemo recolor по палитре шелла. Руками не править.
 layout {{
     border {{
         active-color   "{p['accent']}"
@@ -129,7 +129,7 @@ recent-windows {{
 }}
 "###;
 
-// the shell itself now draws the Nemo fish; the glyph stays for yami-dev's README art
+// the shell itself now draws the Nemo fish; the glyph stays for nemo-dev's README art
 #[allow(dead_code)]
 pub const KANJI: [&str; 16] = [
     "######..######",
@@ -186,7 +186,7 @@ pub const CURSOR_ALIASES: [(&str, &[&str]); 14] = [
 
 /// 16×16: o обводка, d/a/b тёмный, акцент, светлый, w знак на акценте
 pub const APP_ART: [(&str, [&str; 16]); 3] = [
-    ("yami-files", ["................", ".ooooo..........", "oaaaaao.........", "oaaaaaaoooooooo.", "oaaaaaaaaaaaaaao", "oaaaaaaaaaaaaaao", "oooooooooooooooo", "obbbbbbbbbbbbbbo", "obwwbbbbbbbbbbbo", "obbbbbbbbbbbbbbo", "obbbbbbbbbbbbbbo", "obbbbbbbbbbbbbbo", "obbbbbbbbbbbbbbo", "oddddddddddddddo", "oooooooooooooooo", "................"]),
-    ("yami-view", ["................", "................", ".oooooooooooooo.", "owwwwwwwwwwwwwwo", "owddddddddddddwo", "owddddddddbbddwo", "owddddddddbbddwo", "owdddaddddddddwo", "owddaaaddddaddwo", "owdaaaaaddaaadwo", "owaaaaaaaaaaaawo", "owaaaaaaaaaaaawo", "owwwwwwwwwwwwwwo", ".oooooooooooooo.", "................", "................"]),
-    ("yami-play", ["................", ".oooooooooooooo.", "obbaaaaaaaaaaaao", "obaaaaaaaaaaaaao", "oaaaaawaaaaaaaao", "oaaaaawwaaaaaaao", "oaaaaawwwaaaaaao", "oaaaaawwwwaaaaao", "oaaaaawwwwwaaaao", "oaaaaawwwwaaaaao", "oaaaaawwwaaaaaao", "oaaaaawwaaaaaaao", "oaaaaawaaaaaaaao", "oddddddddddddddo", ".oooooooooooooo.", "................"]),
+    ("nemo-files", ["................", ".ooooo..........", "oaaaaao.........", "oaaaaaaoooooooo.", "oaaaaaaaaaaaaaao", "oaaaaaaaaaaaaaao", "oooooooooooooooo", "obbbbbbbbbbbbbbo", "obwwbbbbbbbbbbbo", "obbbbbbbbbbbbbbo", "obbbbbbbbbbbbbbo", "obbbbbbbbbbbbbbo", "obbbbbbbbbbbbbbo", "oddddddddddddddo", "oooooooooooooooo", "................"]),
+    ("nemo-view", ["................", "................", ".oooooooooooooo.", "owwwwwwwwwwwwwwo", "owddddddddddddwo", "owddddddddbbddwo", "owddddddddbbddwo", "owdddaddddddddwo", "owddaaaddddaddwo", "owdaaaaaddaaadwo", "owaaaaaaaaaaaawo", "owaaaaaaaaaaaawo", "owwwwwwwwwwwwwwo", ".oooooooooooooo.", "................", "................"]),
+    ("nemo-play", ["................", ".oooooooooooooo.", "obbaaaaaaaaaaaao", "obaaaaaaaaaaaaao", "oaaaaawaaaaaaaao", "oaaaaawwaaaaaaao", "oaaaaawwwaaaaaao", "oaaaaawwwwaaaaao", "oaaaaawwwwwaaaao", "oaaaaawwwwaaaaao", "oaaaaawwwaaaaaao", "oaaaaawwaaaaaaao", "oaaaaawaaaaaaaao", "oddddddddddddddo", ".oooooooooooooo.", "................"]),
 ];

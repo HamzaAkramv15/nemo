@@ -100,7 +100,7 @@ pub(crate) fn tab_color(ui: &mut Ui, st: &State, b: R) {
     }
 }
 
-/// чужие программы в цветах палитры (themeApps, #17): каждую можно выключить — тогда yami её не трогает
+/// чужие программы в цветах палитры (themeApps, #17): каждую можно выключить — тогда nemo её не трогает
 /// (у kitty уходит наша строка include); шелл, экран входа, рамки niri и свои шаблоны — всегда
 fn app_themes(ui: &mut Ui, st: &State, b: R, tw: i32) {
     let t = ui.t;
@@ -125,14 +125,14 @@ fn app_themes(ui: &mut Ui, st: &State, b: R, tw: i32) {
     }
     ui.wrap(PX, R::new(b.x, y, b.w, 40), "выключенную программу Nemo не трогает; всегда в палитре: шелл, экран входа, рамки niri, свои шаблоны. Курсор — окна → курсор", t.text_faint, 2);
     y += 48;
-    // свой конфиг fastfetch, своя палитра starship (#27): yami их не перезаписывает и говорит об этом
+    // свой конфиг fastfetch, своя палитра starship (#27): nemo их не перезаписывает и говорит об этом
     for n in crate::restyle::app_notes(&st.restyle) {
         ui.wrap(PX, R::new(b.x, y, b.w, 40), &n, t.text_dim, 2);
         y += 40;
     }
     y += 6;
     y = title(ui, b.x, y, b.w, "свои шаблоны");
-    let help = "файл в ~/.config/yami/templates — конфиг программы, где цвета записаны как {{accent}}, {{bg}}, {{text}}, {{color1}}… (.strip — без #, .rgb — r, g, b). Строка «yami-output: ~/путь» — куда писать, «yami-reload: USR1 программа» — кому сказать перечитать. Изменённый руками файл не перезаписывается, шаблон с неизвестным цветом не пишется; правка в папке шаблонов применяется сама.";
+    let help = "файл в ~/.config/nemo/templates — конфиг программы, где цвета записаны как {{accent}}, {{bg}}, {{text}}, {{color1}}… (.strip — без #, .rgb — r, g, b). Строка «nemo-output: ~/путь» — куда писать, «nemo-reload: USR1 программа» — кому сказать перечитать. Изменённый руками файл не перезаписывается, шаблон с неизвестным цветом не пишется; правка в папке шаблонов применяется сама.";
     ui.wrap(PX, R::new(b.x, y, b.w, 120), help, t.text_dim, 6);
     y += 124;
     ui.button(R::new(b.x, y, 220, 28), "папка шаблонов", "folder", Tone::Plain, false, true, Act::SCycle("templates_open"));
@@ -235,7 +235,7 @@ pub(crate) fn tab_widgets(ui: &mut Ui, st: &State, b: R) {
             opt_btn(ui, R::new(px, y, pw, 26), "скрипт", if w.source.is_empty() { "—" } else { &w.source }, Act::SWidgetOpt(id, "source"));
             y += 30;
             if crate::plugins::scripts().is_empty() {
-                ui.wrap(crate::font::PX, R::new(px, y, pw, 40), "положи исполняемый скрипт в ~/.config/yami/scripts (как модуль бара)", t.text_faint, 2);
+                ui.wrap(crate::font::PX, R::new(px, y, pw, 40), "положи исполняемый скрипт в ~/.config/nemo/scripts (как модуль бара)", t.text_faint, 2);
                 y += 40;
             }
         }
@@ -272,7 +272,7 @@ pub(crate) fn tab_widgets(ui: &mut Ui, st: &State, b: R) {
     ui.toggle(R::new(px, y, pw, 40), "в тон обоям", "на светлом — тёмный текст с тенью", s.widget_contrast, Act::SBool("widget_contrast"));
 }
 
-/// пиксельность одним ползунком: 0 — гладко, 1 — мягче, 2 — только yami, 3 — всё пиксельное (по умолчанию)
+/// пиксельность одним ползунком: 0 — гладко, 1 — мягче, 2 — только nemo, 3 — всё пиксельное (по умолчанию)
 pub(crate) const PIXEL_LEVELS: [&str; 4] = ["гладко", "мягче", "только Nemo", "всё пиксельное"];
 
 /// где сейчас ползунок пиксельности: по шрифтам, значкам и курсору (свои сочетания — ближайшее)
@@ -452,7 +452,7 @@ pub(crate) fn tab_region(ui: &mut Ui, st: &State, b: R) {
     let lx = b.x;
     let mut y = title(ui, b.x, b.y, b.w, "язык");
     // название языка — на нём самом (не переводится: opt_btn пропускает его через таблицу как есть)
-    let lang = if s.lang.is_empty() { "авто" } else { yami_px::i18n::name(&s.lang) };
+    let lang = if s.lang.is_empty() { "авто" } else { nemo_px::i18n::name(&s.lang) };
     opt_btn(ui, R::new(lx, y, half, 26), "язык", lang, Act::SCycle("lang"));
     y += 40;
     // часы и календарь: формат часов, вид даты, с какого дня неделя
@@ -492,13 +492,13 @@ pub(crate) fn tab_system(ui: &mut Ui, st: &State, b: R) {
     let mut y = title(ui, b.x, b.y, b.w, "сеанс");
     ui.toggle(R::new(lx, y, half, 26), "вернуть программы при входе", "", s.session_restore, Act::SBool("session_restore"));
     y += 40;
-    // конфиг niri — человека: yami только строка include в его начале, части включаются здесь
+    // конфиг niri — человека: nemo только строка include в его начале, части включаются здесь
     y = title(ui, b.x, y, b.w, "niri: что приносит Nemo");
     let nl = &st.niri_link;
     let (state, c) = if nl.connected {
-        (crate::tf!("подключён: {}", "connected: {}", "conectado: {}", yami_px::paths::pretty(&nl.path)), ui.t.ok)
+        (crate::tf!("подключён: {}", "connected: {}", "conectado: {}", nemo_px::paths::pretty(&nl.path)), ui.t.ok)
     } else if nl.exists {
-        (crate::tf!("не подключён к {}", "not in {}", "fora de {}", yami_px::paths::pretty(&nl.path)), ui.t.warn)
+        (crate::tf!("не подключён к {}", "not in {}", "fora de {}", nemo_px::paths::pretty(&nl.path)), ui.t.warn)
     } else {
         ("конфига niri пока нет".to_string(), ui.t.warn)
     };
@@ -519,12 +519,12 @@ pub(crate) fn tab_system(ui: &mut Ui, st: &State, b: R) {
         ui.button(R::new(b.x + i as i32 * (bw + 6), y, bw, 28), label, icon, Tone::Plain, false, true, act);
     }
     y += 34;
-    // для тех, кто правит руками: файл открывается в редакторе, справка — yami-shell config
+    // для тех, кто правит руками: файл открывается в редакторе, справка — nemo-shell config
     ui.button(R::new(b.x, y, bw * 2 + 6, 28), "файл настроек", "pen", Tone::Plain, false, true, Act::SCycle("open_config"));
-    ui.text_in(PX, R::new(b.x + bw * 2 + 18, y, b.w - bw * 2 - 18, 28), "или: yami-shell config list", ui.t.text_faint);
+    ui.text_in(PX, R::new(b.x + bw * 2 + 18, y, b.w - bw * 2 - 18, 28), "или: nemo-shell config list", ui.t.text_faint);
 }
 
-/// части yami в конфиге niri (вкладка «система» и шаг первой настройки): каждая — свой include
+/// части nemo в конфиге niri (вкладка «система» и шаг первой настройки): каждая — свой include
 pub(crate) fn niri_parts(ui: &mut Ui, st: &State, b: R, mut y: i32) -> i32 {
     let s = &st.set;
     let half = (b.w - 20) / 2;
@@ -668,7 +668,7 @@ pub(crate) fn tab_windows(ui: &mut Ui, st: &State, b: R) {
     ui.text_in(PX, R::new(col(1) + 4, y + 64, cw * 2 + 8, 26), corners, t.text_faint);
     y += 100;
     y = title(ui, b.x, y, b.w, "плавающие окна");
-    ui.toggle(R::new(b.x, y, half, 40), "фото и видео", "Telegram, yami-view, mpv…", s.float_media, Act::SBool("float_media"));
+    ui.toggle(R::new(b.x, y, half, 40), "фото и видео", "Telegram, nemo-view, mpv…", s.float_media, Act::SBool("float_media"));
     ui.toggle(R::new(b.x + half + 20, y, half, 40), "картинка в картинке", "в правом нижнем углу", s.float_pip, Act::SBool("float_pip"));
     y += 46;
     ui.slider(R::new(b.x, y, half, 40), "ширина", (s.float_w - 0.3) / 0.65, &format!("{:.0}%", s.float_w * 100.0), 13, Act::SSlider("float_w", 0.3, 0.95, 13));
@@ -679,7 +679,7 @@ pub(crate) fn tab_windows(ui: &mut Ui, st: &State, b: R) {
     ui.field(R::new(b.x, y, b.w - 130, 30), &st.float_field, "app-id через запятую: org.telegram.desktop, imv", focused, false, Act::SField("float_apps"));
     ui.button(R::new(b.right() - 120, y + 2, 120, 26), "применить", "check", Tone::Primary, false, true, Act::SCycle("float_apply"));
     y += 40;
-    ui.text_in(PX, R::new(b.x, y, b.w, 20), "app-id окна: niri msg windows · правила пишутся в ~/.config/yami/niri/rules.kdl", t.text_faint);
+    ui.text_in(PX, R::new(b.x, y, b.w, 20), "app-id окна: niri msg windows · правила пишутся в ~/.config/nemo/niri/rules.kdl", t.text_faint);
     y += 28;
     // castHide: зрители трансляций видят на месте этих программ чёрное (правило niri block-out-from)
     y = title(ui, b.x, y, b.w, "не показывать в трансляциях");
@@ -742,16 +742,16 @@ pub(crate) fn tab_about(ui: &mut Ui, st: &State, b: R) {
     let mut y = b.y;
     let face = font::px(32);
     ui.text(face, b.x, y, "NEMO", t.red);
-    // версия Nemo; версия шелла ниже — yami, на котором он стоит
+    // версия Nemo; версия шелла ниже — nemo, на котором он стоит
     let nw = ui.w(face, "NEMO");
-    ui.text(PX, b.x + nw + 12, y + ui.f.line(face) - 22, yami_px::brand::VERSION, t.text_dim);
-    let (fw, fh) = yami_px::brand::fish_size(4);
-    yami_px::brand::fish(ui, b.right() - fw - 6, y, 4, 1.0);
+    ui.text(PX, b.x + nw + 12, y + ui.f.line(face) - 22, nemo_px::brand::VERSION, t.text_dim);
+    let (fw, fh) = nemo_px::brand::fish_size(4);
+    nemo_px::brand::fish(ui, b.right() - fw - 6, y, 4, 1.0);
     y += ui.f.line(face).max(fh) + 4;
-    ui.text_in(PX, R::new(b.x, y, b.w, 20), &crate::tf!("yami-shell {} — лёгкий Wayland-шелл для niri на Rust", "yami-shell {} — a lightweight Wayland shell for niri, written in Rust", "yami-shell {} — um shell Wayland leve para niri, escrito em Rust", env!("CARGO_PKG_VERSION")), t.text_dim);
+    ui.text_in(PX, R::new(b.x, y, b.w, 20), &crate::tf!("nemo-shell {} — лёгкий Wayland-шелл для niri на Rust", "nemo-shell {} — a lightweight Wayland shell for niri, written in Rust", "nemo-shell {} — um shell Wayland leve para niri, escrito em Rust", env!("CARGO_PKG_VERSION")), t.text_dim);
     y += 26;
     // форк: честно говорим, чей он; ссылка — на оригинал
-    ui.text_in(PX, R::new(b.x, y, b.w, 20), &crate::tf!("Nemo — форк yami, автор Trendorin, лицензия MIT", "Nemo is a fork of yami by Trendorin, MIT license", "Nemo é um fork do yami, de Trendorin, licença MIT"), t.text_dim);
+    ui.text_in(PX, R::new(b.x, y, b.w, 20), &crate::tf!("Nemo — форк nemo, автор Trendorin, лицензия MIT", "Nemo is a fork of nemo by Trendorin, MIT license", "Nemo é um fork do nemo, de Trendorin, licença MIT"), t.text_dim);
     y += 22;
     ui.text_in(PX, R::new(b.x, y, b.w, 20), "github.com/Trendorin/yami", t.text_faint);
     y += 34;
@@ -759,11 +759,11 @@ pub(crate) fn tab_about(ui: &mut Ui, st: &State, b: R) {
     let rows = [
         ("память шелла", crate::tf!("{:.1} МБ", "{:.1} MB", "{:.1} MB", st.rss)),
         ("работает", crate::tf!("{} ч {} мин", "{} h {} min", "{} h {} min", up / 3600, up / 60 % 60)),
-        ("niri", if st.niri.yami { "yami-niri (форк)".to_string() } else { "стоковый".to_string() }),
+        ("niri", if st.niri.nemo { "nemo-niri (форк)".to_string() } else { "стоковый".to_string() }),
         ("окон", st.niri.wins.len().to_string()),
         ("уведомлений в истории", st.notifs.history.len().to_string()),
-        ("настройки", "~/.config/yami/shell.json".to_string()),
-        ("команды", "yami-shell msg launcher|power|settings|lock|…".to_string()),
+        ("настройки", "~/.config/nemo/shell.json".to_string()),
+        ("команды", "nemo-shell msg launcher|power|settings|lock|…".to_string()),
     ];
     for (k, v) in rows {
         ui.text_in(PX, R::new(b.x, y, 200, 22), k, t.text_faint);

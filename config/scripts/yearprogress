@@ -1,5 +1,5 @@
 #!/bin/sh
-# yami-script: how much of the year is gone
+# nemo-script: how much of the year is gone
 d=$(date +%j | sed 's/^0*//'); y=$(date +%Y)
 n=365; [ $((y % 4)) -eq 0 ] && { [ $((y % 100)) -ne 0 ] || [ $((y % 400)) -eq 0 ]; } && n=366
 printf '{"text":"%s %s%%","icon":"cal","color":"dim","interval":3600}\n' "$y" $((d * 100 / n))

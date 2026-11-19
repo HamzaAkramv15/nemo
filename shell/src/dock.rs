@@ -397,7 +397,7 @@ impl App {
                 }
                 None => {
                     let margin = margin_of(excl);
-                    let id = self.mk(SKind::Dock, &out, Layer::Top, "yami-dock", anchor, (w, h), margin, excl, KeyboardInteractivity::None);
+                    let id = self.mk(SKind::Dock, &out, Layer::Top, "nemo-dock", anchor, (w, h), margin, excl, KeyboardInteractivity::None);
                     if let Some(s) = self.surfs.get_mut(&id) {
                         s.input = Some(vec![p]);
                         s.anchor_side = self.st.set.dock_side.clone();
@@ -417,7 +417,7 @@ impl App {
                     "right" => (0, br, 0, 0),
                     _ => (0, 0, bb, 0),
                 };
-                self.mk(SKind::DockEdge, &out, Layer::Top, "yami-dock-edge", anchor, (ew, eh), edge_m, -1, KeyboardInteractivity::None);
+                self.mk(SKind::DockEdge, &out, Layer::Top, "nemo-dock-edge", anchor, (ew, eh), edge_m, -1, KeyboardInteractivity::None);
             }
         }
     }

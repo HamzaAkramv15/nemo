@@ -40,7 +40,7 @@ pub fn on_idle(f: impl Fn() + Send + 'static) {
 }
 
 fn lock_path() -> Option<PathBuf> {
-    Some(PathBuf::from(std::env::var_os("XDG_RUNTIME_DIR")?).join("yami-agents.lock"))
+    Some(PathBuf::from(std::env::var_os("XDG_RUNTIME_DIR")?).join("nemo-agents.lock"))
 }
 
 /// замок экземпляра; None — уже запущен
@@ -78,7 +78,7 @@ pub fn signal() -> i32 {
         }
         // не запущен: запуск и есть перечитывание. Служба живёт дольше того, кто её позвал: чужие
         // потоки она не держит, иначе читающий вывод установщик ждал бы её конца вечно
-        None => match std::process::Command::new(yami_px::paths::self_exe()).stdin(Stdio::null()).stdout(Stdio::null()).stderr(Stdio::null()).process_group(0).spawn() {
+        None => match std::process::Command::new(nemo_px::paths::self_exe()).stdin(Stdio::null()).stdout(Stdio::null()).stderr(Stdio::null()).process_group(0).spawn() {
             Ok(_) => 0,
             Err(_) => 1,
         },
@@ -121,6 +121,6 @@ pub fn exec_self() {
     let s = hangup_set();
     // SAFETY: снять блокировку SIGHUP, чтобы маска не досталась новому образу
     unsafe { libc::pthread_sigmask(libc::SIG_UNBLOCK, &s, std::ptr::null_mut()) };
-    let e = std::process::Command::new(yami_px::paths::self_exe()).exec();
-    eprintln!("yami-agents: reload: {e}");
+    let e = std::process::Command::new(nemo_px::paths::self_exe()).exec();
+    eprintln!("nemo-agents: reload: {e}");
 }

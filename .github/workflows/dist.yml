@@ -26,6 +26,6 @@ jobs:
         run: |
           git config --global --add safe.directory '*'
           while read -r repo tag; do
-            git clone -q --depth 1 --branch "$tag" "https://github.com/HamzaAkramv15/nemo-${repo#yami-}.git" "../yami-modules/$repo"
+            git clone -q --depth 1 --branch "$tag" "https://github.com/HamzaAkramv15/nemo-${repo#nemo-}.git" "../nemo-modules/$repo"
           done <modules.lock
       - run: tools/dist.sh --deb --no-sysroot

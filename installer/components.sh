@@ -8,7 +8,7 @@
 C_ID=(core files view play shot login games fork look)
 # groups of packages that used to be components: their packages now come with core (apps, the night
 # light) or with what uses them (drives with files and the shell, text and QR with shot); agents: the
-# services (yami-agents) are part of the shell since 3.0, built and installed with it
+# services (nemo-agents) are part of the shell since 3.0, built and installed with it
 C_RETIRED=" apps drives tools agents "
 # components this installer offered last time: one that came later starts at its default on an
 # update instead of «off because it was not in the list»
@@ -33,7 +33,7 @@ components_init() {
         if [[ " $COMP " == *" ${C_ID[$i]} "* ]]; then C_ON[i]=1
         elif [[ " $known " == *" ${C_ID[$i]} "* ]]; then C_ON[i]=0; fi
       done
-    elif [[ ! -x $HOME/.local/lib/yami-niri/current/niri ]]; then
+    elif [[ ! -x $HOME/.local/lib/nemo-niri/current/niri ]]; then
       # no record of the choice (a home-only install of an old version): the fork, a 5–25 minute
       # build and ~4 GB, only for those who already run it
       c_set fork 0
@@ -67,13 +67,13 @@ components_init() {
 c_name() {
   case $1 in
     core) t "niri и сеанс" "niri and session" "niri e sessão" ;;
-    files) t "файлы (yami-files)" "files (yami-files)" "arquivos (yami-files)" ;;
-    view) t "картинки (yami-view)" "images (yami-view)" "imagens (yami-view)" ;;
-    play) t "плеер (yami-play)" "player (yami-play)" "player (yami-play)" ;;
-    shot) t "скриншоты (yami-shot)" "screenshots (yami-shot)" "capturas (yami-shot)" ;;
+    files) t "файлы (nemo-files)" "files (nemo-files)" "arquivos (nemo-files)" ;;
+    view) t "картинки (nemo-view)" "images (nemo-view)" "imagens (nemo-view)" ;;
+    play) t "плеер (nemo-play)" "player (nemo-play)" "player (nemo-play)" ;;
+    shot) t "скриншоты (nemo-shot)" "screenshots (nemo-shot)" "capturas (nemo-shot)" ;;
     login) t "экран входа" "login screen" "tela de login" ;;
     games) t "игры" "games" "jogos" ;;
-    fork) t "yami-niri (форк)" "yami-niri (fork)" "yami-niri (fork)" ;;
+    fork) t "nemo-niri (форк)" "nemo-niri (fork)" "nemo-niri (fork)" ;;
     look) t "тема Qt и GTK" "Qt and GTK theme" "tema Qt e GTK" ;;
   esac
 }
@@ -84,8 +84,8 @@ c_desc() {
     view) t "открывает картинки по умолчанию; быстрые правки: поворот, обрезка" "opens pictures by default; quick edits: rotate, crop" "abre imagens por padrão; edições rápidas: girar, recortar" ;;
     play) t "открывает видео и музыку по умолчанию (libmpv)" "opens videos and music by default (libmpv)" "abre vídeos e músicas por padrão (libmpv)" ;;
     shot) t "заморозить экран, разметить, скопировать; текст и QR (tesseract, zbar)" "freeze the screen, mark up, copy; text and QR (tesseract, zbar)" "congelar a tela, anotar, copiar; texto e QR (tesseract, zbar)" ;;
-    login) if [[ -n $OTHER_DM ]]; then t "свой, как экран блокировки: greetd + yami-greet, без Qt; заменит {}" "our own, like the lock screen: greetd + yami-greet, no Qt; replaces {}" "a nossa, como a tela de bloqueio: greetd + yami-greet, sem Qt; substitui {}" "$OTHER_DM"
-      else t "свой, как экран блокировки: greetd + yami-greet, без Qt, вход в niri" "our own, like the lock screen: greetd + yami-greet, no Qt, logs into niri" "a nossa, como a tela de bloqueio: greetd + yami-greet, sem Qt, entra no niri"; fi ;;
+    login) if [[ -n $OTHER_DM ]]; then t "свой, как экран блокировки: greetd + nemo-greet, без Qt; заменит {}" "our own, like the lock screen: greetd + nemo-greet, no Qt; replaces {}" "a nossa, como a tela de bloqueio: greetd + nemo-greet, sem Qt; substitui {}" "$OTHER_DM"
+      else t "свой, как экран блокировки: greetd + nemo-greet, без Qt, вход в niri" "our own, like the lock screen: greetd + nemo-greet, no Qt, logs into niri" "a nossa, como a tela de bloqueio: greetd + nemo-greet, sem Qt, entra no niri"; fi ;;
     games) t "GameMode и MangoHud в палитре" "GameMode and MangoHud in the palette" "GameMode e MangoHud na paleta" ;;
     fork)
       if ((LIGHT)); then t "наш niri из исходников: здесь ({} ГБ, {} потоков) сборка идёт около часа, поэтому выключен; пакетный niri — тот же стол" "our niri from source: here ({} GB, {} threads) the build takes about an hour, so it is off; the packaged niri is the same desktop" "nosso niri compilado: aqui ({} GB, {} threads) a compilação leva cerca de uma hora, por isso está desativada; o niri do pacote oferece o mesmo desktop" "$MEM_GB" "$THREADS"
@@ -114,7 +114,7 @@ components_limit() {
   local i
   C_WANT=("${C_ON[@]}")
   for i in "${!C_ID[@]}"; do can "${C_ID[$i]}" || C_ON[i]=0; done
-  # yami-niri needs clang and the compositor's libraries: without root they must already be there
+  # nemo-niri needs clang and the compositor's libraries: without root they must already be there
   ((SUDO)) || command -v clang >/dev/null || off fork
   return 0
 }

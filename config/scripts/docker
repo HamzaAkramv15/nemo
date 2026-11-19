@@ -1,5 +1,5 @@
 #!/bin/sh
-# yami-script: running Docker (or Podman) containers
+# nemo-script: running Docker (or Podman) containers
 c=docker
 command -v docker >/dev/null 2>&1 || c=podman
 if ! command -v "$c" >/dev/null 2>&1; then printf '{"text":"no docker","icon":"gear","color":"dim","interval":600}\n'; exit 0; fi

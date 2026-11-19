@@ -4,9 +4,9 @@
 
 # Nemo
 
-A pixel-art desktop for niri, drawn in whole pixels. A fork of [yami](https://github.com/Trendorin/yami).
+A pixel-art desktop for niri, drawn in whole pixels. A fork of [Yami](https://github.com/Trendorin/yami).
 
-[![Fork of yami](https://img.shields.io/badge/fork%20of-Trendorin%2Fyami-a8a29c)](https://github.com/Trendorin/yami)
+[![Fork of Yami](https://img.shields.io/badge/fork%20of-Trendorin%2Fyami-a8a29c)](https://github.com/Trendorin/yami)
 [![License](https://img.shields.io/badge/license-MIT-a8a29c)](LICENSE)
 ![Rust](https://img.shields.io/badge/rust-1.89%2B-a8a29c)
 ![niri](https://img.shields.io/badge/niri-26.04-a8a29c)
@@ -20,8 +20,8 @@ https://github.com/user-attachments/assets/d5cbbf36-4591-4cba-adb6-3eda963a2db0
 
 <img src=".github/assets/clean.png" width="100%" alt="The Nemo desktop as it is: the bar, the clock, CPU and music widgets on the pixel wallpaper">
 
-**Nemo** is a fork of **yami** (闇, "darkness"), which turns the [niri](https://github.com/YaLTeR/niri) Wayland compositor into a
-finished desktop: dark graphite, one accent colour, crisp pixel fonts. Its shell, **yami-shell**,
+**Nemo** is a fork of **nemo** (闇, "darkness"), which turns the [niri](https://github.com/YaLTeR/niri) Wayland compositor into a
+finished desktop: dark graphite, one accent colour, crisp pixel fonts. Its shell, **nemo-shell**,
 draws the bar, launcher, dock, notifications, lock screen, widgets and settings itself, in Rust with no
 toolkit, and idles at **about 15 MB of RAM**. The file manager, image viewer, player, screenshots and
 login screen are modules of their own: take the whole desktop, or only the pieces your own setup needs.
@@ -39,14 +39,14 @@ Everything it does and its flags: [Installation](#installation).
 
 ## About this fork
 
-Nemo is a fork of [**yami**](https://github.com/Trendorin/yami) by [Trendorin](https://github.com/Trendorin)
+Nemo is a fork of [**Yami**](https://github.com/Trendorin/yami) by [Trendorin](https://github.com/Trendorin)
 and its contributors, and it exists because of their work: the shell, the drawing library, the
 installer, the updater, the modules and the whole pixel look are theirs. Thank you. Nemo keeps their
 MIT license and copyright line ([LICENSE](LICENSE)), tracks their code, and takes its own name and
 logo, as their license asks of a fork.
 
-Nemo is at version 0.1, built on yami 3.0.0 (the programs still report yami's version, which updates and
-the modules depend on). What Nemo adds on top of yami 3.0.0:
+Nemo is at version 0.1, built on nemo 3.0.0 (the programs still report nemo's version, which updates and
+the modules depend on). What Nemo adds on top of nemo 3.0.0:
 
 - **Clock and calendar:** a 12-hour format with AM/PM, three date styles, a week that starts on
   Monday, Sunday or Saturday.
@@ -59,13 +59,13 @@ the modules depend on). What Nemo adds on top of yami 3.0.0:
 - **kitty:** fish-style suggestions as you type, notifications for long commands, splits.
 - **The name and the fish.**
 
-The programs and folders keep the name **Nemo** (`yami`, `yami-shell`, `~/.config/yami`, the
-`yami-files` and other modules), so everything stays compatible with yami, its modules and your
+The programs and folders keep the name **Nemo** (`nemo`, `nemo-shell`, `~/.config/nemo`, the
+`nemo-files` and other modules), so everything stays compatible with nemo, its modules and your
 existing settings. The modules (file manager, viewer, player, screenshots, login screen, the niri
 fork) are still [Trendorin's repositories](https://github.com/Trendorin) and are fetched from there.
 
 Updates: the built-in updater only installs releases signed with the key in `keys/allowed_signers`,
-which is yami's author's, and Nemo has no signed releases of its own yet. To update Nemo, pull this
+which is nemo's author's, and Nemo has no signed releases of its own yet. To update Nemo, pull this
 repository and run `./install.sh --update` from the checkout (settings are kept, a rollback point is
 made first); see [Updates](#updates). Bugs that also exist in Nemo are best reported there too.
 
@@ -93,7 +93,7 @@ made first); see [Updates](#updates). Bugs that also exist in Nemo are best repo
   loupe, pen, frame, arrow, marker, mosaic and numbered badges, a colour picker that copies hex,
   text recognition (tesseract) and QR codes (zbarimg) from the selection; copies
   and/or saves, the notification has a thumbnail and open / show-in-folder.
-- **yami-files.** A file manager in the same pixels: tabs, split view, icons and details, places
+- **nemo-files.** A file manager in the same pixels: tabs, split view, icons and details, places
   in your order (drag, hide, fold), devices that mount by themselves when plugged in (drives and
   cards through udisks2, encrypted ones with a password, phones and cameras over MTP/PTP, iPhone), network shares
   (smb, sftp, ftp, WebDAV, nfs: «connect to a server», addresses remembered without passwords), freedesktop trash, copy/move with progress and conflicts, undo, drag and
@@ -101,15 +101,15 @@ made first); see [Updates](#updates). Bugs that also exist in Nemo are best repo
   (Firefox, LibreWolf, Chromium, Telegram, Electron, GTK/KDE apps) and answers **show in folder**.
 - **Screen sharing.** OBS, Discord/Equibop and browsers get a pixel «what to share» window from the
   shell (monitors and windows); the stream itself comes from niri, through the Nemo portal.
-- **yami-view.** A fast image viewer and quick editor (rotate, flip, crop, save as, wallpaper),
+- **nemo-view.** A fast image viewer and quick editor (rotate, flip, crop, save as, wallpaper),
   real pixels when zoomed, GIF/WebP animation. Photo viewers open as floating windows.
-- **yami-play.** A video and music player in the same pixels: every format ffmpeg knows,
+- **nemo-play.** A video and music player in the same pixels: every format ffmpeg knows,
   hardware decoding, subtitles and audio tracks, a cell timeline, folder playlist in natural
   order, resume where you stopped, speed, frame step, saving a frame, a «pixel» scaling mode.
   libmpv is loaded at run time (the only dependency); the screen stays on while a video plays.
 - **Screens.** Settings → screens: drag monitors into place, pick resolution, refresh rate, scale,
-  rotation and VRR; applied through `~/.config/yami/niri/outputs.kdl`, reverted after 15 s unless kept.
-- **Login screen.** Our own: yami-greet draws the lock screen's face inside niri, greetd (a 650 KB
+  rotation and VRR; applied through `~/.config/nemo/niri/outputs.kdl`, reverted after 15 s unless kept.
+- **Login screen.** Our own: nemo-greet draws the lock screen's face inside niri, greetd (a 650 KB
   daemon in Rust) checks the password and starts the session. No Qt, no SDDM. It follows the shell:
   palette, wallpaper, language, monitors, keyboard layouts; if it ever cannot start, greetd's text
   login takes that one boot, so the machine always lets you in. Settings → system → login screen:
@@ -117,11 +117,11 @@ made first); see [Updates](#updates). Bugs that also exist in Nemo are best repo
 - **Desk mode.** Toggle niri between tiling and a classic floating desktop with DE-style title
   bars, a resize corner on every window, click to focus and raise, minimize/restore and a task
   list in the bar.
-- **yami-niri.** Our niri: upstream 26.04 plus a short patch series, built for your CPU (fat
+- **nemo-niri.** Our niri: upstream 26.04 plus a short patch series, built for your CPU (fat
   LTO, `target-cpu=native`): tearing for fullscreen games (async page flips, less input lag), a
   realtime compositor thread so a game loading every core doesn't make the desktop stutter. The
-  packaged niri stays as an automatic fallback. See [yami-niri](https://github.com/Trendorin/yami-niri).
-- **Games.** Settings → games: game windows open fullscreen with VRR (and tearing on yami-niri),
+  packaged niri stays as an automatic fallback. See [nemo-niri](https://github.com/HamzaAkramv15/nemo-niri).
+- **Games.** Settings → games: game windows open fullscreen with VRR (and tearing on nemo-niri),
   a big shader cache; while a game has focus notifications wait quietly and the power profile
   switches to «performance»; the shell stops redrawing what the game covers. It finds and uses what
   the system has on any distro: ntsync for Proton, GameMode for the focused game, MangoHud in the
@@ -130,22 +130,22 @@ made first); see [Updates](#updates). Bugs that also exist in Nemo are best repo
   new keys right there (even ones niri itself uses), conflicts are freed and named, add your own
   commands. Keyboard layouts too: by default they follow the system languages (an English system
   gets `us`, a Russian one `us,ru`), any xkb codes and the switch combination are a choice. Written
-  to `~/.config/yami/niri/binds.kdl`.
+  to `~/.config/nemo/niri/binds.kdl`.
 - **One palette everywhere.** Seven presets or any custom accent recolor the shell, wallpaper,
   niri borders, kitty, foot, cava, starship, btop, fastfetch (the Nemo fish), Qt/KDE and GTK apps, the browser's menus (its
   own theme stays yours), the pixel cursor and the login screen at once; your own templates
-  (`~/.config/yami/templates`) recolour any other app. App icons in the launcher, dock, file manager and tray are
+  (`~/.config/nemo/templates`) recolour any other app. App icons in the launcher, dock, file manager and tray are
   redrawn as 16×16 pixel art in the palette tones (can be turned off).
 - **Qt and KDE apps look like the shell.** Notched buttons, fields, checkboxes and tabs drawn from
   the palette (qt6ct + QSS, KDE apps kept on Fusion instead of Breeze), and their file dialogs open
-  in yami-files through the portal, like GTK apps and browsers (Tor Browser included).
+  in nemo-files through the portal, like GTK apps and browsers (Tor Browser included).
 - **A curtain for streams.** Mod+Shift+H: viewers of a stream, a Discord demo or an OBS recording
   see the frozen screen blurred (or in big pixels, or just the wallpaper), while you keep your
   desktop and a small «hidden» badge. A single shared window is covered too, and notifications
-  never reach a recording (settings → services). Settings → screenshots. Needs yami-niri
+  never reach a recording (settings → services). Settings → screenshots. Needs nemo-niri
   (`show-only-in`, `hide-from`); on other niri the windows turn black in the stream instead.
 - **Your wallpaper.** Settings → wallpaper: pick an image from a grid of your wallpaper folder's
-  thumbnails (or «set as wallpaper» in yami-files and yami-view), fill or fit, pixel cells, recolour it into the accent or the palette tones, darken
+  thumbnails (or «set as wallpaper» in nemo-files and nemo-view), fill or fit, pixel cells, recolour it into the accent or the palette tones, darken
   it, or let the palette follow the image. The login screen gets the same picture. With
   [skwd-wall](https://github.com/liixini/skwd-wall) its picks (videos and Wallpaper Engine scenes
   too) become the wallpaper and its palette recolours the rice; nothing to configure on its side.
@@ -155,12 +155,12 @@ made first); see [Updates](#updates). Bugs that also exist in Nemo are best repo
   open beside it. Full-width strip, a centred panel of any length, or a floating pill with a gap and
   a shadow; the centre modules sit dead centre. Windows can get rounded corners and any border
   width (games stay square).
-- **Crisp on any screen.** The shell, yami-files and yami-view render at the monitor's real scale
+- **Crisp on any screen.** The shell, nemo-files and nemo-view render at the monitor's real scale
   (fractional-scale + viewporter) and upscale their pixels by nearest neighbour, so a 4K screen at
   scale 2 shows sharp 2×2 pixels instead of a compositor-smeared image. Tiny5 is drawn on its 8 px
   grid with no antialiasing (16/24/32 px by screen size).
-- **Your fonts.** Settings → fonts: any font for the shell, separately for yami-files and
-  yami-view, for GTK/Qt apps (readable sans by default, or pixel everywhere) and the terminal.
+- **Your fonts.** Settings → fonts: any font for the shell, separately for nemo-files and
+  nemo-view, for GTK/Qt apps (readable sans by default, or pixel everywhere) and the terminal.
 - **Pixel motion.** Panels and windows dissolve in on a Bayer dither grid, matching niri's custom
   window-open shaders. Settings → look offers four more patterns (scanlines, noise, diagonal,
   blocks), the cell size, an instant close and CRT scanlines over the panels.
@@ -168,7 +168,7 @@ made first); see [Updates](#updates). Bugs that also exist in Nemo are best repo
   rice light: the shell, GTK/Qt/KDE, kitty, the cursor, the lock and login screens.
 - **A launcher that does more.** Type `2+2*3` for an answer, an app or a window title, `vrr` to land
   on that setting, `>cmd` to run a command, `/name` to find a file at home.
-- **Your own bar modules.** Any script in `~/.config/yami/scripts/` that prints text or JSON
+- **Your own bar modules.** Any script in `~/.config/nemo/scripts/` that prints text or JSON
   becomes a module or a desktop widget (crypto, GitHub, anything); weather is built in (Open-Meteo,
   bar module and widget); see [docs/CONFIG.md](docs/CONFIG.md).
 - **Small comforts.** Reply to a message right from its notification, a night light (wlsunset),
@@ -187,9 +187,9 @@ Real screenshots of a Nemo session (`tools/readme-shots.sh`).
 
 <img src=".github/assets/login-en.png" width="100%" alt="The login screen: the big clock, the user and the password field on the pixel wallpaper under the veil">
 
-**yami-files** · thumbnails, places, tabs and split view; the file dialog of every app
+**nemo-files** · thumbnails, places, tabs and split view; the file dialog of every app
 
-<img src=".github/assets/files-en.png" width="100%" alt="yami-files: thumbnails, places, tabs and split view; the file dialog of every app">
+<img src=".github/assets/files-en.png" width="100%" alt="nemo-files: thumbnails, places, tabs and split view; the file dialog of every app">
 
 **Screenshots** · area, window or screen, then arrows, frames, marker, mosaic and badges
 
@@ -203,9 +203,9 @@ Real screenshots of a Nemo session (`tools/readme-shots.sh`).
 
 <img src=".github/assets/settings-keys-en.png" width="100%" alt="Settings → keys: every binding by category, recorded live">
 
-**yami-view** · real pixels when zoomed, quick edits, set as wallpaper
+**nemo-view** · real pixels when zoomed, quick edits, set as wallpaper
 
-<img src=".github/assets/view-en.png" width="100%" alt="yami-view: real pixels when zoomed, quick edits, set as wallpaper">
+<img src=".github/assets/view-en.png" width="100%" alt="nemo-view: real pixels when zoomed, quick edits, set as wallpaper">
 
 <details>
 <summary><b>More screenshots</b></summary>
@@ -230,7 +230,7 @@ Real screenshots of a Nemo session (`tools/readme-shots.sh`).
 
 ## Installation
 
-One command on a fresh system (it fetches the repository into `~/.local/share/yami/src` and runs
+One command on a fresh system (it fetches the repository into `~/.local/share/nemo/src` and runs
 the installer from there):
 
 ```sh
@@ -288,10 +288,10 @@ What the base install does:
 3. Installs the pixel fonts (Tiny5, DotGothic16, Terminess).
 4. Connects Nemo to niri's config with one include line at its top (your config stays yours, what
    you write below the line wins); without a config, or with niri's own starting one left as it was, it
-   writes yami's starting config and keeps the old file as `config.kdl.bak-yami-DATE`.
+   writes nemo's starting config and keeps the old file as `config.kdl.bak-nemo-DATE`.
 
 Nemo stays out of your drivers and your boot: no session environment for a driver, no module
-options, no initramfs. Everything is logged to `~/.cache/yami/install.log`. On NixOS use the flake
+options, no initramfs. Everything is logged to `~/.cache/nemo/install.log`. On NixOS use the flake
 instead: a NixOS module for the system half and a Home Manager module for the home half
 ([docs/PACKAGING.md](docs/PACKAGING.md#nix)).
 
@@ -300,7 +300,7 @@ instead: a NixOS module for the system half and a Home Manager module for the ho
 ```sh
 cd shell
 cargo build --release --locked
-install -Dm755 target/release/yami-shell ~/.local/bin/yami-shell
+install -Dm755 target/release/nemo-shell ~/.local/bin/nemo-shell
 ```
 
 Runtime libraries: `libxkbcommon`, `libpam`. Optional helpers: `pactl`/`parec` (volume, mixer,
@@ -311,28 +311,28 @@ equalizer), `playerctl` (media), `nmcli` (Wi-Fi), BlueZ (Bluetooth), `cliphist` 
 
 The programs around the shell are separate, each in its own repository. The first-run setup adds and
 removes them, and any of them works without the Nemo shell: take one into your own setup with
-one file and `./yami-files install`, no root needed. The shell's own services, yami-agents (the polkit
+one file and `./nemo-files install`, no root needed. The shell's own services, nemo-agents (the polkit
 and drive password windows, the screen-share picker and portal, automount), come with the shell from
 this repository; they run as their own process, so restarting the shell never stops a stream.
 
 | Module | What | Needs |
 |---|---|---|
-| [yami-files](https://github.com/Trendorin/yami-files) | file manager, the file dialog of every app, «show in folder» | any Wayland compositor |
-| [yami-view](https://github.com/Trendorin/yami-view) | image viewer and quick editor | any Wayland compositor |
-| [yami-play](https://github.com/Trendorin/yami-play) | video and music player | libmpv |
-| [yami-shot](https://github.com/Trendorin/yami-shot) | screenshots: freeze, select, mark up, read text and QR | layer-shell, grim |
-| [yami-greet](https://github.com/Trendorin/yami-greet) | the login screen | greetd, niri |
-| [yami-niri](https://github.com/Trendorin/yami-niri) | niri with tearing for games and a realtime thread | a build from source |
+| [nemo-files](https://github.com/HamzaAkramv15/nemo-files) | file manager, the file dialog of every app, «show in folder» | any Wayland compositor |
+| [nemo-view](https://github.com/HamzaAkramv15/nemo-view) | image viewer and quick editor | any Wayland compositor |
+| [nemo-play](https://github.com/HamzaAkramv15/nemo-play) | video and music player | libmpv |
+| [nemo-shot](https://github.com/HamzaAkramv15/nemo-shot) | screenshots: freeze, select, mark up, read text and QR | layer-shell, grim |
+| [nemo-greet](https://github.com/HamzaAkramv15/nemo-greet) | the login screen | greetd, niri |
+| [nemo-niri](https://github.com/HamzaAkramv15/nemo-niri) | niri with tearing for games and a realtime thread | a build from source |
 
-Their system packages come with them: drives and phones (udisks2, gvfs) with yami-files and the shell,
-text and QR recognition with yami-shot. With Steam on the machine the first-run setup also offers `games`
+Their system packages come with them: drives and phones (udisks2, gvfs) with nemo-files and the shell,
+text and QR recognition with nemo-shot. With Steam on the machine the first-run setup also offers `games`
 (GameMode, MangoHud).
 
-Every module draws through [yami-px](shell/px), the drawing library in this repository (a module takes
-it by the tag `px-vX.Y.Z`), and reads one look: `~/.config/yami/style.json`
+Every module draws through [nemo-px](shell/px), the drawing library in this repository (a module takes
+it by the tag `px-vX.Y.Z`), and reads one look: `~/.config/nemo/style.json`
 for all of them, `style.<module>.json` for what one does differently. Outside Nemo a module is
 neutral: the system font, rounded corners, soft shadows. The pixel look of the shell is the preset
-`yami`, and the keys go down to every colour: [docs/CONFIG.md](docs/CONFIG.md#the-look-of-every-module).
+`nemo`, and the keys go down to every colour: [docs/CONFIG.md](docs/CONFIG.md#the-look-of-every-module).
 
 ## Resource usage
 
@@ -340,12 +340,12 @@ Measured on this setup (1920×1080, Arch, PSS — shared library pages split fai
 
 | What | Memory |
 |---|---|
-| yami-shell, idle (bar, dock, widgets, notifications, tray) | 12.5 MB (16 MB) |
-| yami-shell with the settings open | 18 MB |
-| yami-shell during a screenshot (frozen frame), freed on close | 32 MB → 16 MB |
-| yami-files --portal (file dialog + FileManager1 service, always on) | 0.8 MB (3.2 MB) |
-| yami-files window on the home folder | 11 MB (14 MB) — Dolphin: 69 MB (161 MB) |
-| yami-view on a 1080p PNG, both neighbours decoded ahead | 49 MB (53 MB) — Gwenview: 96 MB (188 MB) |
+| nemo-shell, idle (bar, dock, widgets, notifications, tray) | 12.5 MB (16 MB) |
+| nemo-shell with the settings open | 18 MB |
+| nemo-shell during a screenshot (frozen frame), freed on close | 32 MB → 16 MB |
+| nemo-files --portal (file dialog + FileManager1 service, always on) | 0.8 MB (3.2 MB) |
+| nemo-files window on the home folder | 11 MB (14 MB) — Dolphin: 69 MB (161 MB) |
+| nemo-view on a 1080p PNG, both neighbours decoded ahead | 49 MB (53 MB) — Gwenview: 96 MB (188 MB) |
 | binaries on disk: shell + files + view + player | 8.7 + 6.4 + 2.3 + 1.6 MB |
 
 Always running: about 13 MB for the shell and the portal together. No GPU context, no toolkit,
@@ -370,14 +370,14 @@ program has stopped running (its start-up, a closed settings window) goes back t
 | `Mod+1…9`, `Mod+Shift+1…9` | focus workspace, move column there |
 | `Mod+arrows`, `Mod+HJKL` | focus; with `Ctrl` move |
 | `Print`, `Mod+Shift+S` | screenshot overlay; `Ctrl+Print` monitor, `Alt+Print` window |
-| `Mod+E` | yami-files |
+| `Mod+E` | nemo-files |
 | `Mod+Escape` | lock |
 | `Mod+Shift+E`, `Ctrl+Alt+Del` | power menu |
 | `Mod+B` | hide the bar |
 | `Mod+Shift+/` | all key bindings |
 | `Alt+Shift` | next keyboard layout (settings → keys → layout) |
 
-These are the defaults: change any of them in settings → keys (`yami-shell binds list` prints the
+These are the defaults: change any of them in settings → keys (`nemo-shell binds list` prints the
 current set).
 
 In the bar: right click on an empty spot opens the control panel; left click on a task focuses,
@@ -388,7 +388,7 @@ with lyrics, lyrics alone (the sung line lit when the lyrics have timestamps) an
 
 ## The `nemo` command
 
-One command for the whole desktop (`~/.local/bin/yami`, the same binary as `yami-shell`);
+One command for the whole desktop (`~/.local/bin/nemo`, the same binary as `nemo-shell`);
 `nemo help` prints it in the palette's colours, `nemo help <command>` explains one.
 
 ```sh
@@ -401,11 +401,11 @@ nemo doctor                   # which programs and D-Bus services are there, wha
 nemo doctor games             # ntsync, gamemode, MangoHud: what is there, how to add the rest
 nemo report                   # an archive for an issue: versions, doctor, journal, configs without secrets
 nemo ocr image.png            # text from an image (like «text» in the screenshot overlay)
-nemo theme export ~/my.yami   # the look as one file (import: nemo theme import FILE or https link)
+nemo theme export ~/my.nemo   # the look as one file (import: nemo theme import FILE or https link)
 nemo theme save night         # keep the current look in your themes (list | apply NAME | remove NAME)
 nemo templates                # render your templates, show what came out (force NAME overwrites one)
 nemo icons add ~/Downloads/set.tar.xz   # install an icon or cursor set (nemo icons NAME, nemo cursor NAME)
-nemo export ~/all.yami        # every setting as one file for a new system (nemo import FILE)
+nemo export ~/all.nemo        # every setting as one file for a new system (nemo import FILE)
 nemo version                  # every part, the installed commit, the update channel
 nemo update                   # what is new; apply | list | to X.Y.Z | rollback | status | log | need
 ```
@@ -414,7 +414,7 @@ nemo update                   # what is new; apply | list | to X.Y.Z | rollback 
 
 Settings → updates (or `nemo update`) checks the repository at login and every 6 hours and shows a card when a
 release is out; installing is always your click. The updater keeps its own clone in
-`~/.local/share/yami/src` and installs the new version with `install.sh --update` (ready binaries where they fit, else a build)
+`~/.local/share/nemo/src` and installs the new version with `install.sh --update` (ready binaries where they fit, else a build)
 (settings kept, no sudo). Nothing changes until every part has built, a failed update puts everything back by
 itself, and `nemo update rollback` returns the programs and configs from before the last update. Channels:
 **releases** (`vX.Y.Z` tags) or **every commit** of `main`. The tab shows a small console with the
@@ -450,16 +450,16 @@ dnf transaction and says if a reboot is advisable. `nemo-fedora-update --held` s
 
 ## Configuration
 
-Everything in settings (`Mod+S`) is also a key in `~/.config/yami/shell.json`, reloaded live when
+Everything in settings (`Mod+S`) is also a key in `~/.config/nemo/shell.json`, reloaded live when
 edited by hand; one bad value falls back to its default instead of resetting the file. The full
 reference is [docs/CONFIG.md](docs/CONFIG.md). From the terminal:
 
 ```sh
-yami-shell config list                 # every key, * marks what differs from the default
-yami-shell config set dockSide '"left"'
-yami-shell config set binds '{"terminal": "Mod+Return"}'
-yami-shell config check                # bad values and unknown keys
-yami-shell binds list                  # keybindings: id, keys, action
+nemo-shell config list                 # every key, * marks what differs from the default
+nemo-shell config set dockSide '"left"'
+nemo-shell config set binds '{"terminal": "Mod+Return"}'
+nemo-shell config check                # bad values and unknown keys
+nemo-shell binds list                  # keybindings: id, keys, action
 ```
 
 - **Settings tabs**: color, wallpaper, look, animations, fonts, bar (the screen edge on a map, drag module
@@ -469,19 +469,19 @@ yami-shell binds list                  # keybindings: id, keys, action
   map), services (tray, polkit, portals, covers: each can be handed to another program), updates.
 - **niri**: your `~/.config/niri/config.kdl` stays yours: Nemo adds one include line at its top
   (`nemo niri connect`, `nemo niri disconnect` takes it out), and what you write below it wins. The
-  line brings `~/.config/yami/niri/yami.kdl`: the shell's keys (`binds.kdl`), window rules, blur and
+  line brings `~/.config/nemo/niri/nemo.kdl`: the shell's keys (`binds.kdl`), window rules, blur and
   games (`rules.kdl`), colours and cursor, screens (`outputs.kdl`) and Nemo's niri look (`base.kdl`),
   each switched in settings → system → niri.
-- **IPC**: `yami-shell msg <command>`, where the command is one of `launcher`, `launcher TEXT` (with TEXT typed in; `?`, `/` and `>` too), `clipboard`,
+- **IPC**: `nemo-shell msg <command>`, where the command is one of `launcher`, `launcher TEXT` (with TEXT typed in; `?`, `/` and `>` too), `clipboard`,
   `power`, `settings`, `lock`, `bar`, `stacking`, `minimize`, `restore`, `edit`, `reload`,
   `restart`, `quit`, `settings TAB`, `profile` (next power profile), `popup cal|sound|media|net|bt|sys|profile|tray`, `screenshot [area|window|screen]`,
   `walls` (the wallpaper picker), `wallpaper [PATH]` (no path: the generated pixel wallpaper), `curtain [on|off]` (privacy curtain), `cast-hide` (click a window: its app turns black in screen sharing, or visible again), `night [on|off|toggle|always|schedule|temp K]` (night light: switch, all day or on a schedule, temperature),
   `media play-pause|next|previous|player` (to the player the bar shows; `player` switches to the next one, as a click on its name in the music popup does).
-- **yami-files**: `~/.config/yami/files.json` (also from its ≡ menu → settings). `yami-files
-  --pick open|save|dir …` is the dialog the portal runs; `yami-files --portal` is the portal and
-  FileManager1 service, started by D-Bus; `yami-files --portal-reload` hands it over to a newly
+- **nemo-files**: `~/.config/nemo/files.json` (also from its ≡ menu → settings). `nemo-files
+  --pick open|save|dir …` is the dialog the portal runs; `nemo-files --portal` is the portal and
+  FileManager1 service, started by D-Bus; `nemo-files --portal-reload` hands it over to a newly
   installed binary without cutting a recording (the installer runs it).
-- **Login screen**: `install-system.sh` of the yami-greet module builds it and installs it on a running
+- **Login screen**: `install-system.sh` of the nemo-greet module builds it and installs it on a running
   system (sudo once), greetd from the next boot; the first-run setup does the same.
   `nemo login sync` hands it the shell's look at once (the shell does that on every change).
 
@@ -489,12 +489,12 @@ yami-shell binds list                  # keybindings: id, keys, action
 
 | Path | Contents |
 |---|---|
-| `shell/` | yami-shell, the Rust Wayland shell (cargo workspace) |
+| `shell/` | nemo-shell, the Rust Wayland shell (cargo workspace) |
 | `modules.lock` | which version of each module this version of the shell installs |
 | `config/portal/` | which portal backend serves what |
 | `config/niri/` | niri configuration (keybindings come from the shell) |
 | `config/kitty/`, `config/fontconfig/` | terminal and pixel font rendering |
-| `shell/px`, `shell/agents` | yami-px, the drawing library every module uses; yami-agents, the shell's services |
+| `shell/px`, `shell/agents` | nemo-px, the drawing library every module uses; nemo-agents, the shell's services |
 | `tools/apply-theme.sh` | fonts and widget style for Qt and GTK |
 | `fonts/` | bundled pixel fonts (SIL OFL) |
 | `install.sh`, `installer/` | the installer: the entry and the order of its steps, one module per job |
@@ -503,39 +503,39 @@ yami-shell binds list                  # keybindings: id, keys, action
 | `keys/` | release signing keys (`allowed_signers`), read by `nemo update` and the installer |
 | `VERSION`, `CHANGELOG.md` | the release version and what changed in each release (`CHANGELOG.ru.md` in Russian) |
 
-## yami-niri
+## nemo-niri
 
 Upstream niri v26.04 plus a short patch series, built on your machine. It lives in its own
-[repository](https://github.com/Trendorin/yami-niri); the first-run setup builds and enables it, by hand from a clone of it:
+[repository](https://github.com/HamzaAkramv15/nemo-niri); the first-run setup builds and enables it, by hand from a clone of it:
 
 ```sh
-./yami-niri.sh build     # fetch, patch, build (5–25 min), enable from the next login
-./yami-niri.sh status    # which niri the next login starts
-./yami-niri.sh off       # back to the packaged niri
+./nemo-niri.sh build     # fetch, patch, build (5–25 min), enable from the next login
+./nemo-niri.sh status    # which niri the next login starts
+./nemo-niri.sh off       # back to the packaged niri
 ```
 
 The session starts it through a wrapper that falls back to the packaged niri when the fork rejects
 the config or dies right after the start. If the session still does not come up: `Ctrl+Alt+F3`,
-log in, `~/.local/lib/yami-niri/yami-niri.sh off`.
+log in, `~/.local/lib/nemo-niri/nemo-niri.sh off`.
 
 ## Development
 
 | Command | Does |
 |---|---|
-| `tools/check.sh` | build without warnings, i18n checks, the English and Russian docs in step (`yami-dev check-docs`), script syntax, niri config, installer dry run (CI runs it too) |
+| `tools/check.sh` | build without warnings, i18n checks, the English and Russian docs in step (`nemo-dev check-docs`), script syntax, niri config, installer dry run (CI runs it too) |
 | `tools/map.sh [TEXT]` | every source file with its one-line description |
-| `yami-shell shot [TARGET…] --lang en [--transparent] -o DIR` | render panels to PNG without a compositor; fails on untranslated text |
-| `yami-agents shot`, `yami-files shot`, `yami-view shot`, `yami-play shot`, `yami-shot shot` | the same for each module (the first-run setup is the shell's `welcome:STEP` targets) |
+| `nemo-shell shot [TARGET…] --lang en [--transparent] -o DIR` | render panels to PNG without a compositor; fails on untranslated text |
+| `nemo-agents shot`, `nemo-files shot`, `nemo-view shot`, `nemo-play shot`, `nemo-shot shot` | the same for each module (the first-run setup is the shell's `welcome:STEP` targets) |
 | `tools/check-modules.sh [NAME…]` | every module next to this repository: no warnings, tests, translations, every state in both looks and every language, every text fits |
-| `yami-greet shot -o DIR`, `yami-greet --demo` | the login screen offscreen in each state; `--demo` runs it without greetd (password `yami`) inside a nested niri |
-| `yami-dev readme-art`, `tools/readme-shots.sh` | the README's logo and cards; real screenshots of your session (empty workspace, plain device names, everything put back) |
+| `nemo-greet shot -o DIR`, `nemo-greet --demo` | the login screen offscreen in each state; `--demo` runs it without greetd (password `nemo`) inside a nested niri |
+| `nemo-dev readme-art`, `tools/readme-shots.sh` | the README's logo and cards; real screenshots of your session (empty workspace, plain device names, everything put back) |
 | `tools/release.sh X.Y.Z` | a release: everything made and signed here first (changelog, versions, the changed modules' tags, binaries, packages), then one question before it is published; `--check` first, `--push`, `--status`, `--undo`, `--keygen` once for the key |
 | `tools/deploy.sh` | build, install to `~/.local/bin` and restart the running shell (refuses while a game has focus); `--modules` adds the modules next to this repository, `--modules-only` installs only them |
 
 ## Thanks
 
 - [Trendorin](https://github.com/Trendorin) and everyone who contributed to
-  [yami](https://github.com/Trendorin/yami): Nemo is built on their work.
+  [Yami](https://github.com/Trendorin/yami): Nemo is built on their work.
 - [Minish777](https://github.com/Minish777) hunts bugs and gaps and writes them up with fixes to
   pick from: player switching, lyrics, the wallpaper picker, the floating bar, weather, app
   templates and more started as those reports, and so did the template audit (#27), the windows
@@ -544,7 +544,7 @@ log in, `~/.local/lib/yami-niri/yami-niri.sh off`.
 ## Made with Claude
 
 Nemo is written with the help of [Claude](https://claude.ai) by Anthropic, through Claude Code:
-much of the code, the yami-niri patches and the docs came out of those sessions. Every change is
+much of the code, the nemo-niri patches and the docs came out of those sessions. Every change is
 still built, checked (`tools/check.sh`) and used every day on a real machine before it ships.
 
 ## License
@@ -553,8 +553,8 @@ Code: MIT, see [LICENSE](LICENSE). You may use, change and share it, in your own
 as long as every copy and every substantial part of it keeps the copyright line and the license
 text. Bundled fonts keep their own licenses (SIL Open Font License, texts in `fonts/`). Monocraft
 is downloaded from its upstream release at install time (pinned version, checked against its
-SHA-256). yami-niri is built from upstream niri (GPL-3.0)
-with the patches of the yami-niri repository.
+SHA-256). nemo-niri is built from upstream niri (GPL-3.0)
+with the patches of the nemo-niri repository.
 
 The license is for the code and gives no rights to the project's name: a fork or a rebuild goes
 under its own name and logo and does not present itself as Nemo or as made by its authors.

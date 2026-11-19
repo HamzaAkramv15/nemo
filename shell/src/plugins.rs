@@ -1,5 +1,5 @@
 // Модули бара из скриптов, как custom-модули waybar: исполняемый файл
-// ~/.config/yami/scripts/<имя> становится модулем `x:<имя>` (он есть в настройках → бар).
+// ~/.config/nemo/scripts/<имя> становится модулем `x:<имя>` (он есть в настройках → бар).
 // Скрипт печатает строку на каждое обновление — просто текст или JSON:
 //   {"text": "21°", "icon": "temp", "color": "accent", "click": "xdg-open https://…", "interval": 600}
 // icon — любой значок 7×7 шелла (список в docs/CONFIG.md), color — роль темы (accent, bright, ok,
@@ -63,7 +63,7 @@ pub fn available() -> Vec<String> {
     scripts().into_iter().map(|n| format!("x:{n}")).collect()
 }
 
-/// имена скриптов в ~/.config/yami/scripts (исполняемые файлы), по алфавиту: для виджета «скрипт»
+/// имена скриптов в ~/.config/nemo/scripts (исполняемые файлы), по алфавиту: для виджета «скрипт»
 pub fn scripts() -> Vec<String> {
     use std::os::unix::fs::PermissionsExt;
     let mut v: Vec<String> = std::fs::read_dir(dir())
@@ -235,8 +235,8 @@ mod run_tests {
     /// группе) и когда шелл упал (PDEATHSIG приходит только лидеру группы — он гасит остальных)
     #[test]
     fn stops_with_its_children() {
-        let d = std::env::temp_dir().join(format!("yami-plug-test-{}", std::process::id()));
-        let m = d.join("yami/scripts");
+        let d = std::env::temp_dir().join(format!("nemo-plug-test-{}", std::process::id()));
+        let m = d.join("nemo/scripts");
         std::fs::create_dir_all(&m).unwrap();
         let marker = d.join("child.pid");
         let script = m.join("t.sh");

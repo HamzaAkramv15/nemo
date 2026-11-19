@@ -1,7 +1,7 @@
-# Installs for the README badge: install.sh downloads `yami-installs.txt` from the fixed `installs`
+# Installs for the README badge: install.sh downloads `nemo-installs.txt` from the fixed `installs`
 # release once per machine (docs/SECURITY.md, «Install count»), and GitHub counts release downloads.
 # The badge is the sum over every release (older versions fetched it from the latest one): machines
-# that installed yami, each once. Nothing else is collected. Writes badge.json (a shields.io endpoint) to the `stats` branch, so main gets no daily
+# that installed nemo, each once. Nothing else is collected. Writes badge.json (a shields.io endpoint) to the `stats` branch, so main gets no daily
 # commits. The optional STATS_TOKEN (read-only «Administration») only adds GitHub's clone traffic
 # to the log, for comparison; the badge does not use it.
 name: stats
@@ -26,7 +26,7 @@ jobs:
         run: |
           set -euo pipefail
           # every copy of the counter file, on any release, in one query
-          installs="$(gh api --paginate "repos/$REPO/releases?per_page=100" --jq '.[].assets[] | select(.name == "yami-installs.txt") | .download_count' | awk '{ n += $1 } END { print n + 0 }')"
+          installs="$(gh api --paginate "repos/$REPO/releases?per_page=100" --jq '.[].assets[] | select(.name == "nemo-installs.txt") | .download_count' | awk '{ n += $1 } END { print n + 0 }')"
           if [ -n "${STATS_TOKEN:-}" ]; then
             GH_TOKEN="$STATS_TOKEN" gh api "repos/$REPO/traffic/clones" --jq '"for comparison, unique cloners over 14 days (bots and CI included): \(.uniques)"' || true
           fi

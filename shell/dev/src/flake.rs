@@ -2,8 +2,8 @@
 // Для входа github: nix сам хранит rev, lastModified (время коммита) и narHash — sha256 архива NAR того,
 // что лежит в тарболе GitHub, а тарбол GitHub — это `git archive` коммита. Его и сериализуем.
 //
-//   yami-dev nar-hash ПАПКА            sha256-… архива NAR папки (проверка: тот же хеш, что у nix)
-//   yami-dev flake-lock [ПАПКА_МОДУЛЕЙ]  входы github:Trendorin/<модуль>/<тег> из flake.nix → flake.lock
+//   nemo-dev nar-hash ПАПКА            sha256-… архива NAR папки (проверка: тот же хеш, что у nix)
+//   nemo-dev flake-lock [ПАПКА_МОДУЛЕЙ]  входы github:Trendorin/<модуль>/<тег> из flake.nix → flake.lock
 
 use std::io::Write;
 use std::path::{Path, PathBuf};
@@ -102,7 +102,7 @@ fn archive_hash(repo: &Path, rev: &str) -> Result<String, String> {
     }
     // своя новая папка 0700, не предсказуемое имя в /tmp (его мог бы занять кто-то другой)
     let n = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|d| d.subsec_nanos()).unwrap_or(0);
-    let tmp = std::env::temp_dir().join(format!("yami-nar-{}-{n:08x}", std::process::id()));
+    let tmp = std::env::temp_dir().join(format!("nemo-nar-{}-{n:08x}", std::process::id()));
     {
         use std::os::unix::fs::DirBuilderExt;
         std::fs::DirBuilder::new().mode(0o700).create(&tmp).map_err(|e| format!("{}: {e}", tmp.display()))?;
@@ -115,7 +115,7 @@ fn archive_hash(repo: &Path, rev: &str) -> Result<String, String> {
 
 pub fn run_nar(a: &[String]) -> i32 {
     let Some(d) = a.first() else {
-        eprintln!("yami-dev nar-hash DIR");
+        eprintln!("nemo-dev nar-hash DIR");
         return 2;
     };
     match nar_hash(Path::new(d)) {
@@ -140,7 +140,7 @@ fn inputs(flake: &str) -> Vec<(String, String, String, String)> {
         } else if let Some(u) = l.strip_prefix("url = \"github:").and_then(|u| u.strip_suffix("\";")) {
             let p: Vec<&str> = u.split('/').collect();
             if let [owner, repo, tag] = p[..] {
-                if name.starts_with("yami-") {
+                if name.starts_with("nemo-") {
                     v.push((name.clone(), owner.into(), repo.into(), tag.into()));
                 }
             }
@@ -151,7 +151,7 @@ fn inputs(flake: &str) -> Vec<(String, String, String, String)> {
 
 pub fn run_lock(a: &[String]) -> i32 {
     let root = crate::root();
-    let mods = a.first().map(PathBuf::from).or_else(|| std::env::var_os("YAMI_MODULES_DIR").map(PathBuf::from)).unwrap_or_else(|| root.join("../yami-modules"));
+    let mods = a.first().map(PathBuf::from).or_else(|| std::env::var_os("NEMO_MODULES_DIR").or_else(|| std::env::var_os("YAMI_MODULES_DIR")).map(PathBuf::from)).unwrap_or_else(|| root.join("../nemo-modules"));
     let flake = std::fs::read_to_string(root.join("flake.nix")).unwrap_or_default();
     let lock_path = root.join("flake.lock");
     let Ok(mut lock) = std::fs::read_to_string(&lock_path).map_err(|e| e.to_string()).and_then(|s| serde_json::from_str::<serde_json::Value>(&s).map_err(|e| e.to_string())) else {
@@ -160,7 +160,7 @@ pub fn run_lock(a: &[String]) -> i32 {
     };
     let ins = inputs(&flake);
     if ins.is_empty() {
-        eprintln!("flake-lock: no github:OWNER/… yami-* inputs in flake.nix");
+        eprintln!("flake-lock: no github:OWNER/… nemo-* inputs in flake.nix");
         return 1;
     }
     for (name, owner, repo, tag) in &ins {
@@ -206,7 +206,7 @@ mod tests {
 
     #[test]
     fn module_inputs() {
-        let f = "inputs = {\n  nixpkgs.url = \"github:NixOS/nixpkgs/nixos-unstable\";\n  yami-files = {\n    url = \"github:Trendorin/yami-files/v3.0.0\";\n    flake = false;\n  };\n};";
-        assert_eq!(super::inputs(f), vec![("yami-files".into(), "Trendorin".into(), "yami-files".into(), "v3.0.0".into())]);
+        let f = "inputs = {\n  nixpkgs.url = \"github:NixOS/nixpkgs/nixos-unstable\";\n  nemo-files = {\n    url = \"github:Trendorin/nemo-files/v3.0.0\";\n    flake = false;\n  };\n};";
+        assert_eq!(super::inputs(f), vec![("nemo-files".into(), "Trendorin".into(), "nemo-files".into(), "v3.0.0".into())]);
     }
 }

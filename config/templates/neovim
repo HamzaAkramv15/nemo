@@ -1,7 +1,7 @@
--- yami-output: ~/.config/nvim/colors/yami.lua
--- yami: the palette as a Neovim colour scheme: :colorscheme yami
+-- nemo-output: ~/.config/nvim/colors/nemo.lua
+-- nemo: the palette as a Neovim colour scheme: :colorscheme nemo
 vim.cmd("highlight clear")
-vim.g.colors_name = "yami"
+vim.g.colors_name = "nemo"
 vim.o.termguicolors = true
 
 local c = {

@@ -1,16 +1,16 @@
 #!/usr/bin/env bash
-# Build yami-shell and its services (yami-agents) and swap them into the running session: ~/.local/bin,
+# Build nemo-shell and its services (nemo-agents) and swap them into the running session: ~/.local/bin,
 # then restart the shell (the services move over as soon as they are idle).
 # Refuses while a game (Steam/Proton, gamescope, Roblox through Sober, a .exe) or any fullscreen window has focus (the restart flashes the bar and
 # panels); --force skips that guard.
-#   --modules       also build and install the modules next to this repository (YAMI_MODULES_DIR)
+#   --modules       also build and install the modules next to this repository (NEMO_MODULES_DIR)
 #   --modules-only  only the modules, the shell keeps running
-# The login screen needs root: yami-greet/install-system.sh.
+# The login screen needs root: nemo-greet/install-system.sh.
 # Usage: tools/deploy.sh [--force] [--modules | --modules-only]
 set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-BIN="$HOME/.local/bin/yami-shell"
-MODS="${YAMI_MODULES_DIR:-$ROOT/../yami-modules}"
+BIN="$HOME/.local/bin/nemo-shell"
+MODS="${NEMO_MODULES_DIR:-$ROOT/../nemo-modules}"
 FORCE=0 WITH_MODULES=0 ONLY_MODULES=0
 for a in "$@"; do
   case $a in
@@ -36,36 +36,36 @@ fi
 # leaves the old binary in place instead of a cut one
 put() { install -Dm755 "$ROOT/shell/target/release/$1" "$HOME/.local/bin/.$1.new" && mv -f "$HOME/.local/bin/.$1.new" "$HOME/.local/bin/$1"; }
 if ((WITH_MODULES)); then
-  for m in yami-files yami-view yami-play yami-shot; do
+  for m in nemo-files nemo-view nemo-play nemo-shot; do
     [[ -f $MODS/$m/Cargo.toml ]] || { echo "deploy: no $MODS/$m" >&2; exit 1; }
     (cd "$MODS/$m" && cargo build --release --locked)
     "$MODS/$m/target/release/$m" install --yes --all
   done
   # a running file dialog keeps its binary until it closes; D-Bus learns about new service files
-  "$HOME/.local/bin/yami-files" --portal-reload || true
+  "$HOME/.local/bin/nemo-files" --portal-reload || true
   busctl --user call org.freedesktop.DBus /org/freedesktop/DBus org.freedesktop.DBus ReloadConfig >/dev/null 2>&1 || true
 fi
 if ((ONLY_MODULES)); then
   echo "deploy: modules installed"
   exit 0
 fi
-# before 2.8 screen sharing was the yami backend's: the portal frontend reads this file only at start
+# before 2.8 screen sharing was the nemo backend's: the portal frontend reads this file only at start
 pc="${XDG_CONFIG_HOME:-$HOME/.config}/xdg-desktop-portal/niri-portals.conf"
 old_cast=0
-grep -qs 'ScreenCast=yami;' "$pc" && old_cast=1
+grep -qs 'ScreenCast=nemo;' "$pc" && old_cast=1
 cargo build --release --locked --workspace --manifest-path "$ROOT/shell/Cargo.toml"
-# the separate setup window of the development tree is part of the shell now: `yami setup`
-rm -f "$HOME/.local/bin/yami-setup"
-put yami-shell
-ln -sfn yami-shell "$HOME/.local/bin/yami"
+# the separate setup window of the development tree is part of the shell now: `nemo setup`
+rm -f "$HOME/.local/bin/nemo-setup"
+put nemo-shell
+ln -sfn nemo-shell "$HOME/.local/bin/nemo"
 # the shell's services: the binary, its portal and D-Bus files (`install --yes --all` puts both)
-"$ROOT/shell/target/release/yami-agents" install --yes --all >/dev/null
-# what runs now (`yami update` compares against it); a dirty tree is marked as such
+"$ROOT/shell/target/release/nemo-agents" install --yes --all >/dev/null
+# what runs now (`nemo update` compares against it); a dirty tree is marked as such
 # без env.sh: иначе в запись попадёт локальный адрес вместо настоящего
 env -u GIT_CONFIG_COUNT -u GIT_CONFIG_KEY_0 -u GIT_CONFIG_VALUE_0 "$BIN" update stamp "$ROOT" || true
-# alive = answers on its socket (not pgrep: `yami update apply` is a yami-shell process too)
+# alive = answers on its socket (not pgrep: `nemo update apply` is a nemo-shell process too)
 # the new shell binds its socket anew: with an inode given, a ping counts only from another one
-ino() { stat -c %i "${XDG_RUNTIME_DIR:-/run/user/$(id -u)}/yami-shell.sock" 2>/dev/null || echo none; }
+ino() { stat -c %i "${XDG_RUNTIME_DIR:-/run/user/$(id -u)}/nemo-shell.sock" 2>/dev/null || echo none; }
 up() {
   local i old=${1:-}
   for i in $(seq 1 80); do
@@ -88,16 +88,16 @@ if ((!started)) && [[ -n ${NIRI_SOCKET:-} ]]; then
 fi
 # after the shell: the old one held the polkit agent's place until it was replaced. A running service
 # moves to the new binary as soon as no password window or screen share is open
-"$HOME/.local/bin/yami-agents" --reload || true
+"$HOME/.local/bin/nemo-agents" --reload || true
 if ((old_cast)) && ! pgrep -x obs >/dev/null; then
   systemctl --user restart xdg-desktop-portal || true
 fi
 # these binaries did not come from the installer: the next update must not take them for its own
-rm -rf "${XDG_STATE_HOME:-$HOME/.local/state}/yami/built"
-# the shell itself: yami-shell without arguments (CLI commands like `update apply` have them)
-pid="$(pgrep -ax yami-shell | awk 'NF == 2 { print $1; exit }' || true)"
+rm -rf "${XDG_STATE_HOME:-$HOME/.local/state}/nemo/built"
+# the shell itself: nemo-shell without arguments (CLI commands like `update apply` have them)
+pid="$(pgrep -ax nemo-shell | awk 'NF == 2 { print $1; exit }' || true)"
 if ((started)) && [[ -n $pid ]]; then
-  echo "deploy: yami-shell $("$BIN" --version | cut -d' ' -f2) running, pid $pid, $(($(awk '/VmRSS/{print $2}' "/proc/$pid/status") / 1024)) MB"
+  echo "deploy: nemo-shell $("$BIN" --version | cut -d' ' -f2) running, pid $pid, $(($(awk '/VmRSS/{print $2}' "/proc/$pid/status") / 1024)) MB"
 else
   echo "deploy: installed to $BIN (no niri session, not started)"
 fi

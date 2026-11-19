@@ -106,7 +106,7 @@ pub(crate) fn sample(ui: &mut Ui, st: &State, gi: usize, r: R) {
         ui.cv.fill(R::new(p.x + 6, p.y + 6 + i * 8, w, 3), if i == 0 { t.red } else { t.text_faint });
     }
     if pixel && k < 1.0 {
-        ui.cv.dissolve_rect_as(R::new(p.x - 3, p.y - 3, p.w + 8, p.h + 8), k, 2, yami_px::gfx::Reveal::from_id(style), st.set.reveal_grain);
+        ui.cv.dissolve_rect_as(R::new(p.x - 3, p.y - 3, p.w + 8, p.h + 8), k, 2, nemo_px::gfx::Reveal::from_id(style), st.set.reveal_grain);
     }
     ui.cv.pop_clip();
     ui.cv.opacity = was;
@@ -124,7 +124,7 @@ pub fn tab(ui: &mut Ui, st: &State, b: R) {
     y += 34;
     ui.slider(R::new(b.x, y, b.w, 40), "скорость анимаций (меньше — быстрее)", (s.anim_speed - 0.3) / 1.7, &format!("×{:.1}", s.anim_speed), 17, Act::SSlider("anim_speed", 0.3, 2.0, 17));
     y += 50;
-    // общий узор: у групп «как везде» и во всех программах yami
+    // общий узор: у групп «как везде» и во всех программах nemo
     opt_btn(ui, R::new(b.x, y, half, 26), "узор", reveal_name(&s.reveal), Act::SCycle("reveal"));
     num_btn(ui, R::new(x2, y, half, 26), "размер клеток", s.num("reveal_grain"), "reveal_grain");
     y += 32;

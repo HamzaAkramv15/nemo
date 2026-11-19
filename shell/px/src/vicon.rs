@@ -246,7 +246,7 @@ mod tests {
         assert!(c[8 * 24 + 18] < 50, "the bite is empty");
     }
 
-    /// `VICON_SHEET=/tmp/sheet.pgm cargo test -p yami-px dump_sheet -- --ignored`: все значки одним
+    /// `VICON_SHEET=/tmp/sheet.pgm cargo test -p nemo-px dump_sheet -- --ignored`: все значки одним
     /// листом (серый PGM, 28 px на значок), чтобы посмотреть глазами
     #[test]
     #[ignore]

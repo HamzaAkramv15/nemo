@@ -1,7 +1,7 @@
-# yami: the shell and its modules, each built from its own Cargo.lock (the modules are flake inputs, their
+# nemo: the shell and its modules, each built from its own Cargo.lock (the modules are flake inputs, their
 # versions follow modules.lock). Updates belong to Nix: the `package-managed` feature turns the built-in
 # updater off. Fonts and the per-user configs go to share/, every module's .desktop, portal and D-Bus
-# files next to it, the login screen's session script to libexec/yami (it finds bin/yami-greet from there).
+# files next to it, the login screen's session script to libexec/nemo (it finds bin/nemo-greet from there).
 {
   lib,
   rustPlatform,
@@ -17,7 +17,7 @@
 }:
 
 let
-  # each Cargo.lock pins its crates; the modules take the drawing library yami-px by a tag of this
+  # each Cargo.lock pins its crates; the modules take the drawing library nemo-px by a tag of this
   # repository (px-vX.Y.Z), the shell has it in its own tree (shell/px)
   lockOf = dir: {
     lockFile = "${dir}/Cargo.lock";
@@ -33,7 +33,7 @@ let
       wayland
     ];
     meta = {
-      homepage = "https://github.com/Trendorin/yami";
+      homepage = "https://github.com/HamzaAkramv15/nemo";
       license = lib.licenses.mit;
       platforms = lib.platforms.linux;
     };
@@ -42,35 +42,35 @@ let
   shell = rustPlatform.buildRustPackage (
     common
     // {
-      pname = "yami-shell";
+      pname = "nemo-shell";
       inherit src;
       cargoRoot = "shell";
       buildAndTestSubdir = "shell";
       cargoLock = lockOf "${src}/shell";
-      buildFeatures = [ "yami-shell/package-managed" ];
+      buildFeatures = [ "nemo-shell/package-managed" ];
       # the shell and its services (polkit window, screen sharing, automount) from the same workspace
       cargoBuildFlags = [
         "-p"
-        "yami-shell"
+        "nemo-shell"
         "-p"
-        "yami-agents"
+        "nemo-agents"
       ];
       buildInputs = common.buildInputs ++ [ linux-pam ];
       postInstall = ''
-        # `yami <command>`: the same binary, help instead of the shell without a command
-        ln -s yami-shell $out/bin/yami
-        install -Dm644 config/autostart/yami-shell.desktop $out/etc/xdg/autostart/yami-shell.desktop
+        # `nemo <command>`: the same binary, help instead of the shell without a command
+        ln -s nemo-shell $out/bin/nemo
+        install -Dm644 config/autostart/nemo-shell.desktop $out/etc/xdg/autostart/nemo-shell.desktop
         # per-user configs the Home Manager module links or seeds into ~/.config
-        install -Dm644 -t $out/share/yami config/niri/config.kdl config/kitty/yami.conf \
-          config/portal/niri-portals.conf config/fontconfig/50-yami-pixel.conf
-        install -Dm644 -t $out/share/fonts/truetype/yami fonts/*.ttf
-        install -Dm644 -t $out/share/licenses/yami fonts/OFL-*.txt LICENSE
-        install -Dm644 shell/agents/config/yami-agents.portal $out/share/xdg-desktop-portal/portals/yami-agents.portal
+        install -Dm644 -t $out/share/nemo config/niri/config.kdl config/kitty/nemo.conf \
+          config/portal/niri-portals.conf config/fontconfig/50-nemo-pixel.conf
+        install -Dm644 -t $out/share/fonts/truetype/nemo fonts/*.ttf
+        install -Dm644 -t $out/share/licenses/nemo fonts/OFL-*.txt LICENSE
+        install -Dm644 shell/agents/config/nemo-agents.portal $out/share/xdg-desktop-portal/portals/nemo-agents.portal
       ''
-      + service "shell/agents/config" "org.freedesktop.impl.portal.desktop.yamiagents.service" "yami-agents";
+      + service "shell/agents/config" "org.freedesktop.impl.portal.desktop.nemoagents.service" "nemo-agents";
       meta = common.meta // {
         description = "Lightweight pixel-art Wayland shell for the niri compositor";
-        mainProgram = "yami";
+        mainProgram = "nemo";
       };
     }
   );
@@ -97,34 +97,34 @@ let
     substituteInPlace $out/share/dbus-1/services/${name} --replace-fail @BIN@ $out/bin/${bin}
   '';
 
-  files = module "yami-files" {
+  files = module "nemo-files" {
     postInstall =
-      desktop "yami-files"
+      desktop "nemo-files"
       + ''
-        install -Dm644 config/yami.portal $out/share/xdg-desktop-portal/portals/yami.portal
+        install -Dm644 config/nemo.portal $out/share/xdg-desktop-portal/portals/nemo.portal
       ''
-      + service "config" "org.freedesktop.impl.portal.desktop.yami.service" "yami-files"
-      + service "config" "org.freedesktop.FileManager1.service" "yami-files";
+      + service "config" "org.freedesktop.impl.portal.desktop.nemo.service" "nemo-files"
+      + service "config" "org.freedesktop.FileManager1.service" "nemo-files";
   };
-  view = module "yami-view" { postInstall = desktop "yami-view"; };
-  play = module "yami-play" {
-    postInstall = desktop "yami-play";
-    # yami-play loads libmpv with dlopen; the binary's RUNPATH lets it find the store copy
+  view = module "nemo-view" { postInstall = desktop "nemo-view"; };
+  play = module "nemo-play" {
+    postInstall = desktop "nemo-play";
+    # nemo-play loads libmpv with dlopen; the binary's RUNPATH lets it find the store copy
     postFixup = ''
-      patchelf --add-rpath ${lib.makeLibraryPath [ mpv-unwrapped ]} $out/bin/yami-play
+      patchelf --add-rpath ${lib.makeLibraryPath [ mpv-unwrapped ]} $out/bin/nemo-play
     '';
   };
-  shot = module "yami-shot" { };
-  greet = module "yami-greet" {
+  shot = module "nemo-shot" { };
+  greet = module "nemo-greet" {
     postInstall = ''
       # the login screen: its session script and its two fonts
-      install -Dm755 greet-session $out/libexec/yami/greet-session
-      install -Dm644 -t $out/share/yami-greet/fonts fonts/Tiny5.ttf fonts/DotGothic16-Regular.ttf
+      install -Dm755 greet-session $out/libexec/nemo/greet-session
+      install -Dm644 -t $out/share/nemo-greet/fonts fonts/Tiny5.ttf fonts/DotGothic16-Regular.ttf
     '';
   };
 in
 symlinkJoin {
-  name = "yami-${version}";
+  name = "nemo-${version}";
   paths = [
     shell
     files

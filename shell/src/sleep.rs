@@ -1,5 +1,5 @@
 // Экран запирается перед любым сном: крышка ноутбука, `systemctl suspend`, сон по таймеру системы, а
-// не только из меню питания (lockSleep; идея из форка yami-lite). Шелл держит у logind «отложенную»
+// не только из меню питания (lockSleep; идея из форка nemo-lite). Шелл держит у logind «отложенную»
 // блокировку сна (Inhibit "sleep" "delay"): собираясь спать, logind шлёт PrepareForSleep(true) и ждёт,
 // пока её отпустят (не дольше InhibitDelayMaxSec, по умолчанию 5 с). Нить просит главную запереть
 // экран и отпускает блокировку, когда niri подтвердил запирание (ext-session-lock «locked»), или сразу,
@@ -17,7 +17,7 @@ const WAIT: Duration = Duration::from_secs(3);
 
 fn inhibit(c: &Connection) -> Option<zbus::zvariant::OwnedFd> {
     let p = Proxy::new(c, "org.freedesktop.login1", "/org/freedesktop/login1", "org.freedesktop.login1.Manager").ok()?;
-    let m = p.call_method("Inhibit", &("sleep", "yami", crate::i18n::tr("запереть экран перед сном"), "delay")).ok()?;
+    let m = p.call_method("Inhibit", &("sleep", "nemo", crate::i18n::tr("запереть экран перед сном"), "delay")).ok()?;
     m.body().deserialize::<zbus::zvariant::OwnedFd>().ok()
 }
 

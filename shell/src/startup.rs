@@ -207,7 +207,7 @@ pub fn tab(ui: &mut crate::ui::Ui, st: &crate::app::State, b: crate::gfx::R) {
     let _ = st;
     for (i, e) in list.iter().enumerate() {
         if e.other_desktop {
-            ui.text_in(yami_px::font::PX, R::new(b.x + 4, y, b.w - 4, 24), &format!("{}  ·  {}", e.name, crate::i18n::tr("не для этого рабочего стола")), t.text_faint);
+            ui.text_in(nemo_px::font::PX, R::new(b.x + 4, y, b.w - 4, 24), &format!("{}  ·  {}", e.name, crate::i18n::tr("не для этого рабочего стола")), t.text_faint);
             y += 26;
             continue;
         }
@@ -216,10 +216,10 @@ pub fn tab(ui: &mut crate::ui::Ui, st: &crate::app::State, b: crate::gfx::R) {
         y += 46;
     }
     if list.is_empty() {
-        ui.text_in(yami_px::font::PX, R::new(b.x, y, b.w, 24), "в автозапуске ничего нет", t.text_faint);
+        ui.text_in(nemo_px::font::PX, R::new(b.x, y, b.w, 24), "в автозапуске ничего нет", t.text_faint);
         y += 26;
     }
-    ui.text_in(yami_px::font::PX, R::new(b.x, y + 8, b.w, 24), "выключение — файл-пометка в ~/.config/autostart; убрать его — включить", t.text_faint);
+    ui.text_in(nemo_px::font::PX, R::new(b.x, y + 8, b.w, 24), "выключение — файл-пометка в ~/.config/autostart; убрать его — включить", t.text_faint);
 }
 
 #[cfg(test)]

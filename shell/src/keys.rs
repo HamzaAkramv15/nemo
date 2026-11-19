@@ -1,6 +1,6 @@
 // Клавиши: все сочетания niri и шелла. Шелл — их хозяин: таблица по умолчанию здесь,
 // переопределения — в настройках (`binds`: id → "Mod+X", "" — выключено) и свои команды
-// (`customBinds`), итог пишется в ~/.config/yami/niri/binds.kdl. Руками поверх — свой config.kdl niri:
+// (`customBinds`), итог пишется в ~/.config/nemo/niri/binds.kdl. Руками поверх — свой config.kdl niri:
 // он подключён позже, его сочетания перекрывают наши.
 //
 // i18n: inline pairs — у каждого бинда русское и английское название рядом.
@@ -181,23 +181,23 @@ pub fn layouts(set: &crate::config::Settings) -> String {
 #[rustfmt::skip]
 pub const BINDS: &[Bind] = &[
     b("terminal", "shell", "Mod+T", "", r#"spawn "kitty";"#, "терминал", "Terminal", true),
-    b("launcher", "shell", "Mod+Space", NR, r#"spawn "yami-shell" "msg" "launcher";"#, "меню программ", "App launcher", true),
-    b("launcher-2", "shell", "Mod+D", NR, r#"spawn "yami-shell" "msg" "launcher";"#, "меню программ (второе)", "App launcher (second)", false),
-    // без yami-files — файловый менеджер по умолчанию (kdl подменяет действие)
-    b("files", "shell", "Mod+E", "", r#"spawn "yami-files";"#, "файлы", "Files", true),
-    b("clipboard", "shell", "Mod+V", NR, r#"spawn "yami-shell" "msg" "clipboard";"#, "буфер обмена", "Clipboard", true),
-    b("settings", "shell", "Mod+S", NR, r#"spawn "yami-shell" "msg" "settings";"#, "настройки шелла", "Shell settings", true),
+    b("launcher", "shell", "Mod+Space", NR, r#"spawn "nemo-shell" "msg" "launcher";"#, "меню программ", "App launcher", true),
+    b("launcher-2", "shell", "Mod+D", NR, r#"spawn "nemo-shell" "msg" "launcher";"#, "меню программ (второе)", "App launcher (second)", false),
+    // без nemo-files — файловый менеджер по умолчанию (kdl подменяет действие)
+    b("files", "shell", "Mod+E", "", r#"spawn "nemo-files";"#, "файлы", "Files", true),
+    b("clipboard", "shell", "Mod+V", NR, r#"spawn "nemo-shell" "msg" "clipboard";"#, "буфер обмена", "Clipboard", true),
+    b("settings", "shell", "Mod+S", NR, r#"spawn "nemo-shell" "msg" "settings";"#, "настройки шелла", "Shell settings", true),
     // без клавиши по умолчанию: назначается в настройках → клавиши, ничьё сочетание не занимает
-    b("walls", "shell", "", NR, r#"spawn "yami-shell" "msg" "walls";"#, "выбор обоев", "Wallpaper picker", true),
-    b("lock", "shell", "Mod+Escape", "repeat=false allow-when-locked=false", r#"spawn "yami-shell" "msg" "lock";"#, "заблокировать", "Lock screen", true),
-    b("power", "shell", "Mod+Shift+E", NR, r#"spawn "yami-shell" "msg" "power";"#, "меню питания", "Power menu", true),
-    b("power-2", "shell", "Ctrl+Alt+Delete", NR, r#"spawn "yami-shell" "msg" "power";"#, "меню питания (второе)", "Power menu (second)", false),
-    b("bar", "shell", "Mod+B", NR, r#"spawn "yami-shell" "msg" "bar";"#, "спрятать бар", "Toggle bar", true),
-    b("stacking", "shell", "Mod+Shift+Space", NR, r#"spawn "yami-shell" "msg" "stacking";"#, "режим: стол / лента", "Mode: desk / tiling", true),
-    b("minimize", "shell", "Mod+N", NR, r#"spawn "yami-shell" "msg" "minimize";"#, "свернуть окно", "Minimize window", true),
-    b("restore", "shell", "Mod+Shift+N", NR, r#"spawn "yami-shell" "msg" "restore";"#, "вернуть свёрнутое", "Restore last minimized", true),
+    b("walls", "shell", "", NR, r#"spawn "nemo-shell" "msg" "walls";"#, "выбор обоев", "Wallpaper picker", true),
+    b("lock", "shell", "Mod+Escape", "repeat=false allow-when-locked=false", r#"spawn "nemo-shell" "msg" "lock";"#, "заблокировать", "Lock screen", true),
+    b("power", "shell", "Mod+Shift+E", NR, r#"spawn "nemo-shell" "msg" "power";"#, "меню питания", "Power menu", true),
+    b("power-2", "shell", "Ctrl+Alt+Delete", NR, r#"spawn "nemo-shell" "msg" "power";"#, "меню питания (второе)", "Power menu (second)", false),
+    b("bar", "shell", "Mod+B", NR, r#"spawn "nemo-shell" "msg" "bar";"#, "спрятать бар", "Toggle bar", true),
+    b("stacking", "shell", "Mod+Shift+Space", NR, r#"spawn "nemo-shell" "msg" "stacking";"#, "режим: стол / лента", "Mode: desk / tiling", true),
+    b("minimize", "shell", "Mod+N", NR, r#"spawn "nemo-shell" "msg" "minimize";"#, "свернуть окно", "Minimize window", true),
+    b("restore", "shell", "Mod+Shift+N", NR, r#"spawn "nemo-shell" "msg" "restore";"#, "вернуть свёрнутое", "Restore last minimized", true),
     b("overview", "shell", "Mod+Tab", NR, "toggle-overview;", "обзор столов", "Overview", true),
-    b("cheat", "shell", "Mod+F1", NR, r#"spawn "yami-shell" "msg" "cheat";"#, "шпаргалка по клавишам", "Key cheat sheet", true),
+    b("cheat", "shell", "Mod+F1", NR, r#"spawn "nemo-shell" "msg" "cheat";"#, "шпаргалка по клавишам", "Key cheat sheet", true),
     b("hotkeys", "shell", "Mod+Shift+Slash", "", "show-hotkey-overlay;", "подсказка клавиш", "Show hotkeys", false),
 
     b("close", "windows", "Mod+Q", NR, "close-window;", "закрыть окно", "Close window", true),
@@ -268,19 +268,19 @@ pub const BINDS: &[Bind] = &[
     b("wheel-ws-down", "ws", "Mod+WheelScrollDown", "cooldown-ms=150", "focus-workspace-down;", "колёсико: стол ниже", "Wheel: workspace below", false),
     b("wheel-ws-up", "ws", "Mod+WheelScrollUp", "cooldown-ms=150", "focus-workspace-up;", "колёсико: стол выше", "Wheel: workspace above", false),
 
-    b("curtain", "shots", "Mod+Shift+H", NR, r#"spawn "yami-shell" "msg" "curtain";"#, "скрыть экран в трансляции", "Hide the screen from streams", true),
-    b("shot", "shots", "Print", NR, r#"spawn "yami-shell" "msg" "screenshot";"#, "скриншот", "Screenshot", true),
-    b("shot-2", "shots", "Mod+Shift+S", NR, r#"spawn "yami-shell" "msg" "screenshot";"#, "скриншот (второе)", "Screenshot (second)", false),
-    b("shot-screen", "shots", "Ctrl+Print", NR, r#"spawn "yami-shell" "msg" "screenshot" "screen";"#, "скриншот монитора", "Screenshot: monitor", true),
-    b("shot-window", "shots", "Alt+Print", NR, r#"spawn "yami-shell" "msg" "screenshot" "window";"#, "скриншот окна", "Screenshot: window", true),
+    b("curtain", "shots", "Mod+Shift+H", NR, r#"spawn "nemo-shell" "msg" "curtain";"#, "скрыть экран в трансляции", "Hide the screen from streams", true),
+    b("shot", "shots", "Print", NR, r#"spawn "nemo-shell" "msg" "screenshot";"#, "скриншот", "Screenshot", true),
+    b("shot-2", "shots", "Mod+Shift+S", NR, r#"spawn "nemo-shell" "msg" "screenshot";"#, "скриншот (второе)", "Screenshot (second)", false),
+    b("shot-screen", "shots", "Ctrl+Print", NR, r#"spawn "nemo-shell" "msg" "screenshot" "screen";"#, "скриншот монитора", "Screenshot: monitor", true),
+    b("shot-window", "shots", "Alt+Print", NR, r#"spawn "nemo-shell" "msg" "screenshot" "window";"#, "скриншот окна", "Screenshot: window", true),
 
     b("vol-up", "media", "XF86AudioRaiseVolume", LK, r#"spawn-sh "wpctl set-volume -l 1.5 @DEFAULT_AUDIO_SINK@ 5%+";"#, "громче", "Volume up", false),
     b("vol-down", "media", "XF86AudioLowerVolume", LK, r#"spawn-sh "wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%-";"#, "тише", "Volume down", false),
     b("mute", "media", "XF86AudioMute", LK, r#"spawn-sh "wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle";"#, "без звука", "Mute", false),
     b("mic-mute", "media", "XF86AudioMicMute", LK, r#"spawn-sh "wpctl set-mute @DEFAULT_AUDIO_SOURCE@ toggle";"#, "микрофон выкл / вкл", "Mute microphone", false),
-    b("play", "media", "XF86AudioPlay", LK, r#"spawn-sh "yami-shell msg media play-pause || playerctl play-pause";"#, "пауза / играть", "Play / pause", false),
-    b("next", "media", "XF86AudioNext", LK, r#"spawn-sh "yami-shell msg media next || playerctl next";"#, "следующий трек", "Next track", false),
-    b("prev", "media", "XF86AudioPrev", LK, r#"spawn-sh "yami-shell msg media previous || playerctl previous";"#, "предыдущий трек", "Previous track", false),
+    b("play", "media", "XF86AudioPlay", LK, r#"spawn-sh "nemo-shell msg media play-pause || playerctl play-pause";"#, "пауза / играть", "Play / pause", false),
+    b("next", "media", "XF86AudioNext", LK, r#"spawn-sh "nemo-shell msg media next || playerctl next";"#, "следующий трек", "Next track", false),
+    b("prev", "media", "XF86AudioPrev", LK, r#"spawn-sh "nemo-shell msg media previous || playerctl previous";"#, "предыдущий трек", "Previous track", false),
     b("bright-up", "media", "XF86MonBrightnessUp", LK, r#"spawn "brightnessctl" "set" "5%+";"#, "ярче", "Brightness up", false),
     b("bright-down", "media", "XF86MonBrightnessDown", LK, r#"spawn "brightnessctl" "set" "5%-";"#, "темнее", "Brightness down", false),
     b("monitors-off", "media", "Mod+Shift+P", "", "power-off-monitors;", "погасить мониторы", "Power off monitors", false),
@@ -349,8 +349,8 @@ pub fn kdl_str(s: &str) -> String {
 /// binds.kdl целиком
 pub fn kdl(set: &crate::config::Settings) -> String {
     let mut l = vec![
-        "// yami: keybindings and keyboard layouts, written by the shell (settings → keys). Rewritten on every change:".to_string(),
-        "// add your own in your niri config.kdl, after yami's include line: its keys win.".to_string(),
+        "// nemo: keybindings and keyboard layouts, written by the shell (settings → keys). Rewritten on every change:".to_string(),
+        "// add your own in your niri config.kdl, after nemo's include line: its keys win.".to_string(),
         "binds {".to_string(),
     ];
     let mut used: Vec<String> = vec![];
@@ -365,16 +365,16 @@ pub fn kdl(set: &crate::config::Settings) -> String {
             line += &format!(" {}", b.opts);
         }
         // на «столе» все окна плавают, а maximize-column их не трогает: там Mod+F разворачивает
-        // само окно до краёв (niri ≥ 25.11; ниже 26.04 yami не ставится)
+        // само окно до краёв (niri ≥ 25.11; ниже 26.04 nemo не ставится)
         let desk_max = set.stacking && b.id == "maximize";
         if b.overlay {
             let title = if desk_max { crate::tf!("развернуть окно", "Maximize window", "Maximizar janela") } else { title_of(b).to_string() };
             line += &format!(" hotkey-overlay-title={}", kdl_str(&title));
         }
-        // yami-files не выбран при установке: домашняя папка в файловом менеджере по умолчанию
+        // nemo-files не выбран при установке: домашняя папка в файловом менеджере по умолчанию
         let act = match b.id {
             _ if desk_max => "maximize-window-to-edges;",
-            "files" if !crate::proc::have("yami-files") => r#"spawn-sh "xdg-open ~";"#,
+            "files" if !crate::proc::have("nemo-files") => r#"spawn-sh "xdg-open ~";"#,
             _ => b.act,
         };
         line += &format!(" {{ {act} }}");

@@ -1,8 +1,8 @@
 // Модули из первой настройки: шелл запускает install.sh --apply со списком и читает его вывод
 // ([k/n] шаги, строки «! …» — почему не вышло). Пароль уходит только sudo и только через askpass:
-// на время установки есть личная папка 0700 с сокетом и ссылкой `yami-askpass` на наш бинарь, её
+// на время установки есть личная папка 0700 с сокетом и ссылкой `nemo-askpass` на наш бинарь, её
 // имя называется в SUDO_ASKPASS. Только запуск под этим именем отдаёт пароль: установщик зовёт
-// `yami-shell` десятки раз (recolor, stamp), и никакой из этих вызовов askpass'ом стать не может.
+// `nemo-shell` десятки раз (recolor, stamp), и никакой из этих вызовов askpass'ом стать не может.
 // Своей копии исходников нет — клонируется заново.
 
 use crate::app::Msg;
@@ -25,7 +25,7 @@ pub enum Ev {
 }
 
 /// имя ссылки на наш бинарь: под ним sudo запускает нас как askpass
-const ASKPASS_NAME: &str = "yami-askpass";
+const ASKPASS_NAME: &str = "nemo-askpass";
 const REPO: &str = "https://github.com/HamzaAkramv15/nemo.git";
 
 /// sudo запустил нас, чтобы узнать пароль: true — это он и был, больше ничего делать не надо
@@ -52,9 +52,9 @@ struct Askpass {
 
 impl Askpass {
     fn start(password: &str) -> Option<Askpass> {
-        let dir = yami_px::paths::private_tmp("yami-askpass").ok()?;
+        let dir = nemo_px::paths::private_tmp("nemo-askpass").ok()?;
         let a = Askpass { dir, pass: Arc::new(Mutex::new(password.to_string())), stop: Arc::new(AtomicBool::new(false)) };
-        std::os::unix::fs::symlink(yami_px::paths::self_exe(), a.program()).ok()?;
+        std::os::unix::fs::symlink(nemo_px::paths::self_exe(), a.program()).ok()?;
         let l = UnixListener::bind(a.dir.join("askpass")).ok()?;
         let (pass, stop) = (a.pass.clone(), a.stop.clone());
         std::thread::spawn(move || {
@@ -81,7 +81,7 @@ impl Drop for Askpass {
         // нить ждёт в accept: подключение её будит, и она видит stop
         let _ = UnixStream::connect(self.dir.join("askpass"));
         if let Ok(mut p) = self.pass.lock() {
-            yami_px::ui::wipe(&mut p);
+            nemo_px::ui::wipe(&mut p);
         }
         let _ = std::fs::remove_dir_all(&self.dir);
     }
@@ -89,11 +89,11 @@ impl Drop for Askpass {
 
 /// откуда ставить: папка первой установки (её записал установщик), иначе своя копия
 pub fn source_dir() -> PathBuf {
-    if let Some(d) = std::env::var_os("YAMI_SRC") {
+    if let Some(d) = nemo_px::paths::env_os("NEMO_SRC") {
         return PathBuf::from(d);
     }
-    let state = yami_px::paths::state_dir().join("source");
-    std::fs::read_to_string(state).ok().map(|s| PathBuf::from(s.trim())).filter(|p| p.join("install.sh").exists()).unwrap_or_else(|| yami_px::paths::data_dir().join("yami/src"))
+    let state = nemo_px::paths::state_dir().join("source");
+    std::fs::read_to_string(state).ok().map(|s| PathBuf::from(s.trim())).filter(|p| p.join("install.sh").exists()).unwrap_or_else(|| nemo_px::paths::data_dir().join("nemo/src"))
 }
 
 /// ставить есть чем: исходники на месте или git, чтобы их взять
@@ -159,7 +159,7 @@ pub fn start(modules: Vec<String>, lang: String, mut password: String, tx: callo
             }
         } else {
             let got = Askpass::start(&password);
-            yami_px::ui::wipe(&mut password);
+            nemo_px::ui::wipe(&mut password);
             let Some(a) = got else { return send(Ev::Done(Err("askpass".into()))) };
             let check = Command::new("sudo").args(["-k", "-A", "true"]).env("SUDO_ASKPASS", a.program()).stdin(Stdio::null()).stdout(Stdio::null()).stderr(Stdio::null()).status();
             if !check.is_ok_and(|s| s.success()) {
@@ -193,7 +193,7 @@ pub fn start(modules: Vec<String>, lang: String, mut password: String, tx: callo
         }
         let st = child.wait();
         drop(secret);
-        let log = yami_px::paths::pretty(&yami_px::paths::cache_dir().join("yami/install.log"));
+        let log = nemo_px::paths::pretty(&nemo_px::paths::cache_dir().join("nemo/install.log"));
         send(Ev::Done(match st {
             Ok(s) if s.success() => Ok(()),
             Ok(_) => {
@@ -209,8 +209,8 @@ pub fn start(modules: Vec<String>, lang: String, mut password: String, tx: callo
 mod tests {
     #[test]
     fn steps_and_lines() {
-        assert_eq!(super::step_of("[3/8] yami-files"), Some((3, 8, "yami-files".into())));
-        assert_eq!(super::step_of("Compiling yami-px"), None);
+        assert_eq!(super::step_of("[3/8] nemo-files"), Some((3, 8, "nemo-files".into())));
+        assert_eq!(super::step_of("Compiling nemo-px"), None);
     }
 
     /// пароль отдаёт только запуск под именем ссылки, и всё исчезает вместе с установкой

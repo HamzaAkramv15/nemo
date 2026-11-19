@@ -1,5 +1,5 @@
 #!/bin/sh
-# yami-script: average CPU clock across the cores
+# nemo-script: average CPU clock across the cores
 t=$(cat /sys/devices/system/cpu/cpu[0-9]*/cpufreq/scaling_cur_freq 2>/dev/null | awk '{ s += $1; n++ } END { if (n) printf "%.2f", s / n / 1000000 }')
 if [ -z "$t" ]; then printf '{"text":"? GHz","icon":"cpu","color":"dim","interval":60}\n'; exit 0; fi
 printf '{"text":"%s GHz","icon":"cpu","color":"text","interval":3}\n' "$t"

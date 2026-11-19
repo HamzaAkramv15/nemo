@@ -1,12 +1,12 @@
-// yami-agents — службы рабочего стола одним фоновым процессом: окно пароля polkit и зашифрованных
+// nemo-agents — службы рабочего стола одним фоновым процессом: окно пароля polkit и зашифрованных
 // дисков, окно «что показать» и бэкенд показа экрана, автоподключение флешек и телефонов. Каждая
-// часть выключается отдельно (agents.json). От шелла yami не зависит. Показ экрана нужен niri.
+// часть выключается отдельно (agents.json). От шелла nemo не зависит. Показ экрана нужен niri.
 //
-//   yami-agents                         запустить (второй экземпляр сразу выходит)
-//   yami-agents status                  что включено и кто сейчас делает работу
-//   yami-agents enable|disable ЧАСТЬ    polkit screencast automount automount-open
-//   yami-agents --reload                перечитать настройки и перейти на новый бинарь
-//   yami-agents shot [-o ПАПКА]         окна в PNG без Wayland
+//   nemo-agents                         запустить (второй экземпляр сразу выходит)
+//   nemo-agents status                  что включено и кто сейчас делает работу
+//   nemo-agents enable|disable ЧАСТЬ    polkit screencast automount automount-open
+//   nemo-agents --reload                перечитать настройки и перейти на новый бинарь
+//   nemo-agents shot [-o ПАПКА]         окна в PNG без Wayland
 
 mod setup;
 mod app;
@@ -20,24 +20,25 @@ mod screen;
 mod screencast;
 
 use std::path::PathBuf;
-use yami_px::{font, gfx, icons, look, paths};
+use nemo_px::{font, gfx, icons, look, paths};
 
-const HELP: &str = "yami-agents                       run (a second instance exits)
-yami-agents status                what is on, who does the job now
-yami-agents enable|disable PART   polkit screencast automount automount-open
-yami-agents --reload              reread the settings, move to a new binary
-yami-agents install|uninstall|deps
-yami-agents shot [-o DIR] [--lang en]
+const HELP: &str = "nemo-agents                       run (a second instance exits)
+nemo-agents status                what is on, who does the job now
+nemo-agents enable|disable PART   polkit screencast automount automount-open
+nemo-agents --reload              reread the settings, move to a new binary
+nemo-agents install|uninstall|deps
+nemo-agents shot [-o DIR] [--lang en]
 
-settings: ~/.config/yami/agents.json, look: ~/.config/yami/style.json and style.agents.json";
+settings: ~/.config/nemo/agents.json, look: ~/.config/nemo/style.json and style.agents.json";
 
 fn main() {
+    nemo_px::paths::migrate_legacy();
     let args: Vec<String> = std::env::args().skip(1).collect();
-    if let Some(c) = yami_px::install::dispatch(&setup::SPEC, &args) {
+    if let Some(c) = nemo_px::install::dispatch(&setup::SPEC, &args) {
         std::process::exit(c);
     }
     match args.first().map(String::as_str) {
-        Some("--version") => return println!("yami-agents {}", env!("CARGO_PKG_VERSION")),
+        Some("--version") => return println!("nemo-agents {}", env!("CARGO_PKG_VERSION")),
         Some("-h") | Some("--help") => return println!("{HELP}"),
         Some("--reload") => std::process::exit(reload::signal()),
         Some("status") => std::process::exit(status()),
@@ -45,7 +46,7 @@ fn main() {
         Some(w @ ("enable" | "disable")) => std::process::exit(switch(w == "enable", args.get(1).map(String::as_str))),
         None => {}
         Some(other) => {
-            eprintln!("yami-agents: unknown command: {other}\n{HELP}");
+            eprintln!("nemo-agents: unknown command: {other}\n{HELP}");
             std::process::exit(2);
         }
     }
@@ -60,7 +61,7 @@ fn main() {
 fn switch(on: bool, part: Option<&str>) -> i32 {
     let mut c = cfg::Cfg::load();
     let Some(slot) = part.and_then(|p| c.slot(p)) else {
-        eprintln!("yami-agents: polkit, screencast, automount or automount-open");
+        eprintln!("nemo-agents: polkit, screencast, automount or automount-open");
         return 2;
     };
     *slot = on;
@@ -80,7 +81,7 @@ fn status() -> i32 {
     let c = cfg::Cfg::load();
     let line = |name: &str, on: bool, who: String| println!("{name:<12} {:<4} {who}", if on { "on" } else { "off" });
     let running = reload::running_pid();
-    let me = if running.is_some() { "yami-agents is running" } else { "yami-agents is not running" };
+    let me = if running.is_some() { "nemo-agents is running" } else { "nemo-agents is not running" };
     line("polkit", c.polkit, me.into());
     let portal = zbus::blocking::Connection::session().ok().and_then(|b| owner(&b, screencast::NAME));
     line("screencast", c.screencast, portal.map_or("no portal backend on the bus".to_string(), |o| format!("portal backend {o}")));
@@ -107,7 +108,7 @@ fn shot(args: &[String]) -> i32 {
         look.lang = lang.clone();
     }
     i18n::set(&look.lang);
-    i18n::audit(!matches!(yami_px::i18n::normalize(&lang), "" | "ru"));
+    i18n::audit(!matches!(nemo_px::i18n::normalize(&lang), "" | "ru"));
     let _ = std::fs::create_dir_all(&out);
     let mut fonts = font::Fonts::with(look.font("agents"));
     let mut ic = icons::Icons::new("");
@@ -117,7 +118,7 @@ fn shot(args: &[String]) -> i32 {
     for name in ["auth", "pick"] {
         let (w, h) = if name == "auth" { polkit::SIZE } else { screen::size(&pick) };
         let mut buf = vec![0u32; (w * h) as usize];
-        let mut ui = yami_px::ui::Ui { cv: gfx::Canvas::new(&mut buf, w, h), f: &mut fonts, ic: &mut ic, t: look.theme, zones: vec![], ptr: None, down: false, anim: false, blink: false, tr: i18n::tr };
+        let mut ui = nemo_px::ui::Ui { cv: gfx::Canvas::new(&mut buf, w, h), f: &mut fonts, ic: &mut ic, t: look.theme, zones: vec![], ptr: None, down: false, anim: false, blink: false, tr: i18n::tr };
         if name == "auth" {
             polkit::draw(&mut ui, &reqs, w, h);
         } else {

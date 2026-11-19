@@ -115,7 +115,7 @@ pub fn text(st: &State, key: &str) -> Option<Vec<String>> {
         }
         "clock" => {
             let now = crate::clock::local_now();
-            let mut v = vec![yami_px::i18n::long_date(crate::i18n::tr(crate::clock::RU_DAY_FULL[now.wday as usize]), now.day, (now.mon - 1) as usize, crate::i18n::tr(crate::clock::RU_MON[(now.mon - 1) as usize]))];
+            let mut v = vec![nemo_px::i18n::long_date(crate::i18n::tr(crate::clock::RU_DAY_FULL[now.wday as usize]), now.day, (now.mon - 1) as usize, crate::i18n::tr(crate::clock::RU_MON[(now.mon - 1) as usize]))];
             if st.set.hijri {
                 let days = crate::widgets::days_from_civil(now.year, now.mon, now.day);
                 v.push(crate::hijri::text(days, crate::i18n::code() == "ar"));

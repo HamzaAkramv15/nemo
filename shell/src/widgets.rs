@@ -1,7 +1,7 @@
 // Виджеты рабочего стола: свой слой bottom (над обоями, под окнами). Каждый — со своими
 // настройками (вид графика, анимация, размер, цвет, подложка…): ПКМ по виджету или
 // настройки → виджеты. В режиме расстановки таскаются мышью: видимая часть липнет к краям монитора,
-// кресту посередине, барам, соседям и сетке GRID (snap, из yami-lite; с Shift — свободно), сетка — своя
+// кресту посередине, барам, соседям и сетке GRID (snap, из nemo-lite; с Shift — свободно), сетка — своя
 // поверхность под ними (SKind::EditGrid, draw_grid).
 
 use crate::app::{App, SKind, State};
@@ -94,7 +94,7 @@ pub fn widget_menu(w: &Widget) -> Vec<MItem> {
             items.push(MItem::sub(&crate::tf!("эквалайзер: {}", "equalizer: {}", "equalizador: {}", crate::i18n::tr(name_of(STYLES, &w.style))), "music", pick("style", STYLES, &w.style)));
         }
         "script" => {
-            // скрипты — те же, что модули бара: ~/.config/yami/scripts
+            // скрипты — те же, что модули бара: ~/.config/nemo/scripts
             let names: Vec<MItem> = crate::plugins::scripts().into_iter().map(|n| MItem::new(&n, "", MAct::Widget(id, "source", n.clone())).check(n == w.source)).collect();
             if !names.is_empty() {
                 items.push(MItem::sub(&crate::tf!("скрипт: {}", "script: {}", "script: {}", if w.source.is_empty() { "—" } else { &w.source }), "term", names));
@@ -189,7 +189,7 @@ fn bt(ui: &mut Ui, st: &State, w: &Widget, r: R, c: C) {
     }
 }
 
-/// вывод скрипта из ~/.config/yami/scripts на столе: значок и строки текста (как модуль бара,
+/// вывод скрипта из ~/.config/nemo/scripts на столе: значок и строки текста (как модуль бара,
 /// «\n» в JSON-поле text — новая строка); click — по щелчку
 fn script(ui: &mut Ui, st: &State, w: &Widget, r: R, c: C) {
     let t = ui.t;
@@ -453,7 +453,7 @@ fn draw_widget(ui: &mut Ui, st: &State, w: &Widget, sw: i32, sh: i32) {
             }
             let mut yy = y + ui.f.line(face) + 6;
             if w.date {
-                let s = yami_px::i18n::long_date(crate::i18n::tr(RU_DAY_FULL[tm.wday as usize]), tm.day as u32, (tm.mon - 1) as usize, crate::i18n::tr(RU_MON[(tm.mon - 1) as usize]));
+                let s = nemo_px::i18n::long_date(crate::i18n::tr(RU_DAY_FULL[tm.wday as usize]), tm.day as u32, (tm.mon - 1) as usize, crate::i18n::tr(RU_MON[(tm.mon - 1) as usize]));
                 ui.text(PX, pad, yy, &s, t.text_dim);
                 yy += 24;
             }
@@ -750,7 +750,7 @@ pub fn draw_editbar(ui: &mut Ui, _st: &State, w: i32, _h: i32) {
     ui.text_in(PX, R::new(34, 0, x - 40, 40), "тащи: липнет к сетке и соседям, Shift — свободно", t.text);
 }
 
-/// шаг сетки расстановки, px; линии идут от креста посередине монитора (из yami-lite)
+/// шаг сетки расстановки, px; линии идут от креста посередине монитора (из nemo-lite)
 pub const GRID: i32 = 32;
 /// откуда притягивают края монитора, крест, бары и соседи; сетка — слабее
 const MAGNET: i32 = 12;
@@ -902,7 +902,7 @@ impl App {
             let sid = have.iter().find(|(_, id)| *id == w.id).map(|(s, _)| *s);
             match sid {
                 None => {
-                    let s = self.mk(SKind::Widget(w.id), &out, if raised { Layer::Top } else { Layer::Bottom }, "yami-widget", Anchor::TOP | Anchor::LEFT, (ww, wh), (y, 0, 0, x), -1, KeyboardInteractivity::None);
+                    let s = self.mk(SKind::Widget(w.id), &out, if raised { Layer::Top } else { Layer::Bottom }, "nemo-widget", Anchor::TOP | Anchor::LEFT, (ww, wh), (y, 0, 0, x), -1, KeyboardInteractivity::None);
                     if let Some(s) = self.surfs.get_mut(&s) {
                         s.margin = (x, y);
                         s.applied = (x, y);
@@ -943,14 +943,14 @@ impl App {
             let out = self.focus_out();
             if self.find(&SKind::EditGrid).is_empty() {
                 // над обоями, под окнами и под поднятыми виджетами; мышь проходит насквозь
-                let id = self.mk(SKind::EditGrid, &out, Layer::Bottom, "yami-grid", Anchor::all(), (0, 0), (0, 0, 0, 0), -1, KeyboardInteractivity::None);
+                let id = self.mk(SKind::EditGrid, &out, Layer::Bottom, "nemo-grid", Anchor::all(), (0, 0), (0, 0, 0, 0), -1, KeyboardInteractivity::None);
                 if let Some(s) = self.surfs.get_mut(&id) {
                     s.input = Some(vec![]);
                 }
             }
             if self.find(&SKind::EditBar).is_empty() {
                 let top = self.bar_bottom(&out) + 12;
-                self.mk(SKind::EditBar, &out, Layer::Overlay, "yami-menu", Anchor::TOP, (EDITBAR_W, 52), (top, 0, 0, 0), -1, KeyboardInteractivity::Exclusive);
+                self.mk(SKind::EditBar, &out, Layer::Overlay, "nemo-menu", Anchor::TOP, (EDITBAR_W, 52), (top, 0, 0, 0), -1, KeyboardInteractivity::Exclusive);
             }
         } else {
             self.close_kind(&SKind::EditBar);

@@ -6,10 +6,10 @@
 
 # niri — the compositor; base — what the shell and the session use at runtime (git and ssh-keygen:
 # sources and their signatures); build — to compile the shell; apps — the terminal and the everyday
-# tools, with the base; drives — udisks2 and gvfs (drives, phones, network shares), with yami-files or
-# the shell (its automount, yami-agents); files — yami-files' thumbnails and archives; play — libmpv for yami-play; shot — text
+# tools, with the base; drives — udisks2 and gvfs (drives, phones, network shares), with nemo-files or
+# the shell (its automount, nemo-agents); files — nemo-files' thumbnails and archives; play — libmpv for nemo-play; shot — text
 # and QR from screenshots; look — the Qt/GTK theme; games — GameMode, MangoHud; login — greetd for
-# yami-greet (agreety: the text fallback); nirisrc — to build niri itself (and xwayland-satellite with it:
+# nemo-greet (agreety: the text fallback); nirisrc — to build niri itself (and xwayland-satellite with it:
 # a distribution without a recent niri usually lacks it too; families whose names are not checked yet leave it out:
 # checked on Arch, Fedora and Debian)
 packages_for_family() {
@@ -160,7 +160,7 @@ wanted_packages() {
   on look && printf '%s\n' "${P_look[@]}"
   on games && printf '%s\n' "${P_games[@]}"
   on login && printf '%s\n' "${P_login[@]}"
-  # niri's build libraries: for yami-niri, or for upstream niri when the packaged one is too old
+  # niri's build libraries: for nemo-niri, or for upstream niri when the packaged one is too old
   if on fork || { ((!APPLY)) && on core && ! niri_will_do && ((!DRY)); }; then printf '%s\n' "${P_nirisrc[@]}"; fi
   return 0
 }
@@ -234,7 +234,7 @@ pkgs() {
 
 # ── packages the chosen components want but the system lacks ───────────────
 # An update runs without sudo: it cannot install what a new version needs (night light, OCR,
-# GameMode…). It writes the package manager and the names to $STATE/packages-needed; `yami doctor`
+# GameMode…). It writes the package manager and the names to $STATE/packages-needed; `nemo doctor`
 # and settings → updates show one command and run it in a terminal (the password stays there).
 # Only names the repositories have: one that is not packaged here is no use in the command.
 pkg_has() {

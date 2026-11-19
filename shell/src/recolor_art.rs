@@ -1,5 +1,5 @@
 // Картинки перекраски (recolor.rs): обои шелла (свечение акцента дизерингом Байера и редкая точечная
-// сетка), рамки и флажки для Qt, пиксельный курсор XCursor в палитре, значки программ yami, 闇 для
+// сетка), рамки и флажки для Qt, пиксельный курсор XCursor в палитре, значки программ nemo, 闇 для
 // fastfetch. Всё считается из палитры, ничего не скачивается.
 
 use crate::recolor::*;
@@ -228,31 +228,31 @@ pub fn cursor_theme(p: &P, d: &Path, name: &str) -> Res {
             }
         }
     }
-    write(&d.join("index.theme"), &format!("[Icon Theme]\nName={name}\nComment=yami pixel cursor ({})\nInherits=Adwaita\n", p.g("accent")))
+    write(&d.join("index.theme"), &format!("[Icon Theme]\nName={name}\nComment=nemo pixel cursor ({})\nInherits=Adwaita\n", p.g("accent")))
 }
 
-/// тема yami-<акцент>, niri и программы переключаются на неё (~/.config/yami/niri/cursor.kdl). В
+/// тема nemo-<акцент>, niri и программы переключаются на неё (~/.config/nemo/niri/cursor.kdl). В
 /// настройках: пиксельный, любой установленный набор или «не трогать», размер
 pub fn cursor(cx: &Cx, p: &P) -> Res {
     let kind = match cx.s("cursor") {
-        "" => "yami",
+        "" => "nemo",
         k => k,
     };
     let size = cx.n("cursorSize");
     let icons = cx.data.join("icons");
-    let kdl = cx.cfg.join("yami/niri/cursor.kdl");
+    let kdl = cx.cfg.join("nemo/niri/cursor.kdl");
     if kind == "system" {
         if kdl.exists() {
             std::fs::remove_file(&kdl)?;
         }
         return Ok(());
     }
-    let name = if kind != "yami" && cx.icon_dir(kind, true).is_some() {
+    let name = if kind != "nemo" && cx.icon_dir(kind, true).is_some() {
         // свой набор курсоров: как есть, только размер
         kind.to_string()
     } else {
         // имя меняется с цветом и темой: niri перечитывает курсор, только когда сменилось имя
-        let n = format!("yami-{}{}", p.g("accent").trim_start_matches('#').to_lowercase(), if p.light() { "-l" } else { "" });
+        let n = format!("nemo-{}{}", p.g("accent").trim_start_matches('#').to_lowercase(), if p.light() { "-l" } else { "" });
         cursor_theme(p, &icons.join(&n), &n)?;
         n
     };
@@ -265,7 +265,7 @@ pub fn cursor(cx: &Cx, p: &P) -> Res {
             }
         }
     }
-    write(&kdl, &format!("// yami: written by {WHO} (shell settings → look → cursor)\ncursor {{\n    xcursor-theme \"{name}\"\n    xcursor-size {size}\n}}\nenvironment {{\n    XCURSOR_THEME \"{name}\"\n    XCURSOR_SIZE \"{size}\"\n}}\n"))?;
+    write(&kdl, &format!("// nemo: written by {WHO} (shell settings → look → cursor)\ncursor {{\n    xcursor-theme \"{name}\"\n    xcursor-size {size}\n}}\nenvironment {{\n    XCURSOR_THEME \"{name}\"\n    XCURSOR_SIZE \"{size}\"\n}}\n"))?;
     // X11-программам (xwayland-satellite) — тема по умолчанию
     write(&icons.join("default/index.theme"), &format!("[Icon Theme]\nName=default\nInherits={name}\n"))?;
     for v in ["3.0", "4.0"] {
@@ -282,15 +282,15 @@ pub fn cursor(cx: &Cx, p: &P) -> Res {
     Ok(())
 }
 
-/// yami-<шесть цифр>[-l]: так мы называем свои темы курсора
+/// nemo-<шесть цифр>[-l]: так мы называем свои темы курсора
 fn is_old_cursor(n: &str) -> bool {
-    let Some(rest) = n.strip_prefix("yami-") else { return false };
+    let Some(rest) = n.strip_prefix("nemo-") else { return false };
     let hex = rest.strip_suffix("-l").unwrap_or(rest);
     hex.len() == 6 && hex.bytes().all(|b| b.is_ascii_digit() || (b'a'..=b'f').contains(&b))
 }
 
 // ── значки программ и 闇 ─────────────────────────────────────────────────────
-/// значки yami-files, yami-view и yami-play в цветах палитры (SVG клетками, crispEdges)
+/// значки nemo-files, nemo-view и nemo-play в цветах палитры (SVG клетками, crispEdges)
 pub fn app_icons(cx: &Cx, p: &P) -> Res {
     let shade = mix(p.g("bg"), "#000000", 0.55);
     let pal = [('o', shade.as_str()), ('d', p.g("deep")), ('a', p.g("accent")), ('b', p.g("bright")), ('w', p.g("onAccent"))];
@@ -327,7 +327,7 @@ pub fn fish_logo(p: &P) -> String {
     let (r, g, b) = c("accent");
     // 22 столбца, 14 пикселей по высоте: 7 строк рядом со строками fastfetch
     let (w, h) = (22, 14);
-    let m = yami_px::brand::mask(w, h);
+    let m = nemo_px::brand::mask(w, h);
     let on = |x: i32, y: i32| y >= 0 && y < h && m[(y * w + x) as usize] >= 110;
     let mut rows = vec![];
     for y in (0..h).step_by(2) {
@@ -350,7 +350,7 @@ pub fn fish_logo(p: &P) -> String {
 pub fn fish_png(p: &P) -> Vec<u8> {
     let (r, g, b) = rgb(p.g("accent"));
     let (w, h) = (320u32, 200u32);
-    let m = yami_px::brand::mask(w as i32, h as i32);
+    let m = nemo_px::brand::mask(w as i32, h as i32);
     let mut img = RgbaImage::new(w, h);
     for (i, a) in m.iter().enumerate() {
         img.put_pixel(i as u32 % w, i as u32 / w, Rgba([r as u8, g as u8, b as u8, *a]));
@@ -373,8 +373,8 @@ mod tests {
 
     #[test]
     fn own_cursor_names() {
-        assert!(is_old_cursor("yami-c4161c"));
-        assert!(is_old_cursor("yami-c4161c-l"));
-        assert!(!is_old_cursor("yami-cursor"));
+        assert!(is_old_cursor("nemo-c4161c"));
+        assert!(is_old_cursor("nemo-c4161c-l"));
+        assert!(!is_old_cursor("nemo-cursor"));
     }
 }

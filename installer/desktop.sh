@@ -41,7 +41,7 @@ plan_record() {
 
 # ── fonts ───────────────────────────────────────────────────────────────────
 do_fonts() {
-  local dir="$HOME/.local/share/fonts/yami"
+  local dir="$HOME/.local/share/fonts/nemo"
   install -Dm644 -t "$dir" "$ROOT"/fonts/*.ttf "$ROOT"/fonts/OFL-*.txt || return 1
   # Monocraft is 31 MB, the terminal's default font: --no-monocraft leaves it out (a marker keeps
   # updates from bringing it back), recolor then picks Terminess
@@ -61,31 +61,31 @@ do_fonts() {
   fi
   # crisp text in GTK and Qt apps (greyscale smoothing, pixel fonts at their own sizes): with them only
   if t_any gtk qt; then
-    install -Dm644 "$ROOT/config/fontconfig/50-yami-pixel.conf" "$CFG/fontconfig/conf.d/50-yami-pixel.conf"
+    install -Dm644 "$ROOT/config/fontconfig/50-nemo-pixel.conf" "$CFG/fontconfig/conf.d/50-nemo-pixel.conf"
   else
-    rm -f -- "$CFG/fontconfig/conf.d/50-yami-pixel.conf"
+    rm -f -- "$CFG/fontconfig/conf.d/50-nemo-pixel.conf"
   fi
   fc-cache -f "$dir"
 }
 
 # ── niri config ─────────────────────────────────────────────────────────────
-# niri's config stays the person's: yami's part lives in ~/.config/yami/niri and comes in through one
+# niri's config stays the person's: nemo's part lives in ~/.config/nemo/niri and comes in through one
 # include line at the top of config.kdl (everything below it wins). No config yet, or niri's own
-# starting one: yami's starting config instead, the old file kept next to it. niri validates the
+# starting one: nemo's starting config instead, the old file kept next to it. niri validates the
 # result, and a config it rejects is put back as it was (niricfg.rs)
 do_niri_config() {
   local how=(); ((UPDATE || REPAIR)) && how=(--unless-off)
-  "$BIN/yami-shell" niri connect "${how[@]}" || return 1
-  # niri spawns `yami-shell` by name: make ~/.local/bin visible to the systemd session.
+  "$BIN/nemo-shell" niri connect "${how[@]}" || return 1
+  # niri spawns `nemo-shell` by name: make ~/.local/bin visible to the systemd session.
   # environment.d alone is not enough: niri-session imports the login shell's PATH over it (bash on
   # Arch has no ~/.local/bin, fish on CachyOS adds it), so niri.service puts it back right before niri
   # starts; the manager's environment changed in ExecStartPre is what ExecStart gets
   if ((SYSTEMD)); then
     mkdir -p "$CFG/environment.d" "$CFG/systemd/user/niri.service.d"
-    printf '# YAMI: the shell lives in ~/.local/bin\nPATH=${HOME}/.local/bin:${PATH}\n' >"$CFG/environment.d/60-yami-path.conf"
-    printf '%s\n' "# yami: ~/.local/bin in niri's PATH even when niri-session imported a PATH without it" "[Service]" \
+    printf '# NEMO: the shell lives in ~/.local/bin\nPATH=${HOME}/.local/bin:${PATH}\n' >"$CFG/environment.d/60-nemo-path.conf"
+    printf '%s\n' "# nemo: ~/.local/bin in niri's PATH even when niri-session imported a PATH without it" "[Service]" \
       "ExecStartPre=/bin/sh -c 'case \":\$PATH:\" in *\":\$HOME/.local/bin:\"*) ;; *) systemctl --user set-environment PATH=\"\$HOME/.local/bin:\$PATH\";; esac'" \
-      >"$CFG/systemd/user/niri.service.d/60-yami-path.conf"
+      >"$CFG/systemd/user/niri.service.d/60-nemo-path.conf"
     systemctl --user daemon-reload 2>/dev/null
   fi
 }
@@ -98,46 +98,46 @@ do_dotfiles() {
   local fe="" th=""
   ((FETCH_SET)) && fe="${FETCH_ID[$fetch]}"
   ((THEME_SET)) && th="${THEME_ID[$theme]}"
-  "$BIN/yami-shell" config seed palette="${PAL_ID[$pal]}" accent= lang="$L" \
+  "$BIN/nemo-shell" config seed palette="${PAL_ID[$pal]}" accent= lang="$L" \
     fontUi="$([[ ${FONT_ID[$font]} == pixel ]] || echo sans)" ${fe:+fetchFull="$([[ $fe == full ]] && echo true || echo false)"} \
     ${th:+light="$([[ $th == light ]] && echo true || echo false)"} ${lk:+look="$lk"} || return 1
   # what to restyle (themeApps, the cursor): recolor below and every later run keep to it
   restyle_json || return 1
   # kitty: our file next to kitty.conf and one include line at its end; the rest of kitty.conf is yours
   if t_on kitty; then
-    install -Dm644 "$ROOT/config/kitty/yami.conf" "$CFG/kitty/yami.conf"
+    install -Dm644 "$ROOT/config/kitty/nemo.conf" "$CFG/kitty/nemo.conf"
     touch "$CFG/kitty/kitty.conf"
-    grep -qx 'include yami.conf' "$CFG/kitty/kitty.conf" ||
-      printf '\n# YAMI: settings → color → apps → kitty off takes this line out\ninclude yami.conf\n' >>"$CFG/kitty/kitty.conf"
+    grep -qx 'include nemo.conf' "$CFG/kitty/kitty.conf" ||
+      printf '\n# NEMO: settings → color → apps → kitty off takes this line out\ninclude nemo.conf\n' >>"$CFG/kitty/kitty.conf"
   fi
   # wallpaper, niri borders and what is chosen to restyle (kitty, fastfetch, GTK, Qt, the cursor…)
   local lt=()
   ((theme == 1)) && lt=(--light)
-  "$BIN/yami-shell" recolor --accent "#${PAL_HEX[$pal]}" "${lt[@]}"
+  "$BIN/nemo-shell" recolor --accent "#${PAL_HEX[$pal]}" "${lt[@]}"
   # a weak or virtual machine (old laptop, VM, no GPU acceleration) starts in lite mode: no blur,
   # no animations; settings → look turns it off. A file that already says `lite` is left alone
-  "$BIN/yami-shell" config lite-auto
-  # yami's part of niri (keys, window rules, its look), before the first login; the shell keeps it current
-  "$BIN/yami-shell" niri write || return 1
+  "$BIN/nemo-shell" config lite-auto
+  # nemo's part of niri (keys, window rules, its look), before the first login; the shell keeps it current
+  "$BIN/nemo-shell" niri write || return 1
 }
 
 # the first Qt/GTK setup, only for the ones chosen to restyle
-do_look() { YAMI_RESTYLE="$(t_list)" YAMI_BIN="$BIN/yami-shell" "$ROOT/tools/apply-theme.sh"; }
+do_look() { NEMO_RESTYLE="$(t_list)" NEMO_BIN="$BIN/nemo-shell" "$ROOT/tools/apply-theme.sh"; }
 
 # update: everything generated from the palette again (new recolor outputs), settings untouched
 do_refresh() {
   # an older settings file (appThemes) gets themeApps; a --restyle flag lands here too
   restyle_json || return 1
-  "$BIN/yami-shell" recolor || return 1
-  "$BIN/yami-shell" niri write || return 1
+  "$BIN/nemo-shell" recolor || return 1
+  "$BIN/nemo-shell" niri write || return 1
 }
 
 # the install counter: one GET of a one-line file at a fixed address, once per machine, only after a
 # finished install. GitHub counts downloads of release files; the request says nothing about the machine
 # (no id, no version, a fixed User-Agent) and the answer is thrown away. It runs in the background and
-# can neither delay nor fail anything. --no-count, YAMI_NO_COUNT=1, DO_NOT_TRACK=1 or CI: no request at all
-COUNT_URL="${YAMI_COUNT_URL:-https://github.com/HamzaAkramv15/nemo/releases/download/installs/nemo-installs.txt}"
-count_wanted() { ((COUNT && !DRY)) && [[ -z ${YAMI_NO_COUNT:-} && -z ${DO_NOT_TRACK:-} && -z ${CI:-} && ! -e $STATE/counted ]] && command -v curl >/dev/null; }
+# can neither delay nor fail anything. --no-count, NEMO_NO_COUNT=1, DO_NOT_TRACK=1 or CI: no request at all
+COUNT_URL="${NEMO_COUNT_URL:-https://github.com/HamzaAkramv15/nemo/releases/download/installs/nemo-installs.txt}"
+count_wanted() { ((COUNT && !DRY)) && [[ -z ${NEMO_NO_COUNT:-} && -z ${DO_NOT_TRACK:-} && -z ${CI:-} && ! -e $STATE/counted ]] && command -v curl >/dev/null; }
 do_count() {
   count_wanted || return 99
   local mark="$STATE/counted"
@@ -151,7 +151,7 @@ do_stamp() {
   # the choice, not what this run could do: an update without sudo skips root components, the
   # choice itself stays (a component added in this version comes in at its default)
   for i in "${!C_ID[@]}"; do ((C_WANT[i])) && c+="${C_ID[$i]} "; done
-  "$BIN/yami-shell" update stamp "$ROOT" --components "${c% }" || return 1
+  "$BIN/nemo-shell" update stamp "$ROOT" --components "${c% }" || return 1
   printf '%s\n' "${C_ID[*]}" >"$KNOWN_F"
   # откуда ставить модули потом (первая настройка); первый вход откроет её
   printf '%s\n' "$ROOT" >"$STATE/source"
@@ -183,37 +183,38 @@ game_focused() {
 }
 do_restart_shell() {
   if game_focused; then
-    echo "a game has focus: the shell restarts at the next login (or: yami restart)"
+    echo "a game has focus: the shell restarts at the next login (or: nemo restart)"
     return 99
   fi
+  legacy_stop
   pkill -x qs 2>/dev/null
   # the shell is the polkit agent now: a running Qt/GTK agent would keep the session's slot
   pkill -x polkit-kde-auth 2>/dev/null
   pkill -x polkit-gnome-au 2>/dev/null
   # alive = answers on its socket. Not pgrep: `nemo update apply` runs as a process named
-  # yami-shell too, and the shell would look alive while it is already gone
-  if "$BIN/yami-shell" msg ping >/dev/null 2>&1; then
+  # nemo-shell too, and the shell would look alive while it is already gone
+  if "$BIN/nemo-shell" msg ping >/dev/null 2>&1; then
     # exec of the new binary in place: same process, niri's autostart loop stays; the new one
     # binds its socket anew, so wait for another inode before trusting a ping
     local ino
     ino="$(shell_sock_ino)"
-    "$BIN/yami-shell" msg restart >/dev/null 2>&1
+    "$BIN/nemo-shell" msg restart >/dev/null 2>&1
     shell_up "$ino" && return 0
   fi
   # no shell, or it did not come back: start one in niri's loop (a second copy exits by itself).
   # The path goes into a line `sh` reads: quoted, so a home folder with a space or a quote still works
   local sh_bin="${BIN//\'/\'\\\'\'}"
-  niri msg action spawn-sh -- "until '$sh_bin/yami-shell'; do sleep 1; done" >/dev/null || return 1
-  shell_up || { echo "the shell did not start: run yami run in a terminal to see why"; return 1; }
+  niri msg action spawn-sh -- "until '$sh_bin/nemo-shell'; do sleep 1; done" >/dev/null || return 1
+  shell_up || { echo "the shell did not start: run nemo run in a terminal to see why"; return 1; }
 }
-shell_sock_ino() { stat -c %i "${XDG_RUNTIME_DIR:-/run/user/$(id -u)}/yami-shell.sock" 2>/dev/null || echo none; }
+shell_sock_ino() { stat -c %i "${XDG_RUNTIME_DIR:-/run/user/$(id -u)}/nemo-shell.sock" 2>/dev/null || echo none; }
 # the shell answers on its socket within ~8 s (with an inode: a socket other than that one)
 shell_up() {
   local i old=${1:-}
   for i in $(seq 1 80); do
     sleep 0.1
     [[ -n $old && $(shell_sock_ino) == "$old" ]] && continue
-    "$BIN/yami-shell" msg ping >/dev/null 2>&1 && return 0
+    "$BIN/nemo-shell" msg ping >/dev/null 2>&1 && return 0
   done
   return 1
 }

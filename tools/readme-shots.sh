@@ -1,15 +1,15 @@
 #!/usr/bin/env bash
-# Real screenshots of a running yami session for the README (.github/assets): the plain desktop
-# (clean.png), the desktop with the launcher, settings tabs, yami-files on a demo folder (闇 as in fastfetch on each palette's
-# wallpaper), yami-view on one of them, the screenshot overlay (`yami-shot shot --frame`: the same drawing code
-# with a selection and marks, over a real frame of the screen), the login screen (`yami-greet shot
+# Real screenshots of a running nemo session for the README (.github/assets): the plain desktop
+# (clean.png), the desktop with the launcher, settings tabs, nemo-files on a demo folder (闇 as in fastfetch on each palette's
+# wallpaper), nemo-view on one of them, the screenshot overlay (`nemo-shot shot --frame`: the same drawing code
+# with a selection and marks, over a real frame of the screen), the login screen (`nemo-greet shot
 # --size`: its own drawing code at the screen's size, with a made-up user and host, on the look the
-# shell published); in English and Russian. yami-greet comes from this tree's build. Runs on an empty workspace with do-not-disturb on (no live notification or
+# shell published); in English and Russian. nemo-greet comes from this tree's build. Runs on an empty workspace with do-not-disturb on (no live notification or
 # window gets into a picture), the generated pixel wallpaper instead of your own picture, sound
-# devices under plain names (audioNames), drives hidden in yami-files, the network widget shown as
+# devices under plain names (audioNames), drives hidden in nemo-files, the network widget shown as
 # a temperature graph (it names the interface: a VPN's, a Wi-Fi card's), no old update log in
 # the updates tab, a plain bar (no tray, night light or Bluetooth: they show your programs and
-# devices) and the apps listed in ~/.config/yami/shots-hide (desktop ids, one per line; a local
+# devices) and the apps listed in ~/.config/nemo/shots-hide (desktop ids, one per line; a local
 # file, never in the repository) hidden from the launcher; it puts the workspace, language,
 # do-not-disturb, wallpaper, names, widgets, bar, the weather city (an empty field in the pictures), the log
 # and those apps back after.
@@ -32,49 +32,49 @@ f="$(niri msg --json focused-window 2>/dev/null || true)"
 if grep -qiE '"app_id":"(steam_app_[0-9]+|gamescope|[^"]*\.exe)"' <<<"$f" || grep -q '"is_fullscreen":true' <<<"$f"; then
   die "$(t "в фокусе игра или окно на весь экран — не снимаю" "a game or a fullscreen window has focus: not shooting")"
 fi
-# README целиком в «пепле» (шапка рисуется yami-dev readme-art '#a8a29c'): в другой палитре не снимаем
-acc="$(yami config get accent | tr -d '"')"
-pal="$(yami config get palette | tr -d '"')"
+# README целиком в «пепле» (шапка рисуется nemo-dev readme-art '#a8a29c'): в другой палитре не снимаем
+acc="$(nemo config get accent | tr -d '"')"
+pal="$(nemo config get palette | tr -d '"')"
 if [[ $pal != ash || ( -n $acc && ${acc,,} != "#a8a29c" ) ]]; then
   die "$(t "README снимается в палитре «пепел» (сейчас: $pal ${acc:-}) — переключи её в настройках" "README shots use the ash palette (now: $pal ${acc:-}): switch to it in settings")"
 fi
-DEV="$ROOT/shell/target/release/yami-dev"
-[[ -x $DEV ]] || cargo build --release --locked -p yami-dev --manifest-path "$ROOT/shell/Cargo.toml" || exit 1
+DEV="$ROOT/shell/target/release/nemo-dev"
+[[ -x $DEV ]] || cargo build --release --locked -p nemo-dev --manifest-path "$ROOT/shell/Cargo.toml" || exit 1
 dev() { "$DEV" shots "$@"; }
 out="$(niri msg --json focused-output | dev out-name)"
 size="$(niri msg --json focused-output | dev out-size)"
-GREET="$ROOT/../yami-modules/yami-greet/target/release/yami-greet"
-[[ -x $GREET ]] || die "$(t "нет $GREET — собери модуль yami-greet" "no $GREET: build the yami-greet module")"
+GREET="$ROOT/../nemo-modules/nemo-greet/target/release/nemo-greet"
+[[ -x $GREET ]] || die "$(t "нет $GREET — собери модуль nemo-greet" "no $GREET: build the nemo-greet module")"
 back="$(niri msg --json workspaces | dev ws-focused)"
 empty="$(niri msg --json workspaces | dev ws-empty "$out")"
-lang0="$(yami config get lang)"
-dnd0="$(yami config get dnd)"
-names0="$(yami config get audioNames)"
-wall0="$(yami config get wallpaper)"
+lang0="$(nemo config get lang)"
+dnd0="$(nemo config get dnd)"
+names0="$(nemo config get audioNames)"
+wall0="$(nemo config get wallpaper)"
 # the weather city is where you live: an empty field on the services tab
-city0="$(yami config get weatherCity)"
-widgets0="$(yami config get widgets)"
-bar0=("$(yami config get barLeft)" "$(yami config get barCenter)" "$(yami config get barRight)")
+city0="$(nemo config get weatherCity)"
+widgets0="$(nemo config get widgets)"
+bar0=("$(nemo config get barLeft)" "$(nemo config get barCenter)" "$(nemo config get barRight)")
 apps_dir="${XDG_DATA_HOME:-$HOME/.local/share}/applications"
-hide_list="${XDG_CONFIG_HOME:-$HOME/.config}/yami/shots-hide"
+hide_list="${XDG_CONFIG_HOME:-$HOME/.config}/nemo/shots-hide"
 hidden=()
-ulog="${XDG_CACHE_HOME:-$HOME/.cache}/yami/update.log"
+ulog="${XDG_CACHE_HOME:-$HOME/.cache}/nemo/update.log"
 pids=()
 # демо-папка с коротким путём для строки адреса; удаляется, только если её создали мы
-demo="${TMPDIR:-/tmp}/yami"
+demo="${TMPDIR:-/tmp}/nemo"
 [[ -e $demo ]] && die "$(t "$demo уже есть — убери его" "$demo exists: remove it first")"
 made=0
 restore() {
   for p in "${pids[@]}"; do kill "$p" 2>/dev/null || true; done
-  yami config set lang "$lang0" >/dev/null
-  yami config set dnd "$dnd0" >/dev/null
-  yami config set audioNames "$names0" >/dev/null
-  yami config set wallpaper "$wall0" >/dev/null
-  yami config set weatherCity "$city0" >/dev/null
-  yami config set widgets "$widgets0" >/dev/null
-  yami config set barLeft "${bar0[0]}" >/dev/null
-  yami config set barCenter "${bar0[1]}" >/dev/null
-  yami config set barRight "${bar0[2]}" >/dev/null
+  nemo config set lang "$lang0" >/dev/null
+  nemo config set dnd "$dnd0" >/dev/null
+  nemo config set audioNames "$names0" >/dev/null
+  nemo config set wallpaper "$wall0" >/dev/null
+  nemo config set weatherCity "$city0" >/dev/null
+  nemo config set widgets "$widgets0" >/dev/null
+  nemo config set barLeft "${bar0[0]}" >/dev/null
+  nemo config set barCenter "${bar0[1]}" >/dev/null
+  nemo config set barRight "${bar0[2]}" >/dev/null
   for a in "${hidden[@]}"; do rm -f -- "$apps_dir/$a.desktop"; done
   [[ -f $TMP/update.log ]] && mv -f "$TMP/update.log" "$ulog"
   niri msg action focus-workspace "$back" >/dev/null 2>&1 || true
@@ -91,19 +91,19 @@ dev demo "$demo"
 
 cfg="$TMP/cfg"
 mkdir -p "$cfg"
-mkdir -p "$cfg/yami"
-for f in yami/shell.json yami/files.json yami/style.json user-dirs.dirs; do
+mkdir -p "$cfg/nemo"
+for f in nemo/shell.json nemo/files.json nemo/style.json user-dirs.dirs; do
   [[ -f ${XDG_CONFIG_HOME:-$HOME/.config}/$f ]] && cp "${XDG_CONFIG_HOME:-$HOME/.config}/$f" "$cfg/$f"
 done
 # диски и флешки — не в кадр
-dev files-no-devices "$cfg/yami/files.json"
+dev files-no-devices "$cfg/nemo/files.json"
 # звуковые устройства — простыми именами вместо моделей: микрофон и наушники
 names() { # lang
   pactl -f json list sinks 2>/dev/null | dev audio-names "$1"
 }
 
-# перед каждым кадром: мы всё ещё на пустом столе и на нём только наши окна (yami-files,
-# yami-view) — иначе в кадр попадёт чужое (ты переключил стол, открылось окно), бросаем всё
+# перед каждым кадром: мы всё ещё на пустом столе и на нём только наши окна (nemo-files,
+# nemo-view) — иначе в кадр попадёт чужое (ты переключил стол, открылось окно), бросаем всё
 guard() {
   niri msg --json workspaces >"$TMP/ws.json" && niri msg --json windows >"$TMP/win.json" || die "niri"
   dev guard "$TMP/ws.json" "$TMP/win.json" "$empty" "$out" || die "$(t "на пустом столе что-то изменилось — съёмка прервана, картинки не тронуты" "the empty workspace changed: shooting stopped, pictures untouched")"
@@ -116,15 +116,15 @@ crop() { # name w h
 full() { dev rgb "$TMP/$1.png" "$2"; }
 
 say "$(t "пустой рабочий стол $empty, не беспокоить, пиксельные обои" "empty workspace $empty, do not disturb, the pixel wallpaper")"
-yami config set dnd true >/dev/null
-yami config set wallpaper '""' >/dev/null
+nemo config set dnd true >/dev/null
+nemo config set wallpaper '""' >/dev/null
 # the network widget names the interface: a temperature graph in its place, same spot and size
-yami config set widgets "$(dev widgets-no-net "$widgets0")" >/dev/null
-yami config set weatherCity '""' >/dev/null
+nemo config set widgets "$(dev widgets-no-net "$widgets0")" >/dev/null
+nemo config set weatherCity '""' >/dev/null
 # a plain bar: what the README is about, nothing of this machine
-yami config set barLeft '["launcher", "sep", "workspaces"]' >/dev/null
-yami config set barCenter '["tasks"]' >/dev/null
-yami config set barRight '["kb", "sep", "cpu", "ram", "temp", "sep", "vol", "clock", "sep", "settings", "power"]' >/dev/null
+nemo config set barLeft '["launcher", "sep", "workspaces"]' >/dev/null
+nemo config set barCenter '["tasks"]' >/dev/null
+nemo config set barRight '["kb", "sep", "cpu", "ram", "temp", "sep", "vol", "clock", "sep", "settings", "power"]' >/dev/null
 # apps of yours kept out of the launcher: a user .desktop with Hidden=true overrides the system one
 # (only where you have no file of your own under that name; removed again in restore)
 if [[ -r $hide_list ]]; then
@@ -140,8 +140,8 @@ fi
 niri msg action focus-workspace "$empty"
 for lang in en ru; do
   say "$(t "язык" "language"): $lang"
-  yami config set lang "$lang" >/dev/null
-  yami config set audioNames "$(names "$lang")" >/dev/null
+  nemo config set lang "$lang" >/dev/null
+  nemo config set audioNames "$(names "$lang")" >/dev/null
   sleep 2
   # чистый стол — один на оба README
   if [[ $lang == en ]]; then
@@ -151,34 +151,34 @@ for lang in en ru; do
   # экран входа: его код рисования, размер экрана, вид из того, что выложил шелл
   "$GREET" shot --lang "$lang" --size "$size" -o "$TMP/greet" >/dev/null
   full greet/greet-pass "$OUT/login-$lang.png"
-  yami msg launcher
+  nemo msg launcher
   shoot "desktop"
-  yami msg launcher
+  nemo msg launcher
   full desktop "$OUT/desktop-$lang.png"
   for tab in color updates agents keys; do
-    yami msg "settings $tab"
+    nemo msg "settings $tab"
     shoot "settings-$tab"
     crop "settings-$tab" 780 572 "$OUT/settings-$tab-$lang.png"
   done
-  yami msg settings
-  yami msg "popup sound"
+  nemo msg settings
+  nemo msg "popup sound"
   shoot "sound" 1
   dev crop-top-right "$TMP/sound.png" 560 300 "$OUT/popup-sound-$lang.png"
-  yami msg "popup sound"
+  nemo msg "popup sound"
   # свой XDG_CONFIG_HOME: вид и папки XDG те же, а закладок GTK нет
-  XDG_CONFIG_HOME="$cfg" yami-files "$demo" >/dev/null 2>&1 &
+  XDG_CONFIG_HOME="$cfg" nemo-files "$demo" >/dev/null 2>&1 &
   pids+=($!)
   sleep 1.5
   niri msg action maximize-column
   shoot "files" 2
   full files "$OUT/files-$lang.png"
   # оверлей скриншота: выделение и метки (код снимка шелла) поверх настоящего кадра с файлами
-  yami-shot shot --lang "$lang" --frame "$TMP/files.png" -o "$TMP/snap" >/dev/null
+  nemo-shot shot --lang "$lang" --frame "$TMP/files.png" -o "$TMP/snap" >/dev/null
   full snap/edit "$OUT/screenshot-$lang.png"
   kill "${pids[@]}" 2>/dev/null || true
   pids=()
   # просмотрщик — на обоях «сакуры»
-  yami-view "$demo/sakura.png" >/dev/null 2>&1 &
+  nemo-view "$demo/sakura.png" >/dev/null 2>&1 &
   pids+=($!)
   shoot "view" 2
   full view "$OUT/view-$lang.png"

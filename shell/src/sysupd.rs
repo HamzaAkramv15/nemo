@@ -94,7 +94,7 @@ pub fn check(family: Family) -> Found {
     let fail = |e: String| Found { err: e, ..Default::default() };
     match family {
         Family::Fedora => {
-            let exe = yami_px::paths::find_exe("nemo-fedora-update");
+            let exe = nemo_px::paths::find_exe("nemo-fedora-update");
             match exe.as_ref().map(|e| run(&e.to_string_lossy(), &["--json"])) {
                 Some(Ok(t)) => parse_fedora_json(&t).unwrap_or_else(|| fail(crate::tf!("не разобрал ответ nemo-fedora-update", "could not read nemo-fedora-update's answer", "não entendi a resposta do nemo-fedora-update"))),
                 Some(Err(e)) => fail(e),
@@ -146,7 +146,7 @@ pub fn update_command(family: Family) -> Option<&'static str> {
 
 /// запустить проверку в нити, если пора (page открыта, не чаще раза в шесть часов)
 pub fn start(st: &mut State, tx: Sender<Msg>, force: bool) {
-    let now = yami_px::time::unix_now();
+    let now = nemo_px::time::unix_now();
     let s = &mut st.sys_upd;
     let (fam, _) = s.fam.get_or_insert_with(detect).clone();
     if s.checking || (!force && s.found.is_some() && now.saturating_sub(s.at) < 6 * 3600) {

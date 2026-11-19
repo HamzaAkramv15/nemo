@@ -3,7 +3,7 @@
 // - GameMode (gamemoded на сессионной шине): pid игры в фокусе регистрируется, пока она в
 //   фокусе, — без `gamemoderun %command%` в каждой игре.
 // Системное (планировщик, лимиты кадров) не трогаем: это дело игры, MangoHud и самой системы.
-// `yami doctor games` показывает, что есть, и одну команду, которая добавит недостающее.
+// `nemo doctor games` показывает, что есть, и одну команду, которая добавит недостающее.
 // i18n: inline pairs
 
 use crate::cmd::Sty;
@@ -106,7 +106,7 @@ fn pm() -> Option<(&'static str, &'static str)> {
         .find(|(b, _)| w(b))
 }
 
-/// имена пакетов: одинаковые во всех семействах, куда ставится yami
+/// имена пакетов: одинаковые во всех семействах, куда ставится nemo
 fn pkg(what: &str) -> &'static str {
     match what {
         "gamemode" => "gamemode",
@@ -115,7 +115,7 @@ fn pkg(what: &str) -> &'static str {
     }
 }
 
-/// `yami doctor games`
+/// `nemo doctor games`
 pub fn doctor(y: &Sty) -> i32 {
     let p = probe();
     let set = crate::config::Settings::load();

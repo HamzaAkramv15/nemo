@@ -169,7 +169,7 @@ pub(crate) fn tab_bar(ui: &mut Ui, st: &State, b: R) {
     ui.text_in(PX, R::new(b.x, y, b.w, 20), "добавить — тащи в бар или кликни:", t.text_dim);
     y += 22;
     let all: Vec<&String> = s.bar_left.iter().chain(&s.bar_center).chain(&s.bar_right).collect();
-    // и модули-скрипты из ~/.config/yami/scripts
+    // и модули-скрипты из ~/.config/nemo/scripts
     let plugs = crate::plugins::available();
     let free: Vec<&str> = ALL_MODULES.iter().map(|m| m.0).chain(plugs.iter().map(|p| p.as_str())).filter(|id| *id == "sep" || !all.iter().any(|m| m == id)).collect();
     let ws: Vec<i32> = free.iter().map(|m| chip_w(ui, m)).collect();
@@ -181,7 +181,7 @@ pub(crate) fn tab_bar(ui: &mut Ui, st: &State, b: R) {
     }
     // фишка в руке — поверх всего
     if let Some(d) = drag {
-        yami_px::gfx::text_layer();
+        nemo_px::gfx::text_layer();
         let w = chip_w(ui, &d.name);
         chip(ui, R::new(d.x - d.off.0, d.y - d.off.1 - 2, w, 24), &d.name, true);
     }

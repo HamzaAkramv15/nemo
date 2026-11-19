@@ -10,7 +10,7 @@ use crate::theme::PRESETS;
 use crate::ui::{Act, Cur, Tone, Ui};
 use crate::welcome::Welcome;
 use crate::widgets::KINDS;
-use yami_px::style::Style;
+use nemo_px::style::Style;
 
 /// карточка выбора: сверху миниатюра, снизу имя и пояснение; выбранная — в рамке акцента
 fn pick(ui: &mut Ui, r: R, name: &str, desc: &str, on: bool, act: Act, art: impl FnOnce(&mut Ui, R)) {
@@ -202,11 +202,11 @@ pub fn hello(ui: &mut Ui, st: &State, b: R) {
     let mut y = b.y + 6;
     hero(ui, st, R::new(b.x + 2, y, b.w - 4, 136));
     y += 150;
-    let cur = if s.lang.is_empty() { yami_px::i18n::code() } else { s.lang.as_str() };
+    let cur = if s.lang.is_empty() { nemo_px::i18n::code() } else { s.lang.as_str() };
     y = title(ui, b.x, y, b.w, "язык");
     // названия языков — на своём языке, не переводятся; по четыре в ряд
     let bw = (b.w - 3 * 10) / 4;
-    for (i, (code, name)) in yami_px::i18n::LANGS.iter().copied().enumerate() {
+    for (i, (code, name)) in nemo_px::i18n::LANGS.iter().copied().enumerate() {
         let (col, row) = (i as i32 % 4, i as i32 / 4);
         let r = R::new(b.x + col * (bw + 10), y + row * 38, bw, 30);
         let (on, hov) = (cur == code, ui.hover(r));
@@ -214,7 +214,7 @@ pub fn hello(ui: &mut Ui, st: &State, b: R) {
         ui.cv.text_in(ui.f, PX, R::new(r.x + 14, r.y, r.w - 24, r.h), name, if on { t.text_hi } else { t.text });
         ui.zone(r, Act::WLang(code), Cur::Pointer);
     }
-    y += 38 * ((yami_px::i18n::LANGS.len() as i32 + 3) / 4) + 6;
+    y += 38 * ((nemo_px::i18n::LANGS.len() as i32 + 3) / 4) + 6;
     // что впереди: четыре части мастера, по клетке на каждую
     let q = (b.w - 3 * 10) / 4;
     let rows = [("drop", "вид", "стиль, цвет, обои"), ("window", "рабочий стол", "бар, док, окна"), ("keys", "управление", "клавиши, niri"), ("gear", "система", "программы, службы")];
@@ -434,16 +434,16 @@ pub fn niri(ui: &mut Ui, st: &State, b: R) {
     let half = (b.w - 20) / 2;
     let (lx, rx) = (b.x, b.x + half + 20);
     let mut y = b.y;
-    y += ui.wrap(PX, R::new(b.x, y, b.w, 60), "yami не переписывает конфиг niri: в его начало встаёт одна строка include, и всё, что ниже неё, главнее. Конфига нет — Nemo положит свой стартовый.", t.text_dim, 3) + 12;
+    y += ui.wrap(PX, R::new(b.x, y, b.w, 60), "nemo не переписывает конфиг niri: в его начало встаёт одна строка include, и всё, что ниже неё, главнее. Конфига нет — Nemo положит свой стартовый.", t.text_dim, 3) + 12;
     let ver = match crate::niricfg::version() {
         Some((a, v)) if crate::niricfg::too_old() => (crate::tf!("niri {}.{:02}: слишком старый, нужен 25.11 или новее", "niri {}.{:02}: too old, Nemo needs 25.11 or newer", "niri {}.{:02}: antigo demais, o Nemo precisa do 25.11 ou mais novo", a, v), t.warn),
         Some((a, v)) => (format!("niri {a}.{v:02}"), t.text_faint),
         None => ("niri ?".to_string(), t.text_faint),
     };
     let (state, c) = if nl.connected {
-        (crate::tf!("подключён: {}", "connected: {}", "conectado: {}", yami_px::paths::pretty(&nl.path)), t.ok)
+        (crate::tf!("подключён: {}", "connected: {}", "conectado: {}", nemo_px::paths::pretty(&nl.path)), t.ok)
     } else if nl.exists {
-        (crate::tf!("не подключён к {}", "not in {}", "fora de {}", yami_px::paths::pretty(&nl.path)), t.warn)
+        (crate::tf!("не подключён к {}", "not in {}", "fora de {}", nemo_px::paths::pretty(&nl.path)), t.warn)
     } else {
         ("конфига niri пока нет".to_string(), t.warn)
     };
@@ -460,7 +460,7 @@ pub fn niri(ui: &mut Ui, st: &State, b: R) {
     }
     y += 40;
     if nl.exists && !nl.connected && !nl.niri_default {
-        y += ui.wrap(PX, R::new(b.x, y, b.w, 20), "заменить: твой файл уйдёт в копию рядом, config.kdl.bak-yami-…", t.text_faint, 1) + 8;
+        y += ui.wrap(PX, R::new(b.x, y, b.w, 20), "заменить: твой файл уйдёт в копию рядом, config.kdl.bak-nemo-…", t.text_faint, 1) + 8;
     }
     if !st.niri_note.is_empty() {
         y += ui.wrap(PX, R::new(b.x, y, b.w, 60), &st.niri_note, t.text_dim, 3) + 8;
@@ -536,11 +536,11 @@ pub fn modules(ui: &mut Ui, st: &State, b: R) {
 fn install_row(ui: &mut Ui, st: &State, w: &Welcome, b: R, mut y: i32, half: i32, packaged: bool) {
     let t = ui.t;
     if packaged {
-        ui.wrap(PX, R::new(b.x, y, b.w, 60), "yami поставлен пакетом: модули ставит менеджер пакетов — пакеты yami-files, yami-view, yami-play, yami-shot, yami-greet", t.text_dim, 3);
+        ui.wrap(PX, R::new(b.x, y, b.w, 60), "nemo поставлен пакетом: модули ставит менеджер пакетов — пакеты nemo-files, nemo-view, nemo-play, nemo-shot, nemo-greet", t.text_dim, 3);
         return;
     }
     if !crate::wizinst::can_install() {
-        ui.wrap(PX, R::new(b.x, y, b.w, 60), "ставить нечем: нет ни исходников Nemo, ни git. Каждый модуль ставится и сам: yami-files install", t.warn, 3);
+        ui.wrap(PX, R::new(b.x, y, b.w, 60), "ставить нечем: нет ни исходников Nemo, ни git. Каждый модуль ставится и сам: nemo-files install", t.warn, 3);
         return;
     }
     let inst = &w.inst;
@@ -669,7 +669,7 @@ pub fn set(app: &mut App, k: &str) {
 /// клетка сцены, px
 const CELL: i32 = 4;
 
-/// рабочий стол yami в миниатюре, клетками палитры: обои, бар, два окна, док. Что в клетке (cx, cy)
+/// рабочий стол nemo в миниатюре, клетками палитры: обои, бар, два окна, док. Что в клетке (cx, cy)
 /// сетки cols×rows; true — передний план (падает на место), false — обои (проявляются)
 fn scene_cell(t: &crate::theme::Theme, cols: i32, rows: i32, cx: i32, cy: i32) -> (crate::gfx::C, bool) {
     let h = (cx as u64).wrapping_mul(0x9e37_79b9) ^ (cy as u64).wrapping_mul(0x85eb_ca6b);

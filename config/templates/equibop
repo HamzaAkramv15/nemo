@@ -1,9 +1,9 @@
 /**
- * @name yami
- * @description The yami palette for Discord: follows yami's colours, wallpaper palette included
- * @author yami
- * yami-output: ~/.config/equibop/themes/yami.theme.css
- * yami: the palette for equibop; turn it on in settings → themes → yami.theme.css
+ * @name nemo
+ * @description The nemo palette for Discord: follows nemo's colours, wallpaper palette included
+ * @author nemo
+ * nemo-output: ~/.config/equibop/themes/nemo.theme.css
+ * nemo: the palette for equibop; turn it on in settings → themes → nemo.theme.css
  */
 .theme-dark, .theme-light, .visual-refresh {
   --background-base-lowest: {{bg}};

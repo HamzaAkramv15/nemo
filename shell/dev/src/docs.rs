@@ -18,7 +18,7 @@ macro_rules! re {
     };
 }
 // заголовки-имена: одинаковы на обоих языках
-re!(SAME, r"^(\d+\.\d+\.\d+|[\w.]*[.\-][\w.\-]*|yami|Nemo|Nix)$");
+re!(SAME, r"^(\d+\.\d+\.\d+|[\w.]*[.\-][\w.\-]*|nemo|Nemo|Nix)$");
 re!(CYR, "[а-яёА-ЯЁ]");
 re!(ITEM, r"^\s*([-*]|\d+\.) ");
 re!(HEADING, r"^(#{1,6}) (.*)");
@@ -457,7 +457,7 @@ pub fn run(args: &[String]) -> i32 {
     0
 }
 
-/// `yami-dev changelog ВЕРСИЯ`: «Unreleased» («Не выпущено») становится выпуском в обоих файлах. Ничего не
+/// `nemo-dev changelog ВЕРСИЯ`: «Unreleased» («Не выпущено») становится выпуском в обоих файлах. Ничего не
 /// меняется, пока в обоих нет строк: заметки пишутся по ходу, на двух языках
 pub fn changelog(args: &[String]) -> i32 {
     let Some(ver) = args.first() else { return 2 };

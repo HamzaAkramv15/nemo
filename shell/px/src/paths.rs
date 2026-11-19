@@ -7,6 +7,11 @@ fn xdg(var: &str) -> Option<PathBuf> {
     std::env::var_os(var).map(PathBuf::from).filter(|p| p.is_absolute())
 }
 
+/// переменная окружения Nemo; до переименования она называлась YAMI_*: старое имя читается, пока оно задано
+pub fn env_os(name: &str) -> Option<std::ffi::OsString> {
+    std::env::var_os(name).or_else(|| name.strip_prefix("NEMO_").and_then(|n| std::env::var_os(format!("YAMI_{n}"))))
+}
+
 pub fn home() -> PathBuf {
     std::env::var_os("HOME").map(PathBuf::from).unwrap_or_else(|| PathBuf::from("/tmp"))
 }
@@ -14,7 +19,7 @@ pub fn config_dir() -> PathBuf {
     xdg("XDG_CONFIG_HOME").unwrap_or_else(|| home().join(".config"))
 }
 pub fn state_dir() -> PathBuf {
-    let d = xdg("XDG_STATE_HOME").unwrap_or_else(|| home().join(".local/state")).join("yami");
+    let d = xdg("XDG_STATE_HOME").unwrap_or_else(|| home().join(".local/state")).join("nemo");
     let _ = std::fs::create_dir_all(&d);
     d
 }
@@ -122,15 +127,46 @@ pub fn private_tmp(name: &str) -> std::io::Result<PathBuf> {
     Ok(d)
 }
 
-/// всё своё у yami в одной папке, как у других шеллов: ~/.config/yami
-pub fn yami_dir() -> PathBuf {
-    config_dir().join("yami")
+/// всё своё у nemo в одной папке, как у других шеллов: ~/.config/nemo
+pub fn nemo_dir() -> PathBuf {
+    config_dir().join("nemo")
+}
+
+/// Nemo раньше назывался yami: папки настроек, состояния, кэша и данных переезжают под новое имя. Вызывается один раз
+/// в начале программы (шелл, службы, модули), не из поиска путей: тесты и разовые утилиты ничего не переносят.
+/// Что уже есть под новым именем (ключ релизов в ~/.config/nemo), остаётся как есть; пустая старая папка уходит
+pub fn migrate_legacy() {
+    static ONCE: std::sync::Once = std::sync::Once::new();
+    ONCE.call_once(|| {
+        let base = |v: &str, rel: &str| xdg(v).unwrap_or_else(|| home().join(rel));
+        for root in [base("XDG_CONFIG_HOME", ".config"), base("XDG_STATE_HOME", ".local/state"), base("XDG_CACHE_HOME", ".cache"), base("XDG_DATA_HOME", ".local/share"), base("XDG_DATA_HOME", ".local/share").join("fonts")] {
+            merge_dir(&root.join("yami"), &root.join("nemo"));
+        }
+    });
+}
+
+/// переносит содержимое `from` в `to`, не трогая то, что в `to` уже есть; пустую `from` убирает
+pub fn merge_dir(from: &Path, to: &Path) {
+    let Ok(rd) = std::fs::read_dir(from) else { return };
+    if std::fs::create_dir_all(to).is_err() {
+        return;
+    }
+    for e in rd.flatten() {
+        let dst = to.join(e.file_name());
+        let src = e.path();
+        if !dst.exists() {
+            let _ = std::fs::rename(&src, &dst);
+        } else if src.is_dir() && dst.is_dir() {
+            merge_dir(&src, &dst);
+        }
+    }
+    let _ = std::fs::remove_dir(from);
 }
 
 /// настройки шелла: оттуда же приложения берут палитру, язык и анимации. До 3.0 файл лежал в
-/// ~/.config/yami-shell.json: пока шелл его не перенёс, читается старый
+/// ~/.config/nemo-shell.json: пока шелл его не перенёс, читается старый
 pub fn shell_settings() -> PathBuf {
-    let new = yami_dir().join("shell.json");
+    let new = nemo_dir().join("shell.json");
     let old = config_dir().join("yami-shell.json");
     if new.exists() || !old.exists() {
         new
@@ -139,13 +175,13 @@ pub fn shell_settings() -> PathBuf {
     }
 }
 
-/// файл настроек модуля в ~/.config/yami (`files` → files.json); старый ~/.config/yami-<имя>.json
+/// файл настроек модуля в ~/.config/nemo (`files` → files.json); старый ~/.config/nemo-<имя>.json
 /// переезжает туда при первом обращении
 pub fn module_settings(name: &str) -> PathBuf {
-    let new = yami_dir().join(format!("{name}.json"));
+    let new = nemo_dir().join(format!("{name}.json"));
     let old = config_dir().join(format!("yami-{name}.json"));
     if !new.exists() && old.exists() {
-        let _ = std::fs::create_dir_all(yami_dir());
+        let _ = std::fs::create_dir_all(nemo_dir());
         if std::fs::rename(&old, &new).is_err() {
             return old;
         }
@@ -153,22 +189,22 @@ pub fn module_settings(name: &str) -> PathBuf {
     new
 }
 
-/// общий вид всех модулей yami (look.rs); YAMI_STYLE — другой файл (проверки, разовый запуск)
+/// общий вид всех модулей nemo (look.rs); NEMO_STYLE — другой файл (проверки, разовый запуск)
 pub fn style_file() -> PathBuf {
-    match std::env::var_os("YAMI_STYLE") {
+    match env_os("NEMO_STYLE") {
         Some(p) if !p.is_empty() => PathBuf::from(p),
-        _ => yami_dir().join("style.json"),
+        _ => nemo_dir().join("style.json"),
     }
 }
 
 /// вид отдельного модуля, поверх общего: только те ключи, что отличаются
 pub fn style_app_file(app: &str) -> PathBuf {
-    yami_dir().join(format!("style.{app}.json"))
+    nemo_dir().join(format!("style.{app}.json"))
 }
 
 /// свой бинарь: после обновления старый файл удалён («… (deleted)») — берём новый по тому же пути
 pub fn self_exe() -> PathBuf {
-    let Some(p) = std::fs::read_link("/proc/self/exe").ok().or_else(|| std::env::current_exe().ok()) else { return PathBuf::from("yami-shell") };
+    let Some(p) = std::fs::read_link("/proc/self/exe").ok().or_else(|| std::env::current_exe().ok()) else { return PathBuf::from("nemo-shell") };
     let s = p.to_string_lossy();
     PathBuf::from(s.strip_suffix(" (deleted)").unwrap_or(&s))
 }

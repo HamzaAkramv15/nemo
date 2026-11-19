@@ -80,13 +80,13 @@ impl App {
                 }
             }
         }
-        self.mk(SKind::Dim, &out, Layer::Overlay, "yami-dim", Anchor::all(), (0, 0), (0, 0, 0, 0), -1, KeyboardInteractivity::None);
+        self.mk(SKind::Dim, &out, Layer::Overlay, "nemo-dim", Anchor::all(), (0, 0), (0, 0, 0, 0), -1, KeyboardInteractivity::None);
         self.mk(SKind::Modal, &out, Layer::Overlay, match m {
-            Modal::Launcher => "yami-launcher",
-            Modal::Power => "yami-power",
-            Modal::Settings => "yami-settings",
-            Modal::Reply => "yami-reply",
-            Modal::Walls => "yami-walls",
+            Modal::Launcher => "nemo-launcher",
+            Modal::Power => "nemo-power",
+            Modal::Settings => "nemo-settings",
+            Modal::Reply => "nemo-reply",
+            Modal::Walls => "nemo-walls",
             Modal::Cheat => "nemo-cheat",
         }, Anchor::empty(), (w, h + 12), (0, 0, 0, 0), -1, KeyboardInteractivity::Exclusive);
         // мастер, который закрыли не пройдя: настройки возвращают в него
@@ -183,7 +183,7 @@ impl App {
         let (w, h) = popups::size(kind, &self.st);
         self.mk_catcher(out);
         let (x, top) = self.popup_place(out, at, w, h);
-        let id = self.mk(SKind::Popup, out, Layer::Top, "yami-popup", Anchor::TOP | Anchor::LEFT, (w, h + 12), (top, 0, 0, x), -1, KeyboardInteractivity::OnDemand);
+        let id = self.mk(SKind::Popup, out, Layer::Top, "nemo-popup", Anchor::TOP | Anchor::LEFT, (w, h + 12), (top, 0, 0, x), -1, KeyboardInteractivity::OnDemand);
         if let Some(s) = self.surfs.get_mut(&id) {
             s.margin = (x, top);
             s.applied = s.margin;
@@ -240,7 +240,7 @@ impl App {
     /// прозрачный ловец кликов мимо всплывашки (бар остаётся живым)
     pub fn mk_catcher(&mut self, out: &str) {
         if self.find(&SKind::Catcher).is_empty() {
-            let id = self.mk(SKind::Catcher, out, Layer::Top, "yami-catch", Anchor::all(), (0, 0), (0, 0, 0, 0), -1, KeyboardInteractivity::None);
+            let id = self.mk(SKind::Catcher, out, Layer::Top, "nemo-catch", Anchor::all(), (0, 0), (0, 0, 0, 0), -1, KeyboardInteractivity::None);
             // ловит всё, кроме самого бара: бар живой, а поля вокруг плавающего — нет
             let (w, h) = self.output_size(out);
             let mut rs = vec![R::new(0, 0, w, h)];
@@ -266,7 +266,7 @@ impl App {
         let y = m.y.clamp(4.max(bt - 4), (oh - h - 8 - bb).max(4));
         self.st.menu = Some(m);
         self.mk_catcher(&out);
-        self.mk(SKind::Menu, &out, Layer::Overlay, "yami-menu", Anchor::TOP | Anchor::LEFT, (w, h + 4), (y, 0, 0, x), -1, KeyboardInteractivity::OnDemand);
+        self.mk(SKind::Menu, &out, Layer::Overlay, "nemo-menu", Anchor::TOP | Anchor::LEFT, (w, h + 4), (y, 0, 0, x), -1, KeyboardInteractivity::OnDemand);
     }
     pub fn close_menu(&mut self) {
         if self.st.menu.take().is_some() {

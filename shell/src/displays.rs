@@ -1,5 +1,5 @@
 // Экраны (настройки → экраны): расположение мышкой, разрешение, частота, масштаб, поворот, VRR.
-// Состояние берём у niri (IPC Outputs), применяем записью ~/.config/yami/niri/outputs.kdl —
+// Состояние берём у niri (IPC Outputs), применяем записью ~/.config/nemo/niri/outputs.kdl —
 // niri перечитывает конфиг сам. После применения 15 с на «оставить», иначе откат.
 
 use crate::app::{App, SKind, State};
@@ -146,7 +146,7 @@ pub fn kdl(outs: &[Out]) -> String {
     let on: Vec<&Out> = outs.iter().filter(|o| o.on).collect();
     let mx = on.iter().map(|o| o.x).min().unwrap_or(0);
     let my = on.iter().map(|o| o.y).min().unwrap_or(0);
-    let mut s = String::from("// yami: written by the shell (settings → screens). Changes there overwrite this file;\n// your own output tweaks go into user.kdl.\n");
+    let mut s = String::from("// nemo: written by the shell (settings → screens). Changes there overwrite this file;\n// your own output tweaks go into user.kdl.\n");
     for o in outs {
         s += &format!("\noutput \"{}\" {{\n", o.name);
         if !o.on {
@@ -497,7 +497,7 @@ impl App {
     }
 }
 
-/// два экрана для `yami-shell shot settings:screens`
+/// два экрана для `nemo-shell shot settings:screens`
 pub fn mock() -> Vec<Out> {
     let m = |w, h, mhz, pref| Mode { w, h, mhz, pref };
     vec![
