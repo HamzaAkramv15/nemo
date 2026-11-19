@@ -338,6 +338,7 @@ fn module(ui: &mut Ui, st: &State, out: &str, m: &str, x: i32, measure: bool) ->
                     ui.text_in(PX, R::new(x + 20, 0, w, H - 1), "нет сети", t.ember);
                 }
                 ui.zone(r, Act::Popup("net"), Cur::Pointer);
+                ui.tip(r, "net");
             }
             w
         }
@@ -368,6 +369,7 @@ fn module(ui: &mut Ui, st: &State, out: &str, m: &str, x: i32, measure: bool) ->
                     ui.text_in(PX, R::new(x + 18, 0, 40, H - 1), &label, t.text);
                 }
                 ui.zone(r, Act::Popup("bt"), Cur::Pointer);
+                ui.tip(r, "bt");
             }
             w
         }
@@ -378,6 +380,7 @@ fn module(ui: &mut Ui, st: &State, out: &str, m: &str, x: i32, measure: bool) ->
                 let c = if hov { t.text_hi } else if !st.prof.present { t.text_faint } else if st.prof.active == "performance" { t.red } else if st.prof.active == "power-saver" { t.ok } else { t.text_dim };
                 ui.cv.icon(st.prof.icon(), x, cy - 7, 2, c);
                 ui.zone(r, Act::Popup("profile"), Cur::Pointer);
+                ui.tip(r, "profile");
             }
             14
         }
@@ -405,6 +408,7 @@ fn module(ui: &mut Ui, st: &State, out: &str, m: &str, x: i32, measure: bool) ->
             ui.cv.battery(x + bw, cy - 7, 2, bat.pct as f32 / 100.0, body, col, t.surface_hi.lerp(t.border, 0.45));
             ui.text_in(PX, R::new(x + bw + 28, 0, w, H - 1), &txt, if low { t.ember } else if hov { t.text } else { t.text_dim });
             ui.zone(r, Act::Popup("profile"), Cur::Pointer);
+            ui.tip(r, "battery");
             w
         }
         "kb" => {
@@ -413,6 +417,7 @@ fn module(ui: &mut Ui, st: &State, out: &str, m: &str, x: i32, measure: bool) ->
             let w = ui.w(PX, &s) + 12;
             if !measure {
                 ui.button(R::new(x, cy - 11, w, 22), &s, "", Tone::Plain, false, true, Act::Kb);
+                ui.tip(R::new(x, cy - 11, w, 22), "kb");
             }
             w
         }
@@ -495,6 +500,7 @@ fn module(ui: &mut Ui, st: &State, out: &str, m: &str, x: i32, measure: bool) ->
                 ui.cv.icon(if a.muted { "mute" } else { "speaker" }, x, cy - 7, 2, if a.muted { t.text_faint } else if hov { t.text_hi } else { t.text });
                 ui.text_in(PX, R::new(x + 19, 0, w - 19, H - 1), &s, if a.muted { t.text_faint } else { t.text });
                 ui.zone(r, Act::Popup("sound"), Cur::Pointer);
+                ui.tip(r, "vol");
             }
             w
         }
@@ -542,6 +548,7 @@ fn module(ui: &mut Ui, st: &State, out: &str, m: &str, x: i32, measure: bool) ->
                     ui.text_in(PX, R::new(x + tw + 6, 0, dw, H - 1), &date, t.text_dim);
                 }
                 ui.zone(r, Act::Popup("cal"), Cur::Pointer);
+                ui.tip(r, "clock");
             }
             w
         }
@@ -552,6 +559,7 @@ fn module(ui: &mut Ui, st: &State, out: &str, m: &str, x: i32, measure: bool) ->
                 let c = if hov { t.text_hi } else if st.night.on { t.warn } else { t.text_faint };
                 ui.cv.icon("moon", x, cy - 7, 2, c);
                 ui.zone(r, Act::NightToggle, Cur::Pointer);
+                ui.tip(r, "night");
             }
             14
         }
@@ -569,6 +577,7 @@ fn module(ui: &mut Ui, st: &State, out: &str, m: &str, x: i32, measure: bool) ->
                     ui.text_in(PX, R::new(x + 18, 0, tw, H - 1), s, t.warn);
                 }
                 ui.zone(r, Act::CaffeineToggle, Cur::Pointer);
+                ui.tip(r, "caffeine");
             }
             w
         }
@@ -778,6 +787,7 @@ fn vstack(ui: &mut Ui, st: &State, y: i32, icon: &str, ic: crate::gfx::C, label:
         if !label.is_empty() {
             vtext(ui, st, y + 16, label, lc);
         }
+        if let Some(k) = crate::tips::key_of(&act) { ui.tip(R::new(vx(st), y - 2, W, h + 4), k); }
         ui.zone(R::new(vx(st), y - 2, W, h + 4), act, Cur::Pointer);
     }
     h
@@ -946,6 +956,7 @@ fn vmodule(ui: &mut Ui, st: &State, out: &str, m: &str, y: i32, measure: bool) -
             ui.cv.battery(cx - 11, y + bh, 2, bat.pct as f32 / 100.0, body, col, t.surface_hi.lerp(t.border, 0.45));
             vtext(ui, st, y + bh + 16, &bat.pct.to_string(), if low { t.ember } else if hov { t.text } else { t.text_dim });
             ui.zone(r, Act::Popup("profile"), Cur::Pointer);
+            ui.tip(r, "battery");
             h
         }
         "kb" => {
@@ -954,6 +965,7 @@ fn vmodule(ui: &mut Ui, st: &State, out: &str, m: &str, y: i32, measure: bool) -
                 let s = if s.is_empty() { "??".to_string() } else { s };
                 let bw = (ui.w(PX, &s) + 8).min(W - 2);
                 ui.button(R::new(cx - bw / 2, y, bw, 22), &s, "", Tone::Plain, false, true, Act::Kb);
+                ui.tip(R::new(cx - bw / 2, y, bw, 22), "kb");
             }
             22
         }
@@ -1071,6 +1083,7 @@ fn vmodule(ui: &mut Ui, st: &State, out: &str, m: &str, y: i32, measure: bool) -
                     vtext(ui, st, dy + 6, &format!("{:02}", tm.day), t.text_dim);
                 }
                 ui.zone(r, Act::Popup("cal"), Cur::Pointer);
+                ui.tip(r, "clock");
             }
             h
         }

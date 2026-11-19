@@ -9,6 +9,8 @@ has its Russian line in CHANGELOG.ru.md: `tools/check.sh` checks that.
 
 ## Unreleased
 
+- Bar tooltips for more modules, and battery and power profile are now separate: network (connection, address, speeds), Bluetooth (connected devices and their charge), volume (level and output), keyboard layout (full name), clock (full date, Hijri if on), privacy (which apps), power profile (name, why it is limited) and battery (charge, state, time left). Tips are registered by the modules themselves (`Ui::tip`), independent of what a click does.
+
 - Arabic, more: an optional Hijri date in the calendar popup (`hijri`; the tabular calendar, so it can differ by a day from the one announced locally), Eastern Arabic digits (٠١٢٣) for all text (`arabicDigits`), 160 more texts translated (37% in all), the tip lines in Arabic. Tooltips no longer fade in with the reveal pattern: they simply appear. Settings → system has its own "Nemo's fish" section for the personality setting.
 
 ## 3.1.0

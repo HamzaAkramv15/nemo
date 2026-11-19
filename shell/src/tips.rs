@@ -6,7 +6,7 @@
 use crate::app::{App, SKind, State};
 use crate::font::PX;
 use crate::gfx::R;
-use crate::ui::{Act, Ui};
+use crate::ui::Ui;
 use smithay_client_toolkit::shell::wlr_layer::{Anchor, KeyboardInteractivity, Layer};
 use smithay_client_toolkit::shell::WaylandSurface;
 use std::time::{Duration, Instant};
@@ -14,10 +14,10 @@ use std::time::{Duration, Instant};
 /// сколько курсор стоит на значке, прежде чем встанет подсказка
 const DWELL: Duration = Duration::from_millis(550);
 
-/// строки подсказки для значка; None — подсказки нет
-pub fn text(st: &State, a: &Act) -> Option<Vec<String>> {
-    match a {
-        Act::CaffeineToggle => {
+/// строки подсказки по ключу, который модуль бара назвал в Ui::tip; None — подсказки нет (или нечего сказать)
+pub fn text(st: &State, key: &str) -> Option<Vec<String>> {
+    match key {
+        "caffeine" => {
             let c = &st.caffeine;
             let head = if !c.on {
                 crate::tf!("кофе выключен", "caffeine is off", "café desligado")
@@ -29,12 +29,13 @@ pub fn text(st: &State, a: &Act) -> Option<Vec<String>> {
             };
             Some(vec![head, crate::tf!("щелчок: вкл/выкл · правая: срок", "click: on/off · right: duration", "clique: liga/desliga · direito: duração")])
         }
-        Act::NightToggle => {
+        "night" => {
             let s = &st.set;
             let head = if s.night { crate::tf!("ночной свет включён: {} К", "night light is on: {} K", "luz noturna ligada: {} K", s.night_temp) } else { crate::tf!("ночной свет выключен", "night light is off", "luz noturna desligada") };
             Some(vec![head, crate::tf!("щелчок: вкл/выкл · правая: температура", "click: on/off · right: temperature", "clique: liga/desliga · direito: temperatura")])
         }
-        Act::Popup("profile") => {
+        // батарея и профиль питания — разные модули: у каждого своя подсказка
+        "battery" => {
             let b = st.sys.bat?;
             let state = if b.charging {
                 crate::tf!("заряжается", "charging", "carregando")
@@ -49,6 +50,106 @@ pub fn text(st: &State, a: &Act) -> Option<Vec<String>> {
             }
             Some(vec![head])
         }
+        "profile" => {
+            if !st.prof.present {
+                return None;
+            }
+            let name = match st.prof.active.as_str() {
+                "power-saver" => crate::tf!("экономия", "power saver", "economia"),
+                "performance" => crate::tf!("производительность", "performance", "desempenho"),
+                _ => crate::tf!("сбалансированный", "balanced", "balanceado"),
+            };
+            let mut v = vec![crate::tf!("профиль питания: {}", "power profile: {}", "perfil de energia: {}", name), crate::tf!("щелчок: выбрать · правая: следующий", "click: choose · right: next", "clique: escolher · direito: próximo")];
+            if !st.prof.degraded.is_empty() {
+                v.insert(1, st.prof.degraded.clone());
+            }
+            Some(v)
+        }
+        "net" => {
+            if !st.sys.online {
+                return Some(vec![crate::tf!("нет сети", "no network", "sem rede")]);
+            }
+            let kind: String = if st.sys.wifi { "Wi-Fi".into() } else { crate::tf!("кабель", "wired", "cabo") };
+            let name = st.net.active.first().map(|a| a.0.clone()).filter(|n| !n.is_empty());
+            let head = match name {
+                Some(n) => format!("{n} · {kind}"),
+                None => kind,
+            };
+            let mut v = vec![head];
+            if !st.sys.ip.is_empty() {
+                v.push(format!("{} · ↓{} ↑{}", st.sys.ip, crate::sys::rate(st.sys.rx), crate::sys::rate(st.sys.tx)));
+            }
+            Some(v)
+        }
+        "bt" => {
+            if !st.bt.present {
+                return None;
+            }
+            if !st.bt.powered {
+                return Some(vec![crate::tf!("Bluetooth выключен", "Bluetooth is off", "Bluetooth desligado")]);
+            }
+            let names: Vec<String> = st.bt.devices.iter().filter(|d| d.connected).map(|d| match d.battery {
+                Some(p) => format!("{} · {p}%", d.name),
+                None => d.name.clone(),
+            }).collect();
+            if names.is_empty() {
+                return Some(vec![crate::tf!("Bluetooth включён, ничего не подключено", "Bluetooth is on, nothing connected", "Bluetooth ligado, nada conectado")]);
+            }
+            Some(names.into_iter().take(4).collect())
+        }
+        "vol" => {
+            let a = &st.audio;
+            if !a.ready {
+                return None;
+            }
+            let head = if a.muted { crate::tf!("звук выключен", "sound is muted", "som mudo") } else { crate::tf!("громкость {}%", "volume {}%", "volume {}%", (a.volume * 100.0).round() as i32) };
+            let mut v = vec![head];
+            if let Some(d) = a.sinks.iter().find(|d| d.name == a.sink) {
+                v.push(d.desc.clone());
+            }
+            Some(v)
+        }
+        "kb" => {
+            let n = st.niri.kb_names.get(st.niri.kb_idx)?.clone();
+            Some(vec![n, crate::tf!("щелчок: следующая раскладка", "click: next layout", "clique: próximo layout")])
+        }
+        "clock" => {
+            let now = crate::clock::local_now();
+            let mut v = vec![yami_px::i18n::long_date(crate::i18n::tr(crate::clock::RU_DAY_FULL[now.wday as usize]), now.day, (now.mon - 1) as usize, crate::i18n::tr(crate::clock::RU_MON[(now.mon - 1) as usize]))];
+            if st.set.hijri {
+                let days = crate::widgets::days_from_civil(now.year, now.mon, now.day);
+                v.push(crate::hijri::text(days, crate::i18n::code() == "ar"));
+            }
+            Some(v)
+        }
+        "privacy" => {
+            let (m, c, s) = crate::privacy::lit(st);
+            let mut v = vec![];
+            if m {
+                v.push(crate::tf!("микрофон: {}", "microphone: {}", "microfone: {}", st.mic.join(", ")));
+            }
+            if c {
+                v.push(crate::tf!("камера: {}", "camera: {}", "câmera: {}", st.camera.join(", ")));
+            }
+            if s {
+                v.push(crate::tf!("экран показывается: {}", "screen is shared: {}", "tela compartilhada: {}", st.niri.casts.len()));
+            }
+            (!v.is_empty()).then_some(v)
+        }
+        _ => None,
+    }
+}
+
+/// ключ подсказки для значка вертикального бара по его щелчку (vstack); горизонтальные модули называют ключ сами
+pub fn key_of(a: &crate::ui::Act) -> Option<&'static str> {
+    use crate::ui::Act;
+    match a {
+        Act::CaffeineToggle => Some("caffeine"),
+        Act::NightToggle => Some("night"),
+        Act::Popup("net") => Some("net"),
+        Act::Popup("bt") => Some("bt"),
+        Act::Popup("profile") => Some("profile"),
+        Act::Popup("sound") => Some("vol"),
         _ => None,
     }
 }
@@ -74,7 +175,7 @@ pub fn draw(ui: &mut Ui, st: &State, w: i32, h: i32) {
 
 /// подсказка, что показана или ждёт: что за значок, где, с какого момента курсор на нём
 pub struct Tip {
-    pub act: Act,
+    pub key: &'static str,
     pub lines: Vec<String>,
     pub out: String,
     /// точка под значком в координатах монитора (как у всплывашек)
@@ -85,18 +186,18 @@ pub struct Tip {
 
 impl App {
     /// курсор встал на значок бара (или ушёл с него, или перешёл на другой)
-    pub fn tip_hover(&mut self, sid: u32, zone: Option<(Act, R)>) {
+    pub fn tip_hover(&mut self, sid: u32, zone: Option<(&'static str, R)>) {
         let on_bar = self.surf_kind(sid) == Some(SKind::Bar);
-        let Some((act, r)) = zone.filter(|_| on_bar) else { return self.tip_off() };
-        if self.st.tip.as_ref().is_some_and(|t| t.act == act) {
+        let Some((key, r)) = zone.filter(|_| on_bar) else { return self.tip_off() };
+        if self.st.tip.as_ref().is_some_and(|t| t.key == key) {
             return;
         }
         self.tip_off();
-        let Some(lines) = text(&self.st, &act) else { return };
+        let Some(lines) = text(&self.st, key) else { return };
         let s = self.surfs.get(&sid);
         let out = s.map(|s| s.output.clone()).unwrap_or_else(|| self.focus_out());
         let (mx, my) = s.map(|s| s.margin).unwrap_or((0, 0));
-        self.st.tip = Some(Tip { act, lines, out, at: (mx + r.x + r.w / 2, my + r.bottom()), since: Instant::now(), shown: false });
+        self.st.tip = Some(Tip { key, lines, out, at: (mx + r.x + r.w / 2, my + r.bottom()), since: Instant::now(), shown: false });
     }
 
     pub fn tip_off(&mut self) {
@@ -119,8 +220,8 @@ impl App {
             if t.since.elapsed() < DWELL {
                 return;
             }
-            let (out, at, act) = (t.out.clone(), t.at, t.act.clone());
-            let Some(lines) = text(&self.st, &act) else { return self.tip_off() };
+            let (out, at, key) = (t.out.clone(), t.at, t.key);
+            let Some(lines) = text(&self.st, key) else { return self.tip_off() };
             let (w, h) = measure(&mut self.res.fonts, &lines);
             let (x, top) = self.tip_place(&out, at, w, h);
             let id = self.mk(SKind::Tip, &out, Layer::Overlay, "nemo-tip", Anchor::TOP | Anchor::LEFT, (w, h), (top, 0, 0, x), -1, KeyboardInteractivity::None);
@@ -135,7 +236,7 @@ impl App {
                 t.shown = true;
                 t.lines = lines;
             }
-        } else if let Some(lines) = text(&self.st, &t.act.clone()) {
+        } else if let Some(lines) = text(&self.st, t.key) {
             if lines != t.lines {
                 if let Some(t) = self.st.tip.as_mut() {
                     t.lines = lines;

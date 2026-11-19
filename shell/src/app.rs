@@ -98,6 +98,8 @@ pub struct Surf {
     pub frame_pending: bool,
     pub anim: bool,
     pub zones: Vec<Zone>,
+    /// подсказки поверхности (рамка, ключ): заполняются при отрисовке
+    pub tips: Vec<(R, &'static str)>,
     pub closing: bool,
     pub born: Instant,
     pub viewport: Option<wp_viewport::WpViewport>,
@@ -854,6 +856,7 @@ impl App {
                 frame_pending: false,
                 anim: false,
                 zones: vec![],
+                tips: vec![],
                 closing: false,
                 born: Instant::now(),
                 viewport,

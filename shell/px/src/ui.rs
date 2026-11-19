@@ -137,6 +137,11 @@ pub enum Tone {
     Ghost,
 }
 
+thread_local! {
+    /// рамки с подсказками, собранные отрисовкой (Ui::tip); поле в Ui сломало бы модули, что собирают его литералом
+    static TIPS: std::cell::RefCell<Vec<(R, &'static str)>> = const { std::cell::RefCell::new(Vec::new()) };
+}
+
 pub struct Ui<'a, 'b, A> {
     pub cv: Canvas<'b>,
     pub f: &'a mut Fonts,
@@ -171,6 +176,19 @@ impl<'a, 'b, A: Action> Ui<'a, 'b, A> {
         if r.w > 0 && r.h > 0 {
             self.zones.push(Zone { r, act, cur });
         }
+    }
+
+    /// подсказка для этой рамки; ключ разбирает приложение
+    pub fn tip(&mut self, r: R, key: &'static str) {
+        let r = R::new(r.x + self.cv.ox, r.y + self.cv.oy, r.w, r.h).inter(&self.cv.clip_rect());
+        if r.w > 0 && r.h > 0 {
+            TIPS.with(|t| t.borrow_mut().push((r, key)));
+        }
+    }
+
+    /// подсказки, собранные при последней отрисовке этого потока (рамка, ключ); список очищается
+    pub fn take_tips() -> Vec<(R, &'static str)> {
+        TIPS.with(|t| std::mem::take(&mut *t.borrow_mut()))
     }
 
     pub fn text(&mut self, face: Face, x: i32, y: i32, s: &str, c: C) -> i32 {

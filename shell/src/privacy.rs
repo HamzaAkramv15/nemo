@@ -35,6 +35,7 @@ pub fn bar(ui: &mut Ui, st: &State, x: i32, h: i32, measure: bool) -> i32 {
             ui.cv.icon(ic, x + i as i32 * 18, h / 2 - 7, 2, c);
         }
         ui.zone(r, Act::Popup("privacy"), Cur::Pointer);
+        ui.tip(r, "privacy");
     }
     w
 }
@@ -55,6 +56,7 @@ pub fn vbar(ui: &mut Ui, st: &State, x: i32, w: i32, y: i32, measure: bool) -> i
             ui.cv.icon(ic, x + w / 2 - 7, y + i as i32 * 18, 2, c);
         }
         ui.zone(r, Act::Popup("privacy"), Cur::Pointer);
+        ui.tip(r, "privacy");
     }
     h
 }

@@ -174,6 +174,7 @@ impl App {
                 std::mem::take(&mut ui.cv.blur)
             };
             s.zones = std::mem::take(&mut ui.zones);
+            s.tips = Ui::take_tips();
             s.anim = ui.anim;
         }
         // тот же кадр, что уже у композитора (часы без секунд, датчики не сдвинулись): не отдавать —

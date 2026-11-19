@@ -67,6 +67,13 @@ const TARGETS: &[&str] = &[
     "tip:caffeine",
     "tip:night",
     "tip:battery",
+    "tip:profile",
+    "tip:net",
+    "tip:bt",
+    "tip:vol",
+    "tip:kb",
+    "tip:clock",
+    "tip:privacy",
     "popup:sound",
     "popup:media",
     "popup:media-flat",
@@ -636,24 +643,62 @@ fn shoot(st: &mut State, res: &mut Res, target: &str, path: &Path) {
             crate::popups::size(k, st)
         }
         "tip" => {
-            let act = match arg {
+            let key: &'static str = match arg {
                 "night" => {
                     st.set.night = true;
-                    crate::ui::Act::NightToggle
+                    "night"
                 }
                 "battery" => {
                     st.sys.bat = Some(crate::sys::Bat { pct: 64, charging: false, plugged: false, mins: Some(215) });
-                    crate::ui::Act::Popup("profile")
+                    "battery"
+                }
+                "profile" => {
+                    st.prof = crate::profile::Prof { present: true, active: "balanced".into(), list: vec!["power-saver".into(), "balanced".into(), "performance".into()], degraded: String::new() };
+                    "profile"
+                }
+                "net" => {
+                    st.sys.online = true;
+                    st.sys.wifi = true;
+                    st.sys.ip = "192.168.1.24".into();
+                    st.sys.rx = 1_250_000.0;
+                    st.sys.tx = 84_000.0;
+                    st.net.active = vec![("Home 5G".into(), "wifi".into(), "wlan0".into())];
+                    "net"
+                }
+                "bt" => {
+                    mock_bt(st);
+                    "bt"
+                }
+                "vol" => {
+                    st.audio.ready = true;
+                    st.audio.volume = 0.62;
+                    st.audio.sink = "speakers".into();
+                    st.audio.sinks = vec![crate::audio::Dev { name: "speakers".into(), desc: "Built-in Audio Analog Stereo".into(), ..Default::default() }];
+                    "vol"
+                }
+                "kb" => {
+                    st.niri.kb_names = vec!["English (US)".into(), "Arabic".into()];
+                    st.niri.kb_idx = 1;
+                    "kb"
+                }
+                "clock" => {
+                    st.set.hijri = true;
+                    "clock"
+                }
+                "privacy" => {
+                    st.mic = vec!["Firefox".into()];
+                    st.camera = vec!["Zoom".into()];
+                    "privacy"
                 }
                 _ => {
                     st.caffeine.on = true;
                     st.caffeine.until = Some(std::time::Instant::now() + std::time::Duration::from_secs(80 * 60 - 5));
-                    crate::ui::Act::CaffeineToggle
+                    "caffeine"
                 }
             };
-            let lines = crate::tips::text(st, &act).unwrap_or_default();
+            let lines = crate::tips::text(st, key).unwrap_or_default();
             let size = crate::tips::measure(&mut res.fonts, &lines);
-            st.tip = Some(crate::tips::Tip { act, lines, out: String::new(), at: (0, 0), since: std::time::Instant::now(), shown: true });
+            st.tip = Some(crate::tips::Tip { key, lines, out: String::new(), at: (0, 0), since: std::time::Instant::now(), shown: true });
             size
         }
         "menu" => {
