@@ -168,6 +168,7 @@ impl App {
                     "hijri" => s.hijri = !s.hijri,
                     "arabic_digits" => s.arabic_digits = !s.arabic_digits,
                     "dnd" => s.dnd = !s.dnd,
+                    "island" => s.island = !s.island,
                     "float_media" => s.float_media = !s.float_media,
                     "dock" => s.dock = !s.dock,
                     "dock_bounce" => s.dock_bounce = !s.dock_bounce,
@@ -238,6 +239,11 @@ impl App {
                     _ => {}
                 }
                 self.settings_changed();
+                // «остров» меняет место карточек и громкости: поверхности — заново (якорь на лету не меняется)
+                if *k == "island" {
+                    self.renew_notif(SKind::Notifs);
+                    self.renew_notif(SKind::Osd);
+                }
                 // превью наборов — в новом виде значков
                 if matches!(*k, "icon_pixel" | "icon_tint") && self.st.sets.is_some() {
                     self.st.sets = None;
@@ -394,6 +400,14 @@ impl App {
                 "open_welcome" => self.welcome_open("hello"),
                 "widget_scripts" => {
                     self.st.widget_scripts = !self.st.widget_scripts;
+                    self.dirty(&SKind::Modal);
+                }
+                "upd_page_desktop" | "upd_page_software" => {
+                    self.st.upd_page = if *k == "upd_page_software" { 1 } else { 0 };
+                    if self.st.upd_page == 1 {
+                        let tx = self.tx.clone();
+                        crate::sysupd::start(&mut self.st, tx, false);
+                    }
                     self.dirty(&SKind::Modal);
                 }
                 "sysupd_check" => {

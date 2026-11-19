@@ -197,6 +197,7 @@ pub const BINDS: &[Bind] = &[
     b("minimize", "shell", "Mod+N", NR, r#"spawn "yami-shell" "msg" "minimize";"#, "свернуть окно", "Minimize window", true),
     b("restore", "shell", "Mod+Shift+N", NR, r#"spawn "yami-shell" "msg" "restore";"#, "вернуть свёрнутое", "Restore last minimized", true),
     b("overview", "shell", "Mod+Tab", NR, "toggle-overview;", "обзор столов", "Overview", true),
+    b("cheat", "shell", "Mod+F1", NR, r#"spawn "yami-shell" "msg" "cheat";"#, "шпаргалка по клавишам", "Key cheat sheet", true),
     b("hotkeys", "shell", "Mod+Shift+Slash", "", "show-hotkey-overlay;", "подсказка клавиш", "Show hotkeys", false),
 
     b("close", "windows", "Mod+Q", NR, "close-window;", "закрыть окно", "Close window", true),

@@ -9,6 +9,10 @@ has its Russian line in CHANGELOG.ru.md: `tools/check.sh` checks that.
 
 ## Unreleased
 
+- Updates is one page again, with two sides: **Desktop** (Nemo itself: shell, modules, login screen) and **Software** (your distribution's packages). Software explains itself: what it is, how many packages wait, a numbered list of what happens when you press update (a terminal opens, a snapshot if snapper is there, only safe updates in one all-or-nothing transaction on Fedora, sudo asks in the terminal, held-back packages are left alone, a reboot hint at the end) and the exact command that will run.
+- Key cheat sheet: `nemo msg cheat` (and Mod+F1) opens a searchable list of every bind with its current key, your own commands included; Esc closes it.
+- Island (option): settings → notifications → island puts notifications and the volume/brightness popups at the top centre under the bar as rounded pills. Off by default; the cards stay as they were. First version: placement and shape; the morph into the bar comes later.
+
 - The Nemo fish is now the minimal one: a single smooth silhouette (lens body, forked tail, one round eye that is a hole) in the accent colour, drawn by the shell itself with soft edges (`yami_px::brand::mask`), on the about page, the wallpaper mark and in fastfetch. The logo kit (black, white, lavender, app icon, favicon and web icons, a usage guide) is in `.github/assets/logo/`.
 - System updates in settings: a new page (settings → system → system updates) shows how many packages wait on your distribution (Fedora, Arch, Debian/Ubuntu, openSUSE) and a button to update them in a terminal, where sudo asks for the password. On Fedora it uses `nemo-fedora-update` and shows the safe set and what is held back and why. It checks only while the page is open, at most every six hours.
 

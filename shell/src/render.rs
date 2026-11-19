@@ -139,6 +139,7 @@ impl App {
                     Some(Modal::Settings) => crate::settings::draw(&mut ui, st, w, h),
                     Some(Modal::Reply) => crate::reply::draw(&mut ui, st, w, h),
                     Some(Modal::Walls) => crate::walls::draw(&mut ui, st, w, h),
+                    Some(Modal::Cheat) => crate::cheat::draw(&mut ui, st, w, h),
                     None => {}
                 },
                 SKind::Popup => crate::popups::draw(&mut ui, st, w, h),

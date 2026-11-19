@@ -371,6 +371,7 @@ impl App {
                 Some(Modal::Settings) => self.settings_key(e),
                 Some(Modal::Reply) => self.reply_key(e),
                 Some(Modal::Walls) => self.walls_key(e),
+                Some(Modal::Cheat) => self.cheat_key(e),
                 None => {}
             },
             Some(SKind::Popup) => self.popup_key(e),

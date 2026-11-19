@@ -231,6 +231,8 @@ pub struct Settings {
     pub date_style: String,
     /// характер: off — молчит, quiet — о системных событиях, playful — ещё пустые панели
     pub personality: String,
+    /// «остров»: уведомления и OSD пилюлей вверху по центру, под баром; false — карточки, как раньше
+    pub island: bool,
     /// профиль питания на батарее и от сети: пусто — не трогать; power-saver, balanced, performance
     pub profile_battery: String,
     pub profile_ac: String,
@@ -482,7 +484,7 @@ pub fn page_keys(tab: &str) -> &'static [&'static str] {
         "widgets" => &["widgets", "widgetContrast"],
         "dock" => &["dock*"],
         "windows" => &["stacking", "titlebars", "floatMedia", "floatPip", "floatApps", "floatW", "floatH", "winGap", "winLeft", "winRight", "winTop", "winBottom", "winRadius", "winBorder", "castHide"],
-        "notif" => &["dnd", "notifTimeout", "notifMax", "notifHistory", "notifPos", "osdPos", "osdBright", "notifOffset", "osdOffset", "notifImages"],
+        "notif" => &["dnd", "notifTimeout", "notifMax", "notifHistory", "notifPos", "osdPos", "osdBright", "notifOffset", "osdOffset", "notifImages", "island"],
         "comfort" => &["lockAfter", "screenOffAfter", "lockSleep", "night", "nightTemp", "nightGeo", "nightOnH", "nightOffH", "nightAlways", "caffeineMinutes", "personality", "dnd", "profileBattery", "profileAc"],
         "region" => &["lang", "clock12", "clockSeconds", "clockDate", "dateStyle", "weekStart", "weekend", "hijri", "arabicDigits"],
         "system" => &["sessionRestore"],
@@ -682,6 +684,7 @@ impl Default for Settings {
             clock12: false,
             date_style: "dm".into(),
             personality: "quiet".into(),
+            island: false,
             profile_battery: String::new(),
             profile_ac: String::new(),
             week_start: "mon".into(),

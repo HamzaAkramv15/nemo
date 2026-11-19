@@ -158,11 +158,29 @@ pub fn start(st: &mut State, tx: Sender<Msg>, force: bool) {
     });
 }
 
+/// что произойдёт по кнопке «обновить»: шаги для семейства (на языке интерфейса)
+pub fn steps(family: Family) -> Vec<String> {
+    let mut v = vec![crate::tf!("откроется терминал: каждый шаг у тебя на глазах", "a terminal opens: you see every step", "um terminal abre: você vê cada passo")];
+    if family == Family::Fedora {
+        v.push(crate::tf!("снимок системы (snapper), если он стоит", "a system snapshot (snapper), if it is installed", "um instantâneo do sistema (snapper), se instalado"));
+        v.push(crate::tf!("ставятся только безопасные обновления, одной транзакцией: всё или ничего", "only the safe updates are installed, in one transaction: all or nothing", "só as atualizações seguras são instaladas, numa transação: tudo ou nada"));
+    } else {
+        v.push(crate::tf!("ставится всё, что предлагает менеджер пакетов: деления на безопасное и рискованное здесь нет", "everything the package manager offers is installed: there is no safe/risky split here", "tudo que o gerenciador oferece é instalado: aqui não há divisão entre seguro e arriscado"));
+    }
+    v.push(crate::tf!("sudo спросит пароль в терминале, Nemo его не видит", "sudo asks for your password in the terminal; Nemo never sees it", "o sudo pede a senha no terminal; o Nemo nunca a vê"));
+    if family == Family::Fedora {
+        v.push(crate::tf!("удержанное (ядро, видеодрайверы, основа системы) не трогается", "held-back packages (kernel, graphics drivers, the base) are left alone", "pacotes retidos (kernel, drivers gráficos, a base) não são tocados"));
+        v.push(crate::tf!("в конце — нужна ли перезагрузка", "at the end it tells you whether to reboot", "no fim diz se é preciso reiniciar"));
+    }
+    v
+}
+
 pub fn tab(ui: &mut Ui, st: &State, b: R) {
     let t = ui.t;
     let s = &st.sys_upd;
     let (fam, name) = s.fam.clone().unwrap_or_else(detect);
     let mut y = title(ui, b.x, b.y, b.w, "обновления системы");
+    y += ui.wrap(PX, R::new(b.x, y, b.w, 40), &crate::tf!("Пакеты твоего дистрибутива: браузер, ядро, библиотеки, всё, что ставит менеджер пакетов. Сам Nemo обновляется на странице «рабочий стол».", "Your distribution's packages: browser, kernel, libraries, everything the package manager installs. Nemo itself updates on the Desktop page.", "Os pacotes da sua distribuição: navegador, kernel, bibliotecas, tudo que o gerenciador instala. O próprio Nemo atualiza na página Desktop."), t.text_dim, 3) + 10;
     ui.text_in(PX, R::new(b.x, y, 160, 22), "дистрибутив", t.text_faint);
     ui.text_in(PX, R::new(b.x + 170, y, b.w - 170, 22), &name, t.text);
     y += 30;
@@ -190,6 +208,19 @@ pub fn tab(ui: &mut Ui, st: &State, b: R) {
     let label = if fam == Family::Fedora { "обновить безопасное в терминале" } else { "обновить в терминале" };
     ui.button(R::new(b.x + half + 20, y, half, 30), label, "down", Tone::Primary, false, can, Act::SCycle("sysupd_run"));
     y += 44;
+    if update_command(fam).is_some() {
+        // что произойдёт — по шагам, и точная команда: человек знает, что запускает
+        y = title(ui, b.x, y, b.w, "что будет, когда нажмёшь «обновить»");
+        for (i, step) in steps(fam).iter().enumerate() {
+            ui.text_in(PX, R::new(b.x, y, 22, 20), &format!("{}.", i + 1), t.red);
+            y += ui.wrap(PX, R::new(b.x + 24, y, b.w - 24, 40), step, t.text_dim, 2) + 6;
+        }
+        if let Some(cmd) = update_command(fam) {
+            ui.text_in(PX, R::new(b.x, y, 110, 20), "команда", t.text_faint);
+            ui.text_in(PX, R::new(b.x + 120, y, b.w - 120, 20), cmd, t.text);
+            y += 30;
+        }
+    }
     if let Some(f) = &s.found {
         if !f.held.is_empty() {
             y = title(ui, b.x, y, b.w, "удержано до тебя: ядро, графика, основа системы");
@@ -239,6 +270,17 @@ mod tests {
         assert_eq!(count_lines(Family::Debian, "Reading...\nInst bash [1] (2 Debian)\nConf bash\nInst curl [1] (2)\n"), 2);
         assert_eq!(count_lines(Family::Suse, "S | Repository | Name | Current | Available\n--+--+--+--+--\nv | Main | zlib | 1 | 2\nv | Main | curl | 1 | 2\n"), 2);
         assert_eq!(count_lines(Family::Other, "anything"), 0);
+    }
+
+    #[test]
+    fn the_steps_tell_the_truth_about_each_family() {
+        let fedora = steps(Family::Fedora);
+        let arch = steps(Family::Arch);
+        assert!(fedora.len() > arch.len(), "Fedora has the snapshot, the safe-only rule and the held-back note");
+        assert!(fedora.iter().any(|s| s.contains("safe") || s.contains("безопасн") /* i18n-ok */));
+        assert!(!arch.iter().any(|s| s.contains("snapper")), "no snapshot is promised where none is taken");
+        assert!(arch.iter().any(|s| s.contains("no safe/risky") || s.contains("деления") /* i18n-ok */), "other distributions say everything is installed");
+        assert!(steps(Family::Debian).iter().all(|s| !s.is_empty()));
     }
 
     #[test]

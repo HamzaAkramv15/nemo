@@ -174,7 +174,7 @@ pub fn msg_ok(cmd: &str) -> bool {
     match head {
         // лаунчер с набранным текстом: любые слова
         "launcher" => true,
-        "clipboard" | "power" | "lock" | "bar" | "stacking" | "minimize" | "restore" | "edit" | "reload" | "quit" | "ping" | "restart" | "profile" | "walls" | "cast-hide" => one(&mut w),
+        "clipboard" | "cheat" | "power" | "lock" | "bar" | "stacking" | "minimize" | "restore" | "edit" | "reload" | "quit" | "ping" | "restart" | "profile" | "walls" | "cast-hide" => one(&mut w),
         "caffeine" => w.next().is_none_or(|a| matches!(a, "on" | "off" | "toggle") || crate::caffeine::parse_minutes(a).is_some()) && w.next().is_none(),
         "night" => w.next().is_none_or(|a| match a {
             "on" | "off" | "toggle" | "always" | "schedule" => w.next().is_none(),
@@ -205,7 +205,7 @@ fn send(y: &Sty, cmd: &str) -> i32 {
 fn open(y: &Sty, what: &str) -> i32 {
     let (a, b) = what.split_once(':').unwrap_or((what, ""));
     let cmd = match a {
-        "launcher" | "clipboard" | "power" | "lock" | "walls" => a.to_string(),
+        "launcher" | "clipboard" | "power" | "lock" | "walls" | "cheat" => a.to_string(),
         "settings" if b.is_empty() => "settings".into(),
         "settings" => format!("settings {b}"),
         "screenshot" => format!("screenshot {}", if b.is_empty() { "area" } else { b }).trim().to_string(),

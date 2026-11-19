@@ -551,7 +551,10 @@ pub(crate) fn tab_notif(ui: &mut Ui, st: &State, b: R) {
     let s = &st.set;
     let half = (b.w - 20) / 2;
     let (lx, rx) = (b.x, b.x + half + 20);
-    let mut y = title(ui, b.x, b.y, b.w, "карточки");
+    let mut y = title(ui, b.x, b.y, b.w, "остров");
+    ui.toggle(R::new(b.x, y, b.w, 40), "остров", "уведомления и громкость вверху по центру, пилюлей под баром", s.island, Act::SBool("island"));
+    y += 50;
+    y = title(ui, b.x, y, b.w, "карточки");
     ui.toggle(R::new(lx, y, half, 40), "не беспокоить", "только срочные", s.dnd, Act::SBool("dnd"));
     ui.slider(R::new(rx, y, half, 40), "сколько висит", (s.notif_timeout as f32 - 2.0) / 28.0, &crate::tf!("{} с", "{} s", "{} s", s.notif_timeout), 12, Act::SSlider("notif_timeout", 2.0, 30.0, 14));
     y += 48;

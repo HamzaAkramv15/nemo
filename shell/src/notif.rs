@@ -143,21 +143,28 @@ pub fn draw(ui: &mut Ui, st: &State, _w: i32, _h: i32) {
         let z0 = ui.zones.len();
         let r = R::new(x0, y, W, ch);
         let hov = ui.hover(r);
-        ui.cv.pxbox(r, &BoxStyle::new(t.glass_panel(), if n.critical { t.ember } else if hov { t.red } else { t.border }).shadow(4));
-        ui.cv.fill(R::new(r.x + 2, r.y + 2, 3, r.h - 4), if n.critical { t.ember } else { t.red });
+        let edge = if n.critical { t.ember } else if hov { t.red } else { t.border };
+        let island = st.set.island;
+        if island {
+            pill(ui, r, 18, t.glass_panel(), edge);
+        } else {
+            ui.cv.pxbox(r, &BoxStyle::new(t.glass_panel(), edge).shadow(4));
+            ui.cv.fill(R::new(r.x + 2, r.y + 2, 3, r.h - 4), if n.critical { t.ember } else { t.red });
+        }
         if !n.critical && n.life > 0.0 {
             // остаток — по часам, а не по тику (100 мс): полоса идёт шагами по 2 px каждый кадр;
             // под курсором время стоит, и перерисовывать нечего
             let ticking = !st.notifs.hover;
             let left = n.left - if ticking { st.notifs.last.map(|l| l.elapsed().as_secs_f32()).unwrap_or(0.0) } else { 0.0 };
-            let lw = (((r.w - 9) as f32 * (left / n.life).clamp(0.0, 1.0)) / 2.0).round() as i32 * 2;
-            ui.cv.fill(R::new(r.x + 5, r.bottom() - 4, lw, 2), t.red.fade(0.6));
+            let lw = (((r.w - if island { 28 } else { 9 }) as f32 * (left / n.life).clamp(0.0, 1.0)) / 2.0).round() as i32 * 2;
+            ui.cv.fill(R::new(r.x + if island { 14 } else { 5 }, r.bottom() - 4, lw, 2), t.red.fade(0.6));
             if ticking {
                 ui.anim = true;
             }
         }
         ui.zone(r, Act::NotifClick(n.id), Cur::Pointer);
-        draw_card(ui, n, R::new(r.x + 14, r.y + 8, r.w - 24, r.h - 16), true);
+        let pad = if island { 22 } else { 14 };
+        draw_card(ui, n, R::new(r.x + pad, r.y + 8, r.w - pad - 10, r.h - 16), true);
         if pixel && k < 1.0 {
             ui.cv.dissolve_rect_as(R::new(r.x - 4, r.y - 4, r.w + 12, r.h + 12), k, 2, yami_px::gfx::Reveal::from_id(style), st.set.reveal_grain);
         }
@@ -215,11 +222,50 @@ pub fn draw_card(ui: &mut Ui, n: &Note, r: R, close: bool) {
     }
 }
 
+/// закруглённая плашка «острова»: строки с отступом по окружности радиуса `rad` (ступени в пиксель, как всё
+/// в Nemo), заливка и тонкая кромка
+pub fn pill(ui: &mut Ui, r: R, rad: i32, fill: crate::gfx::C, edge: crate::gfx::C) {
+    let spans = pill_spans(r.h, rad);
+    for (dy, (a, b)) in spans.iter().enumerate() {
+        let y = r.y + dy as i32;
+        ui.cv.fill(R::new(r.x + a, y, r.w - a - b, 1), fill);
+    }
+    for (dy, (a, b)) in spans.iter().enumerate() {
+        let y = r.y + dy as i32;
+        let top = dy < spans.len() / 2;
+        // кромка: на первой и последней строке — вся длина, дальше — ровно столько, сколько ступенька
+        if dy == 0 || dy + 1 == spans.len() {
+            ui.cv.fill(R::new(r.x + a, y, r.w - a - b, 1), edge);
+            continue;
+        }
+        let near = if top { spans[dy - 1] } else { spans[dy + 1] };
+        let (w_l, w_r) = (((near.0 - a).max(1)), ((near.1 - b).max(1)));
+        ui.cv.fill(R::new(r.x + a, y, w_l, 1), edge);
+        ui.cv.fill(R::new(r.right() - b - w_r, y, w_r, 1), edge);
+    }
+}
+
+/// отступы слева и справа для каждой строки плашки высотой `h` с радиусом `rad`
+pub fn pill_spans(h: i32, rad: i32) -> Vec<(i32, i32)> {
+    let rad = rad.clamp(0, h / 2);
+    (0..h)
+        .map(|dy| {
+            let d = if dy < rad { rad - dy } else if dy >= h - rad { dy - (h - rad - 1) } else { 0 };
+            let inset = if d == 0 { 0 } else { rad - (((rad * rad - (d - 1) * (d - 1)) as f32).sqrt().floor() as i32).clamp(0, rad) };
+            (inset, inset)
+        })
+        .collect()
+}
+
 pub fn draw_osd(ui: &mut Ui, st: &State, w: i32, _h: i32) {
     let t = ui.t;
     let Some((kind, _)) = st.osd else { return };
     let fr = R::new(0, 0, w - 8, 56);
-    ui.cv.pxbox(fr, &BoxStyle::new(t.glass_panel(), t.border).shadow(4));
+    if st.set.island {
+        pill(ui, fr, 28, t.glass_panel(), t.border);
+    } else {
+        ui.cv.pxbox(fr, &BoxStyle::new(t.glass_panel(), t.border).shadow(4));
+    }
     if kind == "volume" {
         let a = &st.audio;
         ui.cv.icon(if a.muted { "mute" } else { "speaker" }, 12, 11, 2, t.red);
@@ -345,7 +391,8 @@ impl App {
     fn notif_place(&self) -> (Anchor, (i32, i32, i32, i32)) {
         // от края — notifOffset; бар niri сам вычитает (исключительная зона), карточки — под ним
         let o = self.st.set.num("notif_offset");
-        match self.st.set.notif_pos.as_str() {
+        let pos = if self.st.set.island { "top" } else { self.st.set.notif_pos.as_str() };
+        match pos {
             "top-left" => (Anchor::TOP | Anchor::LEFT, (o, 0, 0, 6)),
             "top" => (Anchor::TOP, (o, 0, 0, 0)),
             "bottom-right" => (Anchor::BOTTOM | Anchor::RIGHT, (0, 6, o, 0)),
@@ -456,7 +503,7 @@ impl App {
             // Исключённые зоны OSD не видит (-1): место бара прибавляем сами
             let (bt, br, bb, bl) = self.bar_reserve(&out);
             let o = self.st.set.num("osd_offset");
-            let p = self.st.set.osd_pos.clone();
+            let p = if self.st.set.island { "top".to_string() } else { self.st.set.osd_pos.clone() };
             let mut anchor = Anchor::empty();
             let (mut mt, mut mr, mut mb, mut ml) = (0, 0, 0, 0);
             if p.starts_with("top") {
@@ -484,3 +531,31 @@ impl App {
         self.dirty(&SKind::Osd);
     }
 }
+
+#[cfg(test)]
+mod pill_tests {
+    use super::pill_spans;
+
+    #[test]
+    fn a_pill_is_round_at_the_ends_and_straight_between() {
+        let s = pill_spans(56, 28);
+        assert_eq!(s.len(), 56);
+        assert!(s[0].0 > 10, "the top row is far in: {:?}", s[0]);
+        assert!(s[27].0 <= 1 && s[28].0 <= 1, "the middle rows reach the edge");
+        // симметрия сверху вниз и слева направо
+        for i in 0..28 {
+            assert_eq!(s[i], s[55 - i], "row {i}");
+            assert_eq!(s[i].0, s[i].1);
+        }
+        // ступени идут к краю не вспять
+        assert!(s[..28].windows(2).all(|w| w[0].0 >= w[1].0));
+    }
+
+    #[test]
+    fn a_short_card_never_gets_a_radius_bigger_than_half_its_height() {
+        let s = pill_spans(20, 18);
+        assert!(s[0].0 <= 10 && s.len() == 20);
+        assert_eq!(pill_spans(10, 0).iter().filter(|x| x.0 > 0).count(), 0, "no radius: a plain box");
+    }
+}
+

@@ -143,7 +143,26 @@ pub(crate) fn civil(z: i64) -> (i64, u32, u32) {
     (era * 400 + yoe + i64::from(m <= 2), m, d)
 }
 
+/// обновления: наверху переключатель «рабочий стол» (сам Nemo) и «софт» (пакеты дистрибутива)
 pub fn tab(ui: &mut Ui, st: &State, b: R) {
+    let t = ui.t;
+    let mut x = b.right();
+    for (i, (name, icon, act)) in [("рабочий стол", "grid", "upd_page_desktop"), ("софт", "down", "upd_page_software")].into_iter().enumerate().rev() {
+        let bw = ui.w(crate::font::PX, name) + 36;
+        x -= bw;
+        ui.button(R::new(x, b.y - 3, bw, 22), name, icon, Tone::Ghost, st.upd_page == i as u8, true, Act::SCycle(act));
+        x -= 6;
+    }
+    let what = if st.upd_page == 1 { "пакеты твоего дистрибутива, а не сам Nemo" } else { "сам Nemo: шелл, модули и экран входа" };
+    ui.text_in(crate::font::PX, R::new(b.x, b.y - 3, (x - b.x).max(0), 22), what, t.text_faint);
+    let inner = R::new(b.x, b.y + 34, b.w, b.h - 34);
+    if st.upd_page == 1 {
+        return crate::sysupd::tab(ui, st, inner);
+    }
+    desktop_tab(ui, st, inner)
+}
+
+fn desktop_tab(ui: &mut Ui, st: &State, b: R) {
     let t = ui.t;
     let s = &st.set;
     let u = &st.upd;

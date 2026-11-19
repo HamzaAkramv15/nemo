@@ -48,7 +48,7 @@ const TARGETS: &[&str] = &[
     "settings:startup",
     "settings:search",
     "settings:comfort",
-    "settings:sysupd",
+    "settings:updates-software",
     "settings:region",
     "settings:look",
     "settings:anim",
@@ -69,6 +69,7 @@ const TARGETS: &[&str] = &[
     "clipboard",
     "power",
     "popup:cal",
+    "cheat",
     "tip:caffeine",
     "tip:night",
     "tip:battery",
@@ -115,6 +116,7 @@ const TARGETS: &[&str] = &[
     "popup:weather-none",
     "notif",
     "notif:shot",
+    "notif:island",
     "grid",
     "osd",
     "lock",
@@ -122,6 +124,7 @@ const TARGETS: &[&str] = &[
     "curtain:badge",
     "osd:curtain",
     "osd:bright",
+    "osd:island",
     "settings:shots",
     "settings:windows",
     "settings:dock",
@@ -440,7 +443,8 @@ fn shoot(st: &mut State, res: &mut Res, target: &str, path: &Path) {
             if arg == "screens" {
                 st.disp.outs = crate::displays::mock();
             }
-            if arg == "sysupd" {
+            st.upd_page = if arg == "updates-software" { 1 } else { 0 };
+            if arg == "updates-software" {
                 st.sys_upd.fam = Some((crate::sysupd::Family::Fedora, "Fedora Linux 45".to_string()));
                 st.sys_upd.found = Some(crate::sysupd::Found { total: 383, safe: Some(357), held: vec![("the base of the system".into(), 9), ("graphics drivers".into(), 8), ("boot and kernel".into(), 7), ("our own session".into(), 1), ("major version 0 -> 1".into(), 1)], err: String::new() });
             }
@@ -575,6 +579,10 @@ fn shoot(st: &mut State, res: &mut Res, target: &str, path: &Path) {
         "power" => {
             st.modal = Some(Modal::Power);
             crate::power::SIZE
+        }
+        "cheat" => {
+            st.modal = Some(Modal::Cheat);
+            crate::cheat::SIZE
         }
         "walls" => {
             st.modal = Some(Modal::Walls);
@@ -738,6 +746,7 @@ fn shoot(st: &mut State, res: &mut Res, target: &str, path: &Path) {
             s
         }
         "notif" if arg != "shot" => {
+            st.set.island = arg == "island";
             if st.notifs.history.is_empty() {
                 st.notifs.history.push(mock_note());
                 st.notifs.popups.push(1);
@@ -769,6 +778,7 @@ fn shoot(st: &mut State, res: &mut Res, target: &str, path: &Path) {
             (1280, 720)
         }
         "osd" => {
+            st.set.island = arg == "island";
             st.osd = Some((match arg { "curtain" => "curtain", "bright" => "bright", _ => "volume" }, Instant::now()));
             st.bright = Some(0.65);
             if arg == "curtain" {
@@ -843,6 +853,7 @@ fn shoot(st: &mut State, res: &mut Res, target: &str, path: &Path) {
             "reply" => crate::reply::draw(&mut ui, st, w, h),
             "power" => crate::power::draw(&mut ui, st, w, h),
             "walls" => crate::walls::draw(&mut ui, st, w, h),
+            "cheat" => crate::cheat::draw(&mut ui, st, w, h),
             "popup" => crate::popups::draw(&mut ui, st, w, h),
             "tip" => crate::tips::draw(&mut ui, st, w, h),
             "menu" => crate::menu::draw(&mut ui, st, w, h),

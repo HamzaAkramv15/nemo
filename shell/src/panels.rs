@@ -57,6 +57,7 @@ impl App {
             Modal::Settings => crate::settings::SIZE,
             Modal::Reply => crate::reply::SIZE,
             Modal::Walls => crate::walls::SIZE,
+            Modal::Cheat => crate::cheat::SIZE,
         };
         self.st.modal = Some(m);
         match m {
@@ -69,6 +70,7 @@ impl App {
             }
             Modal::Power => self.st.power_cur = 0,
             Modal::Reply | Modal::Walls => {}
+            Modal::Cheat => self.cheat_open(),
             Modal::Settings => {
                 self.st.mods_here = crate::welcome::Here::probe();
                 self.tab_probe();
@@ -85,6 +87,7 @@ impl App {
             Modal::Settings => "yami-settings",
             Modal::Reply => "yami-reply",
             Modal::Walls => "yami-walls",
+            Modal::Cheat => "nemo-cheat",
         }, Anchor::empty(), (w, h + 12), (0, 0, 0, 0), -1, KeyboardInteractivity::Exclusive);
         // мастер, который закрыли не пройдя: настройки возвращают в него
         if m == Modal::Settings {

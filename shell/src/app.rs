@@ -57,6 +57,8 @@ pub enum Modal {
     Reply,
     /// выбор обоев (walls.rs)
     Walls,
+    /// шпаргалка по клавишам (cheat.rs)
+    Cheat,
 }
 
 #[derive(Clone, Debug, PartialEq)]
@@ -268,6 +270,10 @@ pub struct State {
     pub quip: crate::personality::Gate,
     /// обновления самого дистрибутива (sysupd.rs)
     pub sys_upd: crate::sysupd::Sys,
+    /// страница «обновлений»: 0 — рабочий стол (сам Nemo), 1 — софт (пакеты дистрибутива)
+    pub upd_page: u8,
+    /// шпаргалка по клавишам: поиск и прокрутка
+    pub cheat: crate::cheat::Cheat,
     pub ac_prev: Option<bool>,
     /// питание в прошлый раз для правил профиля (profile.rs); None — ещё не смотрели
     pub pol_prev: Option<bool>,
@@ -517,6 +523,8 @@ impl State {
             tip: None,
             quip: Default::default(),
             sys_upd: Default::default(),
+            upd_page: 0,
+            cheat: Default::default(),
             ac_prev: None,
             pol_prev: None,
             full_said: false,

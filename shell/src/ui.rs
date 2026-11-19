@@ -80,6 +80,7 @@ pub enum Act {
     /// выбор обоев (walls.rs): клетка, колесо над сеткой, другая папка, другой файл, назад
     WallPick(usize),
     WallsScroll,
+    CheatScroll,
     WallsDir,
     WallsFile,
     WallsBack,

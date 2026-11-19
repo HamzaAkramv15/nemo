@@ -83,6 +83,7 @@ impl crate::app::App {
     pub fn ipc(&mut self, cmd: &str) {
         match cmd.trim() {
             "launcher" => self.toggle_modal(Modal::Launcher, false),
+            "cheat" => self.toggle_modal(Modal::Cheat, false),
             c if c.starts_with("launcher ") => self.launcher_with(c["launcher ".len()..].trim()),
             "night" => self.night_toggle(),
             c if c.starts_with("night ") => self.night_cmd(c["night ".len()..].trim()),
