@@ -262,6 +262,9 @@ fn island_w(f: &mut font::Fonts, n: &Note) -> i32 {
     ((text + img).max(head).max(acts) + 32).clamp(260, W)
 }
 
+/// поверхность острова громкости: шире обычной, чтобы поместился длинный текст шторки на любом языке
+pub const OSD_ISLAND_W: i32 = 372;
+
 /// ширина острова громкости/яркости/раскладки/шторки
 fn island_osd_w(f: &mut font::Fonts, st: &State) -> i32 {
     let kind = st.osd.map(|o| o.0).unwrap_or("volume");
@@ -270,12 +273,12 @@ fn island_osd_w(f: &mut font::Fonts, st: &State) -> i32 {
             let on = st.curtain.is_some();
             let a = f.width(PX, crate::i18n::tr(if on { "экран скрыт в трансляции" } else { "экран снова виден" }));
             let b = f.width(PX, crate::i18n::tr(if on { "зрители видят шторку, ты — экран" } else { "трансляция показывает рабочий стол" }));
-            (a.max(b) + 60).clamp(260, 300)
+            (a.max(b) + 60).clamp(260, OSD_ISLAND_W - 8)
         }
         "volume" | "bright" => 260,
         _ => {
             let name = st.niri.kb_names.get(st.niri.kb_idx).cloned().unwrap_or_default();
-            (f.width(PX, &name) + 90).clamp(220, 300)
+            (f.width(PX, &name) + 90).clamp(220, OSD_ISLAND_W - 8)
         }
     }
 }
@@ -606,10 +609,11 @@ impl App {
             }
             if self.st.set.island {
                 anchor = Anchor::TOP | Anchor::LEFT;
-                (mr, ml) = (0, self.island_left(&out, 308));
+                (mr, ml) = (0, self.island_left(&out, OSD_ISLAND_W));
             }
             let margin = (mt, mr, mb, ml);
-            let id = self.mk(SKind::Osd, &out, Layer::Overlay, "yami-osd", anchor, (308, 64 + 8), margin, -1, KeyboardInteractivity::None);
+            let sw = if self.st.set.island { OSD_ISLAND_W } else { 308 };
+            let id = self.mk(SKind::Osd, &out, Layer::Overlay, "yami-osd", anchor, (sw, 64 + 8), margin, -1, KeyboardInteractivity::None);
             if let Some(s) = self.surfs.get(&id) {
                 if let Ok(r) = smithay_client_toolkit::compositor::Region::new(&self.compositor) {
                     s.layer.wl_surface().set_input_region(Some(r.wl_region()));

@@ -807,7 +807,7 @@ fn shoot(st: &mut State, res: &mut Res, target: &str, path: &Path) {
             if arg == "curtain" {
                 st.curtain = Some(Default::default());
             }
-            (308, 64)
+            (if st.set.island { crate::notif::OSD_ISLAND_W } else { 308 }, 64)
         }
         "curtain" if arg == "badge" => (crate::curtain::badge_w(&mut res.fonts), 34),
         "curtain" => {
