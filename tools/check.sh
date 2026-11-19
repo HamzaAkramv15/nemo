@@ -58,7 +58,7 @@ fi
 [[ ${PIPESTATUS[0]} -eq 0 ]] && ok "yami-shell shot --lang pt-BR" || bad "yami-shell shot --lang pt-BR"
 # every language (a missing line shows in English): every text fits its place, nothing cut
 fit=0
-for lang in ru en pt-BR es de fr uk pl; do
+for lang in ru en pt-BR es de fr uk pl ar; do
   "$BIN" shot --defaults --fit --lang "$lang" -o "$TMP/$lang" >"$TMP/fit.log" 2>&1 || { grep -E "layout:|untranslated" "$TMP/fit.log" | head -10; fit=1; }
 done
 ((fit)) && bad "yami-shell shot --fit (shorten the translation or give the text room)" || ok "yami-shell shot --fit: all eight languages, every text fits"
@@ -68,7 +68,7 @@ printf '{"preset":"plain"}\n' >"$TMP/plain.json"
 printf '{"preset":"yami","palette":"ash"}\n' >"$TMP/yami.json"
 ag=0
 for look in plain yami; do
-  for lang in en ru pt-BR es de fr uk pl; do
+  for lang in en ru pt-BR es de fr uk pl ar; do
     YAMI_STYLE="$TMP/$look.json" "$AG" shot --lang "$lang" -o "$TMP/ag-$look-$lang" >"$TMP/ag.log" 2>&1 || { tail -5 "$TMP/ag.log"; ag=1; }
   done
 done

@@ -154,7 +154,12 @@ fn bundled_dir() -> std::path::PathBuf {
 
 /// Noto Sans из набора; None — файла нет, берётся системный
 fn bundled_sans(srcs: &mut Vec<Src>) -> Option<usize> {
-    let file = bundled_dir().join("NotoSans-Regular.ttf");
+    bundled_file("NotoSans-Regular.ttf", srcs)
+}
+
+/// файл из набора; None — его нет
+fn bundled_file(name: &str, srcs: &mut Vec<Src>) -> Option<usize> {
+    let file = bundled_dir().join(name);
     let font = load(file.to_str()?, 0)?;
     srcs.push(Src { font, pixel: false, k: 1.0 });
     Some(srcs.len() - 1)
@@ -195,6 +200,7 @@ impl Fonts {
             .or_else(|| add("Terminess Nerd Font Mono", Some("terminess"), true, &mut srcs));
         // основной не-пиксельный: Noto Sans из набора Nemo (одинаковый у всех, на нём проверяется вёрстка),
         // а если его нет (модуль в чужой системе) — что fontconfig даст как sans-serif
+        let arabic = bundled_file("NotoSansArabic.ttf", &mut srcs);
         let sans = bundled_sans(&mut srcs).or_else(|| add("sans-serif:lang=ru", None, false, &mut srcs));
         let cjk = add("sans-serif:lang=ja", None, false, &mut srcs);
         let emoji = add("emoji", None, false, &mut srcs);
@@ -207,7 +213,7 @@ impl Fonts {
             }
             v
         };
-        let chain_px = chain(&[custom, tiny, mono, dot, sans, cjk, emoji]);
+        let chain_px = chain(&[custom, tiny, mono, dot, sans, arabic, cjk, emoji]);
         let chain_jp = chain(&[dot, tiny, cjk, sans]);
         let mut f = Fonts {
             srcs,
@@ -349,7 +355,7 @@ impl Fonts {
     }
 
     pub fn width(&mut self, face: Face, s: &str) -> i32 {
-        s.chars().filter(|c| *c != '\n').map(|c| self.advance(face, c)).sum()
+        crate::rtl::visual(s).chars().filter(|c| *c != '\n').map(|c| self.advance(face, c)).sum()
     }
 
     /// строка, урезанная до max px с многоточием; влезает — как есть
@@ -359,6 +365,19 @@ impl Fonts {
         }
         let e = self.ellipsis;
         let ew = self.width(face, e);
+        if crate::rtl::has_rtl(s) {
+            // буквы меняют ширину от соседей: режем по ширине собранной строки, а не по сумме букв
+            let cs: Vec<char> = s.chars().collect();
+            let mut n = cs.len();
+            while n > 0 {
+                n -= 1;
+                let cand: String = cs[..n].iter().collect();
+                if self.width(face, &cand) + ew <= max {
+                    return cand + e;
+                }
+            }
+            return e.to_string();
+        }
         let mut w = 0;
         let mut out = String::new();
         for ch in s.chars() {

@@ -1246,4 +1246,7 @@ const PT_BR: &[(&str, &str)] = &[
     ("silent", "calado"),
     ("playful", "brincalhão"),
     ("quiet", "quieto"),
+    ("weekend", "fim de semana"),
+    ("Fri and Sat", "sex e sáb"),
+    ("Sat and Sun", "sáb e dom"),
 ];

@@ -430,6 +430,9 @@ impl App {
                     s.date_style = cycle(&[("dm", ""), ("md", ""), ("iso", "")], &s.date_style).into();
                     self.settings_changed();
                 }
+                "weekend" => {
+                    s.weekend = cycle(&[("satsun", ""), ("frisat", "")], &s.weekend).into();
+                }
                 "week_start" => {
                     s.week_start = cycle(&[("mon", ""), ("sun", ""), ("sat", "")], &s.week_start).into();
                     self.settings_changed();

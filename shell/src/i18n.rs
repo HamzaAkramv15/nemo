@@ -78,7 +78,7 @@ fn table() -> &'static HashMap<&'static str, &'static str> {
 
 /// таблица текущего языка от английского (португальский и остальные); у русского и английского её нет
 fn lang_table() -> Option<&'static HashMap<&'static str, &'static str>> {
-    static T: [OnceLock<HashMap<&'static str, &'static str>>; 6] = [const { OnceLock::new() }; 6];
+    static T: [OnceLock<HashMap<&'static str, &'static str>>; 7] = [const { OnceLock::new() }; 7];
     let (i, rows): (usize, &'static [(&'static str, &'static str)]) = match code() {
         "pt-BR" => (0, PT_BR),
         "es" => (1, ES),
@@ -86,6 +86,7 @@ fn lang_table() -> Option<&'static HashMap<&'static str, &'static str>> {
         "fr" => (3, FR),
         "uk" => (4, UK),
         "pl" => (5, PL),
+        "ar" => (6, AR),
         _ => return None,
     };
     Some(T[i].get_or_init(|| rows.iter().copied().collect()))
@@ -106,6 +107,7 @@ include!("i18n_de.rs");
 include!("i18n_fr.rs");
 include!("i18n_uk.rs");
 include!("i18n_pl.rs");
+include!("i18n_ar.rs");
 
 const PAIRS: &[(&str, &str)] = &[
     ("модули: поставить или убрать", "modules: add or remove"),
@@ -1106,4 +1108,7 @@ const PAIRS: &[(&str, &str)] = &[
     ("молчит", "silent"),
     ("игривая", "playful"),
     ("тихая", "quiet"),
+    ("выходные", "weekend"),
+    ("пт и сб", "Fri and Sat"),
+    ("сб и вс", "Sat and Sun"),
 ];

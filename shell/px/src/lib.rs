@@ -5,6 +5,8 @@
 pub mod brand;
 pub mod face;
 pub mod font;
+pub mod rtl;
+mod rtl_table;
 pub mod gfx;
 pub mod i18n;
 pub mod icons;

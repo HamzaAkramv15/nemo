@@ -233,6 +233,8 @@ pub struct Settings {
     pub personality: String,
     /// с какого дня начинается неделя в календаре: mon | sun | sat
     pub week_start: String,
+    /// выходные в календаре: satsun — суббота и воскресенье, frisat — пятница и суббота (Египет, Ближний Восток)
+    pub weekend: String,
     pub task_width: i32,
     /// разделитель-модуль "sep": dots | line | blocks | gap
     pub bar_sep: String,
@@ -469,7 +471,7 @@ pub fn page_keys(tab: &str) -> &'static [&'static str] {
         "fonts" => &["fontShell", "fontFiles", "fontView", "fontUi", "fontPt", "fontSize", "fontMono", "browserMenus", "browserFont", "terminalFish", "fetchFull"],
         "anim" => &["animations", "animSpeed", "animClose", "reveal", "revealGrain", "anims"],
         "wall" => &["wallDir", "wallFit", "wallPixel", "wallTone", "wallDim", "wallKanji"],
-        "bar" => &["bar*", "clockSeconds", "clockDate", "clock12", "dateStyle", "weekStart", "taskWidth", "cpuStyle", "tempStyle", "trayMode", "trayPixel", "batHideFull", "privacyMic", "privacyCam", "privacyScreen", "mediaViz", "mediaView", "controlTiles"],
+        "bar" => &["bar*", "clockSeconds", "clockDate", "weekend", "clock12", "dateStyle", "weekStart", "taskWidth", "cpuStyle", "tempStyle", "trayMode", "trayPixel", "batHideFull", "privacyMic", "privacyCam", "privacyScreen", "mediaViz", "mediaView", "controlTiles"],
         "widgets" => &["widgets", "widgetContrast"],
         "dock" => &["dock*"],
         "windows" => &["stacking", "titlebars", "floatMedia", "floatPip", "floatApps", "floatW", "floatH", "winGap", "winLeft", "winRight", "winTop", "winBottom", "winRadius", "winBorder", "castHide"],
@@ -672,6 +674,7 @@ impl Default for Settings {
             date_style: "dm".into(),
             personality: "quiet".into(),
             week_start: "mon".into(),
+            weekend: "satsun".into(),
             task_width: 190,
             bar_sep: "dots".into(),
             bar_sep_w: 10,
@@ -904,6 +907,9 @@ impl Settings {
         }
         if !["dm", "md", "iso"].contains(&self.date_style.as_str()) {
             self.date_style = "dm".into();
+        }
+        if !["satsun", "frisat"].contains(&self.weekend.as_str()) {
+            self.weekend = "satsun".into();
         }
         if !["mon", "sun", "sat"].contains(&self.week_start.as_str()) {
             self.week_start = "mon".into();

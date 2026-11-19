@@ -175,7 +175,7 @@ made first); see [Updates](#updates). Bugs that also exist in Nemo are best repo
   the programs of your last session reopened at login (opt-in), your themes one click away
   (settings → color → themes), shared as one file or a link (`nemo theme export | import`) and the
   whole setup moved to a new system (`nemo export | import`).
-- **Eight interface languages.** English, Russian, Brazilian Portuguese, Spanish, German, French, Ukrainian and Polish, switchable live in settings; the modules, the login screen and the installer speak them too.
+- **Eight interface languages.** English, Russian, Brazilian Portuguese, Spanish, German, French, Ukrainian and Polish, switchable live in settings; the modules, the login screen and the installer speak them too. Arabic (العربية) is the ninth, in the shell only so far: letters are joined and ordered right to left, about a quarter of the texts are translated, and the layouts are not mirrored yet.
 - **Portable installer.** One script for Arch, Fedora (including atomic), Debian/Ubuntu,
   openSUSE, Void, Alpine, Gentoo and NixOS.
 

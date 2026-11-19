@@ -964,7 +964,8 @@ impl<'a> Canvas<'a> {
         let col = self.eff(c);
         let mut pen = x;
         let base = y + fonts.ascent(face);
-        for ch in s.chars() {
+        let vis = crate::rtl::visual(s);
+        for ch in vis.chars() {
             if ch == '\n' {
                 continue;
             }

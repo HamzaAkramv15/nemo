@@ -635,7 +635,7 @@ pub fn calendar(ui: &mut Ui, st: &State, r: R, month_shift: i32, c: C, nav: bool
     let first_col = week_start_col(&st.set.week_start);
     for i in 0..7 {
         let day = (first_col + i) % 7;
-        ui.text_center(PX, R::new(r.x + i as i32 * cw, r.y + 26, cw, 18), ["пн", "вт", "ср", "чт", "пт", "сб", "вс"][day as usize], if day >= 5 { t.red.fade(0.7) } else { t.text_faint });
+        ui.text_center(PX, R::new(r.x + i as i32 * cw, r.y + 26, cw, 18), ["пн", "вт", "ср", "чт", "пт", "сб", "вс"][day as usize], if is_weekend(day, &st.set.weekend) { t.red.fade(0.7) } else { t.text_faint });
     }
     // первый день месяца
     let first = days_from_civil(y, m as u32 + 1, 1);
@@ -650,8 +650,16 @@ pub fn calendar(ui: &mut Ui, st: &State, r: R, month_shift: i32, c: C, nav: bool
         if today {
             ui.cv.pxbox(rr, &BoxStyle::new(c, t.ember).bevel(true));
         }
-        let col = if today { t.on_accent } else if (first_col + cell % 7) % 7 >= 5 { t.red.lerp(t.text, 0.4) } else { t.text };
+        let col = if today { t.on_accent } else if is_weekend((first_col + cell % 7) % 7, &st.set.weekend) { t.red.lerp(t.text, 0.4) } else { t.text };
         ui.text_center(PX, rr, &d.to_string(), col);
+    }
+}
+
+/// выходной ли день (0 = пн … 6 = вс) при настройке weekend: «satsun» — сб и вс, «frisat» — пт и сб
+pub fn is_weekend(day: i32, s: &str) -> bool {
+    match s {
+        "frisat" => day == 4 || day == 5,
+        _ => day >= 5,
     }
 }
 
@@ -937,6 +945,16 @@ impl App {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn weekends_follow_the_region() {
+        // 0 = пн … 6 = вс
+        let sat_sun: Vec<i32> = (0..7).filter(|d| is_weekend(*d, "satsun")).collect();
+        let fri_sat: Vec<i32> = (0..7).filter(|d| is_weekend(*d, "frisat")).collect();
+        assert_eq!(sat_sun, vec![5, 6]);
+        assert_eq!(fri_sat, vec![4, 5]);
+        assert_eq!(is_weekend(6, "garbage"), true, "unknown value: the default weekend");
+    }
 
     #[test]
     fn calendar_week_starts_where_asked() {

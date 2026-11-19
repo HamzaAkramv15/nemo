@@ -212,6 +212,7 @@ Settings → look → «pixel look» moves these keys, `iconPixel` and `cursor` 
 | `clockSeconds`, `clockDate` | `false`, `true` | |
 | `clock12` | `false` | 12-hour clock with AM/PM (`3:05 PM`; the hour has no leading zero) in the bar, side bar, control panel, calendar popup, clock widget and lock screen. Settings → bar → clock and calendar. The login screen follows once yami-greet reads it |
 | `dateStyle` | `"dm"` | the short date in the bar: `dm` (`Tu 17.11`), `md` (`Tu 11/17`), `iso` (`2026-11-17`) |
+| `weekend` | `"satsun"` | which days the calendar marks as the weekend: `satsun` (Saturday, Sunday) or `frisat` (Friday, Saturday) |
 | `weekStart` | `"mon"` | the first day of the week in the calendar popup and widget: `mon`, `sun`, `sat` |
 | `taskWidth` | `190` | width of a task button, px (60–400); `tasks` works in any group and is the one module that narrows when the bar runs out of room |
 | `barTaskGap` | `4` | gap between task buttons, px (0–16) |

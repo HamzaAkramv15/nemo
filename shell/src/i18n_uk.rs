@@ -1470,4 +1470,7 @@ const UK: &[(&str, &str)] = &[
     ("silent", "мовчить"),
     ("playful", "грайлива"),
     ("quiet", "тиха"),
+    ("weekend", "вихідні"),
+    ("Fri and Sat", "пт і сб"),
+    ("Sat and Sun", "сб і нд"),
 ];

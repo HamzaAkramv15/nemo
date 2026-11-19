@@ -189,7 +189,7 @@ pub fn run(args: &[String]) -> i32 {
 
 /// языки, которые переводятся по частям: таблица i18n_<код>.rs от английского; строки без перевода
 /// показываются по-английски, проверка только считает процент. Португальский — полный, выше.
-const PARTIAL: &[&str] = &["es", "de", "fr", "uk", "pl"];
+const PARTIAL: &[&str] = &["es", "de", "fr", "uk", "pl", "ar"];
 
 fn table_file(code: &str) -> String {
     format!("i18n_{}.rs", code.to_ascii_lowercase().replace('-', "_"))
@@ -442,7 +442,7 @@ fn installer_add(code: &str, file: &str) -> i32 {
         }
     }
     let path = installer_table(code);
-    let name = match code { "es" => "Español", "de" => "Deutsch", "fr" => "Français", "uk" => "Українська", "pl" => "Polski", c => c };
+    let name = match code { "es" => "Español", "de" => "Deutsch", "fr" => "Français", "uk" => "Українська", "pl" => "Polski", "ar" => "العربية", c => c };
     let text = std::fs::read_to_string(&path).unwrap_or_else(|_| {
         format!("# {name}: the installer's lines keyed by the English text (t in installer/ui.sh, lang_load).\n# A line missing here shows in English; yami-dev check-i18n checks the keys and the {{}} of each line.\n# shellcheck shell=bash disable=SC2034\nTR=(\n)\n")
     });
@@ -504,7 +504,7 @@ pub fn new_string(args: &[String]) -> i32 {
     let mut i = 0;
     while i < args.len() {
         match args[i].strip_prefix("--") {
-            Some(code) if ["pt", "de", "fr", "es", "uk", "pl"].contains(&code) && i + 1 < args.len() => {
+            Some(code) if ["pt", "de", "fr", "es", "uk", "pl", "ar"].contains(&code) && i + 1 < args.len() => {
                 tr.push((code, args[i + 1].as_str()));
                 i += 2;
             }

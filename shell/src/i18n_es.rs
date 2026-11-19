@@ -1470,4 +1470,7 @@ const ES: &[(&str, &str)] = &[
     ("silent", "callado"),
     ("playful", "juguetón"),
     ("quiet", "discreto"),
+    ("weekend", "fin de semana"),
+    ("Fri and Sat", "vie y sáb"),
+    ("Sat and Sun", "sáb y dom"),
 ];

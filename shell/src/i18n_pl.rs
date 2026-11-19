@@ -1470,4 +1470,7 @@ const PL: &[(&str, &str)] = &[
     ("silent", "milczy"),
     ("playful", "figlarna"),
     ("quiet", "cicha"),
+    ("weekend", "weekend"),
+    ("Fri and Sat", "pt i sob"),
+    ("Sat and Sun", "sob i niedz"),
 ];

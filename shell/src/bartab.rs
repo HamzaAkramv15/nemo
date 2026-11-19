@@ -297,6 +297,8 @@ fn tab_bar_look(ui: &mut Ui, st: &State, b: R) {
     opt_btn(ui, R::new(b.x + hw + 12, y, hw, 26), "дата в баре", date_name, Act::SCycle("date_style"));
     y += 32;
     opt_btn(ui, R::new(b.x, y, hw, 26), "неделя с", week_name, Act::SCycle("week_start"));
+    let weekend_name = if s.weekend == "frisat" { "пт и сб" } else { "сб и вс" };
+    opt_btn(ui, R::new(b.x + hw + 12, y, hw, 26), "выходные", weekend_name, Act::SCycle("weekend"));
     y += 32;
     ui.toggle(R::new(b.x, y, hw, 26), "часы с секундами", "", s.clock_seconds, Act::SBool("clock_seconds"));
     ui.toggle(R::new(b.x + hw + 12, y, hw, 26), "дата в часах", "", s.clock_date, Act::SBool("clock_date"));

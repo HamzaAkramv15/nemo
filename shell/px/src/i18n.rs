@@ -15,6 +15,7 @@ pub const LANGS: &[(&str, &str)] = &[
     ("fr", "Français"),
     ("uk", "Українська"),
     ("pl", "Polski"),
+    ("ar", "العربية"),
 ];
 
 const EN: u8 = 0;
