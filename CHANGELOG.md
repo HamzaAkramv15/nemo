@@ -9,6 +9,8 @@ has its Russian line in CHANGELOG.ru.md: `tools/check.sh` checks that.
 
 ## Unreleased
 
+## 3.2.0
+
 - Everything is called Nemo now, inside too: the commands (`nemo-shell`, `nemo-files`, `nemo-view`, `nemo-play`, `nemo-shot`, `nemo-agents`, `nemo-greet`, `nemo`), the folders (`~/.config/nemo`, `~/.local/state/nemo`, `~/.cache/nemo`, `~/.local/share/nemo`), the environment variables (`NEMO_*`; the old `YAMI_*` are still read), the crates and the files of the repository. An installation under the old name moves by itself: settings, themes and the niri include line are carried over, the old commands and launchers are removed once the new ones are in place. Saved themes and exports in the old format still import. The nemo-px crate is released as 3.2.1.
 
 - The island is part of the bar now (settings → notifications → island): a short notification, volume and brightness appear as a pill in the middle of the bar; a notification with a picture, buttons or a long text hangs a card flush under the bar (above it for a bottom bar). Needs a horizontal bar.

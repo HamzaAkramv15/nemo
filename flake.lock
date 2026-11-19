@@ -1,5 +1,90 @@
 {
   "nodes": {
+    "nemo-files": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1795129818,
+        "narHash": "sha256-euxkD6MdgCyCBLERXaImuBov7JyRkn+uWUOp2YVKu7k=",
+        "owner": "HamzaAkramv15",
+        "repo": "nemo-files",
+        "rev": "a86642e8fd0480af49c54af327a80369f530f834",
+        "type": "github"
+      },
+      "original": {
+        "owner": "HamzaAkramv15",
+        "ref": "v3.2.0",
+        "repo": "nemo-files",
+        "type": "github"
+      }
+    },
+    "nemo-greet": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1795129821,
+        "narHash": "sha256-Rlo2lAyc8zy75F2rwnbwxmUTPTBXc7meqduuWW1Sy1k=",
+        "owner": "HamzaAkramv15",
+        "repo": "nemo-greet",
+        "rev": "0fad6a35a98a36dd5f8839ef649c2e2bb3c3fe31",
+        "type": "github"
+      },
+      "original": {
+        "owner": "HamzaAkramv15",
+        "ref": "v3.2.0",
+        "repo": "nemo-greet",
+        "type": "github"
+      }
+    },
+    "nemo-play": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1795129820,
+        "narHash": "sha256-vSyUsrqedSwPSDNF+l3gwuj0ZYweWU+3LGwA2Z5VHwo=",
+        "owner": "HamzaAkramv15",
+        "repo": "nemo-play",
+        "rev": "53af4c415b6bf4f0c0d410b1df3567849af238f6",
+        "type": "github"
+      },
+      "original": {
+        "owner": "HamzaAkramv15",
+        "ref": "v3.2.0",
+        "repo": "nemo-play",
+        "type": "github"
+      }
+    },
+    "nemo-shot": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1795129820,
+        "narHash": "sha256-C+/KTW+m17tbSDOpYvixAA0C4f4TSOjDbFzGblmGHvI=",
+        "owner": "HamzaAkramv15",
+        "repo": "nemo-shot",
+        "rev": "cf71f9400928d63f11b820468a4ae037de5c2ddd",
+        "type": "github"
+      },
+      "original": {
+        "owner": "HamzaAkramv15",
+        "ref": "v3.2.0",
+        "repo": "nemo-shot",
+        "type": "github"
+      }
+    },
+    "nemo-view": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1795129819,
+        "narHash": "sha256-tqtCfbMgSsJbbllJXKmgHANYyr8ombH04JcvAtuWBj4=",
+        "owner": "HamzaAkramv15",
+        "repo": "nemo-view",
+        "rev": "09477b2b82a6b8c4f026d0a87ba148706c255a6c",
+        "type": "github"
+      },
+      "original": {
+        "owner": "HamzaAkramv15",
+        "ref": "v3.2.0",
+        "repo": "nemo-view",
+        "type": "github"
+      }
+    },
     "nixpkgs": {
       "locked": {
         "lastModified": 1793726008,
@@ -18,6 +103,11 @@
     },
     "root": {
       "inputs": {
+        "nemo-files": "nemo-files",
+        "nemo-greet": "nemo-greet",
+        "nemo-play": "nemo-play",
+        "nemo-shot": "nemo-shot",
+        "nemo-view": "nemo-view",
         "nixpkgs": "nixpkgs",
         "yami-files": "yami-files",
         "yami-greet": "yami-greet",

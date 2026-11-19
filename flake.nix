@@ -6,23 +6,23 @@
     # the modules live in their own repositories; the versions are those of modules.lock (the shell's
     # services, nemo-agents, and the drawing library nemo-px are part of this repository)
     nemo-files = {
-      url = "github:HamzaAkramv15/nemo-files/nemo-v0.2.2";
+      url = "github:HamzaAkramv15/nemo-files/v3.2.0";
       flake = false;
     };
     nemo-view = {
-      url = "github:HamzaAkramv15/nemo-view/nemo-v0.2.2";
+      url = "github:HamzaAkramv15/nemo-view/v3.2.0";
       flake = false;
     };
     nemo-play = {
-      url = "github:HamzaAkramv15/nemo-play/nemo-v0.2.2";
+      url = "github:HamzaAkramv15/nemo-play/v3.2.0";
       flake = false;
     };
     nemo-shot = {
-      url = "github:HamzaAkramv15/nemo-shot/nemo-v0.3.2";
+      url = "github:HamzaAkramv15/nemo-shot/v3.2.0";
       flake = false;
     };
     nemo-greet = {
-      url = "github:HamzaAkramv15/nemo-greet/nemo-v0.2.0";
+      url = "github:HamzaAkramv15/nemo-greet/v3.2.0";
       flake = false;
     };
   };

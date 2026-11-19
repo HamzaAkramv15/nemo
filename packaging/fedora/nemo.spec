@@ -4,7 +4,7 @@
 %global __brp_strip %{nil}
 
 Name:           nemo
-Version:        3.0.0
+Version:        3.2.0
 Release:        1%{?dist}
 Summary:        Lightweight pixel-art Wayland desktop for the niri compositor
 License:        MIT

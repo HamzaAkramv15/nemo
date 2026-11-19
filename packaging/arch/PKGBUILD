@@ -2,7 +2,7 @@
 # Updates and modules are the package manager's: stage.sh --managed leaves the mark the shell looks for.
 pkgbase=nemo-bin
 pkgname=(nemo-shell-bin nemo-files-bin nemo-view-bin nemo-play-bin nemo-shot-bin nemo-greet-bin)
-pkgver=3.0.0
+pkgver=3.2.0
 pkgrel=1
 pkgdesc='Lightweight pixel-art Wayland desktop for the niri compositor'
 arch=(x86_64)
@@ -10,7 +10,7 @@ url='https://github.com/HamzaAkramv15/nemo'
 license=(MIT)
 options=(!strip !debug)
 source=("https://github.com/HamzaAkramv15/nemo/releases/download/v$pkgver/nemo-$pkgver-x86_64-linux.tar.gz")
-sha256sums=('eb90484e17f052deb025bb33645cf50276ccdeb8d1a15601634ace47713f9200') # tools/release.sh writes it
+sha256sums=('80fe4565b4a969bc480de91d6f4c4a4898adfc269221e414561c83944e3cd10c') # tools/release.sh writes it
 
 _put() { cd "nemo-$pkgver-x86_64-linux" && ./stage.sh --prefix /usr --destdir "$pkgdir" --managed --only "$1"; }
 
