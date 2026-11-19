@@ -4,6 +4,8 @@
   nemo-fedora-update            check: what would be updated and what is held back (changes nothing)
   nemo-fedora-update --apply    take a snapshot (when snapper exists), then update the safe set (asks first)
   nemo-fedora-update --apply --yes     the same without asking
+  nemo-fedora-update --apply --include-held   the held ones too (kernel, drivers, systemd…): you are sure; the snapshot
+                                       is still taken first and a reboot is advised afterwards
   nemo-fedora-update --hold NAME ...   hold more packages back for this run (shell patterns: 'python3*')
   nemo-fedora-update --held     list the rules that hold packages back
   nemo-fedora-update --json     the check as one line of JSON (for the settings page): safe, held, total, held_by
@@ -153,6 +155,13 @@ def main(argv):
     if "--apply" not in argv:
         print("\nthis was only a check. To apply the safe ones: nemo-fedora-update --apply")
         return 0
+    include_held = "--include-held" in argv
+    if include_held:
+        # the person chose to take everything: the held packages join the set, nothing is excluded but what --hold named
+        for name, v in held.items():
+            safe.setdefault(name, v)
+        held = {}
+        print(f"\n--include-held: {len(safe)} packages, the ones that were held back included.")
     if not safe:
         print("\nnothing safe to apply.")
         return 0
@@ -160,7 +169,7 @@ def main(argv):
         print("not applied.")
         return 0
     snapshot()
-    exclude = [p for _, pats in HOLD for p in pats] + extra
+    exclude = ([] if include_held else [p for _, pats in HOLD for p in pats]) + extra
     cmd = ["sudo", "dnf", "upgrade", "--assumeyes", "--exclude=" + ",".join(exclude)] + sorted(safe)
     log(f"apply: {len(safe)} packages")
     r = subprocess.run(cmd)
@@ -169,7 +178,7 @@ def main(argv):
         print("\ndnf stopped without finishing; nothing half-installed (the transaction is all or nothing). Read the message above.")
         return r.returncode
     reboot = subprocess.run(["sudo", "dnf", "needs-restarting", "--reboothint"], capture_output=True, text=True)
-    print("\ndone." + (" A reboot is advised before long." if reboot.returncode == 1 else " No reboot needed."))
+    print("\ndone." + (" A reboot is advised before long." if reboot.returncode == 1 or include_held else " No reboot needed."))
     return 0
 
 

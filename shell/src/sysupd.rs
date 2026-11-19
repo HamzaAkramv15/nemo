@@ -231,6 +231,12 @@ pub fn tab(ui: &mut Ui, st: &State, b: R) {
             }
             y += 6;
             ui.text_in(PX, R::new(b.x, y, b.w, 20), "их ставишь сам, когда можно перезагрузиться: nemo-fedora-update --held", t.text_faint);
+            y += 28;
+            // уверен — можно всё сразу: снимок перед этим всё равно делается, терминал переспросит
+            if fam == Family::Fedora && f.safe.is_some() {
+                ui.button(R::new(b.x, y, 300, 28), "ставить и удержанное тоже", "down", Tone::Plain, false, !s.checking, Act::SCycle("sysupd_run_all"));
+                ui.text_in(PX, R::new(b.x + 312, y + 4, b.w - 312, 20), "снимок системы и вопрос в терминале — перед установкой", t.text_faint);
+            }
         }
     }
     if fam == Family::Fedora && s.found.as_ref().is_some_and(|f| f.safe.is_none()) {

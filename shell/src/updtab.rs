@@ -144,6 +144,64 @@ pub(crate) fn civil(z: i64) -> (i64, u32, u32) {
 }
 
 /// обновления: наверху переключатель «рабочий стол» (сам Nemo) и «софт» (пакеты дистрибутива)
+/// что человеку нужно знать перед «обновить»: что за изменения, нужен ли перезапуск, что будет, если не ставить, и что
+/// известно о проблемах с этой версией; второе число — 1, если строка предупреждает
+fn facts(st: &State, i: &crate::update::Info) -> Vec<(String, u8)> {
+    let u = &st.upd;
+    let k = crate::stability::classify(i.notes());
+    let mut v = vec![];
+    v.push((
+        format!(
+            "{}  ·  {}",
+            crate::tf!("{} исправлений, {} прочего", "{} fixes, {} other changes", "{} correções, {} outras mudanças", k.fixes, k.other),
+            crate::i18n::tr(if k.security { "безопасность: в заметках есть" } else { "безопасность: в заметках не упомянута" })
+        ),
+        0,
+    ));
+    let restart = crate::i18n::tr("после установки: шелл перезапустится сам, окна остаются").to_string();
+    v.push((if k.niri { format!("{restart}  ·  {}", crate::i18n::tr("niri и экран входа: со следующего входа")) } else { restart }, 0));
+    let cur = if u.stamp.version.is_empty() { env!("CARGO_PKG_VERSION").to_string() } else { u.stamp.version.clone() };
+    v.push((crate::tf!("если не ставить: ничего не изменится, {} продолжит работать", "if you skip it: nothing changes, {} keeps working", "se não instalar: nada muda, {} continua funcionando", cur), 0));
+    match &u.report {
+        _ if u.reporting => v.push((crate::tf!("спрашиваю GitHub…", "asking GitHub…", "perguntando ao GitHub…"), 0)),
+        Some(r) if r.version == i.latest => {
+            if r.answered == 0 {
+                v.push((crate::tf!("сообщения не проверены: {}", "reports not checked: {}", "relatos não verificados: {}", r.errors.first().cloned().unwrap_or_default()), 1));
+            } else {
+                let bad = !r.open.is_empty() || !r.advisories.is_empty() || !r.newer.is_empty();
+                v.push((
+                    crate::tf!(
+                        "GitHub, {}: сообщений о проблемах открыто {}, закрыто {}, заметок безопасности {}",
+                        "GitHub, {}: problem reports open {}, closed {}, security advisories {}",
+                        "GitHub, {}: relatos de problemas abertos {}, fechados {}, avisos de segurança {}",
+                        ago(r.at),
+                        r.open.len(),
+                        r.closed,
+                        r.advisories.len()
+                    ),
+                    bad as u8,
+                ));
+                if let Some((n, t)) = r.open.first() {
+                    v.push((format!("   #{n}: {t}"), 1));
+                }
+                if !r.newer.is_empty() {
+                    v.push((crate::tf!("   вышла более новая версия: {}", "   a newer version is out: {}", "   há uma versão mais nova: {}", r.newer), 1));
+                }
+                if !r.errors.is_empty() {
+                    v.push((crate::tf!("   не всё удалось спросить: {}", "   not everything could be asked: {}", "   nem tudo pôde ser consultado: {}", r.errors.join("; ")), 1));
+                }
+                v.push((crate::i18n::tr("   это не гарантия: нашлось только то, о чём кто-то написал").to_string(), 0));
+            }
+        }
+        _ => v.push((crate::i18n::tr("о проблемах с этой версией не проверялось: кнопка «сообщения»").to_string(), 0)),
+    }
+    // предупреждение о подписи важнее подробностей отчёта: оно встаёт выше
+    if !i.sig_ok(&st.set.update_verify) {
+        v.insert(3, (crate::i18n::tr("подпись не проходит правило: можно поставить всё равно, на свой риск").to_string(), 1));
+    }
+    v
+}
+
 pub fn tab(ui: &mut Ui, st: &State, b: R) {
     let t = ui.t;
     let mut x = b.right();
@@ -223,8 +281,22 @@ fn desktop_tab(ui: &mut Ui, st: &State, b: R) {
         (crate::tf!("ещё не проверялось", "not checked yet", "ainda não verificado"), t.text_dim)
     };
     ui.cv.fill(R::new(b.x, y + 7, 6, 6), col);
-    ui.text_in(px, R::new(b.x + 14, y, b.w - 14, 20), &line, col);
-    y += 24;
+    let avail = u.info.as_ref().filter(|i| i.available && i.err.is_empty() && u.busy.is_none() && u.done.is_none());
+    let mut room = b.w - 14;
+    if let Some(i) = avail {
+        // справа в этой же строке: спросить про проблемы с версией и, если подпись не проходит, поставить всё равно
+        let bw = 112;
+        ui.button(R::new(b.right() - bw, y - 2, bw, 24), "сообщения", "search", Tone::Plain, false, !u.reporting, Act::SCycle("update_report"));
+        room -= bw + 8;
+        if !i.sig_ok(&s.update_verify) {
+            let label = if u.confirm_force { "точно? ещё раз" } else { "ставить всё равно" };
+            ui.button(R::new(b.right() - bw * 2 - 8, y - 2, bw, 24), label, "down", if u.confirm_force { Tone::Primary } else { Tone::Plain }, false, u.busy.is_none(), Act::SCycle("update_force"));
+            room -= bw + 8;
+        }
+    }
+    let shown = ui.f.elide(px, &line, room.max(60));
+    ui.text_in(px, R::new(b.x + 14, y, room.max(60), 20), &shown, col);
+    y += 28;
     // новым функциям не хватает пакетов или экран входа не поставлен: обновление без sudo их не
     // ставит — одна кнопка (терминал, sudo спросит там)
     if let Some(n) = &u.need {
@@ -253,13 +325,23 @@ fn desktop_tab(ui: &mut Ui, st: &State, b: R) {
     } else if let Some(i) = notes {
         // что нового: строки CHANGELOG выпуска на языке интерфейса (CHANGELOG.ru.md), мимо tr()
         y = title(ui, b.x, y, b.w, &crate::tf!("что нового в {}", "what is new in {}", "novidades em {}", i.latest));
-        for n in i.notes() {
-            if y + 18 > by - 8 {
-                break;
-            }
+        // под заметками — что это значит для человека (8 строк места): уместится меньше — заметок покажется меньше
+        let mut facts = facts(st, i);
+        // заметки получают не меньше двух строк, «что это значит» — всё остальное; не влезло — теряются нижние строки
+        let lines = ((by - 8 - y - 30) / 18).max(3) as usize;
+        facts.truncate(lines.saturating_sub(2).max(1));
+        let room = lines.saturating_sub(facts.len()).max(1);
+        for n in i.notes().iter().take(room) {
             ui.cv.fill(R::new(b.x + 2, y + 7, 4, 4), t.red);
             let line = ui.f.elide(px, n, b.w - 14);
             ui.cv.text_in(ui.f, px, R::new(b.x + 14, y, b.w - 14, 18), &line, t.text_dim);
+            y += 18;
+        }
+        y += 6;
+        y = title(ui, b.x, y, b.w, "что это значит");
+        for (txt, col) in &facts {
+            let line = ui.f.elide(px, txt, b.w - 14);
+            ui.cv.text_in(ui.f, px, R::new(b.x + 14, y, b.w - 14, 18), &line, if *col == 1 { t.warn } else { t.text_dim });
             y += 18;
         }
     } else if !u.log.is_empty() && by - y > 60 {

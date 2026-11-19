@@ -9,6 +9,9 @@ has its Russian line in CHANGELOG.ru.md: `tools/check.sh` checks that.
 
 ## Unreleased
 
+- Updates explain themselves: under the notes, «what this means» says how many fixes and other changes the notes list and whether they mention security, that the shell restarts by itself and windows stay (niri and the login screen change from the next login), and what happens if you skip it. The «reports» button asks GitHub about problem reports, security advisories and a newer release for that version and shows what it found, from where and how long ago; no reports is shown as «none seen», never as «safe».
+- «Install anyway» (settings → updates, `nemo update apply --force`) installs a release whose signature fails your signature rule, after a second click. Software updates on Fedora get «install the held ones too» (`nemo-fedora-update --apply --include-held`): kernel, drivers and the base are included, a snapshot is taken and the terminal asks first.
+
 - Search finds files: type a name in the launcher and files from your home folder and drives appear after the apps and settings (marked «file · folder»). They come from the system index (`plocate`, instant) plus a quick look at Downloads, Documents, Desktop, Pictures, Videos and Music for files too new to be indexed; without `plocate` the home folder is scanned instead. Hidden folders, caches and build folders are left out. Enter opens the file, Ctrl+Enter its folder.
 
 ## 3.2.0

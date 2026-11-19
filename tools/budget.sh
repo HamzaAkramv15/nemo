@@ -18,6 +18,8 @@ for bin in nemo-shell nemo-agents; do
 done
 pid="$(pgrep -x nemo-shell | head -n1 || true)"
 if [[ -z $pid ]]; then echo "  (no running nemo-shell: idle memory and wakeups were not measured)"; exit $fail; fi
+# a locked screen is not idle: the lock surface and a 100 ms tick run, so the numbers would be about something else
+if [[ -e ${XDG_RUNTIME_DIR:-/run/user/$(id -u)}/nemo-locked ]]; then echo "  (the screen is locked: idle memory and wakeups were not measured, unlock and run it again)"; exit $fail; fi
 secs="${1:-20}"
 sw() { awk '/^voluntary_ctxt_switches/{v=$2} /^nonvoluntary_ctxt_switches/{n=$2} END{print v+n}' "/proc/$pid/status"; }
 ticks() { awk '{print $14+$15}' "/proc/$pid/stat"; }

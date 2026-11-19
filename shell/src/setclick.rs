@@ -427,6 +427,12 @@ impl App {
                         self.st.sys_upd.found = None;
                     }
                 }
+                "sysupd_run_all" => {
+                    // всё, включая удержанное (ядро, драйверы, основа): человек уверен; терминал переспросит, снимок делается
+                    let line = "nemo-fedora-update --apply --include-held; printf '\\n[Enter]'; read _".to_string();
+                    App::spawn(&crate::launcher::in_term(vec!["sh".into(), "-c".into(), line]));
+                    self.st.sys_upd.found = None;
+                }
                 "prof_battery" | "prof_ac" => {
                     let opts = [("", ""), ("power-saver", ""), ("balanced", ""), ("performance", "")];
                     if *k == "prof_battery" {

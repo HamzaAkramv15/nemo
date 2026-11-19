@@ -69,7 +69,7 @@ pub(crate) fn copy_bins(from: &Path, to: &Path) -> std::io::Result<()> {
 }
 
 /// поставить найденное обновление; Err — почему нет
-pub fn apply(set: &Settings) -> Result<String, String> {
+pub fn apply(set: &Settings, force: bool) -> Result<String, String> {
     require_enabled()?;
     let Some(_l) = lock() else { return Err(crate::tf!("обновление уже идёт", "an update is already running", "uma atualização já está em andamento")) };
     progress(&crate::tf!("проверяю, что нового", "checking what is new", "verificando novidades"));
@@ -80,7 +80,7 @@ pub fn apply(set: &Settings) -> Result<String, String> {
     if !i.available {
         return Ok(crate::tf!("уже свежее: {}", "already up to date: {}", "já está atualizado: {}", installed().version));
     }
-    if !i.sig_ok(&set.update_verify) {
+    if !force && !i.sig_ok(&set.update_verify) {
         return Err(crate::tf!("{} — не ставлю (настройки → обновления → подписи)", "{}: not installing (settings → updates → signatures)", "{}: não será instalado (configurações → atualizações → assinaturas)", sig_text(&i.sig)));
     }
     build_install(&i)?;
@@ -89,7 +89,7 @@ pub fn apply(set: &Settings) -> Result<String, String> {
 
 /// перейти на выбранный выпуск (тег vX.Y.Z или X.Y.Z), старее или новее установленного.
 /// Ставится только то, что проходит правило подписей, как и обычное обновление
-pub fn install_tag(set: &Settings, want: &str) -> Result<String, String> {
+pub fn install_tag(set: &Settings, want: &str, force: bool) -> Result<String, String> {
     require_enabled()?;
     let Some(_l) = lock() else { return Err(crate::tf!("обновление уже идёт", "an update is already running", "uma atualização já está em andamento")) };
     let tag = format!("v{}", want.trim().trim_start_matches('v'));
@@ -106,7 +106,7 @@ pub fn install_tag(set: &Settings, want: &str) -> Result<String, String> {
     let known = has_commit(&dir, &st.commit);
     let mut i = Info { latest: tag[1..].to_string(), reference: tag.clone(), target, available: true, at: now(), ..Default::default() };
     i.sig = verify(&dir, &st, known, &set.update_verify, "verify-tag", &tag_ref(&tag));
-    if !i.sig_ok(&set.update_verify) {
+    if !force && !i.sig_ok(&set.update_verify) {
         return Err(crate::tf!("{} — не ставлю (настройки → обновления → подписи)", "{}: not installing (settings → updates → signatures)", "{}: não será instalado (configurações → atualizações → assinaturas)", sig_text(&i.sig)));
     }
     if st.commit == i.target {

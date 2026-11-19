@@ -154,6 +154,7 @@ fn help_update(y: &Sty) {
     y.section(&crate::tf!("обновления", "updates", "atualizações"));
     y.row("update [check]", &crate::tf!("git fetch своего клона (~/.local/share/nemo/src), что нового", "git fetch of its own clone (~/.local/share/nemo/src), what is new", "git fetch da própria cópia (~/.local/share/nemo/src), novidades"));
     y.row("update apply [-y]", &crate::tf!("проверить подпись, собрать из исходников, поставить", "check the signature, build from source, install", "verificar a assinatura, compilar e instalar"));
+    y.row("update apply --force", &crate::tf!("то же, даже если подпись не проходит правило (ты уверен)", "the same, even if the signature fails the rule (you are sure)", "o mesmo, mesmo que a assinatura não passe na regra (você tem certeza)"));
     y.row("update rollback", &crate::tf!("вернуть программы и конфиги, что стояли до последнего обновления (сразу)", "bring back the programs and configs from before the last update (instant)", "traz de volta os programas e configurações anteriores à última atualização (instantâneo)"));
     y.row("update snapshots", &crate::tf!("точки отката: хранятся три последние", "the rollback points: the last three are kept", "os pontos de restauração: os três últimos são mantidos"));
     y.row("update list", &crate::tf!("выпуски, на которые можно перейти, и их подписи", "releases you can switch to and their signatures", "versões disponíveis para troca e suas assinaturas"));
@@ -359,7 +360,8 @@ fn update(y: &Sty, args: &[&str]) -> i32 {
             0
         }
         "apply" => {
-            let r = crate::update::apply(&set);
+            // --force: поставить, даже если подпись не проходит правило (человек уверен); остальные проверки остаются
+            let r = crate::update::apply(&set, args.contains(&"--force"));
             let (ok, text) = match &r {
                 Ok(t) => (true, t.clone()),
                 Err(e) => (false, e.clone()),
@@ -431,7 +433,7 @@ fn update(y: &Sty, args: &[&str]) -> i32 {
                 eprintln!(" {} {}", y.bad("✕"), crate::tf!("какую версию? nemo update list", "which version? nemo update list", "qual versão? nemo update list"));
                 return 2;
             };
-            let r = crate::update::install_tag(&set, want);
+            let r = crate::update::install_tag(&set, want, args.contains(&"--force"));
             let (ok, text) = match &r {
                 Ok(t) => (true, t.clone()),
                 Err(e) => (false, e.clone()),

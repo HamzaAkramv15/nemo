@@ -178,6 +178,7 @@ pub enum Msg {
     /// строка модуля-скрипта бара (plugins.rs)
     Plugin(String, crate::plugins::Plug),
     /// файлы для «/» в лаунчере: запрос и найденное
+    Stability(crate::stability::Report),
     LFiles(String, Vec<std::path::PathBuf>),
     Art(String, Option<crate::gfx::Img>),
     /// текст песни нашёлся (или нет) для трека Lyrics.key

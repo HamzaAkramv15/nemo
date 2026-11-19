@@ -149,6 +149,8 @@ const TARGETS: &[&str] = &[
     "settings:system-scroll",
     "settings:updates",
     "settings:updates-new",
+    "settings:updates-report",
+    "settings:updates-unsigned",
     "settings:updates-busy",
     "settings:updates-pick",
     "settings:updates-need",

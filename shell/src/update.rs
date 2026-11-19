@@ -152,12 +152,17 @@ pub struct Upd {
     pub sel: String,
     /// пакеты, которых не хватает выбранным частям (need.rs)
     pub need: Option<crate::need::Need>,
+    /// что нашлось о проблемах с этой версией (stability.rs) и идёт ли проверка
+    pub report: Option<crate::stability::Report>,
+    pub reporting: bool,
+    /// «поставить всё равно» нажато один раз: второе нажатие ставит
+    pub confirm_force: bool,
 }
 
 impl Upd {
     pub fn load() -> Upd {
         let (log, log_len) = log_tail();
-        Upd { stamp: installed(), info: last(), rollback: can_rollback(), log, log_len, need: crate::need::load(), ..Default::default() }
+        Upd { stamp: installed(), info: last(), rollback: can_rollback(), log, log_len, need: crate::need::load(), report: crate::stability::load(), ..Default::default() }
     }
     /// для `nemo-shell shot settings:updates[-new|-busy]`
     pub fn mock(what: &str) -> Upd {
@@ -169,6 +174,13 @@ impl Upd {
             i.reference = "v2.1.0".into();
             i.available = true;
             i.notes = vec!["nemo: one command for the whole desktop".into(), "settings: updates and services tabs".into(), "shell: notification images are size-checked".into()];
+        }
+        if what == "updates-report" {
+            u.report = Some(crate::stability::Report { version: "2.1.0".into(), at: now() - 300, open: vec![(12, "Bar is blank after resume on some laptops".into())], closed: 3, newer: "2.1.1".into(), answered: 3, ..Default::default() });
+        }
+        if what == "updates-unsigned" {
+            i.sig = "unsigned".into();
+            u.confirm_force = false;
         }
         if what == "updates-busy" {
             u.busy = Some("[3/8] shell: build from source".into());
@@ -653,6 +665,39 @@ impl App {
                 s.update_every = crate::settings::step_in(&[6, 12, 24, 72, 168], s.update_every as i32) as u32;
             }
             "update_now" => self.update_check(),
+            "update_report" => {
+                // спросить GitHub про найденную версию: кто и что сообщал о проблемах, что нового вышло после неё
+                let u = &mut self.st.upd;
+                let Some(i) = u.info.as_ref().filter(|i| i.available) else { return true };
+                if u.reporting {
+                    return true;
+                }
+                u.reporting = true;
+                let (repo, ver) = (if self.st.set.update_repo.is_empty() { u.stamp.repo.clone() } else { self.st.set.update_repo.clone() }, i.latest.clone());
+                let tx = self.tx.clone();
+                std::thread::Builder::new()
+                    .name("update-report".into())
+                    .spawn(move || {
+                        let _ = tx.send(Msg::Stability(crate::stability::check(&repo, &ver, "")));
+                    })
+                    .ok();
+            }
+            "update_force" => {
+                // подпись не прошла правило, а человек уверен: два нажатия подряд, второе ставит
+                let u = &mut self.st.upd;
+                if u.busy.is_some() {
+                    return true;
+                }
+                if !u.confirm_force {
+                    u.confirm_force = true;
+                } else {
+                    u.confirm_force = false;
+                    self.save_now();
+                    self.st.upd.busy = Some(crate::tf!("запускаю", "starting", "iniciando"));
+                    self.st.upd.done = None;
+                    spawn_detached(&["apply", "--force"]);
+                }
+            }
             "update_rollback" => {
                 // только открыть выбор; список выпусков — из последней проверки, нет его — проверить
                 let u = &mut self.st.upd;
@@ -674,6 +719,7 @@ impl App {
                 self.st.upd.sel.clear();
             }
             "update_apply" | "update_pick_go" => {
+                self.st.upd.confirm_force = false;
                 if self.st.upd.busy.is_some() {
                     return true;
                 }
@@ -719,8 +765,8 @@ mod tests {
         let set = crate::config::Settings::default();
         assert!(!super::enabled());
         assert!(!super::check(&set).err.is_empty());
-        assert!(super::apply(&set).is_err());
-        assert!(super::install_tag(&set, "2.5.0").is_err());
+        assert!(super::apply(&set, false).is_err());
+        assert!(super::install_tag(&set, "2.5.0", false).is_err());
         assert!(super::rollback().is_err());
         assert!(super::build_install(&super::Info::default()).is_err());
     }

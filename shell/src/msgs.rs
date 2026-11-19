@@ -89,6 +89,12 @@ impl App {
             }
             Msg::Notif(n) => self.on_notif(n),
             Msg::Update(i) => self.on_update(i),
+            Msg::Stability(r) => {
+                crate::stability::save(&r);
+                self.st.upd.reporting = false;
+                self.st.upd.report = Some(r);
+                self.dirty(&SKind::Modal);
+            }
             Msg::NotifClose(id) => {
                 self.st.notifs.remove(id, false);
                 self.sync_notifs();

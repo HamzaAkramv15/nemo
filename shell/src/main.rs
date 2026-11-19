@@ -100,6 +100,7 @@ mod sys;
 mod tick;
 mod titles;
 mod ui;
+mod stability;
 mod update;
 mod updtab;
 mod upinstall;
