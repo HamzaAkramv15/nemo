@@ -1,0 +1,9 @@
+# limits for tools/budget.sh; measured on 2026-11-19 (release build, one monitor, bar + dock + widgets):
+# yami-shell 11.0 MB, yami-agents 5.3 MB, idle PSS 13.5 MB, 6 context switches/s, 20 threads, ~0.3 % CPU
+# A limit is about 20-30 % above the measured value. Raise one only with a reason in the commit message.
+size_yami-shell 13312
+size_yami-agents 6656
+pss_kb 18000
+wakeups_per_s 15
+cpu_percent 2
+threads 26

@@ -25,6 +25,8 @@ jobs:
       - uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2.9.3
         with:
           workspaces: shell
+      - name: cargo-deny (licences, advisories, sources)
+        run: cargo install cargo-deny --locked
       - run: tools/check.sh
   nix:
     # flake.nix and nix/: the package builds from Cargo.lock in the Nix sandbox and the NixOS module

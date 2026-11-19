@@ -88,7 +88,9 @@ pub struct Fonts {
 /// найденное fc-match за время жизни процесса: смена шрифта (ползунок «пиксельности» ходит
 /// туда-обратно) не запускает его заново по семь раз в нити Wayland. Промахи не запоминаются:
 /// только что поставленный шрифт найдётся со второй попытки
-static FOUND: std::sync::Mutex<Vec<(String, Option<String>, (String, u32))>> = std::sync::Mutex::new(Vec::new());
+/// запрос (шаблон, нужное семейство) и найденный файл с номером в нём
+type Found = (String, Option<String>, (String, u32));
+static FOUND: std::sync::Mutex<Vec<Found>> = std::sync::Mutex::new(Vec::new());
 
 fn fc_find(pattern: &str, want: Option<&str>) -> Option<(String, u32)> {
     if let Some(hit) = FOUND.lock().ok()?.iter().find(|(p, w, _)| (p.as_str(), w.as_deref()) == (pattern, want)).map(|x| x.2.clone()) {
@@ -167,6 +169,7 @@ fn bundled_file(name: &str, srcs: &mut Vec<Src>) -> Option<usize> {
 
 impl Fonts {
     /// Tiny5 и запасные
+    #[allow(clippy::new_without_default)] // шрифты ищутся по системе: «по умолчанию» тут не бывает
     pub fn new() -> Fonts {
         Fonts::with("")
     }

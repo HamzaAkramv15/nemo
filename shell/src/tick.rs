@@ -57,7 +57,7 @@ impl App {
             }
         }
         // мигание курсора ввода — раз в полсекунды
-        let blink = (self.st.started.elapsed().as_millis() / 500) % 2 == 0;
+        let blink = (self.st.started.elapsed().as_millis() / 500).is_multiple_of(2);
         if blink != self.st.blink {
             self.st.blink = blink;
             if self.st.field_focus.is_some() || self.st.locked || self.st.modal == Some(Modal::Launcher) {
@@ -112,15 +112,15 @@ impl App {
                 self.st.night.on = n;
                 self.dirty(&SKind::Bar);
             }
-            if self.st.started.elapsed().as_secs() % 60 == 0 {
+            if self.st.started.elapsed().as_secs().is_multiple_of(60) {
                 self.update_tick();
             }
-            if self.st.started.elapsed().as_secs() % 5 == 0 {
+            if self.st.started.elapsed().as_secs().is_multiple_of(5) {
                 self.session_tick();
                 self.templates_tick();
             }
             // профиль могли сменить снаружи (powerprofilesctl, другой апплет)
-            if self.st.started.elapsed().as_secs() % 15 == 0 && self.st.set.on_bar("profile") {
+            if self.st.started.elapsed().as_secs().is_multiple_of(15) && self.st.set.on_bar("profile") {
                 crate::profile::refresh(None, self.tx.clone());
             }
         }

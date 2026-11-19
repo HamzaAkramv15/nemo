@@ -292,14 +292,14 @@ impl Sys {
         if let (true, Some((tp, busy))) = (self.want_gpu, &self.gpu_sys) {
             self.gpu_temp = fs::read_to_string(tp).ok().and_then(|v| v.trim().parse::<f32>().ok()).unwrap_or(0.0) / 1000.0;
             self.gpu_load = busy.as_ref().and_then(|b| fs::read_to_string(b).ok()).and_then(|v| v.trim().parse::<f32>().ok()).unwrap_or(0.0) / 100.0;
-        } else if self.want_gpu && self.tick % 3 == 0 {
+        } else if self.want_gpu && self.tick.is_multiple_of(3) {
             // спящую дискретку (ноутбук, RTD3) не будим: nvidia-smi раз в 3 с не дал бы ей уснуть
             self.gpu_sleep = self.nv_pm.as_ref().and_then(|p| fs::read_to_string(p).ok()).map(|v| v.trim() == "suspended").unwrap_or(false);
         }
         if self.gpu_sleep {
             self.gpu_temp = 0.0;
             self.gpu_load = 0.0;
-        } else if self.want_gpu && self.gpu_sys.is_none() && self.tick % 3 == 0 {
+        } else if self.want_gpu && self.gpu_sys.is_none() && self.tick.is_multiple_of(3) {
             let (tx, rx) = std::sync::mpsc::channel();
             self.gpu_rx = Some(rx);
             std::thread::spawn(move || {
@@ -311,7 +311,7 @@ impl Sys {
             });
         }
         // батарея меняется медленно: раз в 5 с (и сразу, если её вставили/вынули — тоже за 5 с)
-        if self.tick % 5 == 0 {
+        if self.tick.is_multiple_of(5) {
             self.bat = read_bat();
         }
         if self.tick % 30 == 1 {

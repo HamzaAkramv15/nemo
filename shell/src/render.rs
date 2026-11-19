@@ -119,7 +119,7 @@ impl App {
             };
             ui.cv.opacity = (0.35 + 0.65 * k).min(1.0);
             // без движения — сразу на своём месте, только проявление
-            let moves = st.set.anims.get(group).map_or(true, |a| a.motion);
+            let moves = st.set.anims.get(group).is_none_or(|a| a.motion);
             ui.cv.oy = if moves { rise - ((1.0 - k) * rise as f32).round() as i32 } else { rise };
             let (w, h) = (s.w, s.h - rise);
             match &s.kind {

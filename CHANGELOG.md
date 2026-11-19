@@ -9,6 +9,8 @@ has its Russian line in CHANGELOG.ru.md: `tools/check.sh` checks that.
 
 ## Unreleased
 
+- Quality gates: `tools/lint.sh` (a clippy ratchet: 60 warnings down to 20, never more; and `cargo deny` for advisories, licences and sources, which found a yanked `async-executor`, now updated) and `tools/budget.sh` (limits on the release binaries and, when a shell is running, idle memory, wakeups per second, CPU and threads; today 13.9 MB PSS, 4 wakeups/s). Both run from `tools/check.sh`; `shell/deny.toml` and `tools/budget.txt` hold the limits.
+
 - Settings, reorganised and fully searchable. A new "every day" group: **comfort** (idle, caffeine with a switch and 30 min / 1 h / 2 h / 4 h / no-limit buttons, do not disturb, night light, the fish) and **language & time** (language, clock format, date, week start, weekend, Hijri, Arabic digits), with notifications beside them. System keeps the session and niri parts. Search now finds individual settings ("caffeine", "12 hour", "blur", "weekend") by their label in your language, in English and by synonyms, and shows a results page; Enter opens the first hit. A test fails when a setting is added without a search entry.
 
 - The fish is redrawn from scratch: a new 16×9 grid of our own (round head, forked tail, facing right) replaces the first drawing, which was made from a stock-image preview whose licence could not be confirmed. The SVG, the PNG, the login screen, the settings and fastfetch all use the new grid.

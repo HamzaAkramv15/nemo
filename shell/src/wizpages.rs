@@ -734,7 +734,7 @@ fn scene_cell(t: &crate::theme::Theme, cols: i32, rows: i32, cx: i32, cy: i32) -
     const BAYER: [u8; 16] = [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5];
     let level = ((cy - 3) * 17 / (rows - 3).max(1)) as u8;
     let lower = BAYER[((cy & 3) * 4 + (cx & 3)) as usize] < level;
-    if !lower && cy < rows / 2 && h % 71 == 0 {
+    if !lower && cy < rows / 2 && h.is_multiple_of(71) {
         return (t.text_faint, false);
     }
     (if lower { t.red.lerp(t.bg, 0.72) } else { t.bg.lerp(t.panel, 0.6) }, false)

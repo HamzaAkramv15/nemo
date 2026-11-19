@@ -261,7 +261,7 @@ pub fn draw(ui: &mut Ui, st: &State, w: i32, h: i32) {
                 }
             }
         }
-        if it.wins.iter().any(|w| w.urgent) && (st.started.elapsed().as_millis() / 400) % 2 == 0 {
+        if it.wins.iter().any(|w| w.urgent) && (st.started.elapsed().as_millis() / 400).is_multiple_of(2) {
             ui.cv.outline(r.inset(2), t.ember, 2);
         }
         ui.zone(r, Act::DockItem(i), Cur::Pointer);

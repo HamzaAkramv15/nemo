@@ -353,7 +353,7 @@ fn shoot(st: &mut State, res: &mut Res, target: &str, path: &Path) {
     st.locked = false;
     if st.wall.is_none() && (matches!(kind, "bar" | "lock") || target == "settings:wall") {
         // обои — как у шелла, только без нити
-        st.wall = crate::wall::prepare(&crate::wall::Job::new(&st.set, &st.t, 1920, 1080, crate::wall::source(&st))).0.map(std::rc::Rc::new);
+        st.wall = crate::wall::prepare(&crate::wall::Job::new(&st.set, &st.t, 1920, 1080, crate::wall::source(st))).0.map(std::rc::Rc::new);
     }
     let (w, h) = match kind {
         // бар как на мониторе 1920: с отступом и тенью, если он плашкой
@@ -771,7 +771,7 @@ fn shoot(st: &mut State, res: &mut Res, target: &str, path: &Path) {
         "curtain" => {
             // то, что увидят зрители: кадр — обои, в стиле шторки (как с настоящим экраном)
             let mut c = crate::curtain::Curtain::default();
-            if let Some(i) = crate::wall::prepare(&crate::wall::Job::new(&st.set, &st.t, 1280, 720, crate::wall::source(&st))).0 {
+            if let Some(i) = crate::wall::prepare(&crate::wall::Job::new(&st.set, &st.t, 1280, 720, crate::wall::source(st))).0 {
                 c.imgs.insert("shot".into(), std::rc::Rc::new(crate::curtain::cover_of(&i, &st.set.curtain_style, st.set.curtain_cell / 2).unwrap_or(i)));
             }
             st.curtain = Some(c);
@@ -887,7 +887,7 @@ fn save_png(buf: &[u32], w: i32, h: i32, path: &Path) {
     let mut rgba = Vec::with_capacity(buf.len() * 4);
     for &p in buf {
         // холст — premultiplied ARGB; в PNG альфа прямая
-        let a = (p >> 24) as u32;
+        let a = p >> 24;
         let un = |c: u32| if a == 0 { 0 } else { (c * 255 / a).min(255) as u8 };
         if CLEAR.load(std::sync::atomic::Ordering::Relaxed) {
             rgba.extend_from_slice(&[un((p >> 16) & 255), un((p >> 8) & 255), un(p & 255), a as u8]);

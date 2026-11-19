@@ -1312,7 +1312,7 @@ fn parse_ppm(b: &[u8]) -> Option<Img> {
     let w: i32 = fields.get(1)?.parse().ok()?;
     let h: i32 = fields.get(2)?.parse().ok()?;
     let data = b.get(i..i + (w * h * 3) as usize)?;
-    let px = data.chunks_exact(3).map(|p| 0xff000000 | (p[0] as u32) << 16 | (p[1] as u32) << 8 | p[2] as u32).collect();
+    let px = data.as_chunks::<3>().0.iter().map(|p| 0xff000000 | (p[0] as u32) << 16 | (p[1] as u32) << 8 | p[2] as u32).collect();
     Some(Img { w, h, px })
 }
 

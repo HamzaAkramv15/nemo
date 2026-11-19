@@ -44,7 +44,7 @@ pub fn hour12() -> bool {
 
 /// час на циферблате и AM/PM к нему: 0 → 12 AM, 12 → 12 PM, 13 → 1 PM
 pub fn hour_12(h: u32) -> (u32, &'static str) {
-    (if h % 12 == 0 { 12 } else { h % 12 }, if h < 12 { "AM" } else { "PM" })
+    (if h.is_multiple_of(12) { 12 } else { h % 12 }, if h < 12 { "AM" } else { "PM" })
 }
 
 /// час как его пишут на часах: «07» в 24-часовом, «7» в 12-часовом

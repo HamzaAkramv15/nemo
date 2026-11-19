@@ -24,7 +24,7 @@ impl App {
         } else {
             self.surfs.get(&sid).map(|s| &s.zones)
         }?;
-        zones.iter().rev().find(|z| z.r.contains(x as f64, y as f64)).cloned()
+        zones.iter().rev().find(|z| z.r.contains(x, y)).cloned()
     }
 
     pub(crate) fn set_cursor(&mut self, c: Cur) {
@@ -105,7 +105,7 @@ impl App {
                     return;
                 }
                 let after = self.zone_at(sid, x, y);
-                let key = self.surfs.get(&sid).and_then(|s| s.tips.iter().rev().find(|(r, _)| r.contains(x as f64, y as f64)).map(|(r, k)| (*k, *r)));
+                let key = self.surfs.get(&sid).and_then(|s| s.tips.iter().rev().find(|(r, _)| r.contains(x, y)).map(|(r, k)| (*k, *r)));
                 self.tip_hover(sid, key);
                 let c = after.as_ref().map(|z| z.cur).unwrap_or(Cur::Default);
                 self.set_cursor(c);

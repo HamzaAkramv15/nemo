@@ -236,7 +236,7 @@ fn dominant(i: &RgbaImage, scheme: &str) -> Option<u32> {
     let mut cen: Vec<[f32; 3]> = (0..K).map(|k| px[order[(k * 2 + 1) * px.len() / (K * 2)]]).collect();
     let mut count = vec![0usize; K];
     for _ in 0..10 {
-        let mut sum = vec![[0f32; 3]; K];
+        let mut sum = [[0f32; 3]; K];
         count = vec![0; K];
         for p in &px {
             let k = (0..K).min_by(|&a, &b| dist2(p, &cen[a]).total_cmp(&dist2(p, &cen[b]))).unwrap_or(0);
@@ -360,7 +360,7 @@ fn shrink(img: &Img, max: i32) -> Img {
                     b += p & 255;
                 }
             }
-            px.push((a / n) << 24 | (r / n) << 16 | (g / n) << 8 | b / n);
+            px.push((a / n) << 24 | (r / n) << 16 | (g / n) << 8 | (b / n));
         }
     }
     Img { w, h, px }

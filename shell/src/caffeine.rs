@@ -53,13 +53,13 @@ pub fn next_preset(on: bool, left: Option<u64>) -> Option<u32> {
     if !on {
         return Some(PRESETS[0]);
     }
-    let Some(left) = left else { return None };
+    let left = left?;
     PRESETS.iter().copied().find(|&p| p != 0 && p as u64 > left).or(Some(0))
 }
 
 /// «30 мин» / «2 ч»
 fn fmt_span(m: u32) -> String {
-    if m >= 60 && m % 60 == 0 { format!("{}h", m / 60) } else { format!("{m}m") }
+    if m >= 60 && m.is_multiple_of(60) { format!("{}h", m / 60) } else { format!("{m}m") }
 }
 
 pub fn parse_minutes(s: &str) -> Option<u32> {

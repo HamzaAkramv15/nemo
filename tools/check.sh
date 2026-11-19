@@ -73,6 +73,10 @@ for look in plain yami; do
   done
 done
 ((ag)) && bad "yami-agents shot" || ok "yami-agents shot: plain and yami, every language"
+step "lint and budget"
+tools/lint.sh && ok "clippy ratchet and cargo-deny" || bad "lint (tools/lint.sh)"
+tools/budget.sh 8 && ok "size and idle budget" || bad "budget (tools/budget.sh)"
+
 step "unit tests"
 cargo test --release --locked --workspace --quiet --manifest-path "$ROOT/shell/Cargo.toml" >"$TMP/test.log" 2>&1 && ok "cargo test" || { tail -20 "$TMP/test.log"; bad "cargo test"; }
 # a package manager's build (Nix, distro packages): the updater is off (docs/PACKAGING.md)

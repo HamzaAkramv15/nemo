@@ -883,7 +883,7 @@ impl Settings {
         self.custom_binds.retain(|c| c.key.is_empty() || crate::keys::key_ok(&c.key));
         // модули-скрипты: только имя файла в ~/.config/yami/scripts; «rec» (повтор) убран
         for l in [&mut self.bar_left, &mut self.bar_center, &mut self.bar_right] {
-            l.retain(|m| m != "rec" && m.strip_prefix("x:").map_or(true, crate::plugins::name_ok));
+            l.retain(|m| m != "rec" && m.strip_prefix("x:").is_none_or(crate::plugins::name_ok));
         }
         if self.bar_center_align != "after-left" {
             self.bar_center_align = "center".into();

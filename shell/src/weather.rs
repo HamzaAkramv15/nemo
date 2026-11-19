@@ -74,7 +74,7 @@ pub fn deg(v: f32) -> String {
 }
 
 /// есть ответ для нынешних настроек
-pub fn ready<'a>(st: &'a crate::app::State) -> Option<&'a Weather> {
+pub fn ready(st: &crate::app::State) -> Option<&Weather> {
     let w = &st.weather;
     (w.has() && w.key == key(&st.set) && !w.key.is_empty()).then_some(w)
 }

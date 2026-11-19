@@ -635,7 +635,7 @@ pub fn calendar(ui: &mut Ui, st: &State, r: R, month_shift: i32, c: C, nav: bool
     let first_col = week_start_col(&st.set.week_start);
     for i in 0..7 {
         let day = (first_col + i) % 7;
-        ui.text_center(PX, R::new(r.x + i as i32 * cw, r.y + 26, cw, 18), ["пн", "вт", "ср", "чт", "пт", "сб", "вс"][day as usize], if is_weekend(day, &st.set.weekend) { t.red.fade(0.7) } else { t.text_faint });
+        ui.text_center(PX, R::new(r.x + i * cw, r.y + 26, cw, 18), ["пн", "вт", "ср", "чт", "пт", "сб", "вс"][day as usize], if is_weekend(day, &st.set.weekend) { t.red.fade(0.7) } else { t.text_faint });
     }
     // первый день месяца
     let first = days_from_civil(y, m as u32 + 1, 1);

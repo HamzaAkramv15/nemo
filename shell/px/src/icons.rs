@@ -551,7 +551,7 @@ pub fn svg(data: &[u8], size: i32) -> Option<Img> {
     let dx = (size as f32 - s.width() * k) / 2.0;
     let dy = (size as f32 - s.height() * k) / 2.0;
     resvg::render(&tree, tiny_skia::Transform::from_row(k, 0.0, 0.0, k, dx, dy), &mut pm.as_mut());
-    let px = pm.data().chunks_exact(4).map(|c| (c[3] as u32) << 24 | (c[0] as u32) << 16 | (c[1] as u32) << 8 | c[2] as u32).collect();
+    let px = pm.data().as_chunks::<4>().0.iter().map(|c| (c[3] as u32) << 24 | (c[0] as u32) << 16 | (c[1] as u32) << 8 | c[2] as u32).collect();
     Some(Img { w: size, h: size, px })
 }
 

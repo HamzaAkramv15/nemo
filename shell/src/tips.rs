@@ -157,7 +157,7 @@ pub fn key_of(a: &crate::ui::Act) -> Option<&'static str> {
 /// «45m», «1h 20m»
 fn span(m: u64) -> String {
     if m >= 60 {
-        if m % 60 == 0 { format!("{}h", m / 60) } else { format!("{}h {}m", m / 60, m % 60) }
+        if m.is_multiple_of(60) { format!("{}h", m / 60) } else { format!("{}h {}m", m / 60, m % 60) }
     } else {
         format!("{m}m")
     }

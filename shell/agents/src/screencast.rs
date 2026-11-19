@@ -130,12 +130,10 @@ fn record(pick: &str, cursor: u32) -> Option<Started> {
     let it = MessageIterator::for_match_rule(rule, c, Some(4)).ok()?;
     let (ntx, nrx) = std::sync::mpsc::channel();
     std::thread::spawn(move || {
-        for m in it {
-            if let Ok(m) = m {
-                if let Ok(n) = m.body().deserialize::<u32>() {
-                    let _ = ntx.send(n);
-                    return;
-                }
+        for m in it.flatten() {
+            if let Ok(n) = m.body().deserialize::<u32>() {
+                let _ = ntx.send(n);
+                return;
             }
         }
     });

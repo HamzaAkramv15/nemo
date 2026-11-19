@@ -136,7 +136,7 @@ pub fn draw(ui: &mut Ui, st: &State, _w: i32, _h: i32) {
         if k < 1.0 {
             ui.anim = true;
         }
-        let moves = st.set.anims.get("notifs").map_or(true, |a| a.motion);
+        let moves = st.set.anims.get("notifs").is_none_or(|a| a.motion);
         let x0 = if moves { 48 - ((step * 48.0 / 8.0).round() as i32) * 8 + 4 } else { 4 };
         let pixel = !matches!(style, "fade" | "none");
         ui.cv.opacity = if pixel { (0.35 + 0.65 * k).min(1.0) } else { step };

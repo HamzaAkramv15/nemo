@@ -367,7 +367,7 @@ fn pixmap(v: Option<OwnedValue>) -> Option<Img> {
         return None;
     }
     let mut img = image::RgbaImage::new(w as u32, h as u32);
-    for (i, px) in d.chunks_exact(4).take((w * h) as usize).enumerate() {
+    for (i, px) in d.as_chunks::<4>().0.iter().take((w * h) as usize).enumerate() {
         // ARGB32 в сетевом порядке
         img.put_pixel(i as u32 % w as u32, i as u32 / w as u32, image::Rgba([px[1], px[2], px[3], px[0]]));
     }

@@ -32,12 +32,12 @@ pub fn pyf(t: &str, p: &P, ev: &dyn Fn(&str) -> String) -> String {
     while let Some(i) = rest.find(['{', '}']) {
         out.push_str(&rest[..i]);
         let tail = &rest[i..];
-        if tail.starts_with("{{") {
+        if let Some(r) = tail.strip_prefix("{{") {
             out.push('{');
-            rest = &tail[2..];
-        } else if tail.starts_with("}}") {
+            rest = r;
+        } else if let Some(r) = tail.strip_prefix("}}") {
             out.push('}');
-            rest = &tail[2..];
+            rest = r;
         } else if tail.starts_with('{') {
             let Some(end) = tail.find('}') else {
                 out.push_str(tail);

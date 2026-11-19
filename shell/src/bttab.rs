@@ -36,7 +36,8 @@ pub fn tab(ui: &mut Ui, st: &State, b: R) {
         ui.button(R::new(b.x + 230, y, 220, 28), "внешний менеджер", "gear", Tone::Ghost, false, true, Act::BtManager);
     }
     y += 40;
-    let groups: [(&str, fn(&BtDev) -> bool); 3] = [("подключены", |d| d.connected), ("сопряжены", |d| d.paired && !d.connected), ("рядом", |d| !d.paired)];
+    type Keep = fn(&BtDev) -> bool;
+    let groups: [(&str, Keep); 3] = [("подключены", |d| d.connected), ("сопряжены", |d| d.paired && !d.connected), ("рядом", |d| !d.paired)];
     for (name, keep) in groups {
         let list: Vec<&BtDev> = s.devices.iter().filter(|d| keep(d)).collect();
         if list.is_empty() && name != "рядом" {

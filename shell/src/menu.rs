@@ -223,13 +223,12 @@ impl App {
                     self.menu_pick(c);
                 }
             }
-            Keysym::Left | Keysym::BackSpace => {
-                if m.stack.len() > 1 {
+            Keysym::Left | Keysym::BackSpace
+                if m.stack.len() > 1 => {
                     m.stack.pop();
                     m.cur = None;
                     self.resize_menu();
                 }
-            }
             _ => {}
         }
         self.dirty(&SKind::Menu);
