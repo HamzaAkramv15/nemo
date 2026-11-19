@@ -41,7 +41,7 @@ mod tests {
         let known = ["accent", "bg", "border", "bright", "codeBg", "deep", "dim", "glow", "ok", "onAccent", "panel", "selection", "surface", "surfaceHi", "text", "textDim", "textFaint", "textHi", "warn"];
         for (file, _, hint, body) in super::ALL {
             assert!(!hint.is_empty(), "{file}");
-            let out = body.lines().find_map(|l| l.split_once("nemo-output:").map(|(_, r)| r.trim())).unwrap_or("");
+            let out = body.lines().find_map(|l| l.split_once("nemo-output:").or_else(|| l.split_once("yami-output:")).map(|(_, r)| r.trim())).unwrap_or("");
             assert!(out.starts_with("~/.config/"), "{file}: {out}");
             let mut rest = *body;
             while let Some(i) = rest.find("{{") {

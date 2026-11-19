@@ -28,7 +28,8 @@ pub fn write_portals(s: &Settings) {
     // сюда каждое изменение настроек, каждый шаг ползунка)
     // без наших бэкендов свой файл не заводим (порталы — как их отдаёт niri)
     let mine = match std::fs::read_to_string(&p) {
-        Ok(t) => t.starts_with("# nemo:"),
+        // до переименования метка была «# yami:»
+        Ok(t) => t.starts_with("# nemo:") || t.starts_with("# yami:"),
         Err(_) => crate::proc::have("nemo-files") || crate::proc::have("nemo-agents"),
     };
     if mine {

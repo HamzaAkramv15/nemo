@@ -187,7 +187,7 @@ fn gtk_attach(dir: &Path, css: &str) -> Res {
     if cur.lines().any(|l| l.trim() == GTK_IMPORT) {
         return Ok(());
     }
-    let text = if cur.trim().is_empty() || cur.starts_with("/* NEMO") {
+    let text = if cur.trim().is_empty() || cur.starts_with("/* NEMO") || cur.starts_with("/* YAMI") {
         format!("/* nemo: its colours live in nemo.css; write your own rules below. */\n{GTK_IMPORT}\n")
     } else {
         // @import — до остальных правил
@@ -206,11 +206,11 @@ fn gtk_detach(dir: &Path) -> Res {
     let _ = std::fs::remove_file(dir.join("nemo.css"));
     let f = dir.join("gtk.css");
     let Ok(cur) = std::fs::read_to_string(&f) else { return Ok(()) };
-    if cur.starts_with("/* NEMO") {
+    if cur.starts_with("/* NEMO") || cur.starts_with("/* YAMI") {
         let _ = std::fs::remove_file(&f);
         return Ok(());
     }
-    let keep: Vec<&str> = cur.lines().filter(|l| l.trim() != GTK_IMPORT && !l.starts_with("/* nemo: its colours live in nemo.css")).collect();
+    let keep: Vec<&str> = cur.lines().filter(|l| l.trim() != GTK_IMPORT && l.trim() != "@import url(\"yami.css\");" && !l.starts_with("/* nemo: its colours live in nemo.css") && !l.starts_with("/* yami: its colours live in yami.css")).collect();
     if keep.len() == cur.lines().count() {
         return Ok(());
     }
@@ -447,7 +447,7 @@ fn kitty_detach(cx: &Cx) -> Res {
     let conf = cx.cfg.join("kitty/kitty.conf");
     let Ok(t) = std::fs::read_to_string(&conf) else { return Ok(()) };
     let lines = lines_of(&t);
-    let keep: Vec<&str> = lines.iter().copied().filter(|l| l.trim() != "include nemo.conf" && !l.starts_with("# NEMO")).collect();
+    let keep: Vec<&str> = lines.iter().copied().filter(|l| l.trim() != "include nemo.conf" && l.trim() != "include yami.conf" && !l.starts_with("# NEMO") && !l.starts_with("# YAMI")).collect();
     if keep != lines {
         let text = keep.join("\n").trim_end_matches('\n').to_string() + "\n";
         // ссылка (stow, Home Manager) остаётся ссылкой: пишем сквозь неё
@@ -772,7 +772,7 @@ pub fn firefox(cx: &Cx, p: &P) -> Res {
     for prof in firefox_profiles(cx) {
         let f = prof.join("chrome/userChrome.css");
         // свой userChrome.css пользователя не трогаем
-        if f.exists() && !read_lossy(&f)?.starts_with("/* NEMO:") {
+        if f.exists() && !{ let t = read_lossy(&f)?; t.starts_with("/* NEMO:") || t.starts_with("/* YAMI:") } {
             continue;
         }
         if css.is_empty() {
@@ -945,7 +945,7 @@ pub fn niri(cx: &Cx, p: &P) -> Res {
 }
 
 // ── MangoHud ────────────────────────────────────────────────────────────────
-const MANGO_MARKS: [&str; 2] = ["# nemo: written by nemo recolor", "# nemo: written by tools/theme.py"];
+const MANGO_MARKS: [&str; 4] = ["# nemo: written by nemo recolor", "# nemo: written by tools/theme.py", "# yami: written by yami recolor", "# yami: written by tools/theme.py"];
 
 /// ~/.config/MangoHud/MangoHud.conf в цветах палитры, шрифт Tiny5 по сетке; свой конфиг не трогаем
 pub fn mangohud(cx: &Cx, p: &P) -> Res {

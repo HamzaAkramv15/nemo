@@ -222,6 +222,7 @@ if ((UPDATE)); then
   run_steps
   fork_after    # niri.sh: nemo-niri when its patch series moved
   login_after   # login.sh: offers the new login screen
+  legacy_cleanup # legacy.sh: the commands and glue files of the old name
   summary_update
 fi
 
@@ -241,6 +242,7 @@ if ((APPLY)); then
   root_end
   login_after
   fork_after
+  legacy_cleanup
   summary_update
 fi
 

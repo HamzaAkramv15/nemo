@@ -33,6 +33,7 @@ legacy_migrate() {
   legacy_merge "$cache/yami" "$cache/nemo"
   legacy_merge "$data/yami" "$data/nemo"
   legacy_merge "$data/fonts/yami" "$data/fonts/nemo"
+  legacy_merge "$data/yami-clip" "$data/nemo-clip"
   # the module checkouts carry the module name
   for m in "$data"/nemo/modules/yami-*; do
     [[ -d $m ]] || continue
@@ -73,6 +74,23 @@ legacy_cleanup() {
     rm -f "$g/yami.css"
     [[ -f $g/gtk.css ]] && sed -i '/^@import url("yami.css");$/d; /^\/\* yami: its colours live in yami.css/d' "$g/gtk.css"
   done
+  # the niri fork under the old name: its session drop-in would win over the new one (the later file name wins),
+  # so it goes only once the new session script is in place; the session of the next login is the new one
+  if [[ -x $HOME/.local/lib/nemo-niri/session && -f $cfg/systemd/user/niri.service.d/nemo-niri.conf ]]; then
+    rm -f "$cfg/systemd/user/niri.service.d/yami-niri.conf"
+    rm -rf "$HOME/.local/lib/yami-niri" "$HOME/.local/lib/yami"
+  fi
+  # what the old shell wrote into the old folder after the move: the newer files were carried over by legacy_merge
+  if [[ -d $cfg/yami ]]; then
+    legacy_merge "$cfg/yami" "$cfg/nemo"
+    rm -rf "$cfg/yami/niri"
+    rmdir "$cfg/yami" 2>/dev/null
+  fi
+  pkill -x yami-files 2>/dev/null
+  # files the old name generated; the new ones are written under the new name by the shell
+  local cache="${XDG_CACHE_HOME:-$HOME/.cache}/nemo" state="${XDG_STATE_HOME:-$HOME/.local/state}/nemo"
+  rm -f "$cfg"/kitty/yami-{colors,font,shell}.conf "$cfg"/fastfetch/yami-logo.{txt,png} "$data/color-schemes/Yami.colors" "$cfg/niri/yami.kdl" "$cfg/nemo/niri/yami.kdl" "$cache"/src-yami-* "$state"/built/yami-* "$state/pam/yami-lock"
+  rm -rf "$cfg/qt6ct/qss/yami"
   # the file picker and the mime defaults pointed at the old launchers
   for f in "$cfg/mimeapps.list" "$data/applications/mimeapps.list"; do
     [[ -f $f ]] && sed -i 's/yami-\(files\|view\|play\)\.desktop/nemo-\1.desktop/g' "$f"

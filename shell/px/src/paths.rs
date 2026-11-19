@@ -142,6 +142,9 @@ pub fn migrate_legacy() {
         for root in [base("XDG_CONFIG_HOME", ".config"), base("XDG_STATE_HOME", ".local/state"), base("XDG_CACHE_HOME", ".cache"), base("XDG_DATA_HOME", ".local/share"), base("XDG_DATA_HOME", ".local/share").join("fonts")] {
             merge_dir(&root.join("yami"), &root.join("nemo"));
         }
+        // закреплённое в буфере обмена лежало в ~/.local/share/yami-clip
+        let share = base("XDG_DATA_HOME", ".local/share");
+        merge_dir(&share.join("yami-clip"), &share.join("nemo-clip"));
     });
 }
 
