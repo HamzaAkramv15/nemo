@@ -10,9 +10,36 @@ use crate::gfx::R;
 use crate::notif::{pill, Note};
 use crate::ui::{Act, Cur, Ui};
 
-/// остров включён и есть где его показать
+thread_local! {
+    /// свободное место бара между левой и правой группами модулей (по последней отрисовке)
+    static SPAN: std::cell::Cell<(i32, i32)> = const { std::cell::Cell::new((0, i32::MAX)) };
+}
+
+pub fn set_span(x0: i32, x1: i32) {
+    SPAN.with(|s| s.set((x0, x1)));
+}
+
+/// самая узкая таблетка, которую ещё стоит показывать
+pub const MIN_PILL: i32 = 150;
+
+/// остров включён, есть где его показать и в баре хватает свободного места: когда открыто много окон и
+/// модули занимают весь бар, таблетка не лезет поверх них, уведомления идут карточкой, громкость — обычной плашкой
 pub fn on(st: &State) -> bool {
-    st.set.island && !crate::bar::vert(&st.set) && !st.bar_hidden
+    st.set.island && !crate::bar::vert(&st.set) && !st.bar_hidden && fits()
+}
+
+pub fn fits() -> bool {
+    let (a, b) = SPAN.with(|s| s.get());
+    b.saturating_sub(a) >= MIN_PILL
+}
+
+/// сколько места под таблетку: середина свободного отрезка бара, ширина не больше него
+pub fn span_pill(full: i32, (x0, x1): (i32, i32), bar_w: i32) -> (i32, i32) {
+    let free = (x1 - x0).max(0);
+    let w = full.min(free);
+    let centre = bar_w / 2;
+    let x = (centre - w / 2).clamp(x0, (x1 - w).max(x0));
+    (x, w)
 }
 
 /// у уведомления есть что показать кроме строки: картинка, кнопки, длинный или многострочный текст
@@ -66,24 +93,24 @@ pub fn pill_width(inner: i32, bar_w: i32) -> i32 {
     (inner + 36).clamp(150, 520.min((bar_w - 40).max(150)))
 }
 
-pub fn draw(ui: &mut Ui, st: &State, w: i32, bar_h: i32) {
+pub fn draw(ui: &mut Ui, st: &State, w: i32, bar_h: i32, span: (i32, i32)) {
     if !on(st) {
         return;
     }
     let t = ui.t;
     let ph = bar_h - 10;
     let py = (bar_h - ph) / 2;
-    let cx = w / 2;
     match pick(st) {
         Pick::Nothing => {}
         Pick::Note(n, more) => {
             let icon_w = 22;
             let (count, extra) = (if n.count > 1 { format!("×{}", n.count) } else { String::new() }, if more > 0 { format!("+{more}") } else { String::new() });
             let chips = if count.is_empty() { 0 } else { ui.w(PX, &count) + 8 } + if extra.is_empty() { 0 } else { ui.w(PX, &extra) + 8 };
-            let max_text = 520 - 36 - icon_w - chips;
-            let text = ui.f.elide(PX, &line(n), max_text.min(w - 120 - icon_w - chips));
+            let room = (span.1 - span.0).min(520) - 36 - icon_w - chips;
+            let text = ui.f.elide(PX, &line(n), room);
             let inner = icon_w + ui.w(PX, &text) + chips;
-            let full = pill_width(inner, w);
+            let (px, full) = span_pill(pill_width(inner, w), span, w);
+            let cx = px + full / 2;
             let age = n.born.elapsed().as_secs_f32();
             let e = ease(age);
             if age < 0.16 {
@@ -134,7 +161,8 @@ pub fn draw(ui: &mut Ui, st: &State, w: i32, bar_h: i32) {
             let gauge_w = if value.is_some() { 120 } else { 0 };
             let lw = ui.w(PX, &label);
             let inner = 22 + if gauge_w > 0 { gauge_w + 10 } else { 0 } + lw;
-            let full = pill_width(inner, w);
+            let (px, full) = span_pill(pill_width(inner, w), span, w);
+            let cx = px + full / 2;
             let r = R::new(cx - full / 2, py, full, ph);
             pill(ui, r, ph / 2, t.surface, t.border);
             let x = cx - full / 2 + 18;
@@ -151,6 +179,16 @@ pub fn draw(ui: &mut Ui, st: &State, w: i32, bar_h: i32) {
 
 #[cfg(test)]
 mod tests {
+    #[test]
+    fn the_pill_stays_inside_the_free_part_of_a_crowded_bar() {
+        assert_eq!(super::span_pill(300, (0, 1920), 1920), (810, 300), "empty bar: centred");
+        // много окон слева: свободно только 700..1500 — таблетка сдвигается и не заходит на модули
+        let (x, w) = super::span_pill(300, (700, 1500), 1920);
+        assert!(x >= 700 && x + w <= 1500, "{x} {w}");
+        let (x, w) = super::span_pill(900, (700, 1000), 1920);
+        assert_eq!((x, w), (700, 300), "never wider than the free span");
+    }
+
     use super::*;
     use std::time::Instant;
 

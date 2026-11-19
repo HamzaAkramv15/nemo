@@ -31,6 +31,7 @@ const TARGETS: &[&str] = &[
     "bar:tasks-crowd",
     "bar:privacy",
     "bar:island-note",
+    "bar:island-crowd",
     "bar:island-count",
     "bar:island-vol",
     "bar:island-bright",
@@ -295,6 +296,14 @@ fn shoot(st: &mut State, res: &mut Res, target: &str, path: &Path) {
             st.set.bar_center = v(&["clock"]);
             st.set.bar_right = v(&["tray", "net", "vol", "sep", "settings", "power"]);
             st.bright = Some(0.65);
+            if arg == "island-crowd" {
+                st.set.bar_left = v(&["launcher", "sep", "workspaces", "sep", "tasks"]);
+                st.set.bar_right = v(&["tray", "net", "vol", "sep", "settings", "power"]);
+                st.media.title = "Midnight City".into();
+                for i in 3..=14u64 {
+                    st.niri.wins.push(Win { id: i, app_id: "kitty".into(), title: format!("~/src/project-{i}"), ws: Some(1), ..Default::default() });
+                }
+            }
             match arg {
                 "island-vol" => st.osd = Some(("volume", Instant::now())),
                 "island-bright" => st.osd = Some(("bright", Instant::now())),
