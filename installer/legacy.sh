@@ -9,13 +9,17 @@ legacy_present() { [[ -e $BIN/yami-shell || -d ${XDG_CONFIG_HOME:-$HOME/.config}
 
 # move the contents of $1 into $2 (what is already in $2 stays), then drop an emptied $1
 legacy_merge() {
-  local from=$1 to=$2 e
+  local from=$1 to=$2 e skip=${LEGACY_EXCLUDE:-}
+  local LEGACY_EXCLUDE=
   [[ -d $from ]] || return 0
   mkdir -p "$to"
   for e in "$from"/* "$from"/.[!.]*; do
     [[ -e $e || -L $e ]] || continue
+    [[ -n $skip && ${e##*/} == "$skip" ]] && continue
     if [[ ! -e $to/${e##*/} && ! -L $to/${e##*/} ]]; then mv "$e" "$to/"
-    elif [[ -d $e && -d $to/${e##*/} ]]; then legacy_merge "$e" "$to/${e##*/}"; fi
+    elif [[ -d $e && -d $to/${e##*/} ]]; then legacy_merge "$e" "$to/${e##*/}"
+    # a file the old shell wrote after the first move is newer than the one already carried over: it wins
+    elif [[ -f $e && -f $to/${e##*/} && $e -nt $to/${e##*/} ]]; then mv -f "$e" "$to/"; fi
   done
   rmdir "$from" 2>/dev/null || true
 }
@@ -23,7 +27,8 @@ legacy_merge() {
 legacy_migrate() {
   legacy_present || return 0
   local cfg="${XDG_CONFIG_HOME:-$HOME/.config}" state="${XDG_STATE_HOME:-$HOME/.local/state}" cache="${XDG_CACHE_HOME:-$HOME/.cache}" data="${XDG_DATA_HOME:-$HOME/.local/share}" m
-  legacy_merge "$cfg/yami" "$cfg/nemo"
+  # the niri part stays until the new shell is in place: config.kdl includes it by the old path until the shell rewrites that line
+  if [[ -x $BIN/nemo-shell ]]; then legacy_merge "$cfg/yami" "$cfg/nemo"; else LEGACY_EXCLUDE=niri legacy_merge "$cfg/yami" "$cfg/nemo"; fi
   legacy_merge "$state/yami" "$state/nemo"
   legacy_merge "$cache/yami" "$cache/nemo"
   legacy_merge "$data/yami" "$data/nemo"
@@ -48,6 +53,7 @@ legacy_stop() {
   pkill -x yami-agents 2>/dev/null
   pkill -f "yami-files --portal" 2>/dev/null
   sleep 0.3
+  legacy_migrate
   return 0
 }
 
