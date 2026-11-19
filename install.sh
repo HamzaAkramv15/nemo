@@ -13,7 +13,7 @@
 #   ./install.sh --yes            no questions
 #   ./install.sh --dry-run        show the plan, change nothing
 #   ./install.sh --uninstall      remove Nemo, restore what it replaced
-#   ./install.sh --update         rebuild from this tree, keep every setting, no sudo (`yami update`)
+#   ./install.sh --update         rebuild from this tree, keep every setting, no sudo (`nemo update`)
 #   ./install.sh --apply "files view …"   install exactly these modules (what the first-run setup runs)
 #
 # Choices: --lang en|ru|pt-BR|es|de|fr|uk|pl  --palette blood|ash|sakura|amber|venom|ice|dusk  --theme dark|light

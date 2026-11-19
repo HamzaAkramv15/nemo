@@ -1,6 +1,6 @@
 # The rollback point: before an update, a change of modules or a repair, the binaries and the files
 # the installer rewrites are copied to ~/.local/state/yami/snapshots/<date>. An update that fails after
-# it began changing things puts everything back by itself; `yami update rollback` and settings →
+# it began changing things puts everything back by itself; `nemo update rollback` and settings →
 # updates use the newest one. `paths` lists every file with its class: G (generated: a rollback puts it
 # back) or U (yours: only the automatic restore right after a failed run touches it). A file that did
 # not exist at the snapshot is removed on restore. Three snapshots are kept.

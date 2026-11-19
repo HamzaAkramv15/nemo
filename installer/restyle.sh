@@ -91,7 +91,7 @@ t_desc() {
     mangohud) t "цвета и шрифт оверлея, только если конфиг наш" "the overlay's colours and font, only a config Nemo wrote" "cores e fonte do overlay, só uma configuração escrita pelo Nemo" ;;
     foot) t "терминал: include первой строкой foot.ini" "the terminal: an include as the first line of foot.ini" "o terminal: um include na primeira linha do foot.ini" ;;
     cava) t "градиент полос в его конфиге" "a gradient of the bars in its config" "um gradiente das barras na configuração dele" ;;
-    starship) t "палитра Nemo в starship.toml" "the yami palette in starship.toml" "a paleta Nemo no starship.toml" ;;
+    starship) t "палитра Nemo в starship.toml" "the Nemo palette in starship.toml" "a paleta Nemo no starship.toml" ;;
   esac
 }
 

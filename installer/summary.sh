@@ -78,5 +78,5 @@ summary_install() {
   fi
   printf '
   %s%s%s
-' "$F" "$(t "справка: yami help · настройка ещё раз: yami setup · удалить: ./install.sh --uninstall" "help: yami help · setup again: yami setup · remove: ./install.sh --uninstall" "ajuda: yami help · configurar de novo: yami setup · remover: ./install.sh --uninstall")" "$R"
+' "$F" "$(t "справка: nemo help · настройка ещё раз: nemo setup · удалить: ./install.sh --uninstall" "help: nemo help · setup again: nemo setup · remove: ./install.sh --uninstall" "ajuda: nemo help · configurar de novo: nemo setup · remover: ./install.sh --uninstall")" "$R"
 }

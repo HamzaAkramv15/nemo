@@ -32,7 +32,7 @@ plan_apply_look() {
 # last: what was installed, what the chosen components still miss (an update has no sudo: the
 # shell offers one command for it), the counter, the running shell restarted
 plan_record() {
-  add "$(t "запись об установке (для yami update)" "install record (for yami update)" "registro de instalação (para yami update)")" do_stamp
+  add "$(t "запись об установке (для nemo update)" "install record (for nemo update)" "registro de instalação (para nemo update)")" do_stamp
   add "$(t "каких пакетов ещё не хватает" "packages still missing" "pacotes ainda ausentes")" do_need_pkgs
   count_wanted && add "$(t "счётчик установок (один анонимный запрос; --no-count — без него)" "install counter (one anonymous request; --no-count skips it)" "contador de instalações (uma requisição anônima; --no-count desativa)")" do_count
   ((RUNNING_NIRI && !APPLY)) && add "$(t "перезапуск шелла" "restart the shell" "reiniciar o shell")" do_restart_shell
@@ -145,7 +145,7 @@ do_count() {
   ( curl -fsSL -A Nemo --connect-timeout 4 --max-time 8 -o /dev/null "$COUNT_URL" && : >"$mark" ) >/dev/null 2>&1 &
   return 0
 }
-# what is installed and from where: `yami update` compares against it
+# what is installed and from where: `nemo update` compares against it
 do_stamp() {
   local c="" i
   # the choice, not what this run could do: an update without sudo skips root components, the
@@ -190,7 +190,7 @@ do_restart_shell() {
   # the shell is the polkit agent now: a running Qt/GTK agent would keep the session's slot
   pkill -x polkit-kde-auth 2>/dev/null
   pkill -x polkit-gnome-au 2>/dev/null
-  # alive = answers on its socket. Not pgrep: `yami update apply` runs as a process named
+  # alive = answers on its socket. Not pgrep: `nemo update apply` runs as a process named
   # yami-shell too, and the shell would look alive while it is already gone
   if "$BIN/yami-shell" msg ping >/dev/null 2>&1; then
     # exec of the new binary in place: same process, niri's autostart loop stays; the new one
