@@ -29,16 +29,16 @@
     "yami-files": {
       "flake": false,
       "locked": {
-        "lastModified": 1795107166,
-        "narHash": "sha256-PrqwdsiST1tXjgAp9ROELP234TUPa0uST36tUUuZvJ8=",
+        "lastModified": 1795110175,
+        "narHash": "sha256-yiwBfkuLjoLcaHTOMaY2SWc859N2v/ZUX7f/3Cegtew=",
         "owner": "HamzaAkramv15",
         "repo": "nemo-files",
-        "rev": "11060259696eec94a8e70b267823b950c5bc2b95",
+        "rev": "1dd84abc1cfca8e292af4ed44565d7c780065db5",
         "type": "github"
       },
       "original": {
         "owner": "HamzaAkramv15",
-        "ref": "nemo-v0.2.1",
+        "ref": "nemo-v0.2.2",
         "repo": "nemo-files",
         "type": "github"
       }
@@ -63,16 +63,16 @@
     "yami-play": {
       "flake": false,
       "locked": {
-        "lastModified": 1795104526,
-        "narHash": "sha256-QYzHvNyLYd1jZPAaL8QcoRX1QwquMWXX9Da4lo7pMKg=",
+        "lastModified": 1795110178,
+        "narHash": "sha256-52vHpQLFkqEDtycWFUnNCxm4tOeDK6kVmrJxvUvjPmc=",
         "owner": "HamzaAkramv15",
         "repo": "nemo-play",
-        "rev": "46603ab7460526acdb0f94067a2ed22efb0411e6",
+        "rev": "8febdf16ae5d13a59b2fdd4ff5beb62539c7d5e1",
         "type": "github"
       },
       "original": {
         "owner": "HamzaAkramv15",
-        "ref": "nemo-v0.2.0",
+        "ref": "nemo-v0.2.2",
         "repo": "nemo-play",
         "type": "github"
       }
@@ -97,16 +97,16 @@
     "yami-view": {
       "flake": false,
       "locked": {
-        "lastModified": 1795104524,
-        "narHash": "sha256-mm00z8sALCwe5ifEzpQFD1AeMtKstF6bGn5HAfVwrz0=",
+        "lastModified": 1795110176,
+        "narHash": "sha256-0ya1Q+263vIfY18eJxdjQ776V4bWHnUnVZ6ubNcd03o=",
         "owner": "HamzaAkramv15",
         "repo": "nemo-view",
-        "rev": "d39ddc5deb1fcf145690382ca2097ebf7343fb58",
+        "rev": "1cd093db6a96a022b635f6c05ffb55f478622d1c",
         "type": "github"
       },
       "original": {
         "owner": "HamzaAkramv15",
-        "ref": "nemo-v0.2.0",
+        "ref": "nemo-v0.2.2",
         "repo": "nemo-view",
         "type": "github"
       }
