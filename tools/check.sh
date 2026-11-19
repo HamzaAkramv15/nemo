@@ -8,6 +8,8 @@ set -uo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 TMP="$(mktemp -d)"
 trap 'rm -rf "$TMP"' EXIT
+# the bundled fonts, straight from the checkout: every machine (CI included) measures text with the same Noto Sans
+export NEMO_FONTS="$ROOT/fonts"
 FAST=0
 [[ ${1:-} == --fast ]] && FAST=1
 fail=0

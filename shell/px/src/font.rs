@@ -144,6 +144,22 @@ fn load(file: &str, idx: u32) -> Option<FontRef<'static>> {
     FontRef::try_from_slice_and_index(data, idx).ok()
 }
 
+/// где лежат шрифты набора: $NEMO_FONTS (проверка и CI берут их прямо из репозитория), иначе папка установки
+fn bundled_dir() -> std::path::PathBuf {
+    match std::env::var_os("NEMO_FONTS") {
+        Some(d) if !d.is_empty() => d.into(),
+        _ => crate::paths::home().join(".local/share/fonts/yami"),
+    }
+}
+
+/// Noto Sans из набора; None — файла нет, берётся системный
+fn bundled_sans(srcs: &mut Vec<Src>) -> Option<usize> {
+    let file = bundled_dir().join("NotoSans-Regular.ttf");
+    let font = load(file.to_str()?, 0)?;
+    srcs.push(Src { font, pixel: false, k: 1.0 });
+    Some(srcs.len() - 1)
+}
+
 impl Fonts {
     /// Tiny5 и запасные
     pub fn new() -> Fonts {
@@ -162,7 +178,9 @@ impl Fonts {
         };
         // общее семейство (sans, serif) — что fontconfig даст; имя найденного может быть любым
         let generic = matches!(family.to_lowercase().as_str(), "sans" | "sans-serif" | "serif" | "monospace");
-        let custom = if family.is_empty() || family.eq_ignore_ascii_case("tiny5") { None } else { add(family, (!generic).then_some(family), !generic && is_pixel_family(family), &mut srcs) };
+        // «sans» без уточнений — наш Noto Sans: одинаковый у всех. Любое другое имя — что скажет fontconfig
+        let plain_sans = matches!(family.to_lowercase().as_str(), "sans" | "sans-serif");
+        let custom = if plain_sans { bundled_sans(&mut srcs).or_else(|| add(family, None, false, &mut srcs)) } else if family.is_empty() || family.eq_ignore_ascii_case("tiny5") { None } else { add(family, (!generic).then_some(family), !generic && is_pixel_family(family), &mut srcs) };
         let tiny = add("Tiny5", Some("tiny5"), true, &mut srcs).or_else(|| embedded(&mut srcs));
         if let Some(c) = custom {
             if !srcs[c].pixel {
@@ -175,7 +193,9 @@ impl Fonts {
         let dot = add("DotGothic16", Some("dotgothic"), true, &mut srcs);
         let mono = add("Monocraft", Some("monocraft"), true, &mut srcs)
             .or_else(|| add("Terminess Nerd Font Mono", Some("terminess"), true, &mut srcs));
-        let sans = add("sans-serif:lang=ru", None, false, &mut srcs);
+        // основной не-пиксельный: Noto Sans из набора Nemo (одинаковый у всех, на нём проверяется вёрстка),
+        // а если его нет (модуль в чужой системе) — что fontconfig даст как sans-serif
+        let sans = bundled_sans(&mut srcs).or_else(|| add("sans-serif:lang=ru", None, false, &mut srcs));
         let cjk = add("sans-serif:lang=ja", None, false, &mut srcs);
         let emoji = add("emoji", None, false, &mut srcs);
         let chain = |xs: &[Option<usize>]| -> Vec<usize> {
