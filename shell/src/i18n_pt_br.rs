@@ -1235,4 +1235,11 @@ const PT_BR: &[(&str, &str)] = &[
     ("caffeine on until you turn it off", "café ligado até você desligar"),
     ("caffeine on for {}", "café ligado por {}"),
     ("{} K", "{} K"),
+    ("caffeine is off", "café desligado"),
+    ("caffeine is on: {} left", "café ligado: {} restantes"),
+    ("click: on/off · right: duration", "clique: liga/desliga · direito: duração"),
+    ("night light is on: {} K", "luz noturna ligada: {} K"),
+    ("night light is off", "luz noturna desligada"),
+    ("click: on/off · right: temperature", "clique: liga/desliga · direito: temperatura"),
+    (" · {} left", " · {} restantes"),
 ];

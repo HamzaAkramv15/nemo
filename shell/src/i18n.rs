@@ -1095,4 +1095,11 @@ const PAIRS: &[(&str, &str)] = &[
     ("кофе включён, пока не выключишь", "caffeine on until you turn it off"),
     ("кофе включён на {}", "caffeine on for {}"),
     ("{} К", "{} K"),
+    ("кофе выключен", "caffeine is off"),
+    ("кофе включён: ещё {}", "caffeine is on: {} left"),
+    ("щелчок: вкл/выкл · правая: срок", "click: on/off · right: duration"),
+    ("ночной свет включён: {} К", "night light is on: {} K"),
+    ("ночной свет выключен", "night light is off"),
+    ("щелчок: вкл/выкл · правая: температура", "click: on/off · right: temperature"),
+    (" · {}", " · {} left"),
 ];

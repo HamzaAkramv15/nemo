@@ -64,6 +64,9 @@ const TARGETS: &[&str] = &[
     "clipboard",
     "power",
     "popup:cal",
+    "tip:caffeine",
+    "tip:night",
+    "tip:battery",
     "popup:sound",
     "popup:media",
     "popup:media-flat",
@@ -631,6 +634,27 @@ fn shoot(st: &mut State, res: &mut Res, target: &str, path: &Path) {
             st.popup = Some(Popup { kind: k, at: (String::new(), 0, 0) });
             crate::popups::size(k, st)
         }
+        "tip" => {
+            let act = match arg {
+                "night" => {
+                    st.set.night = true;
+                    crate::ui::Act::NightToggle
+                }
+                "battery" => {
+                    st.sys.bat = Some(crate::sys::Bat { pct: 64, charging: false, plugged: false, mins: Some(215) });
+                    crate::ui::Act::Popup("profile")
+                }
+                _ => {
+                    st.caffeine.on = true;
+                    st.caffeine.until = Some(std::time::Instant::now() + std::time::Duration::from_secs(80 * 60 - 5));
+                    crate::ui::Act::CaffeineToggle
+                }
+            };
+            let lines = crate::tips::text(st, &act).unwrap_or_default();
+            let size = crate::tips::measure(&mut res.fonts, &lines);
+            st.tip = Some(crate::tips::Tip { act, lines, out: String::new(), at: (0, 0), since: std::time::Instant::now(), shown: true });
+            size
+        }
         "menu" => {
             let w = Widget::new(900, "graph");
             st.menu = Some(crate::menu::MenuState::new("", 0, 0, &crate::tf!("виджет: {}", "widget: {}", "widget: {}", crate::i18n::tr("график")), crate::widgets::widget_menu(&w)));
@@ -763,6 +787,7 @@ fn shoot(st: &mut State, res: &mut Res, target: &str, path: &Path) {
             "power" => crate::power::draw(&mut ui, st, w, h),
             "walls" => crate::walls::draw(&mut ui, st, w, h),
             "popup" => crate::popups::draw(&mut ui, st, w, h),
+            "tip" => crate::tips::draw(&mut ui, st, w, h),
             "menu" => crate::menu::draw(&mut ui, st, w, h),
             "widget" => crate::widgets::draw(&mut ui, st, 900, w, h),
             "grid" => {

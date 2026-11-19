@@ -1459,4 +1459,11 @@ const ES: &[(&str, &str)] = &[
     ("caffeine on until you turn it off", "cafeína activa hasta que la apagues"),
     ("caffeine on for {}", "cafeína activa por {}"),
     ("{} K", "{} K"),
+    ("caffeine is off", "cafeína desactivada"),
+    ("caffeine is on: {} left", "cafeína activa: quedan {}"),
+    ("click: on/off · right: duration", "clic: sí/no · derecho: duración"),
+    ("night light is on: {} K", "luz nocturna activa: {} K"),
+    ("night light is off", "luz nocturna desactivada"),
+    ("click: on/off · right: temperature", "clic: sí/no · derecho: temperatura"),
+    (" · {} left", " · quedan {}"),
 ];

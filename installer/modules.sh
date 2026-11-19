@@ -70,6 +70,8 @@ m_fetch() {
   [[ -n $tag ]] || { echo "modules.lock: no version for $repo" >&2; return 1; }
   dir="${XDG_DATA_HOME:-$HOME/.local/share}/yami/modules/$repo"
   if [[ -d $dir/.git ]]; then
+    # a checkout made before the fork (origin = upstream) moves to our repository
+    git -C "$dir" remote set-url origin "$YAMI_MODULES_URL/$(m_remote "$repo").git" >&2
     git -C "$dir" fetch --quiet --tags origin >&2 || return 1
   else
     # the folder may hold the module's files from the ready binaries (prebuilt_module), not a checkout:

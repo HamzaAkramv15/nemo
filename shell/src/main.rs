@@ -78,6 +78,7 @@ mod recolor_tpl;
 mod reply;
 mod report;
 mod popups;
+mod tips;
 mod power;
 mod session;
 mod setclick;

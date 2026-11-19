@@ -130,6 +130,7 @@ impl App {
         }
         self.dock_tick();
         self.disp_tick();
+        self.tip_tick();
         if let Some((_, t)) = self.st.osd {
             if t.elapsed() > Duration::from_millis(1500) {
                 self.st.osd = None;

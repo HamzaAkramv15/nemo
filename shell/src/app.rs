@@ -82,6 +82,8 @@ pub enum SKind {
     CurtainBadge,
     Dock,
     DockEdge,
+    /// подсказка у значка бара (tips.rs)
+    Tip,
 }
 
 pub struct Surf {
@@ -256,6 +258,8 @@ pub struct State {
     /// образец во вкладке анимаций: группа и когда пошёл (animtab.rs)
     pub anim_demo: Option<(u8, std::time::Instant)>,
     pub osd: Option<(&'static str, Instant)>,
+    /// подсказка бара: ждёт или показана
+    pub tip: Option<crate::tips::Tip>,
     /// шторка для трансляций опущена
     pub curtain: Option<crate::curtain::Curtain>,
     /// индикатор приватности (privacy.rs): кто пишет микрофон, кто держит камеру, у каких потоков
@@ -498,6 +502,7 @@ impl State {
             notifs: notif::Notifs::default(),
             anim_demo: None,
             osd: None,
+            tip: None,
             curtain: None,
             mic: vec![],
             bright: None,

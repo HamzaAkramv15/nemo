@@ -1459,4 +1459,11 @@ const UK: &[(&str, &str)] = &[
     ("caffeine on until you turn it off", "кава ввімкнена, доки не вимкнеш"),
     ("caffeine on for {}", "кава ввімкнена на {}"),
     ("{} K", "{} K"),
+    ("caffeine is off", "кава вимкнена"),
+    ("caffeine is on: {} left", "кава ввімкнена: ще {}"),
+    ("click: on/off · right: duration", "клік: так/ні · правий: термін"),
+    ("night light is on: {} K", "нічне світло ввімкнене: {} K"),
+    ("night light is off", "нічне світло вимкнене"),
+    ("click: on/off · right: temperature", "клік: так/ні · правий: температура"),
+    (" · {} left", " · ще {}"),
 ];

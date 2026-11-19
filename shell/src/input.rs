@@ -90,6 +90,7 @@ impl App {
                 if self.ptr.map(|p| p.0) == Some(sid) {
                     self.ptr = None;
                 }
+                self.tip_off();
                 self.mark(sid);
                 if let Some(SKind::Notifs) = self.surf_kind(sid) {
                     self.st.notifs.hover = false;
@@ -107,6 +108,7 @@ impl App {
                 let c = after.as_ref().map(|z| z.cur).unwrap_or(Cur::Default);
                 self.set_cursor(c);
                 if before.as_ref().map(|z| (&z.act, z.r)) != after.as_ref().map(|z| (&z.act, z.r)) {
+                    self.tip_hover(sid, after.as_ref().map(|z| (z.act.clone(), z.r)));
                     self.mark(sid);
                     if let Some(z) = &after {
                         self.on_hover(&z.act);
@@ -114,6 +116,7 @@ impl App {
                 }
             }
             PointerEventKind::Press { button, .. } => {
+                self.tip_off();
                 self.ptr = Some((sid, x, y));
                 let z = self.zone_at(sid, x, y);
                 let (sx, sy) = self.surfs.get(&sid).map(|s| s.applied).unwrap_or((0, 0));
