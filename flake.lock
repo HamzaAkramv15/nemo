@@ -80,16 +80,16 @@
     "yami-shot": {
       "flake": false,
       "locked": {
-        "lastModified": 1795104528,
-        "narHash": "sha256-oHXlLiIBD42mN+65D3/6VFg9Wo6LP4H2pcwJTXdSqDs=",
+        "lastModified": 1795118000,
+        "narHash": "sha256-tfXe8p72YyjiI9ducYIIZC794IRfqyfaYzzdcctAMdY=",
         "owner": "HamzaAkramv15",
         "repo": "nemo-shot",
-        "rev": "0fdf224c3bf8afc83e9213107e8f759109173369",
+        "rev": "3d8b56fd64549a3fef26ff7a3350b6625ab93b36",
         "type": "github"
       },
       "original": {
         "owner": "HamzaAkramv15",
-        "ref": "nemo-v0.2.0",
+        "ref": "nemo-v0.3.0",
         "repo": "nemo-shot",
         "type": "github"
       }
