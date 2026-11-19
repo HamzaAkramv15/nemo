@@ -1535,4 +1535,11 @@ const FR: &[(&str, &str)] = &[
     ("at the end it tells you whether to reboot", "à la fin il dit s'il faut redémarrer"),
     ("island", "îlot"),
     ("notifications and volume at the top centre, as a pill under the bar", "notifications et volume en haut au centre, en pilule sous la barre"),
+    ("week numbers", "numéros de semaine"),
+    ("coffee on its own", "café automatique"),
+    ("while a window is fullscreen (video, a talk)", "tant qu'une fenêtre est en plein écran (vidéo, exposé)"),
+    ("muted apps", "applications muettes"),
+    ("apps, comma separated: steam, discord", "applications séparées par des virgules : steam, discord"),
+    ("their notifications do not pop up, they go straight to history (middle-click a card to mute its app)", "leurs notifications n'apparaissent pas, elles vont directement à l'historique (clic milieu sur une carte pour couper l'appli)"),
+    ("{}: muted, its notifications go to history (settings → notifications)", "{} : coupée, ses notifications vont à l'historique (réglages → notifications)"),
 ];

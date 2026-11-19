@@ -351,6 +351,8 @@ impl App {
                         self.apply_hex();
                     } else if f == "float_apps" {
                         self.settings_click(&Act::SCycle("float_apply"));
+                    } else if f == "notif_muted" {
+                        self.settings_click(&Act::SCycle("muted_apply"));
                     } else if f == "cast_hide" {
                         self.settings_click(&Act::SCycle("cast_apply"));
                     } else if f == "shot_dir" {
@@ -377,6 +379,7 @@ impl App {
                         "hex" => &mut self.st.hex,
                         "shot_dir" => &mut self.st.shot_field,
                         "float_apps" => &mut self.st.float_field,
+                        "notif_muted" => &mut self.st.muted_field,
                         "cast_hide" => &mut self.st.cast_field,
                         "key_cmd" => &mut self.st.keys.cmd,
                         "game_apps" => &mut self.st.game_field,

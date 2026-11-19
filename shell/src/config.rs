@@ -231,6 +231,8 @@ pub struct Settings {
     pub date_style: String,
     /// характер: off — молчит, quiet — о системных событиях, playful — ещё пустые панели
     pub personality: String,
+    /// кофе включается само, пока окно на весь экран
+    pub caffeine_auto: bool,
     /// «остров»: уведомления и OSD пилюлей вверху по центру, под баром; false — карточки, как раньше
     pub island: bool,
     /// профиль питания на батарее и от сети: пусто — не трогать; power-saver, balanced, performance
@@ -242,6 +244,8 @@ pub struct Settings {
     pub weekend: String,
     /// дата по хиджре в календаре (табличный календарь, справочно)
     pub hijri: bool,
+    /// номера недель слева в календаре (ISO 8601, по четвергу строки)
+    pub week_numbers: bool,
     /// арабско-индийские цифры (٠١٢٣) вместо 0123 во всём тексте
     pub arabic_digits: bool,
     pub task_width: i32,
@@ -324,6 +328,8 @@ pub struct Settings {
     pub float_pip: bool,
     /// свои app-id через запятую
     pub float_apps: String,
+    /// программы, чьи уведомления не всплывают, а сразу идут в историю (через запятую, без учёта регистра)
+    pub notif_muted: String,
     /// программы, которых не видят зрители трансляций (app-id через запятую): чёрные в показе экрана
     pub cast_hide: String,
     pub float_w: f32,
@@ -484,9 +490,9 @@ pub fn page_keys(tab: &str) -> &'static [&'static str] {
         "widgets" => &["widgets", "widgetContrast"],
         "dock" => &["dock*"],
         "windows" => &["stacking", "titlebars", "floatMedia", "floatPip", "floatApps", "floatW", "floatH", "winGap", "winLeft", "winRight", "winTop", "winBottom", "winRadius", "winBorder", "castHide"],
-        "notif" => &["dnd", "notifTimeout", "notifMax", "notifHistory", "notifPos", "osdPos", "osdBright", "notifOffset", "osdOffset", "notifImages", "island"],
-        "comfort" => &["lockAfter", "screenOffAfter", "lockSleep", "night", "nightTemp", "nightGeo", "nightOnH", "nightOffH", "nightAlways", "caffeineMinutes", "personality", "dnd", "profileBattery", "profileAc"],
-        "region" => &["lang", "clock12", "clockSeconds", "clockDate", "dateStyle", "weekStart", "weekend", "hijri", "arabicDigits"],
+        "notif" => &["dnd", "notifTimeout", "notifMax", "notifHistory", "notifPos", "osdPos", "osdBright", "notifOffset", "osdOffset", "notifImages", "island", "notifMuted"],
+        "comfort" => &["lockAfter", "screenOffAfter", "lockSleep", "night", "nightTemp", "nightGeo", "nightOnH", "nightOffH", "nightAlways", "caffeineMinutes", "caffeineAuto", "personality", "dnd", "profileBattery", "profileAc"],
+        "region" => &["lang", "clock12", "clockSeconds", "clockDate", "dateStyle", "weekStart", "weekend", "hijri", "arabicDigits", "weekNumbers"],
         "system" => &["sessionRestore"],
         "games" => &["game*"],
         "login" => &["greet*"],
@@ -684,12 +690,14 @@ impl Default for Settings {
             clock12: false,
             date_style: "dm".into(),
             personality: "quiet".into(),
+            caffeine_auto: false,
             island: false,
             profile_battery: String::new(),
             profile_ac: String::new(),
             week_start: "mon".into(),
             weekend: "satsun".into(),
             hijri: false,
+            week_numbers: false,
             arabic_digits: false,
             task_width: 190,
             bar_sep: "dots".into(),
@@ -733,6 +741,7 @@ impl Default for Settings {
             float_media: true,
             float_pip: true,
             float_apps: String::new(),
+            notif_muted: String::new(),
             cast_hide: String::new(),
             float_w: 0.62,
             float_h: 0.78,
@@ -862,6 +871,7 @@ impl Settings {
         // app-id: то, что бывает в app-id, и разделители списка
         let ids = |s: &mut String| s.retain(|c| c.is_alphanumeric() || "._-*!+, ".contains(c));
         ids(&mut self.float_apps);
+        ids(&mut self.notif_muted);
         ids(&mut self.cast_hide);
         ids(&mut self.game_apps);
         self.kb_switch.retain(|c| c.is_ascii_alphanumeric() || "_:,()-".contains(c));

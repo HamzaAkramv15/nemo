@@ -83,6 +83,7 @@ mod emoji;
 mod cheat;
 mod popups;
 mod setindex;
+mod units;
 mod sysupd;
 mod tips;
 mod power;

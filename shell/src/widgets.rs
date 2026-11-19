@@ -629,6 +629,9 @@ pub fn calendar(ui: &mut Ui, st: &State, r: R, month_shift: i32, c: C, nav: bool
     } else {
         ui.text_in(PX, head, &title, t.text);
     }
+    // слева — колонка номеров недель, если включена
+    let wn = if st.set.week_numbers { 26 } else { 0 };
+    let r = R::new(r.x + wn, r.y, r.w - wn, r.h);
     let cw = r.w / 7;
     let ch = ((r.h - 50) / 6).max(16);
     // первый столбец — день недели `first_col` (0 = пн … 6 = вс), выходные красим по самому дню
@@ -642,6 +645,16 @@ pub fn calendar(ui: &mut Ui, st: &State, r: R, month_shift: i32, c: C, nav: bool
     let wd = ((first + 3).rem_euclid(7) as i32 - first_col).rem_euclid(7); // столбец первого числа
     let dim = days_in_month(y, m as u32 + 1);
     let gy = r.y + 48;
+    if wn > 0 {
+        ui.text_center(PX, R::new(r.x - wn, r.y + 26, wn, 18), "№", t.text_faint);
+        for row in 0..6 {
+            // неделя строки — по любому её дню: iso_week сама берёт четверг этой недели
+            let d0 = first + (row * 7 - wd) as i64;
+            if row * 7 - wd < dim as i32 {
+                ui.text_center(PX, R::new(r.x - wn, gy + row * ch, wn, ch - 2), &iso_week(d0 + 3).to_string(), t.text_faint);
+            }
+        }
+    }
     for d in 1..=dim as i32 {
         let cell = d - 1 + wd;
         let (cx, cy) = (r.x + (cell % 7) * cw, gy + (cell / 7) * ch);
@@ -680,6 +693,28 @@ pub fn days_from_civil(y: i32, m: u32, d: u32) -> i64 {
     let doy = (153 * mp + 2) / 5 + d as i64 - 1;
     let doe = yoe * 365 + yoe / 4 - yoe / 100 + doy;
     era * 146097 + doe - 719468
+}
+
+/// номер недели ISO 8601 для дня `days` (с 1970-01-01, любой день недели): по четвергу этой недели
+pub fn iso_week(days: i64) -> u32 {
+    // 1970-01-01 — четверг; (days + 3) % 7 — номер дня недели от понедельника
+    let thursday = days - (days + 3).rem_euclid(7) + 3;
+    let (y, _, _) = civil_from_days(thursday);
+    let jan1 = days_from_civil(y, 1, 1);
+    ((thursday - jan1) / 7 + 1) as u32
+}
+
+/// гражданская дата по числу дней с 1970-01-01 (обратное к days_from_civil)
+pub fn civil_from_days(z: i64) -> (i32, u32, u32) {
+    let z = z + 719_468;
+    let era = z.div_euclid(146_097);
+    let doe = z.rem_euclid(146_097);
+    let yoe = (doe - doe / 1460 + doe / 36_524 - doe / 146_096) / 365;
+    let doy = doe - (365 * yoe + yoe / 4 - yoe / 100);
+    let mp = (5 * doy + 2) / 153;
+    let d = (doy - (153 * mp + 2) / 5 + 1) as u32;
+    let m = if mp < 10 { mp + 3 } else { mp - 9 };
+    ((yoe + era * 400 + if m <= 2 { 1 } else { 0 }) as i32, m as u32, d)
 }
 
 pub fn days_in_month(y: i32, m: u32) -> u32 {
@@ -945,6 +980,26 @@ impl App {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn iso_weeks_match_the_standard() {
+        let w = |y, m, d| iso_week(days_from_civil(y, m, d));
+        assert_eq!(w(2026, 1, 1), 1, "1 Jan 2026 is a Thursday: week 1");
+        assert_eq!(w(2024, 12, 30), 1, "30 Dec 2024 belongs to week 1 of 2025");
+        assert_eq!(w(2021, 1, 3), 53, "3 Jan 2021 is still week 53 of 2020");
+        assert_eq!(w(2026, 11, 19), 47);
+        assert_eq!(w(2026, 12, 28), 53, "2026 has 53 weeks");
+        // понедельник и воскресенье одной недели — один номер
+        assert_eq!(w(2026, 6, 15), w(2026, 6, 21));
+        assert_ne!(w(2026, 6, 21), w(2026, 6, 22));
+    }
+
+    #[test]
+    fn civil_dates_round_trip() {
+        for (y, m, d) in [(1970, 1, 1), (2000, 2, 29), (2026, 11, 19), (2100, 3, 1), (1999, 12, 31)] {
+            assert_eq!(civil_from_days(days_from_civil(y, m, d)), (y, m, d));
+        }
+    }
 
     #[test]
     fn weekends_follow_the_region() {

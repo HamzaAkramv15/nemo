@@ -383,6 +383,8 @@ pub(crate) fn tab_comfort(ui: &mut Ui, st: &State, b: R) {
         ui.button(R::new(b.x + k as i32 * (qw + 6), y, qw, 28), label, "coffee", Tone::Plain, false, true, Act::SCycle(key));
     }
     y += 40;
+    ui.toggle(R::new(lx, y, b.w, 26), "кофе само", "пока окно на весь экран (видео, доклад)", s.caffeine_auto, Act::SBool("caffeine_auto"));
+    y += 38;
     // питание: профиль на батарее и от сети; предел заряда, если ноутбук его отдаёт
     y = title(ui, b.x, y, b.w, "питание");
     let prof_name = |p: &str| match p {
@@ -477,6 +479,8 @@ pub(crate) fn tab_region(ui: &mut Ui, st: &State, b: R) {
     y += 32;
     ui.toggle(R::new(b.x, y, hw, 26), "дата по хиджре", "", s.hijri, Act::SBool("hijri"));
     ui.toggle(R::new(b.x + hw + 12, y, hw, 26), "арабские цифры", "", s.arabic_digits, Act::SBool("arabic_digits"));
+    y += 32;
+    ui.toggle(R::new(b.x, y, hw, 26), "номера недель", "", s.week_numbers, Act::SBool("week_numbers"));
     y += 38;
     let _ = y;
 }
@@ -551,7 +555,14 @@ pub(crate) fn tab_notif(ui: &mut Ui, st: &State, b: R) {
     let s = &st.set;
     let half = (b.w - 20) / 2;
     let (lx, rx) = (b.x, b.x + half + 20);
-    let mut y = title(ui, b.x, b.y, b.w, "остров");
+    let mut y = title(ui, b.x, b.y, b.w, "тихие программы");
+    let mf = st.field_focus == Some("notif_muted");
+    ui.field(R::new(b.x, y, b.w - 130, 30), &st.muted_field, "программы через запятую: steam, discord", mf, false, Act::SField("notif_muted"));
+    ui.button(R::new(b.right() - 120, y + 2, 120, 26), "применить", "check", Tone::Primary, false, true, Act::SCycle("muted_apply"));
+    y += 38;
+    ui.text_in(PX, R::new(b.x, y, b.w, 20), "их уведомления не всплывают, а сразу идут в историю (средняя кнопка по карточке — заглушить программу)", ui.t.text_faint);
+    y += 34;
+    y = title(ui, b.x, y, b.w, "остров");
     ui.toggle(R::new(b.x, y, b.w, 40), "остров", "уведомления и громкость вверху по центру, пилюлей под баром", s.island, Act::SBool("island"));
     y += 50;
     y = title(ui, b.x, y, b.w, "карточки");

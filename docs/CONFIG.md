@@ -102,6 +102,10 @@ file for one run. The files are reread when they change.
 | Key | Default | Meaning |
 |---|---|---|
 | `profileBattery`, `profileAc` | `""` | power profile to set on battery and on AC: `power-saver`, `balanced`, `performance`; empty leaves it alone |
+| `weekNumbers` | `false` | week numbers (ISO 8601) in the calendar |
+| `caffeineAuto` | `false` | turn the coffee on while a window is fullscreen, off when it leaves |
+| `notifMuted` | `""` | apps whose notifications skip the popup and go to history (comma separated) |
+| `island` | `false` | notifications and volume popups as pills at the top centre under the bar |
 | `personality` | `"quiet"` | the fish speaks on charger, caffeine and update events: `off` (never), `quiet` (system events only), `playful` (the same for now; empty-panel lines come next) |
 | `palette` | `"nemo"` | preset: `nemo` (lavender on graphite) `blood` `ash` `sakura` `amber` `venom` `ice` `dusk` |
 | `accent` | `""` | own accent `#rrggbb`; empty: the preset's |

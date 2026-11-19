@@ -624,4 +624,11 @@ const AR: &[(&str, &str)] = &[
     ("at the end it tells you whether to reboot", "وفي النهاية يخبرك إن كان لازمًا إعادة التشغيل"),
     ("island", "الجزيرة"),
     ("notifications and volume at the top centre, as a pill under the bar", "الإشعارات والصوت في الأعلى بالوسط كحبة تحت الشريط"),
+    ("week numbers", "أرقام الأسابيع"),
+    ("coffee on its own", "القهوة تلقائيًا"),
+    ("while a window is fullscreen (video, a talk)", "ما دامت نافذة بملء الشاشة (فيديو، عرض)"),
+    ("muted apps", "برامج صامتة"),
+    ("apps, comma separated: steam, discord", "البرامج مفصولة بفواصل: steam, discord"),
+    ("their notifications do not pop up, they go straight to history (middle-click a card to mute its app)", "لا تظهر إشعاراتها بل تذهب مباشرة إلى السجل (النقر الأوسط على بطاقة يكتم برنامجها)"),
+    ("{}: muted, its notifications go to history (settings → notifications)", "{}: مكتوم، تذهب إشعاراته إلى السجل (الإعدادات → الإشعارات)"),
 ];

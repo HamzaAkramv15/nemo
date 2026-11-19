@@ -1535,4 +1535,11 @@ const UK: &[(&str, &str)] = &[
     ("at the end it tells you whether to reboot", "наприкінці скаже, чи треба перезавантажити"),
     ("island", "острів"),
     ("notifications and volume at the top centre, as a pill under the bar", "сповіщення й гучність угорі по центру, пігулкою під баром"),
+    ("week numbers", "номери тижнів"),
+    ("coffee on its own", "кава сама"),
+    ("while a window is fullscreen (video, a talk)", "поки вікно на весь екран (відео, доповідь)"),
+    ("muted apps", "тихі програми"),
+    ("apps, comma separated: steam, discord", "програми через кому: steam, discord"),
+    ("their notifications do not pop up, they go straight to history (middle-click a card to mute its app)", "їхні сповіщення не з'являються, а йдуть одразу в історію (середня кнопка на картці — заглушити програму)"),
+    ("{}: muted, its notifications go to history (settings → notifications)", "{}: заглушено, її сповіщення йдуть в історію (налаштування → сповіщення)"),
 ];

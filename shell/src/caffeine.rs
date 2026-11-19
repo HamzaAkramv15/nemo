@@ -17,6 +17,8 @@ pub struct Caffeine {
     pub on: bool,
     /// когда выключится сам (None — когда выключат)
     pub until: Option<Instant>,
+    /// включено само (окно на весь экран), а не рукой: само же и выключится
+    pub auto: bool,
     /// пока этот отправитель жив — нить держит блокировку logind; убрали — она отпускает
     hold: Option<mpsc::Sender<()>>,
 }
@@ -45,6 +47,27 @@ fn hold() -> mpsc::Sender<()> {
 }
 
 /// «30», «30m», «2h», «1h30m»-не-надо: минуты числом, с «m» или часы с «h»; 0 и мусор — None
+#[derive(Debug, PartialEq)]
+pub enum AutoStep {
+    Start,
+    Stop,
+    Nothing,
+}
+
+/// решение автоматики: включить, выключить или оставить. `setting` — включена ли она, `full` — окно на весь экран,
+/// `on` — кофе сейчас горит, `auto` — оно горит по её решению
+pub fn auto_step(setting: bool, full: bool, on: bool, auto: bool) -> AutoStep {
+    match (setting, full, on, auto) {
+        // выключили автоматику, пока она держала кофе
+        (false, _, true, true) => AutoStep::Stop,
+        (false, ..) => AutoStep::Nothing,
+        (true, true, false, _) => AutoStep::Start,
+        // ушли с полного экрана — гасим только то, что включили сами
+        (true, false, true, true) => AutoStep::Stop,
+        _ => AutoStep::Nothing,
+    }
+}
+
 /// сроки правой кнопки, минуты; 0 — без срока
 pub const PRESETS: [u32; 5] = [30, 60, 120, 240, 0];
 
@@ -75,6 +98,8 @@ impl App {
     /// включить (minutes = 0 — без срока) или выключить
     pub fn caffeine_set(&mut self, on: bool, minutes: u32) {
         let c = &mut self.st.caffeine;
+        // любое включение и выключение рукой снимает «само»; автоматика ставит его после
+        c.auto = false;
         if on {
             if c.hold.is_none() {
                 c.hold = Some(hold());
@@ -127,7 +152,22 @@ impl App {
     }
 
     /// раз в тик: вышел срок — выключить
+    /// «кофе само»: пока окно на весь экран (видео, доклад), экран не гаснет; ушло — выключается. Включённое рукой
+    /// не трогает, выключенное рукой посреди видео не включает заново до следующего полного экрана
+    pub fn caffeine_auto(&mut self) {
+        let c = &self.st.caffeine;
+        match auto_step(self.st.set.caffeine_auto, self.st.game.fullscreen, c.on, c.auto) {
+            AutoStep::Start => {
+                self.caffeine_set(true, 0);
+                self.st.caffeine.auto = true;
+            }
+            AutoStep::Stop => self.caffeine_set(false, 0),
+            AutoStep::Nothing => {}
+        }
+    }
+
     pub fn caffeine_tick(&mut self) {
+        self.caffeine_auto();
         if self.st.caffeine.until.is_some_and(|t| Instant::now() >= t) {
             self.caffeine_set(false, 0);
             let q = self.quip_for(crate::personality::Event::CaffeineEnded);
@@ -163,3 +203,29 @@ mod tests {
         assert_eq!(super::parse_minutes("-5"), None);
     }
 }
+
+#[cfg(test)]
+mod auto_tests {
+    use super::{auto_step, AutoStep::*};
+
+    #[test]
+    fn it_starts_on_fullscreen_and_stops_when_it_leaves() {
+        assert_eq!(auto_step(true, true, false, false), Start);
+        assert_eq!(auto_step(true, false, true, true), Stop);
+        assert_eq!(auto_step(true, true, true, true), Nothing, "already holding");
+    }
+
+    #[test]
+    fn coffee_you_switched_on_yourself_is_never_touched() {
+        assert_eq!(auto_step(true, false, true, false), Nothing, "left fullscreen, but the coffee is yours");
+        assert_eq!(auto_step(true, true, true, false), Nothing);
+    }
+
+    #[test]
+    fn turning_the_option_off_lets_go_of_what_it_held() {
+        assert_eq!(auto_step(false, true, true, true), Stop);
+        assert_eq!(auto_step(false, true, true, false), Nothing, "manual coffee stays");
+        assert_eq!(auto_step(false, true, false, false), Nothing);
+    }
+}
+

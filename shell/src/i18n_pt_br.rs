@@ -1312,4 +1312,11 @@ const PT_BR: &[(&str, &str)] = &[
     ("at the end it tells you whether to reboot", "no fim diz se é preciso reiniciar"),
     ("island", "ilha"),
     ("notifications and volume at the top centre, as a pill under the bar", "notificações e volume no topo ao centro, como uma pílula sob a barra"),
+    ("week numbers", "números das semanas"),
+    ("coffee on its own", "café automático"),
+    ("while a window is fullscreen (video, a talk)", "enquanto uma janela está em tela cheia (vídeo, apresentação)"),
+    ("muted apps", "apps silenciados"),
+    ("apps, comma separated: steam, discord", "apps separados por vírgula: steam, discord"),
+    ("their notifications do not pop up, they go straight to history (middle-click a card to mute its app)", "as notificações delas não aparecem, vão direto ao histórico (clique do meio num cartão silencia o app)"),
+    ("{}: muted, its notifications go to history (settings → notifications)", "{}: silenciado, as notificações vão para o histórico (configurações → notificações)"),
 ];

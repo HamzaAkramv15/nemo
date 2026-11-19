@@ -377,6 +377,8 @@ pub struct State {
     pub shot_cfg: crate::shotcfg::ShotCfg,
     pub shot_field: Field,
     pub float_field: Field,
+    /// поле «тихие программы» (настройки → уведомления)
+    pub muted_field: Field,
     pub cast_field: Field,
     /// идёт прицел niri «какое окно спрятать из трансляций»; true — потом вернуть настройки
     pub cast_pick: Option<bool>,
@@ -598,6 +600,7 @@ impl State {
             shot_cfg: crate::shotcfg::ShotCfg::load(),
             shot_field: Field::default(),
             float_field: Field::default(),
+            muted_field: Field::default(),
             cast_field: Field::default(),
             cast_pick: None,
             dock_hover: false,

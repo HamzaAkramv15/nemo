@@ -245,7 +245,23 @@ impl App {
                 self.sync_notifs();
             }
             Act::NotifClick(id) => {
-                if button == RMB {
+                if button == MMB {
+                    // средняя кнопка: заглушить программу — дальше её карточки не всплывают, а идут в историю
+                    if let Some(app) = self.st.notifs.get(id).map(|n| n.app.clone()).filter(|a| !a.is_empty()) {
+                        if !crate::notif::is_muted(&self.st.set.notif_muted, &app) {
+                            let list = &mut self.st.set.notif_muted;
+                            if !list.trim().is_empty() {
+                                list.push_str(", ");
+                            }
+                            list.push_str(&app);
+                            self.settings_changed();
+                        }
+                        self.st.notifs.remove(id, false);
+                        crate::dbus::notif_closed(id, 2);
+                        self.sync_notifs();
+                        self.toast_note("уведомления", &crate::tf!("{}: заглушено, её уведомления идут в историю (настройки → уведомления)", "{}: muted, its notifications go to history (settings → notifications)", "{}: silenciado, as notificações vão para o histórico (configurações → notificações)", app));
+                    }
+                } else if button == RMB {
                     self.st.notifs.remove(id, false);
                     crate::dbus::notif_closed(id, 2);
                     self.sync_notifs();

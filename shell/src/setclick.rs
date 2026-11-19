@@ -166,9 +166,11 @@ impl App {
                     "privacy_screen" => s.privacy_screen = !s.privacy_screen,
                     "clock_date" => s.clock_date = !s.clock_date,
                     "hijri" => s.hijri = !s.hijri,
+                    "week_numbers" => s.week_numbers = !s.week_numbers,
                     "arabic_digits" => s.arabic_digits = !s.arabic_digits,
                     "dnd" => s.dnd = !s.dnd,
                     "island" => s.island = !s.island,
+                    "caffeine_auto" => s.caffeine_auto = !s.caffeine_auto,
                     "float_media" => s.float_media = !s.float_media,
                     "dock" => s.dock = !s.dock,
                     "dock_bounce" => s.dock_bounce = !s.dock_bounce,
@@ -612,6 +614,11 @@ impl App {
                     self.st.field_focus = None;
                     self.settings_changed();
                 }
+                "muted_apply" => {
+                    self.st.set.notif_muted = self.st.muted_field.text.trim().to_string();
+                    self.st.field_focus = None;
+                    self.settings_changed();
+                }
                 "float_apply" => {
                     let p = self.st.float_field.text.trim().to_string();
                     self.st.set.float_apps = p;
@@ -761,6 +768,10 @@ impl App {
             }
             Act::SField(k) => {
                 self.st.field_focus = Some(k);
+                if *k == "notif_muted" && self.st.muted_field.text.is_empty() {
+                    let p = self.st.set.notif_muted.clone();
+                    self.st.muted_field.set(&p);
+                }
                 if *k == "float_apps" && self.st.float_field.text.is_empty() {
                     let p = self.st.set.float_apps.clone();
                     self.st.float_field.set(&p);

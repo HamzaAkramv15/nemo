@@ -762,6 +762,7 @@ fn shoot(st: &mut State, res: &mut Res, target: &str, path: &Path) {
                 short.app = "nemo".into();
                 short.summary = "Plugged in".into();
                 short.body = String::new();
+                short.count = 3;
                 let mut big = mock_note();
                 big.id = 3;
                 big.app = "mail".into();
@@ -1039,6 +1040,7 @@ fn mock_note() -> crate::notif::Note {
         time: "12:00".into(),
         life: 7.0,
         left: 7.0,
+        count: 1,
     }
 }
 

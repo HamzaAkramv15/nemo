@@ -1,6 +1,9 @@
 // Сгенерировано из подписей вкладок настроек (см. тест the_index_covers_every_setting_label); руками правят только слова-синонимы kw.
 #[rustfmt::skip]
 pub const INDEX: &[Entry] = &[
+    Entry { tab: "notif", label: "тихие программы", kw: "mute app notifications silence block popups steam discord per app rules" },
+    Entry { tab: "comfort", label: "кофе само", kw: "caffeine auto automatic fullscreen video presentation keep awake while watching" },
+    Entry { tab: "region", label: "номера недель", kw: "week numbers iso calendar number of the week" },
     Entry { tab: "notif", label: "остров", kw: "island dynamic island notch pill notifications osd top centre center bar" },
     Entry { tab: "updates", label: "обновления системы", kw: "system updates distro distribution packages dnf pacman apt zypper upgrade fedora arch debian ubuntu safe held back kernel" },
     Entry { tab: "updates", label: "дистрибутив", kw: "distro distribution os fedora arch debian ubuntu opensuse" },

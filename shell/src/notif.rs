@@ -42,6 +42,8 @@ pub struct Note {
     pub time: String,
     pub life: f32,
     pub left: f32,
+    /// сколько раз пришло одно и то же (×N): повтор не плодит карточки
+    pub count: u32,
 }
 
 #[derive(Default)]
@@ -204,7 +206,10 @@ pub fn draw_card(ui: &mut Ui, n: &Note, r: R, close: bool) {
     }
     let app = if n.app.is_empty() { "система".to_string() } else { n.app.to_lowercase() };
     let aw = ui.text_in(PX, R::new(x, r.y, r.w / 2, 18), &app, if n.critical { t.ember } else { t.red });
-    ui.text_in(PX, R::new(x + aw + 8, r.y, 60, 18), &n.time, t.text_faint);
+    let tw = ui.text_in(PX, R::new(x + aw + 8, r.y, 60, 18), &n.time, t.text_faint);
+    if n.count > 1 {
+        ui.text_in(PX, R::new(x + aw + 8 + tw + 8, r.y, 50, 18), &format!("×{}", n.count), t.red);
+    }
     if close {
         ui.button(R::new(r.right() - 18, r.y, 18, 18), "", "close", Tone::Ghost, false, true, Act::NotifDel(n.id));
     }
@@ -238,6 +243,17 @@ pub fn draw_card(ui: &mut Ui, n: &Note, r: R, close: bool) {
     }
 }
 
+/// заглушена ли программа: в списке настроек (через запятую, без учёта регистра и пробелов по краям)
+pub fn is_muted(list: &str, app: &str) -> bool {
+    let app = app.trim();
+    !app.is_empty() && list.split(',').map(str::trim).any(|x| !x.is_empty() && x.eq_ignore_ascii_case(app))
+}
+
+/// то же самое сообщение: отправитель, заголовок и текст совпадают, и прошлое пришло не больше двух минут назад
+pub fn same_message(old: &Note, new: &Note) -> bool {
+    old.id != new.id && old.app == new.app && old.summary == new.summary && old.body == new.body && old.born.elapsed().as_secs() < 120
+}
+
 /// левый край острова шириной `sw` с центром в `cx` на экране шириной `ow`: не выходит за экран
 pub fn island_left_of(cx: i32, sw: i32, ow: i32) -> i32 {
     (cx - sw / 2).clamp(0, (ow - sw).max(0))
@@ -250,7 +266,7 @@ fn island_w(f: &mut font::Fonts, n: &Note) -> i32 {
     let img = if iw > 0 { iw + 10 } else { 0 };
     let tw = W - 24 - img;
     let app = if n.app.is_empty() { "система".to_string() } else { n.app.to_lowercase() };
-    let head = if n.icon.is_empty() { 0 } else { 22 } + f.width(PX, &app) + 8 + f.width(PX, &n.time).min(60) + 24;
+    let head = if n.icon.is_empty() { 0 } else { 22 } + f.width(PX, &app) + 8 + f.width(PX, &n.time).min(60) + 24 + if n.count > 1 { 44 } else { 0 };
     let mut text = 0;
     for l in f.wrap(PX, &n.summary, tw, 2) {
         text = text.max(f.width(PX, &l));
@@ -389,10 +405,20 @@ impl App {
             time: format!("{:02}:{:02}", tm.hour, tm.min),
             life,
             left: life,
+            count: 1,
         };
+        let mut note = note;
         let id = note.id;
         let quiet = self.quiet();
+        let muted = is_muted(&self.st.set.notif_muted, &note.app);
         let ns = &mut self.st.notifs;
+        // то же самое ещё раз (тот же отправитель, заголовок и текст за последние две минуты): одна карточка с ×N
+        if !ns.history.iter().any(|x| x.id == id) {
+            if let Some((old, c)) = ns.history.iter().find(|x| same_message(x, &note)).map(|x| (x.id, x.count)) {
+                note.count = c + 1;
+                ns.remove(old, true);
+            }
+        }
         if let Some(x) = ns.history.iter_mut().find(|x| x.id == id) {
             // замена (replaces_id): обновить на месте, без нового въезда
             let born = x.born;
@@ -402,7 +428,7 @@ impl App {
             ns.history.insert(0, note);
             ns.history.truncate(self.st.set.notif_history.clamp(10, 500) as usize);
         }
-        if (!quiet || critical) && !self.st.locked {
+        if ((!quiet && !muted) || critical) && !self.st.locked {
             ns.popups.retain(|x| *x != id);
             ns.leaving.retain(|x| x.0 != id);
             ns.popups.insert(0, id);
@@ -670,6 +696,46 @@ mod island_place_tests {
         assert_eq!(island_left_of(50, 386, 1920), 0);
         assert_eq!(island_left_of(1900, 386, 1920), 1920 - 386);
         assert_eq!(island_left_of(960, 3000, 1920), 0, "wider than the screen: start at the edge");
+    }
+}
+
+#[cfg(test)]
+mod dup_tests {
+    use super::*;
+
+    fn note(id: u32, app: &str, summary: &str, body: &str) -> Note {
+        Note { id, app: app.into(), icon: String::new(), summary: summary.into(), body: body.into(), actions: vec![], critical: false, image: None, born: Instant::now(), time: "12:00".into(), life: 7.0, left: 7.0, count: 1 }
+    }
+
+    #[test]
+    fn the_same_message_from_the_same_app_is_a_repeat() {
+        let a = note(1, "mail", "New mail", "From Sam");
+        assert!(same_message(&a, &note(2, "mail", "New mail", "From Sam")));
+        assert!(!same_message(&a, &note(2, "mail", "New mail", "From Alex")), "a different text is a different message");
+        assert!(!same_message(&a, &note(2, "chat", "New mail", "From Sam")), "a different app too");
+        assert!(!same_message(&a, &note(1, "mail", "New mail", "From Sam")), "an update of the same id is not a repeat");
+    }
+
+    #[test]
+    fn an_old_message_is_not_a_repeat() {
+        let mut a = note(1, "mail", "New mail", "");
+        a.born = Instant::now() - std::time::Duration::from_secs(300);
+        assert!(!same_message(&a, &note(2, "mail", "New mail", "")), "after two minutes it is news again");
+    }
+}
+
+#[cfg(test)]
+mod mute_tests {
+    use super::is_muted;
+
+    #[test]
+    fn muting_matches_the_app_by_name_ignoring_case_and_spaces() {
+        assert!(is_muted("steam, Discord ,mail", "discord"));
+        assert!(is_muted("steam", "STEAM"));
+        assert!(!is_muted("steam", "steam-runtime"), "whole names only");
+        assert!(!is_muted("", "steam"));
+        assert!(!is_muted(", ,", ""));
+        assert!(!is_muted("steam", ""), "an app with no name is never muted");
     }
 }
 

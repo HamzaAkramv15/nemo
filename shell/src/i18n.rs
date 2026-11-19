@@ -1175,4 +1175,11 @@ const PAIRS: &[(&str, &str)] = &[
     ("в конце — нужна ли перезагрузка", "at the end it tells you whether to reboot"),
     ("остров", "island"),
     ("уведомления и громкость вверху по центру, пилюлей под баром", "notifications and volume at the top centre, as a pill under the bar"),
+    ("номера недель", "week numbers"),
+    ("кофе само", "coffee on its own"),
+    ("пока окно на весь экран (видео, доклад)", "while a window is fullscreen (video, a talk)"),
+    ("тихие программы", "muted apps"),
+    ("программы через запятую: steam, discord", "apps, comma separated: steam, discord"),
+    ("их уведомления не всплывают, а сразу идут в историю (средняя кнопка по карточке — заглушить программу)", "their notifications do not pop up, they go straight to history (middle-click a card to mute its app)"),
+    ("{}: заглушено, её уведомления идут в историю (настройки → уведомления)", "{}: muted, its notifications go to history (settings → notifications)"),
 ];

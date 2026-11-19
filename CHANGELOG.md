@@ -9,6 +9,12 @@ has its Russian line in CHANGELOG.ru.md: `tools/check.sh` checks that.
 
 ## Unreleased
 
+- Launcher unit conversion: type `5 km in miles`, `72 f to c`, `2 gb in mb` or `3 ч в мин` (length, mass, volume, temperature, time, data, speed; offline); Enter copies the answer.
+- Repeated notifications collapse: the same message from the same app within two minutes becomes one card marked `×N` instead of a stack.
+- Muted apps: settings → notifications → muted apps (a list), or middle-click a card: that app's notifications skip the popup and go straight to history.
+- Week numbers in the calendar (`weekNumbers`, settings → language & time), ISO 8601.
+- Coffee on its own (`caffeineAuto`, settings → comfort): the screen stays awake while a window is fullscreen (a video, a talk) and the coffee turns off when it leaves; coffee you switched on yourself is never touched.
+
 - Updates is one page again, with two sides: **Desktop** (Nemo itself: shell, modules, login screen) and **Software** (your distribution's packages). Software explains itself: what it is, how many packages wait, a numbered list of what happens when you press update (a terminal opens, a snapshot if snapper is there, only safe updates in one all-or-nothing transaction on Fedora, sudo asks in the terminal, held-back packages are left alone, a reboot hint at the end) and the exact command that will run.
 - Key cheat sheet: `nemo msg cheat` (and Mod+F1) opens a searchable list of every bind with its current key, your own commands included; Esc closes it.
 - Island, fixed: pills are centred under the bar's middle (or the screen's when the bar is not on top), sized to their content (short notes are narrow, long ones full width), open from the middle instead of sliding in from the side, use a radius that suits their height, and the buttons and text no longer clip. Volume, brightness, layout and screen-hide popups have their own widths.

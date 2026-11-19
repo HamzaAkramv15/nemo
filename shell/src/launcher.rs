@@ -297,7 +297,7 @@ impl LState {
             }
             scored.sort_by(|a, b| b.0.partial_cmp(&a.0).unwrap_or(std::cmp::Ordering::Equal).then(apps[a.1].name.cmp(&apps[b.1].name)));
             if !q.is_empty() {
-                if crate::calc::looks_like(&q) {
+                if crate::calc::looks_like(&q) || crate::units::convert(&q).is_some() {
                     out.extend(calc_item(&q));
                 }
                 for (id, name, icon) in SYS {
@@ -355,6 +355,10 @@ impl LState {
 }
 
 fn calc_item(q: &str) -> Option<Item> {
+    // «5 km in miles»: перевод единиц, а не выражение
+    if let Some(s) = crate::units::convert(q.trim_start_matches('=')) {
+        return Some(Item { kind: Kind::Calc(s.clone()), name: format!("= {s}"), sub: "Enter — скопировать".into(), icon: "calc".into() });
+    }
     let v = crate::calc::eval(q)?;
     let s = crate::calc::format(v);
     Some(Item { kind: Kind::Calc(s.clone()), name: format!("= {s}"), sub: "Enter — скопировать".into(), icon: "calc".into() })
