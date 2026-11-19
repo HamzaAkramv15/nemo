@@ -3,6 +3,7 @@ on:
   push:
     branches: [main]
   pull_request:
+  workflow_dispatch:
 # third-party actions are pinned to a commit (a moved tag cannot change what runs); dependabot bumps them
 permissions:
   contents: read
