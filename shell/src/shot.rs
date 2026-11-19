@@ -117,6 +117,7 @@ const TARGETS: &[&str] = &[
     "notif",
     "notif:shot",
     "notif:island",
+    "notif:island-mix",
     "grid",
     "osd",
     "lock",
@@ -125,6 +126,9 @@ const TARGETS: &[&str] = &[
     "osd:curtain",
     "osd:bright",
     "osd:island",
+    "osd:island-bright",
+    "osd:island-curtain",
+    "osd:island-layout",
     "settings:shots",
     "settings:windows",
     "settings:dock",
@@ -746,10 +750,28 @@ fn shoot(st: &mut State, res: &mut Res, target: &str, path: &Path) {
             s
         }
         "notif" if arg != "shot" => {
-            st.set.island = arg == "island";
+            st.set.island = arg.starts_with("island");
             if st.notifs.history.is_empty() {
                 st.notifs.history.push(mock_note());
                 st.notifs.popups.push(1);
+            }
+            // остров: рядом короткая, длинная с кнопками и картинкой — как ведут себя разные размеры
+            if arg == "island-mix" {
+                let mut short = mock_note();
+                short.id = 2;
+                short.app = "nemo".into();
+                short.summary = "Plugged in".into();
+                short.body = String::new();
+                let mut big = mock_note();
+                big.id = 3;
+                big.app = "mail".into();
+                big.summary = "Weekly report is ready for review".into();
+                big.body = "The numbers for the last seven days are in the shared folder, please look at them before the meeting on Thursday.".into();
+                big.actions = vec![("open".into(), "open".into()), ("later".into(), "later".into())];
+                let img = image::RgbaImage::from_fn(160, 90, |x, y| image::Rgba([(x * 255 / 160) as u8, 90, (y * 255 / 90) as u8, 255]));
+                big.image = Some(std::rc::Rc::new(crate::icons::fit_in(img, crate::notif::IMG_W, crate::notif::IMG_H)));
+                st.notifs.history.extend([short, big]);
+                st.notifs.popups.extend([2, 3]);
             }
             crate::notif::size(st, &mut res.fonts)
         }
@@ -778,8 +800,9 @@ fn shoot(st: &mut State, res: &mut Res, target: &str, path: &Path) {
             (1280, 720)
         }
         "osd" => {
-            st.set.island = arg == "island";
-            st.osd = Some((match arg { "curtain" => "curtain", "bright" => "bright", _ => "volume" }, Instant::now()));
+            st.set.island = arg.starts_with("island");
+            let kind_arg = arg.trim_start_matches("island").trim_start_matches('-');
+            st.osd = Some((match kind_arg { "curtain" => "curtain", "bright" => "bright", "layout" => "layout", _ => "volume" }, Instant::now()));
             st.bright = Some(0.65);
             if arg == "curtain" {
                 st.curtain = Some(Default::default());

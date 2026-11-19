@@ -112,10 +112,10 @@ pub fn size(st: &State, f: &mut font::Fonts) -> (i32, i32) {
             h += card_h(f, n) + 8;
         }
     }
-    (W + 56, h.max(1) + 8)
+    (if st.set.island { W + 16 } else { W + 56 }, h.max(1) + 8)
 }
 
-pub fn draw(ui: &mut Ui, st: &State, _w: i32, _h: i32) {
+pub fn draw(ui: &mut Ui, st: &State, w: i32, _h: i32) {
     let t = ui.t;
     let mut y = 0;
     for id in &st.notifs.popups {
@@ -141,12 +141,20 @@ pub fn draw(ui: &mut Ui, st: &State, _w: i32, _h: i32) {
         let pixel = !matches!(style, "fade" | "none");
         ui.cv.opacity = if pixel { (0.35 + 0.65 * k).min(1.0) } else { step };
         let z0 = ui.zones.len();
-        let r = R::new(x0, y, W, ch);
+        let island = st.set.island;
+        // остров: по содержимому и по центру поверхности; появляется из середины, а не въезжает сбоку
+        let cw = if island { island_w(ui.f, n) } else { W };
+        let e = 1.0 - (1.0 - k) * (1.0 - k);
+        let r = if island {
+            let rw = (cw as f32 * (0.55 + 0.45 * e)).round() as i32;
+            R::new((w - rw) / 2, y - ((1.0 - e) * 10.0).round() as i32, rw, ch)
+        } else {
+            R::new(x0, y, W, ch)
+        };
         let hov = ui.hover(r);
         let edge = if n.critical { t.ember } else if hov { t.red } else { t.border };
-        let island = st.set.island;
         if island {
-            pill(ui, r, 18, t.glass_panel(), edge);
+            pill(ui, r, (ch / 2).min(22), t.glass_panel(), edge);
         } else {
             ui.cv.pxbox(r, &BoxStyle::new(t.glass_panel(), edge).shadow(4));
             ui.cv.fill(R::new(r.x + 2, r.y + 2, 3, r.h - 4), if n.critical { t.ember } else { t.red });
@@ -157,15 +165,23 @@ pub fn draw(ui: &mut Ui, st: &State, _w: i32, _h: i32) {
             let ticking = !st.notifs.hover;
             let left = n.left - if ticking { st.notifs.last.map(|l| l.elapsed().as_secs_f32()).unwrap_or(0.0) } else { 0.0 };
             let lw = (((r.w - if island { 28 } else { 9 }) as f32 * (left / n.life).clamp(0.0, 1.0)) / 2.0).round() as i32 * 2;
-            ui.cv.fill(R::new(r.x + if island { 14 } else { 5 }, r.bottom() - 4, lw, 2), t.red.fade(0.6));
+            ui.cv.fill(R::new(r.x + if island { 14 } else { 5 }, r.bottom() - 4, lw.min(r.w - if island { 28 } else { 9 }), 2), t.red.fade(0.6));
             if ticking {
                 ui.anim = true;
             }
         }
         ui.zone(r, Act::NotifClick(n.id), Cur::Pointer);
-        let pad = if island { 22 } else { 14 };
-        draw_card(ui, n, R::new(r.x + pad, r.y + 8, r.w - pad - 10, r.h - 16), true);
-        if pixel && k < 1.0 {
+        if island {
+            // содержимое — в полном размере, открывается из середины плашки
+            ui.cv.push_clip(r);
+            let full_x = (w - cw) / 2;
+            // ширина как у карточки (cw - 24): перенос строк тот же, по которому посчитана высота
+            draw_card(ui, n, R::new(full_x + 16, r.y + 8, cw - 24, r.h - 16), true);
+            ui.cv.pop_clip();
+        } else {
+            draw_card(ui, n, R::new(r.x + 14, r.y + 8, r.w - 24, r.h - 16), true);
+        }
+        if pixel && k < 1.0 && !island {
             ui.cv.dissolve_rect_as(R::new(r.x - 4, r.y - 4, r.w + 12, r.h + 12), k, 2, yami_px::gfx::Reveal::from_id(style), st.set.reveal_grain);
         }
         // уходящая карточка уже не ловит нажатий
@@ -222,6 +238,48 @@ pub fn draw_card(ui: &mut Ui, n: &Note, r: R, close: bool) {
     }
 }
 
+/// левый край острова шириной `sw` с центром в `cx` на экране шириной `ow`: не выходит за экран
+pub fn island_left_of(cx: i32, sw: i32, ow: i32) -> i32 {
+    (cx - sw / 2).clamp(0, (ow - sw).max(0))
+}
+
+/// ширина карточки-острова: по самому длинному, что в ней есть (шапка, строки текста, кнопки, картинка), не уже
+/// 260 и не шире W; перенос строк считается по полной ширине, так что сужение его не меняет
+fn island_w(f: &mut font::Fonts, n: &Note) -> i32 {
+    let (iw, _) = n.image.as_deref().map(img_size).unwrap_or((0, 0));
+    let img = if iw > 0 { iw + 10 } else { 0 };
+    let tw = W - 24 - img;
+    let app = if n.app.is_empty() { "система".to_string() } else { n.app.to_lowercase() };
+    let head = if n.icon.is_empty() { 0 } else { 22 } + f.width(PX, &app) + 8 + f.width(PX, &n.time).min(60) + 24;
+    let mut text = 0;
+    for l in f.wrap(PX, &n.summary, tw, 2) {
+        text = text.max(f.width(PX, &l));
+    }
+    for l in f.wrap(PX, &n.body, tw, 4) {
+        text = text.max(f.width(PX, &l));
+    }
+    let acts: i32 = n.actions.iter().filter(|a| a.0 != "default").map(|a| f.width(PX, &a.1) + 26).sum();
+    ((text + img).max(head).max(acts) + 32).clamp(260, W)
+}
+
+/// ширина острова громкости/яркости/раскладки/шторки
+fn island_osd_w(f: &mut font::Fonts, st: &State) -> i32 {
+    let kind = st.osd.map(|o| o.0).unwrap_or("volume");
+    match kind {
+        "curtain" => {
+            let on = st.curtain.is_some();
+            let a = f.width(PX, crate::i18n::tr(if on { "экран скрыт в трансляции" } else { "экран снова виден" }));
+            let b = f.width(PX, crate::i18n::tr(if on { "зрители видят шторку, ты — экран" } else { "трансляция показывает рабочий стол" }));
+            (a.max(b) + 60).clamp(260, 300)
+        }
+        "volume" | "bright" => 260,
+        _ => {
+            let name = st.niri.kb_names.get(st.niri.kb_idx).cloned().unwrap_or_default();
+            (f.width(PX, &name) + 90).clamp(220, 300)
+        }
+    }
+}
+
 /// закруглённая плашка «острова»: строки с отступом по окружности радиуса `rad` (ступени в пиксель, как всё
 /// в Nemo), заливка и тонкая кромка
 pub fn pill(ui: &mut Ui, r: R, rad: i32, fill: crate::gfx::C, edge: crate::gfx::C) {
@@ -260,12 +318,22 @@ pub fn pill_spans(h: i32, rad: i32) -> Vec<(i32, i32)> {
 pub fn draw_osd(ui: &mut Ui, st: &State, w: i32, _h: i32) {
     let t = ui.t;
     let Some((kind, _)) = st.osd else { return };
-    let fr = R::new(0, 0, w - 8, 56);
-    if st.set.island {
+    let island = st.set.island;
+    let ox0 = ui.cv.ox;
+    let pw = if island { island_osd_w(ui.f, st) } else { w - 8 };
+    // остров: плашка по ширине содержимого, по центру поверхности
+    if island {
+        ui.cv.ox += (w - pw) / 2;
+    }
+    let fr = R::new(0, 0, pw, 56);
+    if island {
         pill(ui, fr, 28, t.glass_panel(), t.border);
+        // содержимое отступает от круглых концов
+        ui.cv.ox += 8;
     } else {
         ui.cv.pxbox(fr, &BoxStyle::new(t.glass_panel(), t.border).shadow(4));
     }
+    let fr = if island { R::new(0, 0, pw - 16, 56) } else { fr };
     if kind == "volume" {
         let a = &st.audio;
         ui.cv.icon(if a.muted { "mute" } else { "speaker" }, 12, 11, 2, t.red);
@@ -297,6 +365,7 @@ pub fn draw_osd(ui: &mut Ui, st: &State, w: i32, _h: i32) {
             x += if on { 20 } else { 12 };
         }
     }
+    ui.cv.ox = ox0;
 }
 
 impl App {
@@ -388,9 +457,13 @@ impl App {
 
     /// карточки на своём месте (notifPos): у края, с отступом 10; исключённые зоны бара и дока
     /// niri учитывает сам (exclusive 0), поэтому сверху — под баром, снизу — над доком
-    fn notif_place(&self) -> (Anchor, (i32, i32, i32, i32)) {
+    fn notif_place(&self, out: &str, sw: i32) -> (Anchor, (i32, i32, i32, i32)) {
         // от края — notifOffset; бар niri сам вычитает (исключительная зона), карточки — под ним
         let o = self.st.set.num("notif_offset");
+        if self.st.set.island {
+            // остров: под серединой бара (бар сверху и не на весь экран) или по центру экрана
+            return (Anchor::TOP | Anchor::LEFT, (o, 0, 0, self.island_left(out, sw)));
+        }
         let pos = if self.st.set.island { "top" } else { self.st.set.notif_pos.as_str() };
         match pos {
             "top-left" => (Anchor::TOP | Anchor::LEFT, (o, 0, 0, 6)),
@@ -400,6 +473,17 @@ impl App {
             "bottom" => (Anchor::BOTTOM, (0, 0, o, 0)),
             _ => (Anchor::TOP | Anchor::RIGHT, (o, 6, 0, 0)),
         }
+    }
+
+    /// левый край острова шириной `sw`: центр бара, если он сверху, иначе центр экрана; не за край экрана
+    pub fn island_left(&self, out: &str, sw: i32) -> i32 {
+        let (ow, _) = self.output_size(out);
+        let (bt, ..) = self.bar_reserve(out);
+        let cx = match self.bar_rect(out) {
+            Some(r) if bt > 0 => r.x + r.w / 2,
+            _ => ow / 2,
+        };
+        island_left_of(cx, sw, ow)
     }
 
     /// место или отступ карточек (OSD) поменялись: поверхность — заново, якорь layer-shell на лету
@@ -426,7 +510,7 @@ impl App {
         let (w, h) = size(&self.st, &mut self.res.fonts);
         if ids.is_empty() {
             let out = self.focus_out();
-            let (anchor, margin) = self.notif_place();
+            let (anchor, margin) = self.notif_place(&out, w);
             self.mk(SKind::Notifs, &out, Layer::Overlay, "yami-notif", anchor, (w, h), margin, 0, KeyboardInteractivity::None);
         } else {
             for id in ids {
@@ -520,6 +604,10 @@ impl App {
                 anchor |= Anchor::RIGHT;
                 mr = br + 12;
             }
+            if self.st.set.island {
+                anchor = Anchor::TOP | Anchor::LEFT;
+                (mr, ml) = (0, self.island_left(&out, 308));
+            }
             let margin = (mt, mr, mb, ml);
             let id = self.mk(SKind::Osd, &out, Layer::Overlay, "yami-osd", anchor, (308, 64 + 8), margin, -1, KeyboardInteractivity::None);
             if let Some(s) = self.surfs.get(&id) {
@@ -556,6 +644,28 @@ mod pill_tests {
         let s = pill_spans(20, 18);
         assert!(s[0].0 <= 10 && s.len() == 20);
         assert_eq!(pill_spans(10, 0).iter().filter(|x| x.0 > 0).count(), 0, "no radius: a plain box");
+    }
+}
+
+#[cfg(test)]
+mod island_place_tests {
+    use super::island_left_of;
+
+    /// остров шириной 386 под серединой бара: его центр — центр бара
+    #[test]
+    fn the_island_is_centred_under_the_bar() {
+        let left = island_left_of(960, 386, 1920);
+        assert_eq!(left + 386 / 2, 960);
+        // бар не на весь экран и смещён: остров следует за ним
+        assert_eq!(island_left_of(600, 386, 1920) + 193, 600);
+    }
+
+    /// у края экрана остров не вылезает за него ни слева, ни справа
+    #[test]
+    fn the_island_never_leaves_the_screen() {
+        assert_eq!(island_left_of(50, 386, 1920), 0);
+        assert_eq!(island_left_of(1900, 386, 1920), 1920 - 386);
+        assert_eq!(island_left_of(960, 3000, 1920), 0, "wider than the screen: start at the edge");
     }
 }
 
