@@ -69,7 +69,12 @@ legacy_cleanup() {
     "$cfg/autostart/yami-shell.desktop" "$cfg/qt6ct/qss/yami.qss" "$cfg/qt6ct/colors/yami.conf" "$cfg/btop/themes/yami.theme"
   find "$data/icons" -maxdepth 1 -type d -regextype posix-extended -regex '.*/yami-[0-9a-f]{6}(-l)?' -exec rm -rf {} + 2>/dev/null
   # the line that put our colours into kitty and GTK: the new shell writes its own
-  [[ -f $cfg/kitty/kitty.conf ]] && sed -i '/^include yami.conf$/d; /^# YAMI/d' "$cfg/kitty/kitty.conf" && rm -f "$cfg/kitty/yami.conf"
+  # kitty: the include of the old file becomes the include of the new one (our colours, font and fish stay)
+  if [[ -f $cfg/kitty/kitty.conf ]] && grep -qx 'include yami.conf' "$cfg/kitty/kitty.conf"; then
+    install -Dm644 "$ROOT/config/kitty/nemo.conf" "$cfg/kitty/nemo.conf"
+    sed -i 's/^include yami\.conf$/include nemo.conf/; s/^# YAMI:/# NEMO:/' "$cfg/kitty/kitty.conf"
+    rm -f "$cfg/kitty/yami.conf"
+  fi
   for g in "$cfg/gtk-3.0" "$cfg/gtk-4.0"; do
     rm -f "$g/yami.css"
     [[ -f $g/gtk.css ]] && sed -i '/^@import url("yami.css");$/d; /^\/\* yami: its colours live in yami.css/d' "$g/gtk.css"
