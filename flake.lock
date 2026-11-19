@@ -29,16 +29,16 @@
     "yami-files": {
       "flake": false,
       "locked": {
-        "lastModified": 1795104522,
-        "narHash": "sha256-9Eq06Uirv4ZvV+a7knj2i6w3kZwfQjq/tkkf71+rmnM=",
+        "lastModified": 1795107166,
+        "narHash": "sha256-PrqwdsiST1tXjgAp9ROELP234TUPa0uST36tUUuZvJ8=",
         "owner": "HamzaAkramv15",
         "repo": "nemo-files",
-        "rev": "f1b14ee1648bca96fc4f56da3b63bbb385dad251",
+        "rev": "11060259696eec94a8e70b267823b950c5bc2b95",
         "type": "github"
       },
       "original": {
         "owner": "HamzaAkramv15",
-        "ref": "nemo-v0.2.0",
+        "ref": "nemo-v0.2.1",
         "repo": "nemo-files",
         "type": "github"
       }
