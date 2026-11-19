@@ -118,6 +118,10 @@ do_install_bins() {
       ln -sfn yami-shell "$BIN/nemo"
     fi
   fi
+  # on Fedora: the update helper that applies only the updates that cannot hurt (tools/nemo-fedora-update)
+  if [[ $FAM == fedora && ! $ATOMIC == 1 && -f $ROOT/tools/nemo-fedora-update ]]; then
+    install -Dm755 "$ROOT/tools/nemo-fedora-update" "$BIN/nemo-fedora-update"
+  fi
   mkdir -p "$STATE/built"
   for b in yami-shell yami-files yami-view yami-play yami-shot yami-agents; do
     [[ -f $CACHE/built-$b ]] || continue

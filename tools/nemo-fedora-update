@@ -1,0 +1,169 @@
+#!/usr/bin/env python3
+"""nemo-fedora-update: apply the Fedora updates that cannot hurt, hold back the ones that can.
+
+  nemo-fedora-update            check: what would be updated and what is held back (changes nothing)
+  nemo-fedora-update --apply    take a snapshot (when snapper exists), then update the safe set (asks first)
+  nemo-fedora-update --apply --yes     the same without asking
+  nemo-fedora-update --hold NAME ...   hold more packages back for this run (shell patterns: 'python3*')
+  nemo-fedora-update --held     list the rules that hold packages back
+
+What is held back, and why (a held package is not skipped for good: update it yourself when you can reboot):
+  boot and kernel      kernel*, kmod-*, akmod-*, grub2*, shim*, dracut*, linux-firmware*, microcode_ctl
+  graphics drivers     nvidia*, xorg-x11-drv-*, mesa*, libdrm*, vulkan-loader*, egl-*, libva*
+  the base of the OS   glibc*, systemd*, selinux-policy*, dnf*, libdnf*, rpm, rpm-*, filesystem, setup, basesystem
+  our own session      niri*, xdg-desktop-portal*, pipewire*, wireplumber*, pulseaudio*, NetworkManager*, bluez*, greetd*
+  a major version jump the first number of the version changes (python 3 stays, openssl 3 -> 4 is held)
+
+Only Fedora (and Nobara and other Fedora-based systems with dnf); changes nothing without --apply.
+The log of every run: ~/.local/state/nemo/fedora-update.log
+"""
+import fnmatch
+import os
+import re
+import shutil
+import subprocess
+import sys
+import time
+
+HOLD = [
+    ("boot and kernel", ["kernel*", "kmod-*", "akmod-*", "grub2*", "shim*", "dracut*", "linux-firmware*", "microcode_ctl"]),
+    ("graphics drivers", ["nvidia*", "xorg-x11-drv-*", "mesa*", "libdrm*", "vulkan-loader*", "egl-*", "libva*"]),
+    ("the base of the system", ["glibc*", "systemd*", "selinux-policy*", "dnf*", "libdnf*", "rpm", "rpm-*", "filesystem", "setup", "basesystem"]),
+    ("our own session", ["niri*", "xdg-desktop-portal*", "pipewire*", "wireplumber*", "pulseaudio*", "NetworkManager*", "bluez*", "greetd*"]),
+]
+LOG = os.path.expanduser("~/.local/state/nemo/fedora-update.log")
+
+
+def out(cmd, check=False):
+    r = subprocess.run(cmd, capture_output=True, text=True)
+    if check and r.returncode:
+        sys.exit(f"nemo-fedora-update: {' '.join(cmd)} failed:\n{r.stderr.strip()[-600:]}")
+    return r.stdout
+
+
+def log(line):
+    os.makedirs(os.path.dirname(LOG), exist_ok=True)
+    with open(LOG, "a") as f:
+        f.write(f"{time.strftime('%F %T')} {line}\n")
+
+
+def is_fedora():
+    try:
+        t = open("/etc/os-release").read()
+    except OSError:
+        return False
+    ids = re.findall(r'^(?:ID|ID_LIKE)="?([^"\n]*)"?$', t, re.M)
+    return any("fedora" in i.split() or i == "fedora" for i in ids) and shutil.which("dnf") is not None
+
+
+def major(v):
+    m = re.match(r"(?:\d+:)?(\d+)", v)
+    return m.group(1) if m else v
+
+
+def upgrades():
+    """(name, new version, arch, repo) for everything dnf would upgrade"""
+    raw = out(["dnf", "repoquery", "--upgrades", "--refresh", "--qf", "%{name}|%{version}|%{arch}|%{repoid}\n"])
+    rows = []
+    for line in raw.splitlines():
+        p = line.split("|")
+        if len(p) == 4 and p[0] and not line.startswith((" ", "Updating", "Repositories")):
+            rows.append(tuple(p))
+    return rows
+
+
+def installed_version(name):
+    v = out(["rpm", "-q", "--qf", "%{VERSION}\n", name]).split()
+    return v[0] if v else ""
+
+
+def classify(rows, extra):
+    safe, held = {}, {}
+    rules = HOLD + ([("held by you", extra)] if extra else [])
+    for name, ver, arch, repo in rows:
+        why = next((label for label, pats in rules if any(fnmatch.fnmatch(name, p) for p in pats)), None)
+        if not why:
+            cur = installed_version(name)
+            if cur and major(cur) != major(ver):
+                why = f"major version {major(cur)} -> {major(ver)}"
+        (held if why else safe).setdefault(name, (ver, repo, why))
+    return safe, held
+
+
+def show(safe, held):
+    print(f"\n{len(safe)} updates are safe to apply, {len(held)} are held back.")
+    if held:
+        by = {}
+        for n, (_, _, why) in held.items():
+            by.setdefault(why, []).append(n)
+        print("\nheld back:")
+        for why, names in sorted(by.items()):
+            names.sort()
+            shown = ", ".join(names[:8]) + (f" … (+{len(names) - 8})" if len(names) > 8 else "")
+            print(f"  {why:<26} {len(names):>3}  {shown}")
+    third = sorted(n for n, (_, repo, _) in safe.items() if repo not in ("updates", "fedora", "updates-testing"))
+    if third:
+        print(f"\nfrom other repositories ({len(third)}): {', '.join(third[:10])}{' …' if len(third) > 10 else ''}")
+
+
+def snapshot():
+    if shutil.which("snapper") and out(["findmnt", "-no", "FSTYPE", "/"]).strip() == "btrfs":
+        r = subprocess.run(["sudo", "snapper", "create", "--description", "nemo: before dnf upgrade", "--cleanup-algorithm", "number"])
+        print("snapshot taken" if r.returncode == 0 else "the snapshot did not work (continuing is up to you)")
+        return r.returncode == 0
+    print("no snapshot: snapper is not installed (sudo dnf install snapper; a btrfs root lets you roll the whole system back)")
+    return False
+
+
+def main(argv):
+    if "-h" in argv or "--help" in argv:
+        print(__doc__)
+        return 0
+    if "--held" in argv:
+        for label, pats in HOLD:
+            print(f"{label:<26} {' '.join(pats)}")
+        print(f"{'a major version jump':<26} (the first number of the version changes)")
+        return 0
+    if not is_fedora():
+        print("nemo-fedora-update works on Fedora (and systems built on it) with dnf; this is not one.")
+        return 2
+    extra = []
+    if "--hold" in argv:
+        extra = [a for a in argv[argv.index("--hold") + 1:] if not a.startswith("--")]
+    print("asking the repositories what is new…")
+    rows = upgrades()
+    if not rows:
+        print("nothing to update.")
+        log("check: nothing to update")
+        return 0
+    safe, held = classify(rows, extra)
+    show(safe, held)
+    log(f"check: {len(safe)} safe, {len(held)} held")
+    if "--apply" not in argv:
+        print("\nthis was only a check. To apply the safe ones: nemo-fedora-update --apply")
+        return 0
+    if not safe:
+        print("\nnothing safe to apply.")
+        return 0
+    if "--yes" not in argv and input(f"\nupdate these {len(safe)} packages now? [y/N] ").strip().lower() not in ("y", "yes"):
+        print("not applied.")
+        return 0
+    snapshot()
+    exclude = [p for _, pats in HOLD for p in pats] + extra
+    cmd = ["sudo", "dnf", "upgrade", "--assumeyes", "--exclude=" + ",".join(exclude)] + sorted(safe)
+    log(f"apply: {len(safe)} packages")
+    r = subprocess.run(cmd)
+    log(f"apply: dnf exited {r.returncode}")
+    if r.returncode:
+        print("\ndnf stopped without finishing; nothing half-installed (the transaction is all or nothing). Read the message above.")
+        return r.returncode
+    reboot = subprocess.run(["sudo", "dnf", "needs-restarting", "--reboothint"], capture_output=True, text=True)
+    print("\ndone." + (" A reboot is advised before long." if reboot.returncode == 1 else " No reboot needed."))
+    return 0
+
+
+if __name__ == "__main__":
+    try:
+        sys.exit(main(sys.argv[1:]))
+    except KeyboardInterrupt:
+        sys.exit(130)

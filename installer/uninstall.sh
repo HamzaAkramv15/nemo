@@ -25,7 +25,7 @@ uninstall() {
   local data="${XDG_DATA_HOME:-$HOME/.local/share}"
   pkill -f "$BIN/yami-files --portal" 2>/dev/null
   pkill -x yami-agents 2>/dev/null
-  rm -f "$BIN/yami-setup" "$BIN/yami-shot" "$BIN/yami-agents" "$data/xdg-desktop-portal/portals/yami-agents.portal" "$data/dbus-1/services/org.freedesktop.impl.portal.desktop.yamiagents.service" "$STATE/first-run" "$STATE/source"
+  rm -f "$BIN/nemo-fedora-update" "$BIN/yami-setup" "$BIN/yami-shot" "$BIN/yami-agents" "$data/xdg-desktop-portal/portals/yami-agents.portal" "$data/dbus-1/services/org.freedesktop.impl.portal.desktop.yamiagents.service" "$STATE/first-run" "$STATE/source"
   # ~/.config/yami: its niri part goes, the settings (*.json), themes, templates and scripts stay
   rm -rf "$HOME/.local/share/yami/modules" "$CFG/yami/niri"
   rm -f "$BIN/yami-files" "$BIN/yami-view" "$BIN/yami-play" "$data/applications/yami-files.desktop" "$data/applications/yami-view.desktop" "$data/applications/yami-play.desktop" "$data/xdg-desktop-portal/portals/yami.portal" \

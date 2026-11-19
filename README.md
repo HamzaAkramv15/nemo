@@ -440,6 +440,14 @@ tools/release.sh --undo 3.1.0 # takes back a release made here and not published
 
 Updates come from this repository over HTTPS; set `updateRepo` to follow a fork instead.
 
+### Fedora system updates
+
+On Fedora the installer also puts `nemo-fedora-update` in `~/.local/bin`: it asks dnf what is new and splits it in two. The safe set is
+updated; the risky set (kernel and boot, graphics drivers and Mesa, glibc, systemd, SELinux policy, dnf itself, the pieces of your session such
+as niri, PipeWire and NetworkManager, and any package whose major version changes) is listed and left for you. `nemo-fedora-update` only
+checks; `nemo-fedora-update --apply` takes a snapshot first when snapper is installed on btrfs, then updates the safe set in one all-or-nothing
+dnf transaction and says if a reboot is advisable. `nemo-fedora-update --held` shows the rules; `--hold 'python3*'` holds more for one run.
+
 ## Configuration
 
 Everything in settings (`Mod+S`) is also a key in `~/.config/yami/shell.json`, reloaded live when
