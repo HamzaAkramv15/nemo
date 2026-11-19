@@ -44,7 +44,7 @@ summary_install() {
   fi
   if [[ $FAM == nixos ]]; then
     printf '\n  %s%s%s\n' "$T" "$(t "NixOS: система — через flake (docs/PACKAGING.md):" "NixOS: the system goes through the flake (docs/PACKAGING.md):" "NixOS: o sistema vai pelo flake (docs/PACKAGING.md):")" "$R"
-    note "inputs.yami.url = \"github:Trendorin/yami\";"
+    note "inputs.yami.url = \"github:HamzaAkramv15/nemo\";"
     note "imports = [ yami.nixosModules.default ];  programs.yami.enable = true;"
   fi
   # a run that stopped (the reason is above) did not get to niri: the hint would only mislead

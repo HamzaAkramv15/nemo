@@ -8,7 +8,7 @@ use crate::app::App;
 /// переадресаций; потолок времени и размера; имя yami в User-Agent. Флаги -f, -G, -L, -o — у вызова
 pub fn curl(secs: u32, max: u64) -> std::process::Command {
     let mut c = std::process::Command::new("curl");
-    let ua = concat!("yami/", env!("CARGO_PKG_VERSION"), " (https://github.com/Trendorin/yami)");
+    let ua = concat!("yami/", env!("CARGO_PKG_VERSION"), " (https://github.com/HamzaAkramv15/nemo)");
     c.args(["-q", "-s", "--proto", "=https", "--proto-redir", "=https", "-A", ua, "--max-time", &secs.to_string(), "--max-filesize", &max.to_string()]);
     c
 }

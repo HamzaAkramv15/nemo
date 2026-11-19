@@ -3,7 +3,10 @@
 # YAMI_MODULES_DIR — папка с уже готовыми checkout'ами (разработка, сборка без сети).
 # shellcheck shell=bash
 
-YAMI_MODULES_URL="${YAMI_MODULES_URL:-https://github.com/Trendorin}"
+YAMI_MODULES_URL="${YAMI_MODULES_URL:-https://github.com/HamzaAkramv15}"
+
+# repository on the server for a module: our forks carry the Nemo name; the local folder keeps the module name
+m_remote() { case $1 in yami-niri) echo nemo-niri ;; yami-*) echo "nemo-${1#yami-}" ;; *) echo "$1" ;; esac; }
 
 # компонент → репозиторий; без репозитория — пакеты системы, а не наш модуль
 m_repo() {
@@ -73,7 +76,7 @@ m_fetch() {
     # the clone goes next to it and takes its place only when it is complete
     mkdir -p "${dir%/*}"
     rm -rf -- "$dir.new"
-    git clone --quiet --filter=blob:none "$YAMI_MODULES_URL/$repo.git" "$dir.new" >&2 || { rm -rf -- "$dir.new"; return 1; }
+    git clone --quiet --filter=blob:none "$YAMI_MODULES_URL/$(m_remote "$repo").git" "$dir.new" >&2 || { rm -rf -- "$dir.new"; return 1; }
     rm -rf -- "$dir" && mv -- "$dir.new" "$dir" || return 1
   fi
   # тег — только по полному имени, а дальше по номерам объектов: голое имя «v3.0.0» подходит и ветке

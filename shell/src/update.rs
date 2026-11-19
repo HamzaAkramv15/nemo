@@ -42,7 +42,7 @@ pub(crate) fn tag_ref(tag: &str) -> String {
     format!("refs/tags/{tag}")
 }
 /// откуда ставит установщик по умолчанию; свой адрес — updateRepo
-pub const REPO: &str = "https://github.com/Trendorin/yami.git";
+pub const REPO: &str = "https://github.com/HamzaAkramv15/nemo.git";
 const NOTE_ID: u32 = 9_400_001;
 
 /// обновлять и ставить модули может сам yami: нет, если его поставил пакетный менеджер. Сборка из

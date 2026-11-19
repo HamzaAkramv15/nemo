@@ -26,7 +26,7 @@ pub enum Ev {
 
 /// имя ссылки на наш бинарь: под ним sudo запускает нас как askpass
 const ASKPASS_NAME: &str = "yami-askpass";
-const REPO: &str = "https://github.com/Trendorin/yami.git";
+const REPO: &str = "https://github.com/HamzaAkramv15/nemo.git";
 
 /// sudo запустил нас, чтобы узнать пароль: true — это он и был, больше ничего делать не надо
 pub fn askpass() -> bool {

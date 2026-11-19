@@ -136,7 +136,7 @@ do_refresh() {
 # finished install. GitHub counts downloads of release files; the request says nothing about the machine
 # (no id, no version, a fixed User-Agent) and the answer is thrown away. It runs in the background and
 # can neither delay nor fail anything. --no-count, YAMI_NO_COUNT=1, DO_NOT_TRACK=1 or CI: no request at all
-COUNT_URL="${YAMI_COUNT_URL:-https://github.com/Trendorin/yami/releases/download/installs/yami-installs.txt}"
+COUNT_URL="${YAMI_COUNT_URL:-https://github.com/HamzaAkramv15/nemo/releases/download/installs/nemo-installs.txt}"
 count_wanted() { ((COUNT && !DRY)) && [[ -z ${YAMI_NO_COUNT:-} && -z ${DO_NOT_TRACK:-} && -z ${CI:-} && ! -e $STATE/counted ]] && command -v curl >/dev/null; }
 do_count() {
   count_wanted || return 99

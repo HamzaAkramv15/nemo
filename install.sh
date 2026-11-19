@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # YAMI: the minimal install. One command, from anywhere, as yourself (not root):
 #
-#   bash <(curl -fsSL https://raw.githubusercontent.com/Trendorin/yami/main/install.sh)
+#   bash <(curl -fsSL https://raw.githubusercontent.com/HamzaAkramv15/nemo/main/install.sh)
 #
 # It puts in niri, the Nemo shell and what the desktop cannot start without. Everything else (files,
 # player, screenshots, login screen, themes) is chosen in the graphical setup at the first login.

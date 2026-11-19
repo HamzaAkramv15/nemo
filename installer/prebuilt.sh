@@ -9,7 +9,7 @@ PREBUILT=0 PREBUILT_DIR="" PREBUILT_ASSET=""
 # the newest glibc the archive asks for
 GLIBC_NEED=2.34
 
-prebuilt_where() { printf '%s' "${PREBUILT_FROM:-${YAMI_PREBUILT_URL:-https://github.com/Trendorin/yami/releases/download/v$(cat "$ROOT/VERSION")}}"; }
+prebuilt_where() { printf '%s' "${PREBUILT_FROM:-${YAMI_PREBUILT_URL:-https://github.com/HamzaAkramv15/nemo/releases/download/v$(cat "$ROOT/VERSION")}}"; }
 glibc_ok() {
   local v
   v="$(getconf GNU_LIBC_VERSION 2>/dev/null | awk '{print $2}')"

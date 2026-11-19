@@ -27,7 +27,7 @@ MODS="${YAMI_MODULES_DIR:-$ROOT/../yami-modules}"
 # git here talks to the real GitHub. yami-modules/env.sh, sourced in the shell this runs from, would point
 # github.com at the working copies: the release would check and push them instead (cargo: modcargo below)
 unset GIT_CONFIG_COUNT GIT_CONFIG_KEY_0 GIT_CONFIG_VALUE_0
-OWNER="${YAMI_RELEASE_OWNER:-Trendorin}"
+OWNER="${YAMI_RELEASE_OWNER:-HamzaAkramv15}"
 # tools/test-updates.sh (scenario «release») swaps these for stand-ins: the binaries, the tree check
 DIST="${YAMI_RELEASE_DIST:-$ROOT/tools/dist.sh}"
 # YAMI_RELEASE_CHECK: a command line for the stand-in (no spaces in it); the real one by its path, which may hold one
