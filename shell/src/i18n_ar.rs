@@ -631,4 +631,6 @@ const AR: &[(&str, &str)] = &[
     ("apps, comma separated: steam, discord", "البرامج مفصولة بفواصل: steam, discord"),
     ("their notifications do not pop up, they go straight to history (middle-click a card to mute its app)", "لا تظهر إشعاراتها بل تذهب مباشرة إلى السجل (النقر الأوسط على بطاقة يكتم برنامجها)"),
     ("{}: muted, its notifications go to history (settings → notifications)", "{}: مكتوم، تذهب إشعاراته إلى السجل (الإعدادات → الإشعارات)"),
+    ("file · {}", "ملف · {}"),
+    ("Enter — launch · Ctrl+Enter — folder · = > / ? : — modes · Tab — clipboard", "Enter — تشغيل · Ctrl+Enter — مجلد · = > / ? : — أوضاع · Tab — الحافظة"),
 ];

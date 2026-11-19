@@ -1542,4 +1542,6 @@ const UK: &[(&str, &str)] = &[
     ("apps, comma separated: steam, discord", "програми через кому: steam, discord"),
     ("their notifications do not pop up, they go straight to history (middle-click a card to mute its app)", "їхні сповіщення не з'являються, а йдуть одразу в історію (середня кнопка на картці — заглушити програму)"),
     ("{}: muted, its notifications go to history (settings → notifications)", "{}: заглушено, її сповіщення йдуть в історію (налаштування → сповіщення)"),
+    ("file · {}", "файл · {}"),
+    ("Enter — launch · Ctrl+Enter — folder · = > / ? : — modes · Tab — clipboard", "Enter — запуск · Ctrl+Enter — папка · = > / ? : — режими · Tab — буфер"),
 ];

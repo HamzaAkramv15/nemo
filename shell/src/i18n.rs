@@ -1182,4 +1182,6 @@ const PAIRS: &[(&str, &str)] = &[
     ("программы через запятую: steam, discord", "apps, comma separated: steam, discord"),
     ("их уведомления не всплывают, а сразу идут в историю (средняя кнопка по карточке — заглушить программу)", "their notifications do not pop up, they go straight to history (middle-click a card to mute its app)"),
     ("{}: заглушено, её уведомления идут в историю (настройки → уведомления)", "{}: muted, its notifications go to history (settings → notifications)"),
+    ("файл · {}", "file · {}"),
+    ("Enter — запуск · Ctrl+Enter — папка · = > / ? : — режимы · Tab — буфер", "Enter — launch · Ctrl+Enter — folder · = > / ? : — modes · Tab — clipboard"),
 ];

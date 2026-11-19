@@ -16,7 +16,7 @@ use crate::ui::{Act, Cur, Field, Tone, Ui};
 use calloop::channel::Sender;
 use smithay_client_toolkit::seat::keyboard::{KeyEvent, Keysym};
 use std::collections::HashMap;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::Arc;
 use std::time::Instant;
@@ -316,6 +316,13 @@ impl LState {
                     out.push(Item { kind: Kind::Win(w.id), name: w.title.clone(), sub: crate::tf!("окно · {}", "window · {}", "janela · {}", w.app_id), icon: w.app_id.clone() });
                 }
                 out.extend(settings_items(&q, 60).into_iter().take(3));
+                // файлы по имени: после программ и настроек, подпись — где лежит
+                if q.chars().count() >= 2 && self.files.0 == q {
+                    for f in self.files.1.iter().take(8) {
+                        let name = f.file_name().map(|n| n.to_string_lossy().to_string()).unwrap_or_default();
+                        out.push(Item { kind: Kind::File(f.clone()), name, sub: crate::tf!("файл · {}", "file · {}", "arquivo · {}", nemo_px::paths::pretty(f.parent().unwrap_or(f))), icon: file_icon(f).into() });
+                    }
+                }
             }
         }
         self.items = out;
@@ -346,7 +353,7 @@ impl LState {
                 self.files.1.iter().map(|f| {
                     let shown = nemo_px::paths::pretty(f);
                     let name = f.file_name().map(|n| n.to_string_lossy().to_string()).unwrap_or_default();
-                    Item { kind: Kind::File(f.clone()), name, sub: shown, icon: if f.is_dir() { "folder".into() } else { "copy".into() } }
+                    Item { kind: Kind::File(f.clone()), name, sub: shown, icon: file_icon(f).into() }
                 }).collect()
             }
             _ => return None,
@@ -399,41 +406,110 @@ pub fn find_files(tx: Sender<Msg>, gen: Arc<AtomicU64>, q: String) {
         return;
     }
     std::thread::spawn(move || {
-        // чуть подождать: пока набирают слово, обходить диск незачем
+        // чуть подождать: пока набирают слово, искать незачем
         std::thread::sleep(std::time::Duration::from_millis(120));
+        if gen.load(Ordering::Relaxed) != my {
+            return;
+        }
         let ql = q.to_lowercase();
+        let home = config::home();
         let mut found: Vec<(i32, PathBuf)> = vec![];
-        let mut stack = vec![(config::home(), 0u32)];
-        let mut seen = 0u32;
-        while let Some((dir, depth)) = stack.pop() {
-            if gen.load(Ordering::Relaxed) != my {
-                return;
-            }
-            let Ok(rd) = std::fs::read_dir(&dir) else { continue };
-            for e in rd.flatten() {
-                seen += 1;
-                let name = e.file_name().to_string_lossy().to_string();
-                if name.starts_with('.') {
-                    continue;
-                }
-                let s = score(&name, &ql);
-                if s >= 60 {
-                    found.push((s, e.path()));
-                }
-                // ссылки на папки не обходим: петли и чужие диски
-                if depth < 8 && e.file_type().map(|t| t.is_dir()).unwrap_or(false) {
-                    stack.push((e.path(), depth + 1));
-                }
-            }
-            if seen > 60_000 || found.len() > 400 {
-                break;
-            }
+        // индекс системы (plocate): мгновенно и по всему домашнему каталогу; свежих файлов в нём ещё нет
+        let indexed = locate_files(&ql, &home);
+        let have_index = indexed.is_some();
+        found.extend(indexed.unwrap_or_default());
+        // без индекса — обход домашней папки; с индексом — только места, где файлы появляются сегодня
+        let roots: Vec<PathBuf> = if have_index { ["Downloads", "Desktop", "Documents", "Pictures", "Videos", "Music"].iter().map(|d| home.join(d)).filter(|d| d.is_dir()).collect() } else { vec![home.clone()] };
+        let (depth, budget) = if have_index { (3, 20_000u32) } else { (8, 60_000u32) };
+        walk_files(&roots, &ql, depth, budget, &gen, my, &mut found);
+        if gen.load(Ordering::Relaxed) != my {
+            return;
         }
-        found.sort_by(|a, b| b.0.cmp(&a.0).then(a.1.as_os_str().len().cmp(&b.1.as_os_str().len())));
-        if gen.load(Ordering::Relaxed) == my {
-            let _ = tx.send(Msg::LFiles(q, found.into_iter().take(60).map(|f| f.1).collect()));
-        }
+        let _ = tx.send(Msg::LFiles(q, rank_files(found, 60)));
     });
+}
+
+/// plocate по имени файла: только своя домашняя папка и подключённые носители; скрытое и мусор сборки не берём
+fn locate_files(ql: &str, home: &Path) -> Option<Vec<(i32, PathBuf)>> {
+    if !crate::proc::have("plocate") {
+        return None;
+    }
+    let out = std::process::Command::new("plocate").args(["-i", "-b", "-l", "600", "--"]).arg(ql).output().ok()?;
+    if !out.status.success() && out.stdout.is_empty() {
+        // 1 — «ничего не нашлось»; остальное (нет базы) — как будто индекса нет
+        return if out.status.code() == Some(1) { Some(vec![]) } else { None };
+    }
+    let media = |p: &Path| ["/run/media", "/media", "/mnt"].iter().any(|m| p.starts_with(m));
+    let mut v = vec![];
+    for line in String::from_utf8_lossy(&out.stdout).lines() {
+        let p = PathBuf::from(line);
+        if !(p.starts_with(home) || media(&p)) || !path_ok(&p, home) {
+            continue;
+        }
+        let name = p.file_name().map(|n| n.to_string_lossy().to_lowercase()).unwrap_or_default();
+        let s = score(&name, ql);
+        if s >= 60 && p.exists() {
+            v.push((s, p));
+        }
+    }
+    Some(v)
+}
+
+/// путь без скрытых папок и мусора сборки (кэши, node_modules, target): в поиске их никто не ждёт
+fn path_ok(p: &Path, home: &Path) -> bool {
+    let rel = p.strip_prefix(home).unwrap_or(p);
+    !rel.components().any(|c| {
+        let n = c.as_os_str().to_string_lossy();
+        n.starts_with('.') || matches!(n.as_ref(), "node_modules" | "target" | "__pycache__" | "venv" | "site-packages")
+    })
+}
+
+fn walk_files(roots: &[PathBuf], ql: &str, max_depth: u32, budget: u32, gen: &Arc<AtomicU64>, my: u64, found: &mut Vec<(i32, PathBuf)>) {
+    let mut stack: Vec<(PathBuf, u32)> = roots.iter().map(|r| (r.clone(), 0)).collect();
+    let mut seen = 0u32;
+    while let Some((dir, depth)) = stack.pop() {
+        if gen.load(Ordering::Relaxed) != my {
+            return;
+        }
+        let Ok(rd) = std::fs::read_dir(&dir) else { continue };
+        for e in rd.flatten() {
+            seen += 1;
+            let name = e.file_name().to_string_lossy().to_string();
+            if name.starts_with('.') || matches!(name.as_str(), "node_modules" | "target" | "__pycache__") {
+                continue;
+            }
+            let s = score(&name, ql);
+            if s >= 60 {
+                found.push((s, e.path()));
+            }
+            // ссылки на папки не обходим: петли и чужие диски
+            if depth < max_depth && e.file_type().map(|t| t.is_dir()).unwrap_or(false) {
+                stack.push((e.path(), depth + 1));
+            }
+        }
+        if seen > budget || found.len() > 1500 {
+            break;
+        }
+    }
+}
+
+/// без повторов, сначала лучшее совпадение, при равенстве — короче путь (ближе к корню)
+fn rank_files(mut found: Vec<(i32, PathBuf)>, take: usize) -> Vec<PathBuf> {
+    found.sort_by(|a, b| b.0.cmp(&a.0).then(a.1.components().count().cmp(&b.1.components().count())).then(a.1.cmp(&b.1)));
+    found.dedup_by(|a, b| a.1 == b.1);
+    found.into_iter().take(take).map(|f| f.1).collect()
+}
+
+/// значок файла в списке: по виду
+pub fn file_icon(p: &Path) -> &'static str {
+    if p.is_dir() {
+        return "folder";
+    }
+    match p.extension().and_then(|e| e.to_str()).map(|e| e.to_lowercase()).as_deref() {
+        Some("png" | "jpg" | "jpeg" | "gif" | "webp" | "bmp" | "svg" | "avif" | "tiff") => "image",
+        Some("mp3" | "flac" | "ogg" | "opus" | "wav" | "m4a" | "aac") => "music",
+        _ => "copy",
+    }
 }
 
 /// команда в терминале (Terminal=true в .desktop и «>» в поиске)
@@ -653,6 +729,14 @@ impl App {
             Keysym::Escape => self.close_modal(),
             Keysym::Return | Keysym::KP_Enter => {
                 let c = l.cur;
+                // Ctrl+Enter на файле — открыть папку, где он лежит
+                if self.mods.ctrl {
+                    if let Some(Kind::File(p)) = l.items.get(c).map(|i| i.kind.clone()) {
+                        App::spawn(&["xdg-open".into(), p.parent().unwrap_or(&p).to_string_lossy().to_string()]);
+                        self.close_modal();
+                        return;
+                    }
+                }
                 self.launcher_run(c);
             }
             Keysym::Down => l.cur = (l.cur + 1).min(n.saturating_sub(1)),
@@ -706,6 +790,12 @@ impl App {
             let rest = q[1..].trim().to_lowercase();
             if rest != l.files.0 {
                 find_files(self.tx.clone(), l.fgen.clone(), rest);
+            }
+        }
+        if !l.clip && !q.starts_with(['/', '=', '>', '?', ':']) && q.chars().count() >= 2 {
+            let ql = q.to_lowercase();
+            if ql != l.files.0 {
+                find_files(self.tx.clone(), l.fgen.clone(), ql);
             }
         }
         l.refresh(&self.st.apps, &self.st.niri.wins);
@@ -844,7 +934,7 @@ pub fn draw(ui: &mut Ui, st: &State, w: i32, h: i32) {
     }
 
     // строка подсказок внизу
-    let hint = if l.clip { "Enter — скопировать · Ctrl+P — закрепить · Del — удалить · Tab — программы" } else { "Enter — запуск · = счёт · > команда · / файлы · ? настройки · : эмодзи · Tab — буфер" };
+    let hint = if l.clip { "Enter — скопировать · Ctrl+P — закрепить · Del — удалить · Tab — программы" } else { "Enter — запуск · Ctrl+Enter — папка · = > / ? : — режимы · Tab — буфер" };
     ui.text_in(PX, R::new(fx, fr.h - 30, fr.w - 28, 20), hint, t.text_faint);
 }
 
@@ -881,3 +971,55 @@ mod tests {
         assert_eq!(score("anything", ""), 1);
     }
 }
+
+#[cfg(test)]
+mod file_search_tests {
+    use super::*;
+
+    #[test]
+    fn better_matches_come_first_then_the_shorter_path_and_no_repeats() {
+        let v = vec![(60, PathBuf::from("/h/a/b/c/my report.txt")), (100, PathBuf::from("/h/report.pdf")), (60, PathBuf::from("/h/x report.txt")), (60, PathBuf::from("/h/x report.txt"))];
+        let r = rank_files(v, 10);
+        assert_eq!(r[0], PathBuf::from("/h/report.pdf"), "starts with the query");
+        assert_eq!(r[1], PathBuf::from("/h/x report.txt"), "same score: closer to the root");
+        assert_eq!(r.len(), 3, "the repeat is gone");
+        assert_eq!(rank_files(vec![(60, PathBuf::from("/a")), (60, PathBuf::from("/b"))], 1).len(), 1);
+    }
+
+    #[test]
+    fn hidden_and_build_folders_stay_out_of_the_results() {
+        let h = Path::new("/home/u");
+        assert!(path_ok(Path::new("/home/u/Documents/report.txt"), h));
+        assert!(!path_ok(Path::new("/home/u/.cache/report.txt"), h));
+        assert!(!path_ok(Path::new("/home/u/src/app/node_modules/report/index.js"), h));
+        assert!(!path_ok(Path::new("/home/u/src/app/target/debug/report"), h));
+        assert!(path_ok(Path::new("/run/media/u/stick/report.txt"), h), "outside the home folder only the media rule applies");
+    }
+
+    #[test]
+    fn the_icon_follows_the_kind_of_file() {
+        assert_eq!(file_icon(Path::new("/h/a.PNG")), "image");
+        assert_eq!(file_icon(Path::new("/h/a.flac")), "music");
+        assert_eq!(file_icon(Path::new("/h/a.txt")), "copy");
+        assert_eq!(file_icon(Path::new("/tmp")), "folder");
+    }
+
+    #[test]
+    fn the_walk_finds_a_fresh_file_the_index_does_not_know_yet() {
+        let d = nemo_px::paths::private_tmp("filesearch").unwrap();
+        std::fs::create_dir_all(d.join("sub/deeper")).unwrap();
+        std::fs::write(d.join("sub/deeper/Quarterly Report.txt"), "x").unwrap();
+        std::fs::write(d.join("sub/other.txt"), "x").unwrap();
+        let gen = Arc::new(AtomicU64::new(1));
+        let mut found = vec![];
+        walk_files(&[d.clone()], "report", 3, 1000, &gen, 1, &mut found);
+        let names: Vec<String> = found.iter().map(|f| f.1.file_name().unwrap().to_string_lossy().to_string()).collect();
+        assert_eq!(names, vec!["Quarterly Report.txt"]);
+        // новый запрос (другой номер поколения) обрывает старый обход
+        let mut none = vec![];
+        walk_files(&[d.clone()], "report", 3, 1000, &gen, 2, &mut none);
+        assert!(none.is_empty());
+        let _ = std::fs::remove_dir_all(d);
+    }
+}
+

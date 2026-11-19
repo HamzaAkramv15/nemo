@@ -1542,4 +1542,6 @@ const FR: &[(&str, &str)] = &[
     ("apps, comma separated: steam, discord", "applications séparées par des virgules : steam, discord"),
     ("their notifications do not pop up, they go straight to history (middle-click a card to mute its app)", "leurs notifications n'apparaissent pas, elles vont directement à l'historique (clic milieu sur une carte pour couper l'appli)"),
     ("{}: muted, its notifications go to history (settings → notifications)", "{} : coupée, ses notifications vont à l'historique (réglages → notifications)"),
+    ("file · {}", "fichier · {}"),
+    ("Enter — launch · Ctrl+Enter — folder · = > / ? : — modes · Tab — clipboard", "Entrée — lancer · Ctrl+Entrée — dossier · = > / ? : — modes · Tab — presse-papiers"),
 ];
