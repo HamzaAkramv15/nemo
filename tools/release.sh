@@ -28,6 +28,8 @@ MODS="${YAMI_MODULES_DIR:-$ROOT/../yami-modules}"
 # github.com at the working copies: the release would check and push them instead (cargo: modcargo below)
 unset GIT_CONFIG_COUNT GIT_CONFIG_KEY_0 GIT_CONFIG_VALUE_0
 OWNER="${YAMI_RELEASE_OWNER:-HamzaAkramv15}"
+# repository name on GitHub: the shell is «nemo», its modules «nemo-files», … (the local folders keep the yami-* names)
+rname() { case $1 in yami) echo nemo ;; yami-*) echo "nemo-${1#yami-}" ;; *) echo "$1" ;; esac; }
 # tools/test-updates.sh (scenario «release») swaps these for stand-ins: the binaries, the tree check
 DIST="${YAMI_RELEASE_DIST:-$ROOT/tools/dist.sh}"
 # YAMI_RELEASE_CHECK: a command line for the stand-in (no spaces in it); the real one by its path, which may hold one
@@ -134,7 +136,7 @@ $n
 ### Install
 
 \`\`\`sh
-bash <(curl -fsSL https://raw.githubusercontent.com/$OWNER/yami/v$v/install.sh)
+bash <(curl -fsSL https://raw.githubusercontent.com/$OWNER/nemo/v$v/install.sh)
 \`\`\`
 
 Already on yami: settings → updates → **update**, or \`yami update apply\`.
@@ -142,7 +144,7 @@ Already on yami: settings → updates → **update**, or \`yami update apply\`.
 Ready binaries for x86_64 with glibc 2.34 or newer, no compiler needed; otherwise it builds from source (Arch, Fedora, Debian/Ubuntu, openSUSE, Void, Alpine, Gentoo, NixOS). Packages are attached below. The tag and SHA256SUMS are signed; check the tag with
 \`git -c gpg.ssh.allowedSignersFile=keys/allowed_signers verify-tag v$v\`.
 
-Описание и установка по-русски: [README.ru.md](https://github.com/$OWNER/yami/blob/v$v/README.ru.md).
+Описание и установка по-русски: [README.ru.md](https://github.com/$OWNER/nemo/blob/v$v/README.ru.md).
 EOF
 }
 assets() { # ver: the files attached to the release
@@ -217,11 +219,11 @@ push_release() { # ver
     d="$MODS/$repo"
     obj="$(git -C "$d" rev-parse "refs/tags/$tag")"
     head_ "$repo $tag"
-    if ! gh repo view "$OWNER/$repo" >/dev/null 2>&1; then
-      gh repo create "$OWNER/$repo" --public --description "$(about "$d/README.md")" >/dev/null
-      say "$(t "репозиторий создан" "repository created"): github.com/$OWNER/$repo"
+    if ! gh repo view "$OWNER/$(rname "$repo")" >/dev/null 2>&1; then
+      gh repo create "$OWNER/$(rname "$repo")" --public --description "$(about "$d/README.md")" >/dev/null
+      say "$(t "репозиторий создан" "repository created"): github.com/$OWNER/$(rname "$repo")"
     fi
-    git -C "$d" remote get-url origin >/dev/null 2>&1 || git -C "$d" remote add origin "https://github.com/$OWNER/$repo.git"
+    git -C "$d" remote get-url origin >/dev/null 2>&1 || git -C "$d" remote add origin "https://github.com/$OWNER/$(rname "$repo").git"
     if remote_has "$d" "refs/tags/$tag" "$obj"; then
       say "$(t "уже на GitHub" "already on GitHub")"
     else
@@ -288,7 +290,7 @@ crate_ver() { # file version: only the [package] version (the file's first `vers
 modcargo() { # dir, cargo arguments…
   local d=$1
   shift
-  (cd "$d" && GIT_CONFIG_COUNT=1 GIT_CONFIG_KEY_0="url.$ROOT.insteadOf" GIT_CONFIG_VALUE_0="https://github.com/$OWNER/yami" \
+  (cd "$d" && GIT_CONFIG_COUNT=1 GIT_CONFIG_KEY_0="url.$ROOT.insteadOf" GIT_CONFIG_VALUE_0="https://github.com/$OWNER/nemo" \
     CARGO_NET_GIT_FETCH_WITH_CLI=true cargo "$@")
 }
 
@@ -428,7 +430,7 @@ make_release() { # ver
   printf '%s' "$lock_new" >modules.lock
   # the flake's inputs follow modules.lock, flake.lock their tags (yami-dev computes what nix would)
   while read -r repo tag; do
-    sed -i "s|url = \"github:$OWNER/$repo/[^\"]*\";|url = \"github:$OWNER/$repo/$tag\";|" flake.nix
+    sed -i "s|url = \"github:$OWNER/$(rname "$repo")/[^\"]*\";|url = \"github:$OWNER/$(rname "$repo")/$tag\";|" flake.nix
   done < <(modules)
   dev flake-lock "$MODS" >/dev/null || die "yami-dev flake-lock"
 

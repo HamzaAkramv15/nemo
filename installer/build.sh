@@ -105,7 +105,19 @@ do_install_bins() {
   # the separate setup program of the development tree is part of the shell now (`nemo setup`)
   rm -f "$BIN/yami-setup" "$STATE/built/yami-setup"
   # `yami <command>`: the same binary, help instead of the shell when started without a command
-  [[ -x $BIN/yami-shell ]] && ln -sfn yami-shell "$BIN/yami" && ln -sfn yami-shell "$BIN/nemo"
+  [[ -x $BIN/yami-shell ]] && ln -sfn yami-shell "$BIN/yami"
+  # `nemo` is the same program, unless another one already owns the name (Cinnamon's file manager is
+  # called nemo too): ours would come first in PATH and shadow it, so then only `yami` is ours
+  local taken=0 p
+  while read -r p; do [[ $p == "$BIN/nemo" ]] || taken=1; done < <(type -ap nemo 2>/dev/null)
+  if [[ -x $BIN/yami-shell ]]; then
+    if ((taken)); then
+      [[ $(readlink "$BIN/nemo" 2>/dev/null) == yami-shell ]] && rm -f "$BIN/nemo"
+      note "$(t "команда nemo уже занята другой программой: наша — yami (то же самое)" "the command nemo belongs to another program: ours is yami (the same thing)" "o comando nemo já é de outro programa: o nosso é yami (a mesma coisa)")"
+    else
+      ln -sfn yami-shell "$BIN/nemo"
+    fi
+  fi
   mkdir -p "$STATE/built"
   for b in yami-shell yami-files yami-view yami-play yami-shot yami-agents; do
     [[ -f $CACHE/built-$b ]] || continue

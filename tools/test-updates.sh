@@ -12,7 +12,7 @@ set -uo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 MODS="${YAMI_MODULES_DIR:-$ROOT/../yami-modules}"
 WORK="${YAMI_TEST_DIR:-${XDG_CACHE_HOME:-$HOME/.cache}/yami-test}"
-GH="$WORK/github/Trendorin"
+GH="$WORK/github/HamzaAkramv15"
 SRC="$WORK/work"
 SHIMS="$WORK/shims"
 LOGS="$WORK/logs"
@@ -49,7 +49,7 @@ make_shims() {
 #!/bin/sh
 echo "curl $*" >>"$HOME/calls.log"
 # the installer's own «is the network up» check; everything else is offline
-case "$*" in *yami-installs.txt* | *" https://github.com") exit 0 ;; esac
+case "$*" in *nemo-installs.txt* | *" https://github.com") exit 0 ;; esac
 exit 22
 SH
   # root is never used: what would run as root is written down. The installer's root shell (a loop
@@ -100,13 +100,14 @@ set_crate_ver() { # dir name version
   sed -i '0,/^version = "/s/^version = ".*/version = "'"$3"'"/' "$1/Cargo.toml"
   [[ -f $1/Cargo.lock ]] &&   sed -i '/^name = "'"$2"'"$/{n;s/^version = .*/version = "'"$3"'"/}' "$1/Cargo.lock"
 }
+gh_name() { case $1 in yami) echo nemo ;; yami-*) echo "nemo-${1#yami-}" ;; *) echo "$1" ;; esac; } # the name on the fake server, as on GitHub
 new_repo() { # name from-tree
   rm -rf "${SRC:?}/$1"
   git init -q -b main "$SRC/$1"
   snap_tree "$2" "$SRC/$1"
-  git init -q --bare -b main "$GH/$1.git"
-  git -C "$GH/$1.git" config uploadpack.allowFilter true
-  git -C "$SRC/$1" remote add origin "$GH/$1.git"
+  git init -q --bare -b main "$GH/$(gh_name "$1").git"
+  git -C "$GH/$(gh_name "$1").git" config uploadpack.allowFilter true
+  git -C "$SRC/$1" remote add origin "$GH/$(gh_name "$1").git"
 }
 # the shell and its services at a version (both crates, one Cargo.lock)
 shell_ver() { # tree version
@@ -159,7 +160,7 @@ world() {
 px_tags() {
   local px
   for px in $(git -C "$ROOT" tag -l 'px-v*'); do
-    git -C "$GH/yami.git" fetch -q --no-tags "$ROOT" "refs/tags/$px:refs/tags/$px"
+    git -C "$GH/nemo.git" fetch -q --no-tags "$ROOT" "refs/tags/$px:refs/tags/$px"
   done
 }
 # yami-niri without its 5–25 minute build: the same commands, a stand-in binary
@@ -193,7 +194,7 @@ sandbox() { # command…: everything the installer and the updater run goes thro
     XDG_RUNTIME_DIR="$H/run" \
     CARGO_HOME="$REAL_HOME/.cargo" RUSTUP_HOME="$REAL_HOME/.rustup" CARGO_NET_OFFLINE=true CARGO_NET_GIT_FETCH_WITH_CLI=true \
     CARGO_PROFILE_RELEASE_LTO=off CARGO_PROFILE_RELEASE_CODEGEN_UNITS=256 CARGO_PROFILE_RELEASE_OPT_LEVEL=0 CARGO_PROFILE_RELEASE_STRIP=false CARGO_BUILD_JOBS=8 \
-    GIT_CONFIG_COUNT=1 GIT_CONFIG_KEY_0="url.file://$GH/.insteadOf" GIT_CONFIG_VALUE_0="https://github.com/Trendorin/" \
+    GIT_CONFIG_COUNT=1 GIT_CONFIG_KEY_0="url.file://$GH/.insteadOf" GIT_CONFIG_VALUE_0="https://github.com/HamzaAkramv15/" \
     "${SANDBOX_ENV[@]}" "$@"
 }
 SANDBOX_ENV=()
@@ -212,7 +213,7 @@ is_ver() { [[ "$(ver_of "$1")" == "$2" ]]; }
 installed_version() { sed -n 's/.*"version": *"\([^"]*\)".*/\1/p' "$(state install.json)"; }
 components() { sed -n 's/.*"components": *"\([^"]*\)".*/\1/p' "$(state install.json)"; }
 has_comp() { [[ " $(components) " == *" $1 "* ]]; }
-count_hits() { grep -c 'curl .*yami-installs.txt' "$H/calls.log" 2>/dev/null || true; }
+count_hits() { grep -c 'curl .*nemo-installs.txt' "$H/calls.log" 2>/dev/null || true; }
 data() { printf '%s/.local/share/%s' "$H" "$1"; }
 cfg() { printf '%s/.config/%s' "$H" "$1"; }
 bin_sums() { (cd "$H/.local/bin" && sha256sum -- "${BINS[@]}" 2>/dev/null); }
@@ -254,7 +255,7 @@ t_base() {
   check "the source is remembered" contains "$(state source)" "/.local/share/yami/src"
   check "a rollback point is not made on a first install" missing "$(state snapshots)"
   [[ "$(count_hits)" == 1 ]] && ok "the counter asked once" || no "the counter asked once" "$(count_hits) requests"
-  check "the counter request names only the URL" grep -qxE 'curl -fsSL -A yami --connect-timeout 4 --max-time 8 -o /dev/null https://github.com/Trendorin/yami/releases/download/installs/yami-installs.txt' "$H/calls.log"
+  check "the counter request names only the URL" grep -qxE 'curl -fsSL -A yami --connect-timeout 4 --max-time 8 -o /dev/null https://github.com/HamzaAkramv15/nemo/releases/download/installs/nemo-installs.txt' "$H/calls.log"
   check "no Python was started" sh -c "! grep -q python '$(log_for "$SCEN")'"
   # installing again: the same machine, repaired, nothing asked to count twice
   check "running the installer again is a repair" inst --yes
@@ -400,17 +401,17 @@ t_failures() {
   [[ "$before" == "$(bin_sums)" ]] && ok "  every binary is the old one" || no "  every binary is the old one"
   check "  it says why" contains "$(log_for "$SCEN")" "signature"
   g -C "$SRC/yami-view" tag -d v3.4.0 >/dev/null
-  git -C "$GH/yami-view.git" tag -d v3.4.0 >/dev/null
+  git -C "$GH/nemo-view.git" tag -d v3.4.0 >/dev/null
 
   # the module's repository is unreachable
   sed -i 's/^yami-view .*/yami-view v3.1.0/' "$SRC/yami/modules.lock"
   shell_tag 3.5.0
-  mv "$GH/yami-view.git" "$GH/gone.git"
+  mv "$GH/nemo-view.git" "$GH/gone.git"
   rm -rf "$H/.local/share/yami/modules/yami-view"
   before="$(bin_sums)"
   nocheck "a missing repository stops the update" update
   [[ "$before" == "$(bin_sums)" ]] && ok "  every binary is the old one" || no "  every binary is the old one"
-  mv "$GH/gone.git" "$GH/yami-view.git"
+  mv "$GH/gone.git" "$GH/nemo-view.git"
 
   # yami's new niri part is broken: the installer has already swapped the binaries and must put them back
   before="$(bin_sums)"
@@ -607,8 +608,8 @@ ssh-keygen -q -Y sign -f "$key" -n yami-release SHA256SUMS </dev/null
 echo "  yami-shell         1 KiB  glibc 2.34"
 SH
   chmod +x "$WORK/rel-shims"/*
-  # env.sh as next to the real modules: git and cargo take github.com/Trendorin/* from the working copies
-  printf 'export GIT_CONFIG_COUNT=1 GIT_CONFIG_KEY_0="url.file://%s/.insteadOf" GIT_CONFIG_VALUE_0="https://github.com/Trendorin/"\nexport CARGO_NET_GIT_FETCH_WITH_CLI=true\n' "$SRC" >"$SRC/env.sh"
+  # env.sh as next to the real modules: git and cargo take github.com/HamzaAkramv15/* from the working copies
+  printf 'export GIT_CONFIG_COUNT=1 GIT_CONFIG_KEY_0="url.file://%s/.insteadOf" GIT_CONFIG_VALUE_0="https://github.com/HamzaAkramv15/"\nexport CARGO_NET_GIT_FETCH_WITH_CLI=true\n' "$SRC" >"$SRC/env.sh"
 }
 rel() { # release.sh arguments…: the owner's run, from the working copies, against the fake GitHub
   env -i -C "$SRC/yami" HOME="$H" USER=tester LANG=en_US.UTF-8 TERM=dumb \
@@ -639,9 +640,9 @@ t_release() { # the owner's release: made here, taken back, made again, publishe
   # the fake GitHub by a rule of the fake HOME that is shorter than env.sh's: were env.sh to leak into the
   # release's git, its rule would win and the release would talk to the working copies instead
   mkdir -p "$WORK/gh-root"
-  ln -sfn "$GH" "$WORK/gh-root/Trendorin"
+  ln -sfn "$GH" "$WORK/gh-root/HamzaAkramv15"
   git config --file "$H/.gitconfig" url."file://$WORK/gh-root/".insteadOf "https://github.com/"
-  g -C "$y" remote set-url origin https://github.com/Trendorin/yami.git
+  g -C "$y" remote set-url origin https://github.com/HamzaAkramv15/nemo.git
   for m in "${MODULES[@]}"; do git -C "$SRC/$m" remote remove origin 2>/dev/null || true; done
   # one module changed since its tag, the others not
   printf '\n' >>"$SRC/yami-view/README.md"
@@ -658,13 +659,13 @@ t_release() { # the owner's release: made here, taken back, made again, publishe
   check "  and its crate the version" grep -q '^version = "3.1.0"' "$SRC/yami-view/Cargo.toml"
   nocheck "  an unchanged one did not" g -C "$SRC/yami-files" rev-parse -q --verify refs/tags/v3.1.0
   check "  modules.lock names both" sh -c "grep -qx 'yami-view v3.1.0' '$y/modules.lock' && grep -qx 'yami-files v3.0.0' '$y/modules.lock'"
-  check "  the flake takes the new tag" grep -q 'github:Trendorin/yami-view/v3.1.0' "$y/flake.nix"
+  check "  the flake takes the new tag" grep -q 'github:HamzaAkramv15/nemo-view/v3.1.0' "$y/flake.nix"
   check "  flake.lock pins it with its hash" sh -c "grep -A12 '\"yami-view\": {' '$y/flake.lock' | grep -q '\"ref\": \"v3.1.0\"' && grep -c narHash '$y/flake.lock' | grep -qx 6"
   check "  PKGBUILD carries the archive's sum" grep -q "sha256sums=('$(sha256sum "$y/dist/yami-3.1.0-x86_64-linux.tar.gz" | cut -d' ' -f1)')" "$y/packaging/arch/PKGBUILD"
   check "  the ebuild and its Manifest" sh -c "test -f '$y/packaging/gentoo/yami-bin-3.1.0.ebuild' && grep -q '^DIST yami-3.1.0-x86_64-linux.tar.gz ' '$y/packaging/gentoo/Manifest'"
   check "  the spec" grep -q '^Version: *3.1.0$' "$y/packaging/fedora/yami.spec"
   check "  the release commit has the archive's time" test "$(g -C "$y" log -1 --format=%ct v3.1.0)" -gt 0
-  nocheck "  nothing reached GitHub" sh -c "git -C '$GH/yami.git' tag -l v3.1.0 | grep -q . || git -C '$GH/yami-view.git' tag -l v3.1.0 | grep -q ."
+  nocheck "  nothing reached GitHub" sh -c "git -C '$GH/nemo.git' tag -l v3.1.0 | grep -q . || git -C '$GH/nemo-view.git' tag -l v3.1.0 | grep -q ."
   check "  --status runs" rel --status 3.1.0
   check "taken back with --undo" rel --undo 3.1.0
   check "  every HEAD and tag as before" test "$(refs_now)" = "$before"
@@ -673,10 +674,10 @@ t_release() { # the owner's release: made here, taken back, made again, publishe
   # the first time a module has no repository on GitHub at all: --push makes it
   local niri_tag
   niri_tag="$(gh_ref yami-niri refs/tags/v3.0.0)"
-  rm -rf "$GH/yami-niri.git"
+  rm -rf "$GH/nemo-niri.git"
   check "published with --push" rel --push 3.1.0
-  check "  a module new to GitHub got its repository, main and tag" sh -c "grep -q 'gh repo create Trendorin/yami-niri' '$WORK/gh-releases.log' && test '$(g -C "$SRC/yami-niri" rev-parse refs/tags/v3.0.0)' = '$niri_tag' && git -C '$GH/yami-niri.git' rev-parse -q --verify refs/heads/main >/dev/null && test \"\$(git -C '$GH/yami-niri.git' rev-parse refs/tags/v3.0.0)\" = '$niri_tag'"
-  check "  every module knows its GitHub now" sh -c "for m in ${MODULES[*]}; do git -C '$SRC'/\$m remote get-url origin | grep -qx \"https://github.com/Trendorin/\$m.git\" || exit 1; done"
+  check "  a module new to GitHub got its repository, main and tag" sh -c "grep -q 'gh repo create HamzaAkramv15/nemo-niri' '$WORK/gh-releases.log' && test '$(g -C "$SRC/yami-niri" rev-parse refs/tags/v3.0.0)' = '$niri_tag' && git -C '$GH/nemo-niri.git' rev-parse -q --verify refs/heads/main >/dev/null && test \"\$(git -C '$GH/nemo-niri.git' rev-parse refs/tags/v3.0.0)\" = '$niri_tag'"
+  check "  every module knows its GitHub now" sh -c "for m in ${MODULES[*]}; do git -C '$SRC'/\$m remote get-url origin | grep -qx \"https://github.com/HamzaAkramv15/\$m.git\" || exit 1; done"
   check "  the module's tag is on GitHub" test "$(gh_ref yami-view refs/tags/v3.1.0)" = "$(g -C "$SRC/yami-view" rev-parse refs/tags/v3.1.0)"
   check "  and its main" test "$(gh_ref yami-view refs/heads/main)" = "$(g -C "$SRC/yami-view" rev-parse 'v3.1.0^{commit}')"
   check "  the shell's tag and main" test "$(gh_ref yami refs/heads/main)" = "$(g -C "$y" rev-parse 'v3.1.0^{commit}')"
@@ -754,8 +755,8 @@ t_migrate() { # the real previous release (2.7.0, one repository) updates to thi
   git -C "$ROOT" archive v2.7.0 | tar -xC "$d"
   # the old release signed by the test key, on the same history as the new one
   printf 'test namespaces="git" %s\n' "$(cut -d' ' -f1,2 "$WORK/key.pub")" >"$d/keys/allowed_signers"
-  rm -rf "$GH/yami.git"; git init -q --bare -b main "$GH/yami.git"; git -C "$GH/yami.git" config uploadpack.allowFilter true
-  git init -q -b main "$d"; git -C "$d" remote add origin "$GH/yami.git"
+  rm -rf "$GH/nemo.git"; git init -q --bare -b main "$GH/nemo.git"; git -C "$GH/nemo.git" config uploadpack.allowFilter true
+  git init -q -b main "$d"; git -C "$d" remote add origin "$GH/nemo.git"
   px_tags
   commit_tag "$d" v2.7.0
   g -C "$d" push -q origin main --tags
