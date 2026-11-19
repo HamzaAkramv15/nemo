@@ -18,7 +18,7 @@
       flake = false;
     };
     yami-shot = {
-      url = "github:HamzaAkramv15/nemo-shot/nemo-v0.3.0";
+      url = "github:HamzaAkramv15/nemo-shot/nemo-v0.3.1";
       flake = false;
     };
     yami-greet = {
