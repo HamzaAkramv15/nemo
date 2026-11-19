@@ -374,6 +374,13 @@ pub(crate) fn tab_system(ui: &mut Ui, st: &State, b: R) {
     ui.toggle(R::new(lx, y, half, 40), "запирать перед сном", "крышка, suspend, таймер системы", s.lock_sleep, Act::SBool("lock_sleep"));
     num_btn(ui, R::new(rx, y + 6, half, 26), "кофе: выкл. через, мин", s.num("caffeine_minutes"), "caffeine_minutes");
     y += 46;
+    let who = match s.personality.as_str() {
+        "off" => "молчит",
+        "playful" => "игривая",
+        _ => "тихая",
+    };
+    opt_btn(ui, R::new(lx, y, half, 26), "характер рыбки", who, Act::SCycle("personality"));
+    y += 40;
     // ночной свет: wlsunset; по координатам — от заката до восхода, иначе по часам
     y = title(ui, b.x, y, b.w, "ночной свет: по солнцу или по часам");
     let has = crate::doctor::which("wlsunset");

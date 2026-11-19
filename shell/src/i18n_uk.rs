@@ -1466,4 +1466,8 @@ const UK: &[(&str, &str)] = &[
     ("night light is off", "нічне світло вимкнене"),
     ("click: on/off · right: temperature", "клік: так/ні · правий: температура"),
     (" · {} left", " · ще {}"),
+    ("the fish's character", "характер рибки"),
+    ("silent", "мовчить"),
+    ("playful", "грайлива"),
+    ("quiet", "тиха"),
 ];

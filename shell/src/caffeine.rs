@@ -130,7 +130,8 @@ impl App {
     pub fn caffeine_tick(&mut self) {
         if self.st.caffeine.until.is_some_and(|t| Instant::now() >= t) {
             self.caffeine_set(false, 0);
-            self.toast_note("кофе", "кофе выключен: срок вышел");
+            let q = self.quip_for(crate::personality::Event::CaffeineEnded);
+            self.toast_note_plus("кофе", "кофе выключен: срок вышел", q);
         }
     }
 }

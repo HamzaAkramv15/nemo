@@ -77,6 +77,7 @@ mod recolor_math;
 mod recolor_tpl;
 mod reply;
 mod report;
+mod personality;
 mod popups;
 mod tips;
 mod power;

@@ -1102,4 +1102,8 @@ const PAIRS: &[(&str, &str)] = &[
     ("ночной свет выключен", "night light is off"),
     ("щелчок: вкл/выкл · правая: температура", "click: on/off · right: temperature"),
     (" · {}", " · {} left"),
+    ("характер рыбки", "the fish's character"),
+    ("молчит", "silent"),
+    ("игривая", "playful"),
+    ("тихая", "quiet"),
 ];

@@ -229,6 +229,8 @@ pub struct Settings {
     pub clock12: bool,
     /// короткая дата в баре: dm «пн 17.11» | md «Mon 11/17» | iso «2026-11-17»
     pub date_style: String,
+    /// характер: off — молчит, quiet — о системных событиях, playful — ещё пустые панели
+    pub personality: String,
     /// с какого дня начинается неделя в календаре: mon | sun | sat
     pub week_start: String,
     pub task_width: i32,
@@ -472,7 +474,7 @@ pub fn page_keys(tab: &str) -> &'static [&'static str] {
         "dock" => &["dock*"],
         "windows" => &["stacking", "titlebars", "floatMedia", "floatPip", "floatApps", "floatW", "floatH", "winGap", "winLeft", "winRight", "winTop", "winBottom", "winRadius", "winBorder", "castHide"],
         "notif" => &["dnd", "notifTimeout", "notifMax", "notifHistory", "notifPos", "osdPos", "osdBright", "notifOffset", "osdOffset", "notifImages"],
-        "system" => &["lockAfter", "screenOffAfter", "lockSleep", "night", "nightTemp", "nightGeo", "nightOnH", "nightOffH", "nightAlways", "caffeineMinutes", "sessionRestore"],
+        "system" => &["lockAfter", "screenOffAfter", "lockSleep", "night", "nightTemp", "nightGeo", "nightOnH", "nightOffH", "nightAlways", "caffeineMinutes", "sessionRestore", "personality"],
         "games" => &["game*"],
         "login" => &["greet*"],
         _ => &[],
@@ -668,6 +670,7 @@ impl Default for Settings {
             clock_date: true,
             clock12: false,
             date_style: "dm".into(),
+            personality: "quiet".into(),
             week_start: "mon".into(),
             task_width: 190,
             bar_sep: "dots".into(),
@@ -895,6 +898,9 @@ impl Settings {
         }
         if !["", "pixel", "normal"].contains(&self.icon_style.as_str()) {
             self.icon_style.clear();
+        }
+        if !["off", "quiet", "playful"].contains(&self.personality.as_str()) {
+            self.personality = "quiet".into();
         }
         if !["dm", "md", "iso"].contains(&self.date_style.as_str()) {
             self.date_style = "dm".into();

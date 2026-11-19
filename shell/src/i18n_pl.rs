@@ -1466,4 +1466,8 @@ const PL: &[(&str, &str)] = &[
     ("night light is off", "światło nocne wyłączone"),
     ("click: on/off · right: temperature", "klik: wł/wył · prawy: temperatura"),
     (" · {} left", " · jeszcze {}"),
+    ("the fish's character", "charakter rybki"),
+    ("silent", "milczy"),
+    ("playful", "figlarna"),
+    ("quiet", "cicha"),
 ];

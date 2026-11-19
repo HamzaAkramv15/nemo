@@ -1242,4 +1242,8 @@ const PT_BR: &[(&str, &str)] = &[
     ("night light is off", "luz noturna desligada"),
     ("click: on/off · right: temperature", "clique: liga/desliga · direito: temperatura"),
     (" · {} left", " · {} restantes"),
+    ("the fish's character", "caráter do peixe"),
+    ("silent", "calado"),
+    ("playful", "brincalhão"),
+    ("quiet", "quieto"),
 ];

@@ -559,7 +559,10 @@ impl App {
         self.st.upd.stamp = installed();
         // новое — карточкой, один раз на версию
         if i.available && i.target != was && i.err.is_empty() {
-            let body = i.notes().first().cloned().unwrap_or_default();
+            let mut body = i.notes().first().cloned().unwrap_or_default();
+            if let Some(q) = self.quip_for(crate::personality::Event::UpdateReady) {
+                body = if body.is_empty() { q } else { format!("{body}\n{q}") };
+            }
             let n = crate::dbus::Incoming {
                 id: NOTE_ID,
                 app: "yami-update".into(),

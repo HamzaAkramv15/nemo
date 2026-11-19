@@ -260,6 +260,10 @@ pub struct State {
     pub osd: Option<(&'static str, Instant)>,
     /// подсказка бара: ждёт или показана
     pub tip: Option<crate::tips::Tip>,
+    /// характер (personality.rs): лимиты реплик, последнее известное «от сети», «полная» уже сказана
+    pub quip: crate::personality::Gate,
+    pub ac_prev: Option<bool>,
+    pub full_said: bool,
     /// шторка для трансляций опущена
     pub curtain: Option<crate::curtain::Curtain>,
     /// индикатор приватности (privacy.rs): кто пишет микрофон, кто держит камеру, у каких потоков
@@ -503,6 +507,9 @@ impl State {
             anim_demo: None,
             osd: None,
             tip: None,
+            quip: Default::default(),
+            ac_prev: None,
+            full_said: false,
             curtain: None,
             mic: vec![],
             bright: None,

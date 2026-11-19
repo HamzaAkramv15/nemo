@@ -423,6 +423,9 @@ impl App {
                     s.icon_style = cycle(&[("", ""), ("pixel", ""), ("normal", "")], &s.icon_style).into();
                     self.settings_changed();
                 }
+                "personality" => {
+                    s.personality = cycle(&[("quiet", ""), ("playful", ""), ("off", "")], &s.personality).into();
+                }
                 "date_style" => {
                     s.date_style = cycle(&[("dm", ""), ("md", ""), ("iso", "")], &s.date_style).into();
                     self.settings_changed();

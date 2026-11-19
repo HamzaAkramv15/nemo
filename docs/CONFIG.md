@@ -101,6 +101,7 @@ file for one run. The files are reread when they change.
 
 | Key | Default | Meaning |
 |---|---|---|
+| `personality` | `"quiet"` | the fish speaks on charger, caffeine and update events: `off` (never), `quiet` (system events only), `playful` (the same for now; empty-panel lines come next) |
 | `palette` | `"nemo"` | preset: `nemo` (lavender on graphite) `blood` `ash` `sakura` `amber` `venom` `ice` `dusk` |
 | `accent` | `""` | own accent `#rrggbb`; empty: the preset's |
 | `preset` | `"yami"` | the style of every module: `yami` (pixel) or `plain` (neutral), [details](#the-look-of-every-module) |
