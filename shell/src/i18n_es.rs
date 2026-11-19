@@ -1475,4 +1475,6 @@ const ES: &[(&str, &str)] = &[
     ("Sat and Sun", "sáb y dom"),
     ("Nemo's fish", "el pez de Nemo"),
     ("one short line about charger, coffee, updates", "una frase sobre cargador, café, actualizaciones"),
+    ("Hijri date", "fecha hegirina"),
+    ("Arabic digits", "dígitos árabes"),
 ];

@@ -1475,4 +1475,6 @@ const PL: &[(&str, &str)] = &[
     ("Sat and Sun", "sob i niedz"),
     ("Nemo's fish", "rybka Nemo"),
     ("one short line about charger, coffee, updates", "jedno zdanie o ładowarce, kawie, aktualizacjach"),
+    ("Hijri date", "data hidżry"),
+    ("Arabic digits", "cyfry arabskie"),
 ];

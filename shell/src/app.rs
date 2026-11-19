@@ -644,6 +644,7 @@ pub fn run() {
 
     let set = Settings::load();
     crate::i18n::set(&set.lang);
+    yami_px::rtl::set_digits(set.arabic_digits);
     yami_px::time::set_hour12(set.clock12);
     yami_px::gfx::set_vector_icons(set.vector_icons());
     let iset = icon_set(&set.icon_theme);

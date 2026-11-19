@@ -302,6 +302,9 @@ fn tab_bar_look(ui: &mut Ui, st: &State, b: R) {
     y += 32;
     ui.toggle(R::new(b.x, y, hw, 26), "часы с секундами", "", s.clock_seconds, Act::SBool("clock_seconds"));
     ui.toggle(R::new(b.x + hw + 12, y, hw, 26), "дата в часах", "", s.clock_date, Act::SBool("clock_date"));
+    y += 32;
+    ui.toggle(R::new(b.x, y, hw, 26), "дата по хиджре", "", s.hijri, Act::SBool("hijri"));
+    ui.toggle(R::new(b.x + hw + 12, y, hw, 26), "арабские цифры", "", s.arabic_digits, Act::SBool("arabic_digits"));
     y += 38;
     // переключатели — в два столбца, они короче
     let toggles: [(&str, bool, &'static str); 5] = [

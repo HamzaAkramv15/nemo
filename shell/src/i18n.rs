@@ -1113,4 +1113,6 @@ const PAIRS: &[(&str, &str)] = &[
     ("сб и вс", "Sat and Sun"),
     ("рыбка Nemo", "Nemo's fish"),
     ("одна короткая фраза о зарядке, кофе и обновлениях", "one short line about charger, coffee, updates"),
+    ("дата по хиджре", "Hijri date"),
+    ("арабские цифры", "Arabic digits"),
 ];

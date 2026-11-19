@@ -13,6 +13,17 @@ fn is_rtl_char(c: char) -> bool {
     matches!(c as u32, 0x0590..=0x08FF | 0xFB1D..=0xFDFF | 0xFE70..=0xFEFF)
 }
 
+static DIGITS: std::sync::atomic::AtomicBool = std::sync::atomic::AtomicBool::new(false);
+
+/// арабско-индийские цифры (٠١٢٣) вместо 0123 во всём выводе; по выбору пользователя
+pub fn set_digits(on: bool) {
+    DIGITS.store(on, std::sync::atomic::Ordering::Relaxed);
+}
+
+fn eastern(s: &str) -> String {
+    s.chars().map(|c| if c.is_ascii_digit() { char::from_u32(0x0660 + (c as u32 - '0' as u32)).unwrap_or(c) } else { c }).collect()
+}
+
 pub fn has_rtl(s: &str) -> bool {
     s.chars().any(is_rtl_char)
 }
@@ -105,6 +116,18 @@ fn mirror(c: char) -> char {
 
 /// строка в видимом порядке слева направо, с начертаниями букв. Без знаков справа налево — она сама
 pub fn visual(s: &str) -> Cow<'_, str> {
+    visual_with(s, DIGITS.load(std::sync::atomic::Ordering::Relaxed))
+}
+
+fn visual_with(s: &str, digits: bool) -> Cow<'_, str> {
+    if digits && s.bytes().any(|b| b.is_ascii_digit()) {
+        let e = eastern(s);
+        return Cow::Owned(visual_text(&e).into_owned());
+    }
+    visual_text(s)
+}
+
+fn visual_text(s: &str) -> Cow<'_, str> {
     if !has_rtl(s) {
         return Cow::Borrowed(s);
     }
@@ -204,5 +227,13 @@ mod tests {
         assert!(base_rtl("123 ملف"));
         assert!(!base_rtl("file ملف"));
         assert!(!base_rtl("123"));
+    }
+
+    #[test]
+    fn eastern_digits_are_opt_in() {
+        assert_eq!(eastern("17:27 ٣"), "١٧:٢٧ ٣");
+        assert_eq!(visual_with("12", false), "12");
+        assert_eq!(visual_with("12 ab", true), "١٢ ab");
+        assert!(matches!(visual_with("no digits", true), Cow::Borrowed(_)));
     }
 }

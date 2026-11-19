@@ -164,6 +164,8 @@ impl App {
                     "privacy_cam" => s.privacy_cam = !s.privacy_cam,
                     "privacy_screen" => s.privacy_screen = !s.privacy_screen,
                     "clock_date" => s.clock_date = !s.clock_date,
+                    "hijri" => s.hijri = !s.hijri,
+                    "arabic_digits" => s.arabic_digits = !s.arabic_digits,
                     "dnd" => s.dnd = !s.dnd,
                     "float_media" => s.float_media = !s.float_media,
                     "dock" => s.dock = !s.dock,

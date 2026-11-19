@@ -1475,4 +1475,6 @@ const UK: &[(&str, &str)] = &[
     ("Sat and Sun", "сб і нд"),
     ("Nemo's fish", "рибка Nemo"),
     ("one short line about charger, coffee, updates", "одна фраза про зарядку, каву, оновлення"),
+    ("Hijri date", "дата за хіджрою"),
+    ("Arabic digits", "арабські цифри"),
 ];

@@ -32,6 +32,7 @@ impl App {
         let s = &self.st.set;
         crate::i18n::set(&s.lang);
         yami_px::time::set_hour12(s.clock12);
+        yami_px::rtl::set_digits(s.arabic_digits);
     yami_px::gfx::set_vector_icons(s.vector_icons());
         if s.font_family() != self.res.font {
             self.res.font = s.font_family();

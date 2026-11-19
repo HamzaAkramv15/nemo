@@ -1251,4 +1251,6 @@ const PT_BR: &[(&str, &str)] = &[
     ("Sat and Sun", "sáb e dom"),
     ("Nemo's fish", "o peixe do Nemo"),
     ("one short line about charger, coffee, updates", "uma frase sobre carregador, café e atualizações"),
+    ("Hijri date", "data Hijri"),
+    ("Arabic digits", "dígitos árabes"),
 ];

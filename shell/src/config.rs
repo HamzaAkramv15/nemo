@@ -235,6 +235,10 @@ pub struct Settings {
     pub week_start: String,
     /// выходные в календаре: satsun — суббота и воскресенье, frisat — пятница и суббота (Египет, Ближний Восток)
     pub weekend: String,
+    /// дата по хиджре в календаре (табличный календарь, справочно)
+    pub hijri: bool,
+    /// арабско-индийские цифры (٠١٢٣) вместо 0123 во всём тексте
+    pub arabic_digits: bool,
     pub task_width: i32,
     /// разделитель-модуль "sep": dots | line | blocks | gap
     pub bar_sep: String,
@@ -471,7 +475,7 @@ pub fn page_keys(tab: &str) -> &'static [&'static str] {
         "fonts" => &["fontShell", "fontFiles", "fontView", "fontUi", "fontPt", "fontSize", "fontMono", "browserMenus", "browserFont", "terminalFish", "fetchFull"],
         "anim" => &["animations", "animSpeed", "animClose", "reveal", "revealGrain", "anims"],
         "wall" => &["wallDir", "wallFit", "wallPixel", "wallTone", "wallDim", "wallKanji"],
-        "bar" => &["bar*", "clockSeconds", "clockDate", "weekend", "clock12", "dateStyle", "weekStart", "taskWidth", "cpuStyle", "tempStyle", "trayMode", "trayPixel", "batHideFull", "privacyMic", "privacyCam", "privacyScreen", "mediaViz", "mediaView", "controlTiles"],
+        "bar" => &["bar*", "clockSeconds", "clockDate", "weekend", "hijri", "arabicDigits", "clock12", "dateStyle", "weekStart", "taskWidth", "cpuStyle", "tempStyle", "trayMode", "trayPixel", "batHideFull", "privacyMic", "privacyCam", "privacyScreen", "mediaViz", "mediaView", "controlTiles"],
         "widgets" => &["widgets", "widgetContrast"],
         "dock" => &["dock*"],
         "windows" => &["stacking", "titlebars", "floatMedia", "floatPip", "floatApps", "floatW", "floatH", "winGap", "winLeft", "winRight", "winTop", "winBottom", "winRadius", "winBorder", "castHide"],
@@ -675,6 +679,8 @@ impl Default for Settings {
             personality: "quiet".into(),
             week_start: "mon".into(),
             weekend: "satsun".into(),
+            hijri: false,
+            arabic_digits: false,
             task_width: 190,
             bar_sep: "dots".into(),
             bar_sep_w: 10,

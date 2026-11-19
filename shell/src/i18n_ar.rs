@@ -563,4 +563,6 @@ const AR: &[(&str, &str)] = &[
     ("wrong password", "كلمة المرور خاطئة"),
     ("wrong password, again", "كلمة المرور خاطئة، حاول مجددًا"),
     ("wrong ×{}", "خطأ ×{}"),
+    ("Hijri date", "التاريخ الهجري"),
+    ("Arabic digits", "الأرقام العربية"),
 ];

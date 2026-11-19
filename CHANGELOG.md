@@ -9,6 +9,8 @@ has its Russian line in CHANGELOG.ru.md: `tools/check.sh` checks that.
 
 ## Unreleased
 
+- Arabic, more: an optional Hijri date in the calendar popup (`hijri`; the tabular calendar, so it can differ by a day from the one announced locally), Eastern Arabic digits (٠١٢٣) for all text (`arabicDigits`), 160 more texts translated (37% in all), the tip lines in Arabic. Tooltips no longer fade in with the reveal pattern: they simply appear. Settings → system has its own "Nemo's fish" section for the personality setting.
+
 ## 3.1.0
 
 - The Nemo look, now the default: pixel character where it is cheap (notched corners, dithered panel reveal, the pixel cursor, pixel app icons, the fish) and normal where you read and click (system sans in the shell and the apps, smooth vector icons, soft shadows). It is also a built-in theme, `yami theme apply Nemo` (or the Nemo card in settings → color → themes), which changes the look only: your palette, wallpaper and bar stay.
