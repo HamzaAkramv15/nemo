@@ -6,7 +6,7 @@
     # the modules live in their own repositories; the versions are those of modules.lock (the shell's
     # services, yami-agents, and the drawing library yami-px are part of this repository)
     yami-files = {
-      url = "github:HamzaAkramv15/nemo-files/nemo-v0.2.0";
+      url = "github:HamzaAkramv15/nemo-files/nemo-v0.2.1";
       flake = false;
     };
     yami-view = {
