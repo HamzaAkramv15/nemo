@@ -34,7 +34,7 @@ use wayland_protocols::wp::viewporter::client::{wp_viewport, wp_viewporter};
 impl CompositorHandler for App {
     fn scale_factor_changed(&mut self, _: &Connection, _: &QueueHandle<Self>, _: &wl_surface::WlSurface, _: i32) {}
     fn transform_changed(&mut self, _: &Connection, _: &QueueHandle<Self>, _: &wl_surface::WlSurface, _: wl_output::Transform) {}
-    fn frame(&mut self, _: &Connection, _: &QueueHandle<Self>, surface: &wl_surface::WlSurface, _: u32) {
+    fn frame(&mut self, _: &Connection, qh: &QueueHandle<Self>, surface: &wl_surface::WlSurface, _: u32) {
         let Some(sid) = self.surf_of(surface) else { return };
         if sid >= LOCK_BASE {
             self.mark(sid);
@@ -46,6 +46,14 @@ impl CompositorHandler for App {
                 // обои отрисованы и показаны — память буфера больше не нужна
                 s.release_pool = false;
                 s.pool = None;
+                return;
+            }
+            if s.anim && s.last_draw.elapsed() < std::time::Duration::from_millis(12) {
+                // монитор быстрее ~80 Гц (144 Гц у вас): пустой кадр вместо полной отрисовки, ждём следующий. Движение
+                // считается по часам, так что оно не замедляется, а процессор не рисует вдвое больше, чем видно
+                surface.frame(qh, surface.clone());
+                s.frame_pending = true;
+                surface.commit();
                 return;
             }
             if s.anim {

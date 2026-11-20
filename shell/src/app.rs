@@ -98,6 +98,8 @@ pub struct Surf {
     pub pool: Option<SlotPool>,
     pub dirty: bool,
     pub frame_pending: bool,
+    /// когда поверхность рисовалась в последний раз: анимация не чаще ~70 кадров в секунду на любом мониторе
+    pub last_draw: Instant,
     pub anim: bool,
     pub zones: Vec<Zone>,
     /// подсказки поверхности (рамка, ключ): заполняются при отрисовке
@@ -882,6 +884,7 @@ impl App {
                 pool: None,
                 dirty: true,
                 frame_pending: false,
+                last_draw: Instant::now(),
                 anim: false,
                 zones: vec![],
                 tips: vec![],

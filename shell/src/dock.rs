@@ -42,6 +42,23 @@ impl Item {
     }
 }
 
+/// где стоит подпись значка `r` у панели `p` на поверхности шириной `w`: всегда целиком в поверхности и не на панели;
+/// `want` — ширина по тексту, больше места нет — подпись короче (её обрежет многоточие)
+pub fn tip_rect(side: &str, p: R, r: R, w: i32, want: i32) -> R {
+    let room = match side {
+        "left" => w - p.right() - 6 - 4,
+        "right" => p.x - 6 - 4,
+        _ => w - 8,
+    };
+    let tw = want.min(room.clamp(60, 360));
+    match side {
+        "top" => R::new((r.x + r.w / 2 - tw / 2).clamp(0, (w - tw).max(0)), p.bottom() + 6, tw, 22),
+        "left" => R::new(p.right() + 6, r.y + (r.h - 22) / 2, tw, 22),
+        "right" => R::new(p.x - tw - 6, r.y + (r.h - 22) / 2, tw, 22),
+        _ => R::new((r.x + r.w / 2 - tw / 2).clamp(0, (w - tw).max(0)), p.y - 28, tw, 22),
+    }
+}
+
 /// число и прогресс для значка: сначала то, что программа сообщила сама (LauncherEntry), иначе число её уведомлений в истории
 fn badge_for(st: &State, it: &Item) -> (Option<String>, Option<f64>) {
     let e = st.launcher_entries.get(&it.id.to_lowercase());
@@ -173,7 +190,8 @@ pub fn size(st: &State) -> (i32, i32) {
     let len = slots(st, n) * cell(st) + 16 + if st.set.dock_launcher { 9 } else { 0 } + if st.set.dock_trash { 9 } else { 0 };
     let thick = st.set.dock_size + 24 + spare(st);
     if vertical(st) {
-        (thick + 140, len)
+        // справа от панели — место под подпись: длинное название программы не обрезается краем поверхности
+        (thick + 300, len)
     } else {
         (len.max(120), thick)
     }
@@ -208,6 +226,10 @@ pub fn draw(ui: &mut Ui, st: &State, w: i32, h: i32) {
     let p = panel(st, w, h);
     let vert = vertical(st);
     ui.cv.pxbox(p.inset(0), &BoxStyle::new(t.glass_bg(), t.border).shadow(4));
+    // развёртка (если включена) — только на панель: значки и подпись остаются чистыми
+    if st.set.scanlines {
+        ui.cv.scanlines_in(p, if t.light { 0.06 } else { 0.22 });
+    }
     ui.zone(p, Act::Block, Cur::Default);
     let list = items(st);
     let c = cell(st);
@@ -373,13 +395,9 @@ pub fn draw(ui: &mut Ui, st: &State, w: i32, h: i32) {
     }
     // подсказка — над значком (или сбоку у вертикального дока)
     if let Some((r, s)) = tip {
-        let tw = ui.w(PX, &s).min(260) + 18;
-        let tr = match st.set.dock_side.as_str() {
-            "top" => R::new((r.x + r.w / 2 - tw / 2).clamp(0, w - tw), p.bottom() + 6, tw, 22),
-            "left" => R::new(p.right() + 6, r.y + (r.h - 22) / 2, tw, 22),
-            "right" => R::new(p.x - tw - 6, r.y + (r.h - 22) / 2, tw, 22),
-            _ => R::new((r.x + r.w / 2 - tw / 2).clamp(0, w - tw), p.y - 28, tw, 22),
-        };
+        // подпись не шире места до края поверхности; длиннее — с многоточием, а не обрезана на полуслове
+        let tr = tip_rect(&st.set.dock_side, p, r, w, ui.w(PX, &s) + 18);
+        let s = ui.f.elide(PX, &s, tr.w - 18);
         ui.cv.pxbox(tr, &BoxStyle::new(t.panel.alpha(0.97), t.red));
         ui.text_in(PX, R::new(tr.x + 9, tr.y, tr.w - 14, tr.h), &s, t.text);
     }
@@ -780,6 +798,37 @@ mod badge_tests {
         assert!(a[1].0.contains("Private") || a[1].0.contains("приват")); // i18n-ok
         assert!(parse_actions("[Desktop Entry]\nName=x\n").is_empty());
         assert!(parse_actions("garbage").is_empty());
+    }
+}
+
+#[cfg(test)]
+mod tip_tests {
+    use super::*;
+
+    #[test]
+    fn a_long_label_stays_inside_the_surface_and_off_the_panel() {
+        // боковой док: панель 64 px слева, поверхность 364
+        let p = R::new(0, 0, 64, 400);
+        let r = R::new(0, 100, 64, 52);
+        let t = tip_rect("left", p, r, 364, 900);
+        assert!(t.x >= p.right() && t.right() <= 364, "{t:?}");
+        assert!(t.w >= 60);
+        // справа
+        let p = R::new(300, 0, 64, 400);
+        let t = tip_rect("right", p, R::new(300, 100, 64, 52), 364, 900);
+        assert!(t.right() <= p.x && t.x >= 0, "{t:?}");
+        // снизу: у края экрана подпись не вылезает
+        let p = R::new(0, 60, 400, 64);
+        let t = tip_rect("bottom", p, R::new(0, 60, 52, 64), 400, 250);
+        assert!(t.x >= 0 && t.right() <= 400, "{t:?}");
+        let t = tip_rect("bottom", p, R::new(348, 60, 52, 64), 400, 250);
+        assert!(t.right() <= 400, "{t:?}");
+    }
+
+    #[test]
+    fn a_short_label_keeps_its_own_width() {
+        let t = tip_rect("left", R::new(0, 0, 64, 400), R::new(0, 100, 64, 52), 364, 90);
+        assert_eq!(t.w, 90);
     }
 }
 

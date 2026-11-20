@@ -402,10 +402,19 @@ impl<'a> Canvas<'a> {
     /// строки развёртки: каждая вторая строка темнее на долю k (только где что-то нарисовано;
     /// предумноженный цвет — множим каналы, альфу не трогаем)
     pub fn scanlines(&mut self, k: f32) {
+        self.scanlines_in(R::new(0, 0, self.w, self.h), k)
+    }
+
+    /// то же, но только в прямоугольнике: у дока развёртка ложится на панель, а не поверх значков и подписи
+    pub fn scanlines_in(&mut self, r: R, k: f32) {
         let m = ((1.0 - k.clamp(0.0, 1.0)) * 256.0) as u32;
-        for y in (1..self.h).step_by(2) {
+        let (x0, x1) = (r.x.clamp(0, self.w), r.right().clamp(0, self.w));
+        if x1 <= x0 {
+            return;
+        }
+        for y in (r.y.max(1)..r.bottom().min(self.h)).filter(|y| y % 2 == 1) {
             let row = (y * self.w) as usize;
-            for p in &mut self.buf[row..row + self.w as usize] {
+            for p in &mut self.buf[row + x0 as usize..row + x1 as usize] {
                 let v = *p;
                 if v >> 24 == 0 {
                     continue;

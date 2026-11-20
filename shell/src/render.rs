@@ -43,6 +43,7 @@ impl App {
     pub(crate) fn draw(&mut self, id: u32) {
         let Some(mut s) = self.surfs.remove(&id) else { return };
         s.dirty = false;
+        s.last_draw = Instant::now();
         if s.fresh {
             s.fresh = false;
             s.born = Instant::now();
@@ -158,7 +159,7 @@ impl App {
                 SKind::CurtainBadge => crate::curtain::draw_badge(&mut ui, w, h),
             }
             // развёртка — только панели: не обои, не оверлей скриншота, не шторка
-            if st.set.scanlines && !matches!(s.kind, SKind::Dim | SKind::Catcher | SKind::Wall | SKind::EditGrid | SKind::Curtain | SKind::CurtainBadge | SKind::DockEdge | SKind::Title(_) | SKind::Grip(_)) {
+            if st.set.scanlines && !matches!(s.kind, SKind::Dim | SKind::Catcher | SKind::Wall | SKind::EditGrid | SKind::Curtain | SKind::CurtainBadge | SKind::DockEdge | SKind::Dock | SKind::Title(_) | SKind::Grip(_)) {
                 ui.cv.scanlines(if st.t.light { 0.06 } else { 0.22 });
             }
             if k < 1.0 && !matches!(s.kind, SKind::Dim | SKind::Catcher) {
