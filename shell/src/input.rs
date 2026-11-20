@@ -166,19 +166,24 @@ impl App {
                 }
             }
             PointerEventKind::Axis { vertical, .. } => {
-                let d = if vertical.discrete != 0 { vertical.discrete as f64 } else if vertical.value120 != 0 { vertical.value120 as f64 / 120.0 } else { vertical.absolute / 15.0 };
-                if d.abs() < 0.01 {
+                // щелчок мыши — шаг; тачпад — много мелких сдвигов, они копятся в целые шаги (nemo_px::wheel), а не каждый
+                // считается шагом
+                let Some(s) = nemo_px::wheel::scroll_of(vertical.discrete, vertical.value120, vertical.absolute) else { return };
+                let n = self.wheel.feed(s);
+                if n == 0 {
                     return;
                 }
                 if let Some(z) = self.zone_at(sid, x, y) {
-                    let d = if d > 0.0 { 1 } else { -1 };
-                    // окно настроек: колесо листает вкладку, если есть куда (ползунки и числа под
-                    // курсором не меняются сами, пока листаешь); листать нечего — как раньше
-                    let settings = self.st.modal == Some(crate::app::Modal::Settings) && self.surfs.get(&sid).is_some_and(|s| s.kind == SKind::Modal);
-                    if settings && matches!(z.act, Act::SSideScroll | Act::STab(_)) {
-                        self.settings_side_scroll(d);
-                    } else if !(settings && self.settings_scroll(d)) {
-                        self.on_wheel(z.act, d);
+                    let d = n.signum();
+                    for _ in 0..n.unsigned_abs().min(8) {
+                        // окно настроек: колесо листает вкладку, если есть куда (ползунки и числа под
+                        // курсором не меняются сами, пока листаешь); листать нечего — как раньше
+                        let settings = self.st.modal == Some(crate::app::Modal::Settings) && self.surfs.get(&sid).is_some_and(|s| s.kind == SKind::Modal);
+                        if settings && matches!(z.act, Act::SSideScroll | Act::STab(_)) {
+                            self.settings_side_scroll(d);
+                        } else if !(settings && self.settings_scroll(d)) {
+                            self.on_wheel(z.act.clone(), d);
+                        }
                     }
                 }
             }

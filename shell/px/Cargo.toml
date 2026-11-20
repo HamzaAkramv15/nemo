@@ -2,7 +2,7 @@
 name = "nemo-px"
 # своя версия, не VERSION шелла: модули (nemo-files, nemo-view, …) берут библиотеку по тегу
 # px-vX.Y.Z этого репозитория, и новая версия нужна, только когда меняется то, чем они пользуются
-version = "3.2.1"
+version = "3.2.2"
 edition = "2021"
 description = "Canvas, styles, fonts, theme and immediate-mode UI shared by the nemo shell and its modules"
 license = "MIT"

@@ -688,7 +688,7 @@ dependencies = [
 
 [[package]]
 name = "nemo-px"
-version = "3.2.1"
+version = "3.2.2"
 dependencies = [
  "ab_glyph",
  "image",

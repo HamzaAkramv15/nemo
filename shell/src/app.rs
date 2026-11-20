@@ -447,6 +447,8 @@ pub struct App {
     pub(crate) shed_at: Option<Instant>,
     /// когда в последний раз проверяли, жива ли служба nemo-agents
     pub(crate) agents_seen: Instant,
+    /// копилка шагов колеса и тачпада (nemo_px::wheel)
+    pub(crate) wheel: nemo_px::wheel::Steps,
     /// нить сна ждёт здесь «заперто», чтобы отпустить сон (sleep.rs)
     pub(crate) sleep_ack: Option<std::sync::mpsc::Sender<()>>,
     pub(crate) lock_state: SessionLockState,
@@ -717,6 +719,7 @@ pub fn run() {
         scratch: vec![],
         shed_at: Some(Instant::now() + Duration::from_secs(30)),
         agents_seen: Instant::now(),
+        wheel: Default::default(),
         sleep_ack: None,
         lock_state: SessionLockState::new(&globals, &qh),
         lock: None,

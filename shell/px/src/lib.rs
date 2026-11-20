@@ -17,6 +17,7 @@ pub mod paths;
 pub mod style;
 pub mod theme;
 pub mod time;
+pub mod wheel;
 pub mod trash;
 pub mod ui;
 pub mod vicon;
