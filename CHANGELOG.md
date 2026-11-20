@@ -9,6 +9,8 @@ has its Russian line in CHANGELOG.ru.md: `tools/check.sh` checks that.
 
 ## Unreleased
 
+- Files: **batch rename** (select several files and press F2: find and replace, case, numbers, text before and after, a live preview, conflicts caught before anything is renamed, one undo); **filters by type** in the filter field (`:images :video :audio :docs :archives :code :folders`); the **contents of an archive** in the info panel; **pause and resume** for long copies, moves, extractions and compression; **what takes the space** in the main menu (size of every item of the folder, heaviest first).
+
 - Settings reorganised (nothing removed): five groups (appearance, desktop, every day, system, diagnostics) with «actions» folded into «every day»; every tab has a one-line description under the window header; the bottom of the tab list has «essentials only» (`settingsSimple`) to hide the deeper tabs, search still finds everything. A new tab, «status» (diagnostics): what is running and how much memory it takes, which programs Nemo relies on are missing, versions, the signature policy and the log of installs made despite a signature, buttons for the settings and logs folders and for an issue report archive.
 
 - The README pictures are Nemo's own now (they were Yami's author's desktop): `tools/readme-shots-offline.sh` renders them from the real drawing code of the shell and the apps with made-up data, without touching your desktop, and composes the desktop picture from the panels.

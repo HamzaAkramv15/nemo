@@ -47,6 +47,9 @@ are given.
 | Permission errors | Not tested in this pass | | manual: copy into a read-only folder |
 | Network disconnect during a transfer | Not tested | | manual: copy to a mounted network share and cut the link |
 | Folder with 30,300 entries | Tested here | opened in the real window, measured | about a second, 0.2 s of CPU, 17-23 MB, no CPU when idle |
+| Batch rename: patterns, conflicts, swapping two names, rollback on a failure in the middle | Unit-tested on real files | `nemo-files/src/batch.rs` | all names put back, no content lost; not tried by hand in the window |
+| Type filter, archive contents, storage view | Unit-tested; the pictures were rendered and looked at | `kinds.rs`, `archive.rs` (a real tar through `bsdtar`), `storage.rs` | not tried by hand with the keyboard |
+| Pause and resume, cancel while paused | Unit-tested | a 200 MB copy stood still while paused and finished after resuming; cancel removed the half file | not tried by hand with the button |
 | Idle memory of an empty window | Tested here | `/proc` | 7.7 MB (was 15.1 MB) |
 
 ## Display, graphics and laptop
@@ -89,3 +92,5 @@ are given.
 | 11 | P2 | Opening the launcher re-read every `.desktop` file; animated surfaces redrew at the display's full rate (144 Hz) | fixed: cached by folder time, capped near 70 fps; 88 to 50 ms CPU per open/close, measured |
 | 12 | P2 | No comparison of rendered pictures | fixed: `tools/golden.sh` in the gate, 134 pictures |
 | 13 | note | Files has an editable path, filter and search already; an old audit note said they did not | corrected in `nemo-files/AUDIT.md` |
+| 14 | P2 | Settings had no place for health and no short description per tab; deep tabs mixed with everyday ones | fixed: five groups, descriptions, «essentials only», a status tab |
+| 15 | P2 | Files lacked batch rename, a type filter, archive contents, pause and a storage view | added with tests |
