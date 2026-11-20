@@ -926,16 +926,18 @@ pub fn fastfetch(cx: &Cx, p: &P) -> Res {
     let (logo_rows, logo_cols) = if image { if distro_img.is_some() { (9, 18) } else { (6, 22) } } else { (logo.lines().count() as i64, 16) };
     // знак — по вертикали посередине блока строк, а не прижат к заголовку
     let top = ((mods.len() as i64 - logo_rows) / 2).max(0);
+    // мелкий родной знак — около девяти строк: посередине блока модулей
+    let small_top = ((mods.len() as i64 - 9) / 2).max(0);
     let conf = J::O(vec![
         ("$schema", s("https://github.com/fastfetch-cli/fastfetch/raw/dev/doc/json_schema.json")),
         ("logo", J::O(if builtin {
-            // родной знак дистрибутива: ячейки цвета 1–9 берут тона палитры (1 — основной, 2 — светлый, дальше спокойнее)
-            let tone = |i: usize| J::S(e(["accent", "bright", "textDim", "text", "border", "accent", "bright", "textDim", "text"][i]));
-            let tone = |i: usize| match i { 0 => J::S(e(a)), _ => tone(i) };
+            // родной знак дистрибутива: ячейки цвета 1–9 берут тона палитры (1 — основной, 2 — белый, как у Fedora, дальше спокойнее)
+            let tone = |i: usize| J::S(e(p.g(["accent", "text", "textDim", "bright", "border", "accent", "text", "textDim", "bright"][i])));
             vec![
-                ("type", s(if full { "auto" } else { "small" })),
+                // всегда мелкий вариант: крупный (19 строк) выше блока данных; по высоте он встаёт посередине блока
+                ("type", s("small")),
                 ("color", J::O(["1", "2", "3", "4", "5", "6", "7", "8", "9"].iter().enumerate().map(|(i, k)| (*k, tone(i))).collect())),
-                ("padding", J::O(vec![("top", J::I(1)), ("left", J::I(3)), ("right", J::I(4))])),
+                ("padding", J::O(vec![("top", J::I(small_top)), ("left", J::I(2)), ("right", J::I(3))])),
             ]
         } else if image {
             vec![("type", s("kitty-direct")), ("source", s(png_path.display().to_string())), ("width", J::I(logo_cols)), ("height", J::I(logo_rows)), ("padding", J::O(vec![("top", J::I(top)), ("left", J::I(3)), ("right", J::I(4))]))]
