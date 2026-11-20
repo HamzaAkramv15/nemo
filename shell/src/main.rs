@@ -71,6 +71,7 @@ mod wayland;
 mod plugins;
 mod recolor;
 mod recolor_apps;
+mod distro_logo;
 mod recolor_art;
 mod recolor_data;
 mod recolor_math;

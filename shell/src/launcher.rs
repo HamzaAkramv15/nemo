@@ -1012,12 +1012,12 @@ mod file_search_tests {
         std::fs::write(d.join("sub/other.txt"), "x").unwrap();
         let gen = Arc::new(AtomicU64::new(1));
         let mut found = vec![];
-        walk_files(&[d.clone()], "report", 3, 1000, &gen, 1, &mut found);
+        walk_files(std::slice::from_ref(&d), "report", 3, 1000, &gen, 1, &mut found);
         let names: Vec<String> = found.iter().map(|f| f.1.file_name().unwrap().to_string_lossy().to_string()).collect();
         assert_eq!(names, vec!["Quarterly Report.txt"]);
         // новый запрос (другой номер поколения) обрывает старый обход
         let mut none = vec![];
-        walk_files(&[d.clone()], "report", 3, 1000, &gen, 2, &mut none);
+        walk_files(std::slice::from_ref(&d), "report", 3, 1000, &gen, 2, &mut none);
         assert!(none.is_empty());
         let _ = std::fs::remove_dir_all(d);
     }

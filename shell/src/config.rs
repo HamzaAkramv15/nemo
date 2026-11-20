@@ -781,7 +781,7 @@ impl Default for Settings {
             binds: Default::default(),
             custom_binds: vec![],
             fetch_full: false,
-            fetch_logo: "auto".into(),
+            fetch_logo: "distro".into(),
             kb_layout: String::new(),
             kb_switch: "grp:alt_shift_toggle".into(),
             game_fullscreen: true,
@@ -928,8 +928,12 @@ impl Settings {
         if !["", "12", "24"].contains(&self.greet_hour.as_str()) {
             self.greet_hour.clear();
         }
-        if !["auto", "image", "blocks"].contains(&self.fetch_logo.as_str()) {
-            self.fetch_logo = "auto".into();
+        // «auto» был значением по умолчанию (рыбка Nemo): теперь по умолчанию значок дистрибутива
+        if self.fetch_logo == "auto" {
+            self.fetch_logo = "distro".into();
+        }
+        if !["distro", "image", "blocks"].contains(&self.fetch_logo.as_str()) {
+            self.fetch_logo = "distro".into();
         }
         if !["", "pixel", "normal"].contains(&self.icon_style.as_str()) {
             self.icon_style.clear();

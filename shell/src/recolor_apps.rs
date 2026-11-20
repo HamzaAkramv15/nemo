@@ -849,7 +849,19 @@ pub fn fastfetch(cx: &Cx, p: &P) -> Res {
     let esc = |h: &str| format!("\u{1b}[{}m", e(h));
     let (a, d, f, t) = (p.g("accent"), p.g("border"), p.g("textFaint"), p.g("text"));
     let logo_path = cx.cfg.join("fastfetch/nemo-logo.txt");
-    let logo = crate::recolor_art::fish_logo(p);
+    // знак: по умолчанию — значок самого дистрибутива (fedora на Fedora), крупными пикселями в цветах палитры;
+    // fetchLogo: distro (по умолчанию; нет значка в системе — знак Nemo), auto и image — рыбка Nemo картинкой в kitty, blocks — рыбка блоками
+    // (saved «auto» was the old default and means distro now; unknown values too)
+    let mode = match cx.st.get("fetchLogo").and_then(|v| v.as_str()).unwrap_or("distro") {
+        m @ ("image" | "blocks") => m.to_string(),
+        _ => "distro".to_string(),
+    };
+    let distro_img = (mode == "distro").then(|| crate::distro_logo::current(24)).flatten();
+    let distro_txt = (mode == "distro").then(|| crate::distro_logo::current(16)).flatten();
+    let logo = match &distro_txt {
+        Some(c) => crate::distro_logo::text(c, p),
+        None => crate::recolor_art::fish_logo(p),
+    };
     write(&logo_path, &logo)?;
     let swatch: String = [p.g("bg"), p.g("panel"), p.g("border"), p.g("deep"), a, p.g("bright"), p.g("textDim"), t]
         .iter()
@@ -893,7 +905,7 @@ pub fn fastfetch(cx: &Cx, p: &P) -> Res {
     mods.push(custom(format!("{swatch}\u{1b}[0m")));
     // знак: в kitty — настоящей картинкой (чёткие клетки на любом экране), иначе полублоками;
     // fetchLogo: auto (картинка, если kitty стоит), image, blocks
-    let image = match cx.st.get("fetchLogo").and_then(|v| v.as_str()).unwrap_or("auto") {
+    let image = match mode.as_str() {
         "image" => true,
         "blocks" => false,
         _ => crate::doctor::which("kitty"),
@@ -901,11 +913,15 @@ pub fn fastfetch(cx: &Cx, p: &P) -> Res {
     let png_path = cx.cfg.join("fastfetch/nemo-logo.png");
     if image {
         let tmp = png_path.with_extension("png~");
-        if std::fs::write(&tmp, crate::recolor_art::fish_png(p)).and_then(|_| std::fs::rename(&tmp, &png_path)).is_err() {
+        let bytes = match &distro_img {
+            Some(c) => crate::distro_logo::png(c, 8, p),
+            None => crate::recolor_art::fish_png(p),
+        };
+        if std::fs::write(&tmp, bytes).and_then(|_| std::fs::rename(&tmp, &png_path)).is_err() {
             let _ = std::fs::remove_file(&tmp);
         }
     }
-    let (logo_rows, logo_cols) = if image { (6, 22) } else { (logo.lines().count() as i64, 16) };
+    let (logo_rows, logo_cols) = if image { if distro_img.is_some() { (9, 18) } else { (6, 22) } } else { (logo.lines().count() as i64, 16) };
     // знак — по вертикали посередине блока строк, а не прижат к заголовку
     let top = ((mods.len() as i64 - logo_rows) / 2).max(0);
     let conf = J::O(vec![
