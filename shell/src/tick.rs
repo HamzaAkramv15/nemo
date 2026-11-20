@@ -45,9 +45,16 @@ impl App {
         let now = Instant::now();
         // старт позади (конфиги, темы значков, шрифты, все модули) или окно закрыто полминуты
         // назад: их код больше не исполняется — из памяти; нужное вернётся из кеша страниц
+        // и дальше раз в три минуты, пока шелл простаивает: часы и тик каждую секунду возвращают в память одни и те же
+        // страницы кода, а в покое им нужна лишь малая часть; возврат из кеша страниц — доли миллисекунды
         if self.shed_at.is_some_and(|t| now >= t) && self.st.modal.is_none() && self.st.popup.is_none() {
-            self.shed_at = None;
-            nemo_px::shed_code();
+            // покой — это тот же признак, по которому тик замедляется до секунды
+            let idle = self.tick_interval() >= Duration::from_millis(1000);
+            self.shed_at = Some(now + Duration::from_secs(if idle { 180 } else { 20 }));
+            if idle {
+                nemo_px::shed_code();
+                nemo_px::trim_heap();
+            }
         }
         // текст песни: звучит следующая строка — перерисовать
         if self.lyrics_live() {
