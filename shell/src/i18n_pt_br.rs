@@ -1399,4 +1399,9 @@ const PT_BR: &[(&str, &str)] = &[
     ("release signatures", "assinaturas das versões"),
     ("installs despite a signature", "instalações apesar da assinatura"),
     ("report: an archive in your home folder, no passwords inside", "relatório: um arquivo na pasta pessoal, sem senhas"),
+    ("reef look", "visual de recife"),
+    ("panel look", "aparência dos painéis"),
+    ("reef", "recife"),
+    ("reef layout", "layout de recife"),
+    ("around the fish; old ones go off", "em volta do peixe; os antigos desligam"),
 ];

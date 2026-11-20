@@ -97,6 +97,8 @@ pub enum Act {
     STheme(usize),
     SThemeDel(usize),
     SWidgetAdd(&'static str),
+    /// рифовая раскладка виджетов вокруг обоев по умолчанию
+    SWidgetReef,
     /// готовый скрипт виджетом: кладёт его в папку скриптов (если нет) и добавляет виджет «скрипт» с ним
     SWidgetAddScript(&'static str),
     /// запись автозапуска по номеру в списке startup::entries

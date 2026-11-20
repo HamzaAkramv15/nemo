@@ -496,8 +496,12 @@ impl App {
                     s.icon_style = cycle(&[("", ""), ("pixel", ""), ("normal", "")], &s.icon_style).into();
                     self.settings_changed();
                 }
+                "widget_look" => {
+                    s.widget_look = cycle(&[("plain", ""), ("reef", "")], &s.widget_look).into();
+                    self.settings_changed();
+                }
                 "personality" => {
-                    s.personality = cycle(&[("quiet", ""), ("off", "")], &s.personality).into();
+                    s.personality = cycle(&[("quiet", ""), ("playful", ""), ("off", "")], &s.personality).into();
                 }
                 "date_style" => {
                     s.date_style = cycle(&[("dm", ""), ("md", ""), ("iso", "")], &s.date_style).into();
@@ -734,6 +738,7 @@ impl App {
                 crate::startup::toggle(*i);
                 self.dirty(&SKind::Modal);
             }
+            Act::SWidgetReef => self.widget_reef_layout(),
             Act::SWidgetAddScript(name) => {
                 // готовый скрипт в папку (свой файл с этим именем остаётся как есть)
                 let _ = crate::scriptlib::add(name);

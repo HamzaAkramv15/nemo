@@ -711,4 +711,9 @@ const AR: &[(&str, &str)] = &[
     ("release signatures", "تواقيع الإصدارات"),
     ("installs despite a signature", "تثبيتات رغم التوقيع"),
     ("report: an archive in your home folder, no passwords inside", "التقرير: أرشيف في المجلد الشخصي بلا كلمات مرور"),
+    ("reef look", "مظهر الشعاب"),
+    ("panel look", "مظهر اللوحات"),
+    ("reef", "الشعاب"),
+    ("reef layout", "تخطيط الشعاب"),
+    ("around the fish; old ones go off", "حول السمكة؛ تُعطَّل السابقة"),
 ];

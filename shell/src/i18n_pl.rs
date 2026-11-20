@@ -1622,4 +1622,9 @@ const PL: &[(&str, &str)] = &[
     ("release signatures", "podpisy wydań"),
     ("installs despite a signature", "instalacje mimo podpisu"),
     ("report: an archive in your home folder, no passwords inside", "raport: archiwum w folderze domowym, bez haseł"),
+    ("reef look", "rafowy wygląd"),
+    ("panel look", "wygląd paneli"),
+    ("reef", "rafowy"),
+    ("reef layout", "układ rafy"),
+    ("around the fish; old ones go off", "wokół ryby; dawne wyłączone"),
 ];

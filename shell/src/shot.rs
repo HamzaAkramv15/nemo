@@ -117,6 +117,9 @@ const TARGETS: &[&str] = &[
     "widget:bt-l",
     "widget:script",
     "widget:script-none",
+    "widget:clock-reef",
+    "widget:cal-reef",
+    "widget:graph-reef",
     "popup:weather",
     "popup:weather-none",
     "notif",
@@ -791,6 +794,16 @@ fn shoot(st: &mut State, res: &mut Res, target: &str, path: &Path) {
             let mut w = Widget { on: true, ..Widget::new(900, k) };
             if matches!(var, "s" | "l") {
                 w.size = var.into();
+            }
+            // рифовый вид (#14): подложка с линией воды и пузырьками
+            if var == "reef" {
+                st.set.widget_look = "reef".into();
+                w.frame = true;
+                w.size = if k == "clock" { "m".into() } else { "s".into() };
+                w.date = true;
+                if k == "graph" {
+                    w.style = "wave".into();
+                }
             }
             if k == "script" {
                 w.source = if var == "none" { String::new() } else { "btc".into() };

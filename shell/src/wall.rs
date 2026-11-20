@@ -36,13 +36,18 @@ pub fn cover_rect(sw: u32, sh: u32, tw: u32, th: u32) -> (u32, u32, u32, u32) {
     ((sw - cw.min(sw)) / 2, (sh - ch.min(sh)) / 2, cw, ch)
 }
 
-/// своя картинка (с раскрытым ~) или None — пиксельные из палитры
+/// обои по умолчанию: рифовые, с рыбкой-логотипом (config/wallpapers; установщик кладёт их сюда). Только у тех, у кого
+/// в настройках нет своего выбора; пустая строка — по-прежнему «пиксельные из палитры»
+pub const DEFAULT_WALL: &str = "~/.local/share/nemo/wallpapers/nemo-reef.png";
+
+/// своя картинка (с раскрытым ~) или None — пиксельные из палитры; обои по умолчанию, которых нет на диске, — тоже None
 pub fn own(s: &Settings) -> Option<PathBuf> {
     let p = s.wallpaper.trim();
     if p.is_empty() {
         return None;
     }
-    Some(nemo_px::paths::expand(p))
+    let path = nemo_px::paths::expand(p);
+    (p != DEFAULT_WALL || path.exists()).then_some(path)
 }
 
 /// что рисовать: картинка, выбранная в skwd-wall (если он включён и что-то выбрал), иначе своя

@@ -1262,4 +1262,9 @@ const PAIRS: &[(&str, &str)] = &[
     ("подпись выпусков", "release signatures"),
     ("установки вопреки подписи", "installs despite a signature"),
     ("отчёт: архив в домашней папке, паролей в нём нет", "report: an archive in your home folder, no passwords inside"),
+    ("рифовый вид", "reef look"),
+    ("вид подложек", "panel look"),
+    ("рифовый", "reef"),
+    ("рифовая раскладка", "reef layout"),
+    ("вокруг рыбки; прежние выключаются", "around the fish; old ones go off"),
 ];

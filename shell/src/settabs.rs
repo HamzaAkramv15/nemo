@@ -270,6 +270,14 @@ pub(crate) fn tab_widgets(ui: &mut Ui, st: &State, b: R) {
     // для всех виджетов без подложки: читаемы на любых обоях
     y = title(ui, px, y, pw, "без подложки");
     ui.toggle(R::new(px, y, pw, 40), "в тон обоям", "на светлом — тёмный текст с тенью", s.widget_contrast, Act::SBool("widget_contrast"));
+    y += 52;
+    // рифовый вид: подложки с линией воды и пузырьками, и раскладка вокруг рыбки на обоях по умолчанию
+    y = title(ui, px, y, pw, "рифовый вид");
+    let look = if s.widget_look == "reef" { "рифовый" } else { "обычный" };
+    opt_btn(ui, R::new(px, y, pw, 26), "вид подложек", look, Act::SCycle("widget_look"));
+    y += 32;
+    ui.button(R::new(px, y, pw, 28), "рифовая раскладка", "leaf", Tone::Plain, false, true, Act::SWidgetReef);
+    ui.text_in(PX, R::new(px, y + 32, pw, 18), "вокруг рыбки; прежние выключаются", t.text_faint);
 }
 
 /// пиксельность одним ползунком: 0 — гладко, 1 — мягче, 2 — только nemo, 3 — всё пиксельное (по умолчанию)

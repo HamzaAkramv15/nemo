@@ -1622,4 +1622,9 @@ const UK: &[(&str, &str)] = &[
     ("release signatures", "підписи випусків"),
     ("installs despite a signature", "встановлення всупереч підпису"),
     ("report: an archive in your home folder, no passwords inside", "звіт: архів у домашній папці, без паролів"),
+    ("reef look", "рифовий вигляд"),
+    ("panel look", "вигляд підкладок"),
+    ("reef", "рифовий"),
+    ("reef layout", "рифова розкладка"),
+    ("around the fish; old ones go off", "навколо рибки; старі вимикаються"),
 ];

@@ -377,11 +377,41 @@ pub fn viz(ui: &mut Ui, r: R, bands: &[f32], style: &str, c: C, idle: bool) {
     }
 }
 
-fn panel(ui: &mut Ui, w: &Widget, r: R) {
+fn panel(ui: &mut Ui, st: &State, w: &Widget, r: R) {
     let t = ui.t;
-    if w.frame {
-        ui.cv.pxbox(r, &BoxStyle::new(t.glass_bg(), t.border).shadow(4));
+    if !w.frame {
+        return;
     }
+    ui.cv.pxbox(r, &BoxStyle::new(t.glass_bg(), t.border).shadow(4));
+    if st.set.widget_look == "reef" {
+        reef_trim(ui, r);
+    }
+}
+
+/// рифовая отделка подложки: сверху «линия воды» (светлые чёрточки через клетку, как рябь), в правом нижнем углу три
+/// пузырька-кольца. Всё в целых пикселях и в цветах темы, без своих цветов
+fn reef_trim(ui: &mut Ui, r: R) {
+    let t = ui.t;
+    let ripple = t.text_hi.alpha(0.55);
+    let mut x = r.x + 8;
+    let mut up = false;
+    while x + 6 < r.right() - 8 {
+        ui.cv.fill(R::new(x, r.y + 3 + up as i32, 6, 2), ripple);
+        x += 12;
+        up = !up;
+    }
+    // пузырьки: кольцо 5×5 с пустой серединой и два поменьше выше
+    let ring = |ui: &mut Ui, x: i32, y: i32, n: i32, c: C| {
+        ui.cv.fill(R::new(x + 1, y, n - 2, 1), c);
+        ui.cv.fill(R::new(x + 1, y + n - 1, n - 2, 1), c);
+        ui.cv.fill(R::new(x, y + 1, 1, n - 2), c);
+        ui.cv.fill(R::new(x + n - 1, y + 1, 1, n - 2), c);
+    };
+    let c = t.red.alpha(0.8);
+    let (bx, by) = (r.right() - 22, r.bottom() - 18);
+    ring(ui, bx, by, 7, c);
+    ring(ui, bx - 10, by + 7, 5, c.alpha(0.6));
+    ring(ui, bx + 4, by - 10, 5, c.alpha(0.5));
 }
 
 /// средняя яркость обоев (0..1) под прямоугольником r монитора ow×oh. Картинка обоев ложится на
@@ -432,7 +462,7 @@ fn draw_widget(ui: &mut Ui, st: &State, w: &Widget, sw: i32, sh: i32) {
     let phase = st.sys_phase();
     match w.kind.as_str() {
         "clock" => {
-            panel(ui, w, r);
+            panel(ui, st, w, r);
             let tm = local_now();
             let big = match w.size.as_str() {
                 "s" => 48,
@@ -467,7 +497,7 @@ fn draw_widget(ui: &mut Ui, st: &State, w: &Widget, sw: i32, sh: i32) {
             }
         }
         "graph" => {
-            panel(ui, w, r);
+            panel(ui, st, w, r);
             let (ser, full) = st.sys.series(&w.source);
             let data: Vec<f32> = ser.tail(160).iter().map(|v| v / full).collect();
             let (label, val) = match w.source.as_str() {
@@ -495,7 +525,7 @@ fn draw_widget(ui: &mut Ui, st: &State, w: &Widget, sw: i32, sh: i32) {
             }
         }
         "net" => {
-            panel(ui, w, r);
+            panel(ui, st, w, r);
             let full = st.sys.h_rx.max().max(st.sys.h_tx.max()).max(64.0 * 1024.0);
             let rx: Vec<f32> = st.sys.h_rx.tail(160).iter().map(|v| v / full).collect();
             let tx: Vec<f32> = st.sys.h_tx.tail(160).iter().map(|v| v / full).collect();
@@ -513,16 +543,16 @@ fn draw_widget(ui: &mut Ui, st: &State, w: &Widget, sw: i32, sh: i32) {
             graph(ui, R::new(pad, gy, r.w - 2 * pad, r.h - gy - pad), &rx, &w.style, &w.anim, phase, c, Some((&tx, t.text_dim)));
         }
         "media" => {
-            panel(ui, w, r);
+            panel(ui, st, w, r);
             media_card(ui, st, R::new(10, 10, r.w - 20, r.h - 20), &w.style, c, w.label, true);
         }
         "cal" => {
-            panel(ui, w, r);
+            panel(ui, st, w, r);
             let pad = if w.frame { 12 } else { 2 };
             calendar(ui, st, R::new(pad, pad, r.w - 2 * pad, r.h - 2 * pad), 0, c, false);
         }
         "weather" | "script" | "bt" => {
-            panel(ui, w, r);
+            panel(ui, st, w, r);
             let pad = if w.frame { 12 } else { 4 };
             let f = match w.kind.as_str() {
                 "weather" => weather,
@@ -935,6 +965,50 @@ impl App {
         let (bt, br, bb, bl) = self.bar_reserve(out);
         let top = (bt - RISE).max(0);
         (bl, (ow - br - ww + SHADOW).max(bl), top, (oh - bb - wh + SHADOW).max(top))
+    }
+
+    /// рифовая раскладка: часы, календарь и два графика вокруг рыбки обоев по умолчанию (она на 66% ширины, 46% высоты,
+    /// место вокруг неё остаётся свободным). Прежние виджеты не удаляются, а выключаются; прошлая рифовая раскладка
+    /// (виджеты с пометкой text = "reef") заменяется новой
+    pub fn widget_reef_layout(&mut self) {
+        let out = self.focus_out();
+        if out.is_empty() {
+            return;
+        }
+        let (ow, oh) = self.output_size(&out);
+        let at = |fx: f32, fy: f32| ((ow as f32 * fx) as i32, (oh as f32 * fy) as i32);
+        let s = &mut self.st.set;
+        s.widgets.retain(|w| w.text != "reef");
+        for w in s.widgets.iter_mut() {
+            w.on = false;
+        }
+        // (вид, источник, стиль, размер, x, y в долях монитора)
+        let parts: [(&str, &str, &str, &str, f32, f32); 4] = [
+            ("clock", "", "bars", "m", 0.43, 0.07),
+            ("cal", "", "bars", "s", 0.79, 0.08),
+            ("graph", "cpu", "wave", "s", 0.50, 0.62),
+            ("graph", "ram", "line", "s", 0.70, 0.62),
+        ];
+        for (kind, source, style, size, fx, fy) in parts {
+            let id = s.next_widget_id();
+            let mut w = Widget::new(id, kind);
+            let (x, y) = at(fx, fy);
+            w.x = x;
+            w.y = y;
+            w.frame = true;
+            w.size = size.into();
+            w.date = true;
+            w.seconds = false;
+            w.text = "reef".into();
+            if !source.is_empty() {
+                w.source = source.into();
+                w.style = style.into();
+            }
+            s.widgets.push(w);
+        }
+        s.widget_look = "reef".into();
+        self.st.sel_widget = s.widgets.last().map_or(0, |w| w.id);
+        self.settings_changed();
     }
 
     pub fn set_editing(&mut self, on: bool) {

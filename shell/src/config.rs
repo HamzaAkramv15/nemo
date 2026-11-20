@@ -396,6 +396,8 @@ pub struct Settings {
     /// виджеты без подложки — в тон обоям под ними: на светлом месте тёмный текст, на тёмном
     /// светлый, и жёсткая тень у букв (widgets.rs)
     pub widget_contrast: bool,
+    /// вид подложек виджетов: plain — как есть, reef — рифовый (линия воды сверху, пузырьки в углу), под обои по умолчанию
+    pub widget_look: String,
 
     /// клавиши: id из keys::BINDS → сочетание ("" — выключено); чего нет — по умолчанию
     pub binds: std::collections::BTreeMap<String, String>,
@@ -493,7 +495,7 @@ pub fn page_keys(tab: &str) -> &'static [&'static str] {
         "anim" => &["animations", "animSpeed", "animClose", "reveal", "revealGrain", "anims"],
         "wall" => &["wallDir", "wallFit", "wallPixel", "wallTone", "wallDim", "wallKanji"],
         "bar" => &["bar*", "taskWidth", "cpuStyle", "tempStyle", "trayMode", "trayPixel", "batHideFull", "privacyMic", "privacyCam", "privacyScreen", "mediaViz", "mediaView", "controlTiles"],
-        "widgets" => &["widgets", "widgetContrast"],
+        "widgets" => &["widgets", "widgetContrast", "widgetLook"],
         "dock" => &["dock*"],
         "windows" => &["stacking", "titlebars", "floatMedia", "floatPip", "floatApps", "floatW", "floatH", "winGap", "winLeft", "winRight", "winTop", "winBottom", "winRadius", "winBorder", "castHide"],
         "notif" => &["dnd", "notifTimeout", "notifMax", "notifHistory", "notifPos", "osdPos", "osdBright", "notifOffset", "osdOffset", "notifImages", "island", "notifMuted"],
@@ -667,7 +669,7 @@ impl Default for Settings {
             icon_theme: String::new(),
             icon_pixel: true,
             icon_tint: false,
-            wallpaper: String::new(),
+            wallpaper: crate::wall::DEFAULT_WALL.into(),
             wall_dir: String::new(),
             wall_pixel: 1,
             wall_kanji: true,
@@ -788,6 +790,7 @@ impl Default for Settings {
                 Widget { id: 1, x: 48, y: 72, frame: false, ..Widget::new(1, "clock") },
             ],
             widget_contrast: true,
+            widget_look: "plain".into(),
             binds: Default::default(),
             custom_binds: vec![],
             fetch_full: false,
@@ -952,6 +955,9 @@ impl Settings {
             if !["", "power-saver", "balanced", "performance"].contains(&p.as_str()) {
                 p.clear();
             }
+        }
+        if !["plain", "reef"].contains(&self.widget_look.as_str()) {
+            self.widget_look = "plain".into();
         }
         if !["off", "quiet", "playful"].contains(&self.personality.as_str()) {
             self.personality = "quiet".into();

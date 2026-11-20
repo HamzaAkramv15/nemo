@@ -66,6 +66,8 @@ pub const INDEX: &[Entry] = &[
     Entry { tab: "widgets", label: "расставить", kw: "" },
     Entry { tab: "widgets", label: "на место", kw: "" },
     Entry { tab: "widgets", label: "в тон обоям", kw: "" },
+    Entry { tab: "widgets", label: "вид подложек", kw: "" },
+    Entry { tab: "widgets", label: "рифовая раскладка", kw: "" },
     Entry { tab: "notif", label: "карточки", kw: "" },
     Entry { tab: "notif", label: "где на экране — щёлкни место на схеме", kw: "" },
     Entry { tab: "notif", label: "сервер", kw: "" },

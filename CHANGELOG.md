@@ -9,6 +9,10 @@ has its Russian line in CHANGELOG.ru.md: `tools/check.sh` checks that.
 
 ## Unreleased
 
+- Default wallpaper: the reef (pixel ruins under water) with the new fish as its one fish, shipped in `config/wallpapers` and installed to `~/.local/share/nemo/wallpapers`. A fresh install uses it; an existing choice, including the palette's pixel wallpaper, stays.
+- Widgets: an optional **reef look** (a waterline and bubbles on framed widgets) and a **reef layout** button that places a clock, a calendar and two graphs around the fish; your old widgets are switched off, not deleted.
+- Fix: the fish-character button now really cycles quiet, playful and off (playful could not be picked before).
+
 - New logo: the pixel fish (16 by 8 cells, square eye). Redrawn as clean vectors from the supplied picture, without its text and background; used in the README, the logo kit and web icons, the shell's own mark (about, welcome, lock screen, wallpaper) and the fastfetch logo.
 
 - Scrolling: a touchpad swipe no longer counts every tiny movement as a full step. Mouse notches scroll as before; touchpad movement now follows the finger in Files and adds up to whole steps for zoom, volume, seek and the shell's lists (shared `nemo_px::wheel`, 3.2.2).

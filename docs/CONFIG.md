@@ -403,6 +403,8 @@ can read and change, and the few that take a setting (`disk`, `utc`, `gitdir`) s
 ### Widgets
 
 `widgetContrast` (default `true`): widgets without a frame follow the wallpaper under them: on a light
+
+`widgetLook` (default `"plain"`): `reef` gives framed widgets a waterline of light dashes along the top and three small bubbles in the bottom corner. The «reef layout» button in settings → desktop → widgets places a clock, a calendar and two graphs around the fish of the default wallpaper (`~/.local/share/nemo/wallpapers/nemo-reef.png`, the `wallpaper` default on a fresh install) and switches your other widgets off, it does not delete them.
 spot they are drawn with the light variant of the theme (dark text, a deeper accent), on a dark one
 with the dark variant, and every letter gets a hard one-font-pixel shadow in the opposite tone, so a
 clock stays readable on bright or busy wallpapers. Measured on the prepared wallpaper image after a

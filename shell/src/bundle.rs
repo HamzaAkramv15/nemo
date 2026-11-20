@@ -24,7 +24,7 @@ const FORMAT: &str = "nemo-bundle";
 fn is_look(k: &str) -> bool {
     const EXACT: &[&str] = &[
         "accent", "palette", "tint", "light", "glass", "lift", "inner", "dim", "blurShell", "blurTerm", "preset", "corners", "radius", "shadow", "iconStyle", "animations", "animSpeed", "animClose", "reveal", "revealGrain", "scanlines", "iconTheme", "iconPixel", "cursor", "cursorSize",
-        "curtainStyle", "curtainCell", "cpuStyle", "tempStyle", "trayMode", "clockDate", "clockSeconds", "taskWidth", "widgets", "widgetContrast", "titlebars", "fetchFull", "winGap", "winLeft", "winRight", "winTop", "winBottom",
+        "curtainStyle", "curtainCell", "cpuStyle", "tempStyle", "trayMode", "clockDate", "clockSeconds", "taskWidth", "widgets", "widgetLook", "widgetContrast", "titlebars", "fetchFull", "winGap", "winLeft", "winRight", "winTop", "winBottom",
         "mediaViz", "mediaView",
     ];
     // barOutputs, dockPins, wallDir — имена экранов, программы и папки этой машины

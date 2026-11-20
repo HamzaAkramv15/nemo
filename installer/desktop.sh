@@ -41,6 +41,8 @@ plan_record() {
 
 # ── fonts ───────────────────────────────────────────────────────────────────
 do_fonts() {
+  # the shipped wallpaper rides along: it is the same kind of file (kept in the home folder, never in /usr)
+  install -Dm644 -t "$HOME/.local/share/nemo/wallpapers" "$ROOT"/config/wallpapers/*.png || return 1
   local dir="$HOME/.local/share/fonts/nemo"
   install -Dm644 -t "$dir" "$ROOT"/fonts/*.ttf "$ROOT"/fonts/OFL-*.txt || return 1
   # Monocraft is 31 MB, the terminal's default font: --no-monocraft leaves it out (a marker keeps

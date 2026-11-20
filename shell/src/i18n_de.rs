@@ -1622,4 +1622,9 @@ const DE: &[(&str, &str)] = &[
     ("release signatures", "Signaturen der Versionen"),
     ("installs despite a signature", "Installationen trotz Signatur"),
     ("report: an archive in your home folder, no passwords inside", "Bericht: ein Archiv im Home-Ordner, ohne Passwörter"),
+    ("reef look", "Riff-Look"),
+    ("panel look", "Aussehen der Felder"),
+    ("reef", "Riff"),
+    ("reef layout", "Riff-Anordnung"),
+    ("around the fish; old ones go off", "um den Fisch; alte werden aus"),
 ];
