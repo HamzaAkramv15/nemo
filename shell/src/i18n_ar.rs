@@ -648,4 +648,5 @@ const AR: &[(&str, &str)] = &[
     ("install the held ones too", "ثبّت المحجوزة أيضًا"),
     ("a system snapshot and a question in the terminal come first", "أولًا لقطة للنظام وسؤال في الطرفية"),
     ("the same, even if the signature fails the rule (you are sure)", "الأمر نفسه حتى لو لم يوافق التوقيع القاعدة (أنت متأكد)"),
+    ("coffee off after, min (0: no limit)", "القهوة تنطفئ بعد، دقيقة (0: بلا حد)"),
 ];

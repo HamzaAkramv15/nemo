@@ -9,6 +9,9 @@ has its Russian line in CHANGELOG.ru.md: `tools/check.sh` checks that.
 
 ## Unreleased
 
+- Caffeine you switch on by hand now survives a restart of the shell and comes back with its remaining time; «until I turn it off» (0 minutes) stays on until you do (it used to be forgotten at every shell restart, including after an update). Coffee started by «coffee on its own» is still not remembered.
+- fastfetch uses the logo fastfetch itself ships for your distribution (the Fedora logo on Fedora), recoloured from the shell's palette: the small one in the short layout, the large one in the extended layout. `fetchLogo` `pixel` draws the distribution's logo icon as chunky pixels; `image` and `blocks` keep the Nemo fish.
+
 - fastfetch shows your distribution's own logo (Fedora on Fedora), taken from the system's logo icon (`LOGO=` in os-release) and redrawn as chunky pixels in the palette colours, so it changes with the shell's colours; the Nemo fish remains for systems with no logo and as `fetchLogo` `image` or `blocks`. The old fastfetch config from before the rename is rewritten again (it showed only a short list and a missing logo).
 
 - Updates explain themselves: under the notes, «what this means» says how many fixes and other changes the notes list and whether they mention security, that the shell restarts by itself and windows stay (niri and the login screen change from the next login), and what happens if you skip it. The «reports» button asks GitHub about problem reports, security advisories and a newer release for that version and shows what it found, from where and how long ago; no reports is shown as «none seen», never as «safe».

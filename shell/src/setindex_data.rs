@@ -126,7 +126,7 @@ pub const INDEX: &[Entry] = &[
     Entry { tab: "comfort", label: "погасить экран через", kw: "screen off timeout idle blank display sleep" },
     Entry { tab: "comfort", label: "запирать перед сном", kw: "lock before sleep suspend lid" },
     Entry { tab: "comfort", label: "кофе", kw: "caffeine coffee keep awake" },
-    Entry { tab: "comfort", label: "кофе: выкл. через, мин", kw: "caffeine timer default duration minutes auto off" },
+    Entry { tab: "comfort", label: "кофе: выкл. через, мин (0 — без срока)", kw: "caffeine timer default duration minutes auto off" },
     Entry { tab: "comfort", label: "не беспокоить", kw: "dnd do not disturb silent quiet notifications mute focus" },
     Entry { tab: "comfort", label: "ночной свет", kw: "night light blue light filter warm colours wlsunset redshift eye strain" },
     Entry { tab: "comfort", label: "весь день, без расписания", kw: "night light all day always on schedule" },

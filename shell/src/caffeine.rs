@@ -4,7 +4,8 @@
 // по таймеру и держится, пока жива нить. Выключили (или вышло время) — нить отпускает блокировку,
 // и шелл заводит таймеры простоя заново. Крышка ноутбука по-прежнему усыпляет и запирает: кофе —
 // про простой, не про закрытый ноутбук в сумке. Включается из бара, плиткой панели управления,
-// `nemo caffeine on|off|toggle|N` (N минут). Не переживает перезапуск шелла: это «сейчас», не настройка.
+// `nemo caffeine on|off|toggle|N` (N минут). Включённое рукой переживает перезапуск шелла (state/caffeine.json): «пока не
+// выключу» значит пока не выключишь, а не пока шелл не перезапустят; срок с остатком тоже. «Само» (полный экран) не помнится.
 // i18n: inline pairs
 
 use crate::app::{App, SKind};
@@ -21,6 +22,8 @@ pub struct Caffeine {
     pub auto: bool,
     /// пока этот отправитель жив — нить держит блокировку logind; убрали — она отпускает
     hold: Option<mpsc::Sender<()>>,
+    /// сохранённое состояние уже поднято после старта шелла
+    restored: bool,
 }
 
 impl Caffeine {
@@ -65,6 +68,29 @@ pub fn auto_step(setting: bool, full: bool, on: bool, auto: bool) -> AutoStep {
         // ушли с полного экрана — гасим только то, что включили сами
         (true, false, true, true) => AutoStep::Stop,
         _ => AutoStep::Nothing,
+    }
+}
+
+/// файл с тем, что включено рукой: {"until": unix-секунды или null}; нет файла — кофе выключено
+fn state_path() -> std::path::PathBuf {
+    nemo_px::paths::state_dir().join("caffeine.json")
+}
+
+/// что записать: None — ничего не помнить (выключено или включено само)
+pub fn encode(on: bool, auto: bool, until_unix: Option<u64>) -> Option<String> {
+    (on && !auto).then(|| serde_json::json!({ "until": until_unix }).to_string())
+}
+
+/// из файла — сколько минут осталось: Some(0) — без срока, Some(n) — ещё n минут, None — кофе не поднимать
+/// (файла нет, мусор или срок уже вышел)
+pub fn decode(text: &str, now: u64) -> Option<u32> {
+    let v: serde_json::Value = serde_json::from_str(text).ok()?;
+    match v.get("until")? {
+        serde_json::Value::Null => Some(0),
+        u => {
+            let left = u.as_u64()?.checked_sub(now).filter(|s| *s > 0)?;
+            Some(left.div_ceil(60).clamp(1, 24 * 60) as u32)
+        }
     }
 }
 
@@ -113,8 +139,34 @@ impl App {
             // простой считался заново с последнего движения: заводим таймеры сначала
             self.setup_idle();
         }
+        self.caffeine_save();
         self.dirty(&SKind::Bar);
         self.dirty(&SKind::Popup);
+    }
+
+    /// запомнить включённое рукой (и срок), забыть выключенное
+    fn caffeine_save(&self) {
+        let c = &self.st.caffeine;
+        let until = c.until.map(|t| nemo_px::time::unix_now() + t.saturating_duration_since(Instant::now()).as_secs());
+        match encode(c.on, c.auto, until) {
+            Some(t) => {
+                let _ = crate::config::write_atomic(&state_path(), &t);
+            }
+            None => {
+                let _ = std::fs::remove_file(state_path());
+            }
+        }
+    }
+
+    /// после запуска шелла: кофе, включённое рукой до перезапуска, горит снова (и со своим остатком срока)
+    fn caffeine_restore(&mut self) {
+        let Ok(text) = std::fs::read_to_string(state_path()) else { return };
+        match decode(&text, nemo_px::time::unix_now()) {
+            Some(m) => self.caffeine_set(true, m),
+            None => {
+                let _ = std::fs::remove_file(state_path());
+            }
+        }
     }
 
     /// клик по значку: выключить, а включить — на срок из настроек (0 — без срока)
@@ -167,6 +219,10 @@ impl App {
     }
 
     pub fn caffeine_tick(&mut self) {
+        if !self.st.caffeine.restored {
+            self.st.caffeine.restored = true;
+            self.caffeine_restore();
+        }
         self.caffeine_auto();
         if self.st.caffeine.until.is_some_and(|t| Instant::now() >= t) {
             self.caffeine_set(false, 0);
@@ -188,6 +244,27 @@ mod tests {
         assert_eq!(n(true, Some(200)), Some(240));
         assert_eq!(n(true, Some(240)), Some(0));
         assert_eq!(n(true, None), None);
+    }
+
+    #[test]
+    fn open_ended_coffee_is_remembered_and_comes_back_without_a_deadline() {
+        use super::{decode, encode};
+        let t = encode(true, false, None).unwrap();
+        assert_eq!(decode(&t, 1_000_000), Some(0), "until you say");
+        assert_eq!(encode(false, false, None), None, "off is forgotten");
+        assert_eq!(encode(true, true, None), None, "coffee the shell started itself is not remembered");
+    }
+
+    #[test]
+    fn a_deadline_comes_back_with_what_is_left_and_not_after_it_passed() {
+        use super::{decode, encode};
+        let t = encode(true, false, Some(1_000_000 + 600)).unwrap();
+        assert_eq!(decode(&t, 1_000_000), Some(10));
+        assert_eq!(decode(&t, 1_000_000 + 541), Some(1), "a minute and a bit left rounds up");
+        assert_eq!(decode(&t, 1_000_000 + 600), None, "ran out");
+        assert_eq!(decode(&t, 1_000_000 + 9_999), None);
+        assert_eq!(decode("garbage", 5), None);
+        assert_eq!(decode("{}", 5), None);
     }
 
     #[test]

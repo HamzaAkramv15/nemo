@@ -1559,4 +1559,5 @@ const UK: &[(&str, &str)] = &[
     ("install the held ones too", "встановити й утримане також"),
     ("a system snapshot and a question in the terminal come first", "спершу знімок системи й запитання в терміналі"),
     ("the same, even if the signature fails the rule (you are sure)", "те саме, навіть якщо підпис не проходить правило (ти впевнений)"),
+    ("coffee off after, min (0: no limit)", "кава вимкн. через, хв (0: без ліміту)"),
 ];

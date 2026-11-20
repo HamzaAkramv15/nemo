@@ -932,7 +932,7 @@ impl Settings {
         if self.fetch_logo == "auto" {
             self.fetch_logo = "distro".into();
         }
-        if !["distro", "image", "blocks"].contains(&self.fetch_logo.as_str()) {
+        if !["distro", "pixel", "image", "blocks"].contains(&self.fetch_logo.as_str()) {
             self.fetch_logo = "distro".into();
         }
         if !["", "pixel", "normal"].contains(&self.icon_style.as_str()) {

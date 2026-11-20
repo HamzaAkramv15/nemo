@@ -849,15 +849,16 @@ pub fn fastfetch(cx: &Cx, p: &P) -> Res {
     let esc = |h: &str| format!("\u{1b}[{}m", e(h));
     let (a, d, f, t) = (p.g("accent"), p.g("border"), p.g("textFaint"), p.g("text"));
     let logo_path = cx.cfg.join("fastfetch/nemo-logo.txt");
-    // знак: по умолчанию — значок самого дистрибутива (fedora на Fedora), крупными пикселями в цветах палитры;
-    // fetchLogo: distro (по умолчанию; нет значка в системе — знак Nemo), auto и image — рыбка Nemo картинкой в kitty, blocks — рыбка блоками
-    // (saved «auto» was the old default and means distro now; unknown values too)
+    // знак. fetchLogo: distro (по умолчанию) — родной знак fastfetch для этого дистрибутива (Fedora на Fedora) в цветах палитры,
+    // мелкий вариант в коротком виде и крупный в расширенном; pixel — значок системы крупными пикселями; image и blocks —
+    // рыбка Nemo картинкой в kitty и полублоками. Сохранённое «auto» было прежним умолчанием и значит distro
     let mode = match cx.st.get("fetchLogo").and_then(|v| v.as_str()).unwrap_or("distro") {
-        m @ ("image" | "blocks") => m.to_string(),
+        m @ ("image" | "blocks" | "pixel") => m.to_string(),
         _ => "distro".to_string(),
     };
-    let distro_img = (mode == "distro").then(|| crate::distro_logo::current(24)).flatten();
-    let distro_txt = (mode == "distro").then(|| crate::distro_logo::current(16)).flatten();
+    let builtin = mode == "distro";
+    let distro_img = (mode == "pixel").then(|| crate::distro_logo::current(24)).flatten();
+    let distro_txt = (mode == "pixel").then(|| crate::distro_logo::current(16)).flatten();
     let logo = match &distro_txt {
         Some(c) => crate::distro_logo::text(c, p),
         None => crate::recolor_art::fish_logo(p),
@@ -908,6 +909,7 @@ pub fn fastfetch(cx: &Cx, p: &P) -> Res {
     let image = match mode.as_str() {
         "image" => true,
         "blocks" => false,
+        _ if builtin => false,
         _ => crate::doctor::which("kitty"),
     };
     let png_path = cx.cfg.join("fastfetch/nemo-logo.png");
@@ -926,7 +928,16 @@ pub fn fastfetch(cx: &Cx, p: &P) -> Res {
     let top = ((mods.len() as i64 - logo_rows) / 2).max(0);
     let conf = J::O(vec![
         ("$schema", s("https://github.com/fastfetch-cli/fastfetch/raw/dev/doc/json_schema.json")),
-        ("logo", J::O(if image {
+        ("logo", J::O(if builtin {
+            // родной знак дистрибутива: ячейки цвета 1–9 берут тона палитры (1 — основной, 2 — светлый, дальше спокойнее)
+            let tone = |i: usize| J::S(e(["accent", "bright", "textDim", "text", "border", "accent", "bright", "textDim", "text"][i]));
+            let tone = |i: usize| match i { 0 => J::S(e(a)), _ => tone(i) };
+            vec![
+                ("type", s(if full { "auto" } else { "small" })),
+                ("color", J::O(["1", "2", "3", "4", "5", "6", "7", "8", "9"].iter().enumerate().map(|(i, k)| (*k, tone(i))).collect())),
+                ("padding", J::O(vec![("top", J::I(1)), ("left", J::I(3)), ("right", J::I(4))])),
+            ]
+        } else if image {
             vec![("type", s("kitty-direct")), ("source", s(png_path.display().to_string())), ("width", J::I(logo_cols)), ("height", J::I(logo_rows)), ("padding", J::O(vec![("top", J::I(top)), ("left", J::I(3)), ("right", J::I(4))]))]
         } else {
             vec![("type", s("file-raw")), ("source", s(logo_path.display().to_string())), ("padding", J::O(vec![("top", J::I(top)), ("left", J::I(3)), ("right", J::I(4))]))]

@@ -376,7 +376,7 @@ pub(crate) fn tab_comfort(ui: &mut Ui, st: &State, b: R) {
     // кофе: не давать засыпать и гасить экран; правая кнопка на чашке в баре листает те же сроки
     y = title(ui, b.x, y, b.w, "кофе: не засыпать");
     ui.toggle(R::new(lx, y, half, 40), "кофе", if st.caffeine.on { "вкл" } else { "выкл" }, st.caffeine.on, Act::CaffeineToggle);
-    num_btn(ui, R::new(rx, y + 6, half, 26), "кофе: выкл. через, мин", s.num("caffeine_minutes"), "caffeine_minutes");
+    num_btn(ui, R::new(rx, y + 6, half, 26), "кофе: выкл. через, мин (0 — без срока)", s.num("caffeine_minutes"), "caffeine_minutes");
     y += 46;
     let qw = (b.w - 4 * 6) / 5;
     for (k, (label, key)) in [("30 мин", "caffeine_30"), ("1 ч", "caffeine_60"), ("2 ч", "caffeine_120"), ("4 ч", "caffeine_240"), ("без срока", "caffeine_inf")].into_iter().enumerate() {

@@ -1559,4 +1559,5 @@ const FR: &[(&str, &str)] = &[
     ("install the held ones too", "installer aussi les retenues"),
     ("a system snapshot and a question in the terminal come first", "d'abord un instantané du système et une question dans le terminal"),
     ("the same, even if the signature fails the rule (you are sure)", "pareil, même si la signature échoue à la règle (vous êtes sûr)"),
+    ("coffee off after, min (0: no limit)", "café s'éteint après, min (0 : sans limite)"),
 ];

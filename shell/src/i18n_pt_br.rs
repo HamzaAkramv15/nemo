@@ -1336,4 +1336,5 @@ const PT_BR: &[(&str, &str)] = &[
     ("install the held ones too", "instalar também as retidas"),
     ("a system snapshot and a question in the terminal come first", "um snapshot do sistema e uma pergunta no terminal vêm antes"),
     ("the same, even if the signature fails the rule (you are sure)", "o mesmo, mesmo que a assinatura não passe na regra (você tem certeza)"),
+    ("coffee off after, min (0: no limit)", "café desliga após, min (0: sem limite)"),
 ];

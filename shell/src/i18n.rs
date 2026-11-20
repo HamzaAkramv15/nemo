@@ -1199,4 +1199,5 @@ const PAIRS: &[(&str, &str)] = &[
     ("ставить и удержанное тоже", "install the held ones too"),
     ("снимок системы и вопрос в терминале — перед установкой", "a system snapshot and a question in the terminal come first"),
     ("то же, даже если подпись не проходит правило (ты уверен)", "the same, even if the signature fails the rule (you are sure)"),
+    ("кофе: выкл. через, мин (0 — без срока)", "coffee off after, min (0: no limit)"),
 ];
