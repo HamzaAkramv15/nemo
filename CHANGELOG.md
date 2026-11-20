@@ -9,6 +9,11 @@ has its Russian line in CHANGELOG.ru.md: `tools/check.sh` checks that.
 
 ## Unreleased
 
+- Dock, as options (settings → dock): numbers and progress bars on icons (`dockBadges`: what apps report over the Unity LauncherEntry interface, or the count of their notifications), an adjustable zoom under the cursor (`dockZoom`, up to 32 px). The right-click menu now lists the app's own actions from its .desktop file (new private window, compose…). Unity-style keys: `Mod+Alt+1…9` open or show the Nth dock app, again to cycle its windows (`nemo msg dock N`, `dock N new` for a new window).
+- Updates: installing despite a failed signature is written to `~/.local/state/nemo/update-overrides.log` (time, version, commit, what failed, policy); the page says whether the signature is bad (files may have been swapped) or just missing, and `nemo update apply --force` asks you to type INSTALL.
+- The shell restarts `nemo-agents` within about 20 seconds if it dies (it used to stay dead until the shell restarted).
+- README: the credit to Yami lists what we took and what is Nemo's own; measured numbers replace the old table; the features card was redrawn.
+
 - Caffeine you switch on by hand now survives a restart of the shell and comes back with its remaining time; «until I turn it off» (0 minutes) stays on until you do (it used to be forgotten at every shell restart, including after an update). Coffee started by «coffee on its own» is still not remembered.
 - fastfetch uses the logo fastfetch itself ships for your distribution (the Fedora logo on Fedora), recoloured from the shell's palette: the small one in the short layout, the large one in the extended layout. `fetchLogo` `pixel` draws the distribution's logo icon as chunky pixels; `image` and `blocks` keep the Nemo fish.
 

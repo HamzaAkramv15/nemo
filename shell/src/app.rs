@@ -180,6 +180,7 @@ pub enum Msg {
     /// файлы для «/» в лаунчере: запрос и найденное
     Stability(crate::stability::Report),
     LFiles(String, Vec<std::path::PathBuf>),
+    LauncherEntry(String, crate::launcher_entry::Entry),
     Art(String, Option<crate::gfx::Img>),
     /// текст песни нашёлся (или нет) для трека Lyrics.key
     Lyrics(crate::lyrics::Lyrics),
@@ -386,6 +387,8 @@ pub struct State {
     pub dock_hover: bool,
     pub dock_leave: Option<Instant>,
     pub dock_bounce: Vec<(String, Instant)>,
+    /// числа и прогресс от программ (ключ — id программы без .desktop, в нижнем регистре), launcher_entry.rs
+    pub launcher_entries: std::collections::HashMap<String, crate::launcher_entry::Entry>,
     /// наведение в доке для анимации: (сейчас, до этого, когда сменилось)
     pub dock_hov: std::cell::Cell<(Option<usize>, Option<usize>, Instant)>,
     pub trash_full: bool,
@@ -609,6 +612,7 @@ impl State {
             dock_hover: false,
             dock_leave: None,
             dock_bounce: vec![],
+            launcher_entries: Default::default(),
             dock_hov: std::cell::Cell::new((None, None, Instant::now())),
             trash_full: false,
             upd: crate::update::Upd::load(),
@@ -753,6 +757,7 @@ pub fn run() {
         });
     }
     crate::ipc::serve(tx.clone());
+    crate::launcher_entry::spawn(tx.clone());
     dbus::spawn(tx.clone(), app.st.set.agent_notif, app.st.set.agent_tray);
     // первый вход после установки: первая настройка в окне настроек (welcome_tick откроет её, как
     // только есть экран; закрытие снимает метку)

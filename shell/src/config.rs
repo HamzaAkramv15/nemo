@@ -358,6 +358,10 @@ pub struct Settings {
     /// прыжок значка при запуске
     pub dock_bounce: bool,
     pub dock_labels: bool,
+    /// числа и полосы прогресса на значках (от самих программ по шине и из уведомлений)
+    pub dock_badges: bool,
+    /// на сколько пикселей растёт значок под курсором (0 — не растёт)
+    pub dock_zoom: i32,
     pub dock_running: bool,
     pub dock_launcher: bool,
     pub dock_trash: bool,
@@ -612,6 +616,7 @@ pub const NUMS: &[(&str, i32, i32, i32)] = &[
     ("reveal_grain", 1, 4, 1),
     ("night_temp", 2500, 6000, 250),
     ("caffeine_minutes", 0, 480, 15),
+    ("dock_zoom", 0, 32, 4),
     ("night_on_h", 0, 23, 1),
     ("night_off_h", 0, 23, 1),
     ("notif_offset", 0, 400, 2),
@@ -759,6 +764,8 @@ impl Default for Settings {
             dock_anim: "grow".into(),
             dock_bounce: true,
             dock_labels: true,
+            dock_badges: false,
+            dock_zoom: 8,
             dock_running: true,
             dock_launcher: true,
             dock_trash: true,
@@ -1059,6 +1066,7 @@ impl Settings {
             "reveal_grain" => self.reveal_grain,
             "night_temp" => self.night_temp,
             "caffeine_minutes" => self.caffeine_minutes,
+            "dock_zoom" => self.dock_zoom,
             "night_on_h" => self.night_on_h,
             "night_off_h" => self.night_off_h,
             "win_gap" => self.win_gap,
@@ -1092,6 +1100,7 @@ impl Settings {
             "reveal_grain" => self.reveal_grain = v,
             "night_temp" => self.night_temp = v,
             "caffeine_minutes" => self.caffeine_minutes = v,
+            "dock_zoom" => self.dock_zoom = v,
             "night_on_h" => self.night_on_h = v,
             "night_off_h" => self.night_off_h = v,
             "win_gap" => self.win_gap = v,

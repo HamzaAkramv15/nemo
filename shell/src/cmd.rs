@@ -176,6 +176,8 @@ pub fn msg_ok(cmd: &str) -> bool {
         // лаунчер с набранным текстом: любые слова
         "launcher" => true,
         "clipboard" | "cheat" | "power" | "lock" | "bar" | "stacking" | "minimize" | "restore" | "edit" | "reload" | "quit" | "ping" | "restart" | "profile" | "walls" | "cast-hide" => one(&mut w),
+        // «dock N» и «dock N new»: N — номер программы в доке (с единицы)
+        "dock" => w.next().is_some_and(|n| n.parse::<usize>().is_ok_and(|n| n >= 1)) && w.next().is_none_or(|a| a == "new") && one(&mut w),
         "caffeine" => w.next().is_none_or(|a| matches!(a, "on" | "off" | "toggle") || crate::caffeine::parse_minutes(a).is_some()) && w.next().is_none(),
         "night" => w.next().is_none_or(|a| match a {
             "on" | "off" | "toggle" | "always" | "schedule" => w.next().is_none(),
@@ -640,10 +642,10 @@ pub fn run(args: &[String], me: &str) -> i32 {
 mod tests {
     #[test]
     fn msg_commands() {
-        for ok in ["launcher", "popup cal", "popup media", "screenshot window 3", "screenshot", "settings keys", "wallpaper /a b.png", "wallpaper", "curtain on", "update-progress 1/3 x", "night", "launcher ?keys", "launcher /a b"] {
+        for ok in ["launcher", "popup cal", "popup media", "screenshot window 3", "screenshot", "settings keys", "dock 3", "dock 1 new", "wallpaper /a b.png", "wallpaper", "curtain on", "update-progress 1/3 x", "night", "launcher ?keys", "launcher /a b"] {
             assert!(super::msg_ok(ok), "{ok}");
         }
-        for bad in ["cal", "popup foo", "screenshot win", "settings nope", "clipboard now", "curtain maybe", ""] {
+        for bad in ["cal", "popup foo", "screenshot win", "settings nope", "clipboard now", "curtain maybe", "dock", "dock 0", "dock x", "dock 2 old", ""] {
             assert!(!super::msg_ok(bad), "{bad}");
         }
         // каждая команда, что вешается на клавиши, шеллу понятна

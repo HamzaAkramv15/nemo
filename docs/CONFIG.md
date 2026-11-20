@@ -255,6 +255,8 @@ Settings → look → «pixel look» moves these keys, `iconPixel` and `cursor` 
 | `dockHide` | `"smart"` | `never` `smart` (visible on an empty desk) `always` |
 | `dockSize`, `dockAnim` | `40`, `"grow"` | icon size; hover: `grow` `wave` `lift` `none` |
 | `dockBounce`, `dockLabels`, `dockRunning`, `dockLauncher`, `dockTrash` | `true` | |
+| `dockBadges` | `false` | numbers and progress bars on the dock icons: what apps report themselves (Telegram, Firefox downloads, Thunderbird… over the Unity LauncherEntry interface) or, failing that, the number of that app's notifications in the history |
+| `dockZoom` | `8` | how many pixels an icon grows under the cursor, 0 to 32 (0: it does not grow); the wave setting (`dockAnim`) lets the neighbours grow too |
 | `dockPins` | | app ids (desktop file names) pinned to the dock |
 | `curtainStyle` | `"blur"` | what stream viewers see while the screen is hidden (Mod+Shift+H), no labels: `blur` the frozen screen blurred, `pixels` in big pixels, `wall` the wallpaper |
 | `curtainCell` | `24` | pixel size of `pixels` |

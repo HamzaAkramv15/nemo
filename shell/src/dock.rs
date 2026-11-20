@@ -20,6 +20,11 @@ pub const MARGIN: i32 = 6;
 /// место над панелью: подсказка и подъём значка
 pub const SPARE: i32 = 34;
 
+/// запас над панелью с учётом роста значка под курсором (по умолчанию 8 px входит в обычный запас)
+fn spare(st: &State) -> i32 {
+    SPARE + (st.set.dock_zoom - 8).max(0)
+}
+
 #[derive(Clone, Debug)]
 pub struct Item {
     pub id: String,
@@ -35,6 +40,66 @@ impl Item {
     pub fn focused(&self) -> bool {
         self.wins.iter().any(|w| w.focused)
     }
+}
+
+/// число и прогресс для значка: сначала то, что программа сообщила сама (LauncherEntry), иначе число её уведомлений в истории
+fn badge_for(st: &State, it: &Item) -> (Option<String>, Option<f64>) {
+    let e = st.launcher_entries.get(&it.id.to_lowercase());
+    let progress = e.filter(|e| e.progress_visible).map(|e| e.progress);
+    let count = match e {
+        Some(e) if e.count_visible => crate::launcher_entry::badge_text(e.count),
+        _ => {
+            let n = st.notifs.history.iter().filter(|n| app_matches(&n.app, &it.id, &it.name)).count();
+            crate::launcher_entry::badge_text(n as i64)
+        }
+    };
+    (count, progress)
+}
+
+/// уведомление этой программы: имя отправителя совпало с именем или id программы (без учёта регистра)
+pub fn app_matches(sender: &str, id: &str, name: &str) -> bool {
+    let s = sender.trim().to_lowercase();
+    !s.is_empty() && (s == id.to_lowercase() || s == name.trim().to_lowercase() || id.to_lowercase().rsplit('.').next() == Some(s.as_str()))
+}
+
+/// действия программы из её .desktop: «Actions=new-window;…» и секции [Desktop Action …] → (название, Exec)
+pub fn parse_actions(text: &str) -> Vec<(String, String)> {
+    let lang = std::env::var("LANG").unwrap_or_default();
+    let short: String = lang.chars().take_while(|c| c.is_ascii_alphabetic()).collect();
+    let mut sections: Vec<(String, Vec<(String, String)>)> = vec![];
+    for l in text.lines() {
+        let l = l.trim();
+        if let Some(n) = l.strip_prefix('[').and_then(|r| r.strip_suffix(']')) {
+            sections.push((n.to_string(), vec![]));
+        } else if let (Some((k, v)), Some(cur)) = (l.split_once('='), sections.last_mut()) {
+            cur.1.push((k.trim().to_string(), v.trim().to_string()));
+        }
+    }
+    let get = |sec: &[(String, String)], k: &str| sec.iter().find(|(a, _)| a == k).map(|(_, v)| v.clone());
+    let Some(entry) = sections.iter().find(|(n, _)| n == "Desktop Entry") else { return vec![] };
+    let list = get(&entry.1, "Actions").unwrap_or_default();
+    let mut out = vec![];
+    for a in list.split(';').filter(|a| !a.is_empty()) {
+        let Some((_, sec)) = sections.iter().find(|(n, _)| n == &format!("Desktop Action {a}")) else { continue };
+        let name = get(sec, &format!("Name[{short}]")).or_else(|| get(sec, "Name"));
+        if let (Some(name), Some(exec)) = (name, get(sec, "Exec")) {
+            out.push((name, exec));
+        }
+    }
+    out
+}
+
+fn actions_of(id: &str) -> Vec<(String, String)> {
+    let mut dirs = vec![nemo_px::paths::data_dir()];
+    dirs.extend(nemo_px::paths::data_dirs());
+    dirs.push("/var/lib/flatpak/exports/share".into());
+    dirs.push(nemo_px::paths::data_dir().join("flatpak/exports/share"));
+    for d in dirs {
+        if let Ok(t) = std::fs::read_to_string(d.join("applications").join(format!("{id}.desktop"))) {
+            return parse_actions(&t);
+        }
+    }
+    vec![]
 }
 
 /// программа окна: .desktop с тем же id, StartupWMClass, последний кусок id
@@ -106,7 +171,7 @@ fn slots(st: &State, n: usize) -> i32 {
 pub fn size(st: &State) -> (i32, i32) {
     let n = items(st).len();
     let len = slots(st, n) * cell(st) + 16 + if st.set.dock_launcher { 9 } else { 0 } + if st.set.dock_trash { 9 } else { 0 };
-    let thick = st.set.dock_size + 24 + SPARE;
+    let thick = st.set.dock_size + 24 + spare(st);
     if vertical(st) {
         (thick + 140, len)
     } else {
@@ -214,7 +279,7 @@ pub fn draw(ui: &mut Ui, st: &State, w: i32, h: i32) {
         }
     };
     // и пиксельные, и обычные растут на 8 px: пиксельный рисуется сразу нужного размера своей сеткой
-    let grow_max = 8;
+    let grow_max = st.set.dock_zoom.clamp(0, 32);
     for (i, it) in list.iter().enumerate() {
         let r = slot(pos);
         let hov = now_hov == Some(i);
@@ -236,6 +301,24 @@ pub fn draw(ui: &mut Ui, st: &State, w: i32, h: i32) {
         let ic = lift(R::new(r.x + (r.w - isz) / 2, r.y + (r.h - isz) / 2 - if vert { 0 } else { 2 }, isz, isz), up);
         let dim = !it.wins.is_empty() && it.wins.iter().all(|w| st.niri.is_min(w));
         ui.app_icon(&it.icon, ic.x, ic.y, isz, if dim { 0.5 } else { 1.0 });
+        if st.set.dock_badges {
+            let (count, progress) = badge_for(st, it);
+            if let Some(p) = progress {
+                // полоса прогресса по низу значка
+                let (bw, bh) = ((isz - 8).max(8), 4);
+                let bx = ic.x + (isz - bw) / 2;
+                let by = ic.bottom() - bh - 1;
+                ui.cv.fill(R::new(bx, by, bw, bh), t.panel.alpha(0.85));
+                ui.cv.fill(R::new(bx, by, ((bw as f64) * p).round() as i32, bh), t.red);
+            }
+            if let Some(txt) = count {
+                let txt_w = ui.w(PX, &txt);
+                let bw = (txt_w + 8).max(16);
+                let br = R::new(ic.right() - bw + 4, ic.y - 3, bw, 16);
+                ui.cv.pxbox(br, &BoxStyle::new(t.red, t.bg));
+                ui.text_in(PX, R::new(br.x + (bw - txt_w) / 2, br.y, bw, 16), &txt, t.text);
+            }
+        }
         // огоньки окон: до трёх квадратиков, фокусное — широкой чертой
         let n = it.wins.len().min(3) as i32;
         if n > 0 {
@@ -493,6 +576,25 @@ impl App {
         }
     }
 
+    /// `nemo msg dock N [new]` (клавиши Unity): N-я программа дока — запустить, если не открыта, иначе показать её окно;
+    /// «new» — всегда новое окно. Счёт с единицы, кнопка программ и корзина не считаются
+    pub fn dock_nth(&mut self, n: usize, new: bool) {
+        let list = items(&self.st);
+        let Some(it) = n.checked_sub(1).and_then(|i| list.get(i)).cloned() else { return };
+        if new || it.wins.is_empty() {
+            self.dock_launch(&it);
+            return;
+        }
+        let mut ws = it.wins.clone();
+        ws.sort_by(|a, b| b.ts.partial_cmp(&a.ts).unwrap_or(std::cmp::Ordering::Equal));
+        // уже в фокусе — к следующему окну той же программы, как у Unity
+        let target = match ws.iter().position(|w| w.focused) {
+            Some(f) if ws.len() > 1 => ws[(f + 1) % ws.len()].id,
+            _ => ws[0].id,
+        };
+        self.st.niri.act(serde_json::json!({"FocusWindow": {"id": target}}));
+    }
+
     pub fn dock_wheel(&mut self, i: usize, up: bool) {
         let list = items(&self.st);
         let Some(it) = list.get(i) else { return };
@@ -536,6 +638,11 @@ impl App {
         if !it.exec.is_empty() {
             items.push(MItem::new("новое окно", "plus", MAct::Dock(id, "new")));
         }
+        // действия из .desktop («новое приватное окно», «написать письмо»…): так у Unity и в меню macOS
+        for (k, (name, _)) in actions_of(&it.id).into_iter().enumerate().take(6) {
+            let op: &'static str = Box::leak(format!("act:{k}").into_boxed_str());
+            items.push(MItem::new(&name, "plus", MAct::Dock(id, op)));
+        }
         items.push(MItem::new(if it.pinned { "открепить" } else { "закрепить" }, "pin", MAct::Dock(id, "pin")));
         if it.pinned {
             items.push(MItem::new("левее", "left", MAct::Dock(id, "left")));
@@ -565,6 +672,12 @@ impl App {
         let list = items(&self.st);
         let it = list.iter().find(|i| i.id == id).cloned();
         let pins = &mut self.st.set.dock_pins;
+        if let Some(k) = op.strip_prefix("act:").and_then(|k| k.parse::<usize>().ok()) {
+            if let Some((_, exec)) = actions_of(id).into_iter().nth(k) {
+                App::spawn(&icons::exec_argv(&exec));
+            }
+            return;
+        }
         match op {
             "new" => {
                 if let Some(it) = it {
@@ -644,3 +757,29 @@ mod tests {
         assert_eq!(key_of(&[app("weird-tool.desktop", "Tool", "")], &w), "weird-tool");
     }
 }
+
+#[cfg(test)]
+mod badge_tests {
+    use super::*;
+
+    #[test]
+    fn a_notification_belongs_to_the_app_by_name_or_id() {
+        assert!(app_matches("Telegram Desktop", "org.telegram.desktop", "Telegram Desktop"));
+        assert!(app_matches("firefox", "firefox", "Firefox"));
+        assert!(app_matches("Desktop", "org.telegram.desktop", "Telegram Desktop"), "the last part of the id");
+        assert!(!app_matches("", "firefox", "Firefox"));
+        assert!(!app_matches("steam", "firefox", "Firefox"));
+    }
+
+    #[test]
+    fn actions_come_from_the_desktop_file() {
+        let t = "[Desktop Entry]\nName=Firefox\nActions=new-window;private;missing;\n\n[Desktop Action new-window]\nName=New Window\nExec=firefox --new-window\n\n[Desktop Action private]\nName=New Private Window\nName[ru]=Новое приватное окно\nExec=firefox --private-window\n"; // i18n-ok
+        let a = parse_actions(t);
+        assert_eq!(a.len(), 2, "an action named in the list but missing is skipped");
+        assert_eq!(a[0], ("New Window".to_string(), "firefox --new-window".to_string()));
+        assert!(a[1].0.contains("Private") || a[1].0.contains("приват")); // i18n-ok
+        assert!(parse_actions("[Desktop Entry]\nName=x\n").is_empty());
+        assert!(parse_actions("garbage").is_empty());
+    }
+}
+

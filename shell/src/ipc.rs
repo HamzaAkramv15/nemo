@@ -84,6 +84,12 @@ impl crate::app::App {
         match cmd.trim() {
             "launcher" => self.toggle_modal(Modal::Launcher, false),
             "cheat" => self.toggle_modal(Modal::Cheat, false),
+            c if c.starts_with("dock ") => {
+                let mut w = c["dock ".len()..].split_whitespace();
+                if let Some(n) = w.next().and_then(|n| n.parse::<usize>().ok()) {
+                    self.dock_nth(n, w.next() == Some("new"));
+                }
+            }
             c if c.starts_with("launcher ") => self.launcher_with(c["launcher ".len()..].trim()),
             "night" => self.night_toggle(),
             c if c.starts_with("night ") => self.night_cmd(c["night ".len()..].trim()),

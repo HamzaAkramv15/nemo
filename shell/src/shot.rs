@@ -176,6 +176,7 @@ const TARGETS: &[&str] = &[
     "welcome:services",
     "welcome:done",
     "dock",
+    "dock:badges",
     "icons",
 ];
 
@@ -865,6 +866,15 @@ fn shoot(st: &mut State, res: &mut Res, target: &str, path: &Path) {
         "icons" => (16 + 96 + ICON_APPS.len() as i32 * 56, 16 + 9 * 56),
         "dock" => {
             st.set.dock_pins = vec!["org.kde.dolphin".into(), "kitty".into(), "firefox".into(), "steam".into()];
+            if arg == "badges" {
+                // числа и прогресс от программ, увеличенный рост значка
+                st.set.dock_badges = true;
+                st.set.dock_zoom = 16;
+                let e = |count: i64, progress: Option<f64>| crate::launcher_entry::Entry { count, count_visible: count > 0, progress: progress.unwrap_or(0.0), progress_visible: progress.is_some(), urgent: false };
+                st.launcher_entries.insert("kitty".into(), e(5, None));
+                st.launcher_entries.insert("firefox".into(), e(142, Some(0.6)));
+                st.launcher_entries.insert("steam".into(), e(0, Some(0.25)));
+            }
             crate::dock::size(st)
         }
         _ => (300, 200),

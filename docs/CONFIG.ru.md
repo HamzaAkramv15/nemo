@@ -256,6 +256,8 @@ text-color={{text}}
 | `dockHide` | `"smart"` | `never` `smart` (виден на пустом столе) `always` |
 | `dockSize`, `dockAnim` | `40`, `"grow"` | размер значков; при наведении: `grow` `wave` `lift` `none` |
 | `dockBounce`, `dockLabels`, `dockRunning`, `dockLauncher`, `dockTrash` | `true` | |
+| `dockBadges` | `false` | числа и полосы прогресса на значках дока: то, что программы сообщают сами (Telegram, загрузки Firefox, Thunderbird… через интерфейс Unity LauncherEntry), а если нет — число уведомлений этой программы в истории |
+| `dockZoom` | `8` | на сколько пикселей растёт значок под курсором, от 0 до 32 (0 — не растёт); настройка волны (`dockAnim`) растит и соседей |
 | `dockPins` | | id программ (имена desktop-файлов), закреплённые в доке |
 | `curtainStyle` | `"blur"` | что видят зрители трансляции, пока экран скрыт (Mod+Shift+H), без подписей: `blur` — застывший экран с размытием, `pixels` — крупными пикселями, `wall` — обои |
 | `curtainCell` | `24` | размер пикселя для `pixels` |

@@ -82,6 +82,7 @@ mod personality;
 mod hijri;
 mod emoji;
 mod island;
+mod launcher_entry;
 mod cheat;
 mod popups;
 mod setindex;

@@ -608,6 +608,9 @@ pub(crate) fn tab_dock(ui: &mut Ui, st: &State, b: R) {
     y += 46;
     ui.toggle(R::new(b.x, y, half, 40), "кнопка программ", "в начале дока", s.dock_launcher, Act::SBool("dock_launcher"));
     ui.toggle(R::new(b.x + half + 20, y, half, 40), "корзина", "в конце дока", s.dock_trash, Act::SBool("dock_trash"));
+    y += 46;
+    ui.toggle(R::new(b.x, y, half, 40), "числа и прогресс на значках", "письма, загрузки: от самих программ", s.dock_badges, Act::SBool("dock_badges"));
+    num_btn(ui, R::new(b.x + half + 20, y + 6, half, 26), "рост значка под курсором, px", s.num("dock_zoom"), "dock_zoom");
     y += 48;
     let side = match s.dock_side.as_str() {
         "top" => "сверху",

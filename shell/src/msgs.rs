@@ -89,6 +89,12 @@ impl App {
             }
             Msg::Notif(n) => self.on_notif(n),
             Msg::Update(i) => self.on_update(i),
+            Msg::LauncherEntry(k, e) => {
+                self.st.launcher_entries.insert(k, e);
+                if self.st.set.dock_badges {
+                    self.dirty(&SKind::Dock);
+                }
+            }
             Msg::Stability(r) => {
                 crate::stability::save(&r);
                 self.st.upd.reporting = false;

@@ -41,6 +41,7 @@ pub const CATS: &[(&str, &str, &str)] = &[
     ("focus", "фокус", "focus"),
     ("move", "перемещение", "moving"),
     ("ws", "столы", "workspaces"),
+    ("dock", "док", "dock"),
     ("shots", "скриншоты", "screenshots"),
     ("media", "система", "media, system"),
     ("custom", "свои", "custom"),
@@ -180,6 +181,15 @@ pub fn layouts(set: &crate::config::Settings) -> String {
 
 #[rustfmt::skip]
 pub const BINDS: &[Bind] = &[
+    b("dock-1", "dock", "Mod+Alt+1", NR, r#"spawn "nemo-shell" "msg" "dock 1";"#, "программа 1 из дока: открыть или показать", "Dock app 1: open or show", false),
+    b("dock-2", "dock", "Mod+Alt+2", NR, r#"spawn "nemo-shell" "msg" "dock 2";"#, "программа 2 из дока: открыть или показать", "Dock app 2: open or show", false),
+    b("dock-3", "dock", "Mod+Alt+3", NR, r#"spawn "nemo-shell" "msg" "dock 3";"#, "программа 3 из дока: открыть или показать", "Dock app 3: open or show", false),
+    b("dock-4", "dock", "Mod+Alt+4", NR, r#"spawn "nemo-shell" "msg" "dock 4";"#, "программа 4 из дока: открыть или показать", "Dock app 4: open or show", false),
+    b("dock-5", "dock", "Mod+Alt+5", NR, r#"spawn "nemo-shell" "msg" "dock 5";"#, "программа 5 из дока: открыть или показать", "Dock app 5: open or show", false),
+    b("dock-6", "dock", "Mod+Alt+6", NR, r#"spawn "nemo-shell" "msg" "dock 6";"#, "программа 6 из дока: открыть или показать", "Dock app 6: open or show", false),
+    b("dock-7", "dock", "Mod+Alt+7", NR, r#"spawn "nemo-shell" "msg" "dock 7";"#, "программа 7 из дока: открыть или показать", "Dock app 7: open or show", false),
+    b("dock-8", "dock", "Mod+Alt+8", NR, r#"spawn "nemo-shell" "msg" "dock 8";"#, "программа 8 из дока: открыть или показать", "Dock app 8: open or show", false),
+    b("dock-9", "dock", "Mod+Alt+9", NR, r#"spawn "nemo-shell" "msg" "dock 9";"#, "программа 9 из дока: открыть или показать", "Dock app 9: open or show", false),
     b("terminal", "shell", "Mod+T", "", r#"spawn "kitty";"#, "терминал", "Terminal", true),
     b("launcher", "shell", "Mod+Space", NR, r#"spawn "nemo-shell" "msg" "launcher";"#, "меню программ", "App launcher", true),
     b("launcher-2", "shell", "Mod+D", NR, r#"spawn "nemo-shell" "msg" "launcher";"#, "меню программ (второе)", "App launcher (second)", false),
