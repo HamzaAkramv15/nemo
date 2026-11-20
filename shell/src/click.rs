@@ -229,6 +229,9 @@ impl App {
                 self.st.notifs.leaving.clear();
                 self.sync_notifs();
                 self.resize_popup();
+                if let Some(q) = self.quip_for(crate::personality::Event::NotifsCleared) {
+                    self.toast_note("Nemo", &q);
+                }
             }
             Act::NotifDel(id) => {
                 self.st.notifs.remove(id, kind == Some(SKind::Popup));

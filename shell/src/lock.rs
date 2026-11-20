@@ -115,6 +115,9 @@ impl App {
             self.sync_widgets();
             self.sync_titles();
             self.sync_dock();
+            if let Some(q) = self.quip_for(crate::personality::Event::Unlocked) {
+                self.toast_note("Nemo", &q);
+            }
         } else {
             self.st.lock_fails += 1;
             self.st.lock_field.wipe();

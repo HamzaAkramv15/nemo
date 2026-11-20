@@ -106,7 +106,7 @@ file for one run. The files are reread when they change.
 | `caffeineAuto` | `false` | turn the coffee on while a window is fullscreen, off when it leaves |
 | `notifMuted` | `""` | apps whose notifications skip the popup and go to history (comma separated) |
 | `island` | `false` | notifications and volume popups as pills at the top centre under the bar |
-| `personality` | `"quiet"` | the fish speaks on charger, caffeine and update events: `off` (never), `quiet` (system events only), `playful` (the same for now; empty-panel lines come next) |
+| `personality` | `"quiet"` | the fish speaks on charger, caffeine and update events: `off` (never), `quiet` (system events only), `playful` (also a hello when you unlock the screen and a word when you clear all notifications). Each event has two or three phrases that take turns |
 | `palette` | `"nemo"` | preset: `nemo` (lavender on graphite) `blood` `ash` `sakura` `amber` `venom` `ice` `dusk` |
 | `accent` | `""` | own accent `#rrggbb`; empty: the preset's |
 | `preset` | `"nemo"` | the style of every module: `nemo` (pixel) or `plain` (neutral), [details](#the-look-of-every-module) |

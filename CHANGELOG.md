@@ -9,6 +9,10 @@ has its Russian line in CHANGELOG.ru.md: `tools/check.sh` checks that.
 
 ## Unreleased
 
+- Scrolling: a touchpad swipe no longer counts every tiny movement as a full step. Mouse notches scroll as before; touchpad movement now follows the finger in Files and adds up to whole steps for zoom, volume, seek and the shell's lists (shared `nemo_px::wheel`, 3.2.2).
+- Settings: only the open tab's group is expanded in the side list (the others are one line each), so the list fits the window; «system» inside the system group is now called «session».
+- Personality: each event has two or three phrases that take turns; in `playful` mode the fish also says hello when you unlock and a word when you clear all notifications.
+
 - Files: **batch rename** (select several files and press F2: find and replace, case, numbers, text before and after, a live preview, conflicts caught before anything is renamed, one undo); **filters by type** in the filter field (`:images :video :audio :docs :archives :code :folders`); the **contents of an archive** in the info panel; **pause and resume** for long copies, moves, extractions and compression; **what takes the space** in the main menu (size of every item of the folder, heaviest first).
 
 - Settings reorganised (nothing removed): five groups (appearance, desktop, every day, system, diagnostics) with «actions» folded into «every day»; every tab has a one-line description under the window header; the bottom of the tab list has «essentials only» (`settingsSimple`) to hide the deeper tabs, search still finds everything. A new tab, «status» (diagnostics): what is running and how much memory it takes, which programs Nemo relies on are missing, versions, the signature policy and the log of installs made despite a signature, buttons for the settings and logs folders and for an issue report archive.

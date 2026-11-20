@@ -71,7 +71,7 @@ pub const GROUPS: &[(&str, &[Tab])] = &[
     (
         "система",
         &[
-            tab("system", "система", "gear", "система язык сон блокировка ожидание ночной свет system language idle sleep lock night light sistema idioma língua português brasileiro brasil suspender bloqueio inatividade luz noturna", tab_system), // i18n-ok
+            tab("system", "сеанс", "gear", "система язык сон блокировка ожидание ночной свет system language idle sleep lock night light sistema idioma língua português brasileiro brasil suspender bloqueio inatividade luz noturna", tab_system), // i18n-ok
             tab("startup", "автозапуск", "play", "автозапуск запуск при входе программы сеанс startup autostart login apps session inicialização iniciar programas sessão", crate::startup::tab), // i18n-ok
             tab("login", "экран входа", "lock", "экран входа вход логин greetd пользователи пароль numlock вуаль менеджер входа login screen greeter display manager users password numlock veil tela de login entrada greetd usuários senha numlock véu gerenciador de login", crate::login::tab), // i18n-ok
             tab("bt", "bluetooth", "bt", "bluetooth блютуз наушники колонки мышь клавиатура сопряжение подключить забыть заряд bluetooth headphones speaker mouse keyboard pair connect forget battery fones caixa de som mouse teclado parear conectar esquecer bateria", crate::bttab::tab), // i18n-ok
@@ -231,13 +231,27 @@ pub fn draw(ui: &mut Ui, st: &State, w: i32, h: i32) {
     ui.field(R::new(side.x + 8, side.y + 6, side.w - 16, 24), &st.search_field, "поиск", focused, false, Act::SField("set_search"));
     ui.cv.push_clip(R::new(side.x, side.y + SEARCH_H, side.w, side.h - SEARCH_H - FOOT_H));
     let mut y = side.y + SEARCH_H + 8 - st.stab_scroll;
+    // раскрыта группа открытой вкладки (щелчок по другой группе открывает её первую вкладку); при поиске — все, где есть совпадения.
+    // Так список всегда умещается в окно: пять заголовков и вкладки одной группы, а не тридцать строк с прокруткой
+    let searching = !query.trim().is_empty();
     for (gname, tabs) in GROUPS {
-        if !tabs.iter().any(|tb| listed(st, tb, &query)) {
+        let Some(first) = tabs.iter().find(|tb| listed(st, tb, &query)) else { continue };
+        let open = searching || tabs.iter().any(|tb| tb.id == st.stab);
+        let hr = R::new(side.x + 6, y, side.w - 12, HEAD_H + 2);
+        let hov = ui.hover(hr);
+        if hov {
+            ui.cv.fill(hr, t.surface_hi.alpha(0.4));
+        }
+        ui.cv.icon(if open { "down" } else { "right" }, side.x + 10, y + 5, 1, if open { t.red } else { t.text_faint });
+        ui.text_in(PX, R::new(side.x + 26, y, side.w - 36, HEAD_H), gname, if open { t.text } else { t.text_dim });
+        if !open {
+            ui.zone(hr, Act::STab(first.id), Cur::Pointer);
+        }
+        y += HEAD_H + 2;
+        if !open {
+            y += 2;
             continue;
         }
-        ui.cv.fill(R::new(side.x + 12, y + 8, 4, 4), t.red.alpha(0.7));
-        ui.text_in(PX, R::new(side.x + 22, y, side.w - 30, HEAD_H - 4), gname, t.text_faint);
-        y += HEAD_H;
         // вкладки модулей, которых нет (скриншоты без nemo-shot, экран входа без nemo-greet), прячутся
         for tb in tabs.iter().filter(|tb| listed(st, tb, &query)) {
             let r = R::new(side.x + 8, y, side.w - 16, ROW_H - 2);
@@ -247,7 +261,7 @@ pub fn draw(ui: &mut Ui, st: &State, w: i32, h: i32) {
             }
             y += ROW_H;
         }
-        y += 6;
+        y += 8;
     }
     let side_full = y + st.stab_scroll - side.y;
     st.stab_h.set(side_full);
