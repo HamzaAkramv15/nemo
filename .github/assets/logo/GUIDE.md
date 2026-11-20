@@ -1,23 +1,24 @@
 # Nemo fish: usage guide
 
-The mark is one silhouette and one eye: a lens-shaped body, a forked tail, a round eye that is a hole (the
-background shows through). It is drawn on a 256-unit canvas (`nemo-fish.svg`) and has no text and no effects.
+The mark is a pixel fish on a 16 by 8 grid: a round body, a forked tail, a square eye that is a hole (the
+background shows through). It is drawn on a 256-unit canvas (`nemo-fish.svg`, cell 12) with sharp edges and has no text,
+no effects and no background. The source drawing is `logo/Pixel Nemo on Charcoal.png` (kept outside the repository).
 
 ## Colour
 | Use | Colour |
 |---|---|
-| Default (on dark) | lavender `#a78bfa` on graphite `#15151b` |
+| Default (on dark) | slate blue `#707f9b` on charcoal `#17191d` |
 | In the desktop itself | the user's accent colour: the shell, the lock screen, fastfetch and the login screen recolour it |
 | One colour on light | black `#000000` (`nemo-fish-black.svg`) |
 | Reversed on dark or on a colour | white `#ffffff` (`nemo-fish-white.svg`) |
 
 ## Sizes
-- Smallest use: 16 px wide (the eye is then one pixel; below that, use the square tile).
+- Smallest use: 16 px wide (each grid cell is then one pixel; below that, use the square tile).
 - App icon, favicon and web icons: `nemo-fish-app-icon.svg`, `favicon.ico`, `icon-192.png`, `icon-512.png`,
   `maskable-512.png` (the fish sits inside the safe zone).
 
 ## Clear space
-Keep free space around the fish equal to the width of its tail fork (about one eighth of the fish's width).
+Keep free space around the fish equal to two grid cells (one eighth of the fish's width).
 
 ## Do not
 - Do not add a second colour, outline, shadow or gradient.

@@ -1,2 +1,1 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256"><title>Nemo: minimal fish</title>
-<path fill-rule="evenodd" d="M242 128C204 58 124 56 76 108L26 70L46 128L26 186L76 148C124 200 204 198 242 128ZM190 112a10 10 0 1 0 0.01 0Z"/></svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" shape-rendering="crispEdges"><title>Nemo fish</title><path fill="#707f9b" d="M80 80h60v12h-60zM200 80h24v12h-24zM56 92h96v12h-96zM200 92h24v12h-24zM44 104h120v12h-120zM188 104h36v12h-36zM32 116h24v12h-24zM68 116h144v12h-144zM32 128h24v12h-24zM68 128h144v12h-144zM44 140h120v12h-120zM188 140h36v12h-36zM56 152h96v12h-96zM200 152h24v12h-24zM80 164h60v12h-60zM200 164h24v12h-24z"/></svg>

@@ -9,6 +9,8 @@ has its Russian line in CHANGELOG.ru.md: `tools/check.sh` checks that.
 
 ## Unreleased
 
+- New logo: the pixel fish (16 by 8 cells, square eye). Redrawn as clean vectors from the supplied picture, without its text and background; used in the README, the logo kit and web icons, the shell's own mark (about, welcome, lock screen, wallpaper) and the fastfetch logo.
+
 - Scrolling: a touchpad swipe no longer counts every tiny movement as a full step. Mouse notches scroll as before; touchpad movement now follows the finger in Files and adds up to whole steps for zoom, volume, seek and the shell's lists (shared `nemo_px::wheel`, 3.2.2).
 - Settings: only the open tab's group is expanded in the side list (the others are one line each), so the list fits the window; «system» inside the system group is now called «session».
 - Personality: each event has two or three phrases that take turns; in `playful` mode the fish also says hello when you unlock and a word when you clear all notifications.

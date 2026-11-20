@@ -325,8 +325,8 @@ pub fn fish_logo(p: &P) -> String {
         (r, g, b)
     };
     let (r, g, b) = c("accent");
-    // 22 столбца, 14 пикселей по высоте: 7 строк рядом со строками fastfetch
-    let (w, h) = (22, 14);
+    // 32 столбца, 16 пикселей по высоте (клетка 2): 8 строк рядом со строками fastfetch
+    let (w, h) = (32, 16);
     let m = nemo_px::brand::mask(w, h);
     let on = |x: i32, y: i32| y >= 0 && y < h && m[(y * w + x) as usize] >= 110;
     let mut rows = vec![];
@@ -349,7 +349,7 @@ pub fn fish_logo(p: &P) -> String {
 /// рисуется настоящей картинкой, а не блоками
 pub fn fish_png(p: &P) -> Vec<u8> {
     let (r, g, b) = rgb(p.g("accent"));
-    let (w, h) = (320u32, 200u32);
+    let (w, h) = (320u32, 160u32);
     let m = nemo_px::brand::mask(w as i32, h as i32);
     let mut img = RgbaImage::new(w, h);
     for (i, a) in m.iter().enumerate() {
