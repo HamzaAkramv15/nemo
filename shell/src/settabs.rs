@@ -751,7 +751,7 @@ pub(crate) fn tab_about(ui: &mut Ui, st: &State, b: R) {
     ui.text_in(PX, R::new(b.x, y, b.w, 20), &crate::tf!("nemo-shell {} — лёгкий Wayland-шелл для niri на Rust", "nemo-shell {} — a lightweight Wayland shell for niri, written in Rust", "nemo-shell {} — um shell Wayland leve para niri, escrito em Rust", env!("CARGO_PKG_VERSION")), t.text_dim);
     y += 26;
     // форк: честно говорим, чей он; ссылка — на оригинал
-    ui.text_in(PX, R::new(b.x, y, b.w, 20), &crate::tf!("Nemo — форк nemo, автор Trendorin, лицензия MIT", "Nemo is a fork of nemo by Trendorin, MIT license", "Nemo é um fork do nemo, de Trendorin, licença MIT"), t.text_dim);
+    ui.text_in(PX, R::new(b.x, y, b.w, 20), &crate::tf!("Nemo — форк Yami, автор Trendorin, лицензия MIT", "Nemo is a fork of Yami by Trendorin, MIT license", "Nemo é um fork do Yami, de Trendorin, licença MIT"), t.text_dim);
     y += 22;
     ui.text_in(PX, R::new(b.x, y, b.w, 20), "github.com/Trendorin/yami", t.text_faint);
     y += 34;

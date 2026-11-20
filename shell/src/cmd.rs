@@ -67,7 +67,7 @@ impl Sty {
 
 fn banner(y: &Sty) {
     println!();
-    println!(" {} {}  {}", y.acc("▚▞"), y.head(&format!("NEMO {}", nemo_px::brand::VERSION)), y.dim(&crate::tf!("пиксельный рабочий стол для niri, форк nemo (Trendorin)", "pixel desktop for niri, a fork of nemo by Trendorin", "desktop em pixel para niri, um fork do nemo de Trendorin")));
+    println!(" {} {}  {}", y.acc("▚▞"), y.head(&format!("NEMO {}", nemo_px::brand::VERSION)), y.dim(&crate::tf!("пиксельный рабочий стол для niri, форк Yami (Trendorin)", "pixel desktop for niri, a fork of Yami by Trendorin", "desktop em pixel para niri, um fork do Yami de Trendorin")));
 }
 
 fn help(y: &Sty, me: &str) {
