@@ -85,4 +85,7 @@ are given.
 | 7 | P2 | The window title shows "Nemo 0.1.0" while the release is 3.2.0 | open: two numbering schemes |
 | 8 | P2 | No screen-reader support: the interface is drawn by hand and exposes nothing to assistive tools | open, large |
 | 9 | P2 | Arabic is about 40% translated and layouts are not mirrored | open |
-| 10 | P2 | README screenshots predate the current look | open: retake in one run when the screen is free (`tools/readme-shots.sh`, needs the ash palette and takes over the screen) |
+| 10 | P2 | README pictures were Yami's author's desktop | fixed: `tools/readme-shots-offline.sh` renders Nemo's own from the real drawing code |
+| 11 | P2 | Opening the launcher re-read every `.desktop` file; animated surfaces redrew at the display's full rate (144 Hz) | fixed: cached by folder time, capped near 70 fps; 88 to 50 ms CPU per open/close, measured |
+| 12 | P2 | No comparison of rendered pictures | fixed: `tools/golden.sh` in the gate, 134 pictures |
+| 13 | note | Files has an editable path, filter and search already; an old audit note said they did not | corrected in `nemo-files/AUDIT.md` |
