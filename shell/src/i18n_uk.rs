@@ -1551,7 +1551,6 @@ const UK: &[(&str, &str)] = &[
     ("GitHub, {}: {} open reports, {} closed, {} security advisories", "GitHub, {}: {} відкритих повідомлень, {} закритих, {} сповіщень безпеки"),
     ("   not a guarantee: this is only what someone reported", "   це не гарантія: лише те, про що хтось написав"),
     ("problems with this version not checked yet: the «reports» button", "проблеми цієї версії ще не перевірено: кнопка «повідомлення»"),
-    ("the signature fails the rule: you can install anyway, at your own risk", "підпис не проходить правило: можна встановити все одно, на свій ризик"),
     ("what this means", "що це означає"),
     ("reports", "повідомлення"),
     ("install anyway", "встановити все одно"),
@@ -1560,4 +1559,8 @@ const UK: &[(&str, &str)] = &[
     ("a system snapshot and a question in the terminal come first", "спершу знімок системи й запитання в терміналі"),
     ("the same, even if the signature fails the rule (you are sure)", "те саме, навіть якщо підпис не проходить правило (ти впевнений)"),
     ("coffee off after, min (0: no limit)", "кава вимкн. через, хв (0: без ліміту)"),
+    ("the signature does NOT match: the files may have been swapped. Install only on purpose; the decision is logged", "підпис НЕ збігається: файли могли підмінити. Встановлюйте лише свідомо; рішення запишеться в журнал"),
+    ("the release is not signed: its authenticity is unchecked. Install only on purpose; the decision is logged", "випуск не підписано: справжність не перевірено. Встановлюйте лише свідомо; рішення запишеться в журнал"),
+    ("the signature fails your rule: you can install anyway, at your own risk; the decision is logged", "підпис не проходить ваше правило: можна встановити все одно, на свій ризик; рішення запишеться в журнал"),
+    ("type INSTALL to continue:", "напиши INSTALL, щоб продовжити:"),
 ];

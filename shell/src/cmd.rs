@@ -361,7 +361,19 @@ fn update(y: &Sty, args: &[&str]) -> i32 {
         }
         "apply" => {
             // --force: поставить, даже если подпись не проходит правило (человек уверен); остальные проверки остаются
-            let r = crate::update::apply(&set, args.contains(&"--force"));
+            let force = args.contains(&"--force");
+            // из терминала сначала предупреждение и подтверждение словом: это не «Enter, Enter»
+            if force && !notify && !args.contains(&"-y") && std::io::IsTerminal::is_terminal(&std::io::stdin()) {
+                eprintln!(" {} {}", y.warn("!"), crate::tf!("--force ставит выпуск, даже если подпись не прошла проверку. Подлинность не подтверждена; решение запишется в {}.", "--force installs a release even if its signature failed the check. Its authenticity is not confirmed; the decision is recorded in {}.", "--force instala uma versão mesmo se a assinatura falhou. A autenticidade não está confirmada; a decisão é registrada em {}.", nemo_px::paths::pretty(&crate::upinstall::overrides_path())));
+                eprint!("   {} ", crate::tf!("напиши INSTALL, чтобы продолжить:", "type INSTALL to continue:", "digite INSTALL para continuar:"));
+                let mut line = String::new();
+                let _ = std::io::stdin().read_line(&mut line);
+                if line.trim() != "INSTALL" {
+                    eprintln!(" {}", crate::tf!("отменено", "cancelled", "cancelado"));
+                    return 1;
+                }
+            }
+            let r = crate::update::apply(&set, force);
             let (ok, text) = match &r {
                 Ok(t) => (true, t.clone()),
                 Err(e) => (false, e.clone()),

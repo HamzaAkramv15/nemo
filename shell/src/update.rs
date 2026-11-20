@@ -481,6 +481,11 @@ pub(crate) fn verify(dir: &Path, st: &Stamp, known: bool, policy: &str, what: &s
         let base = if known { st.commit.clone() } else { "HEAD".into() };
         git(dir, &["show", &format!("{base}:{KEYS}")]).unwrap_or_default()
     });
+    judge(dir, keys, what, obj)
+}
+
+/// исход проверки подписи `obj` ключами из `keys`: good:<кто> | unsigned | bad | nokeys
+pub(crate) fn judge(dir: &Path, keys: String, what: &str, obj: &str) -> String {
     if !has_keys(&keys) {
         return "nokeys".into();
     }
@@ -835,3 +840,68 @@ mod tests {
         assert!(super::section(log, "2.6.0").is_empty());
     }
 }
+
+#[cfg(test)]
+mod signature_tests {
+    use super::*;
+    use std::process::Command;
+
+    fn run(dir: &Path, prog: &str, args: &[&str]) {
+        let o = Command::new(prog).current_dir(dir).args(args).env("GIT_CONFIG_GLOBAL", "/dev/null").output().unwrap();
+        assert!(o.status.success(), "{prog} {args:?}: {}", String::from_utf8_lossy(&o.stderr));
+    }
+
+    fn keygen(dir: &Path, name: &str) -> String {
+        run(dir, "ssh-keygen", &["-q", "-t", "ed25519", "-N", "", "-C", name, "-f", name]);
+        std::fs::read_to_string(dir.join(format!("{name}.pub"))).unwrap()
+    }
+
+    /// репозиторий с тегами: подписанный доверенным ключом, подписанный чужим, неподписанный
+    #[test]
+    fn a_real_tag_is_good_only_when_a_trusted_key_signed_it() {
+        let d = nemo_px::paths::private_tmp("sig-test").unwrap();
+        let (trusted, other) = (keygen(&d, "trusted"), keygen(&d, "other"));
+        run(&d, "git", &["init", "-q", "-b", "main"]);
+        std::fs::write(d.join("f"), "x").unwrap();
+        let id = ["-c", "user.name=t", "-c", "user.email=t@t", "-c", "commit.gpgsign=false", "-c", "tag.gpgsign=false"];
+        let git = |extra: &[&str]| {
+            let mut a: Vec<&str> = id.to_vec();
+            a.extend_from_slice(extra);
+            run(&d, "git", &a);
+        };
+        git(&["add", "."]);
+        git(&["commit", "-qm", "c"]);
+        let sign = |key: &str, tag: &str| {
+            let k = d.join(format!("{key}.pub"));
+            git(&["-c", "gpg.format=ssh", "-c", &format!("user.signingkey={}", k.display()), "tag", "-s", "-m", tag, tag]);
+        };
+        sign("trusted", "v-good");
+        sign("other", "v-wrong-key");
+        git(&["tag", "-a", "-m", "plain", "v-unsigned"]);
+        let keys = format!("owner namespaces=\"git\" {}", trusted.trim().rsplitn(2, ' ').last().unwrap());
+        let ok = |t: &str| judge(&d, keys.clone(), "verify-tag", &format!("refs/tags/{t}"));
+        assert_eq!(ok("v-good"), "good:owner", "signed by the listed key");
+        assert_eq!(ok("v-wrong-key"), "bad", "a valid signature from a key that is not in the list is not good");
+        assert_eq!(ok("v-unsigned"), "unsigned");
+        assert_eq!(judge(&d, "# no keys yet\n".into(), "verify-tag", "refs/tags/v-good"), "nokeys");
+        // подпись, которую подправили после подписи, — не good
+        let tag = std::process::Command::new("git").current_dir(&d).args(["cat-file", "tag", "v-good"]).output().unwrap().stdout;
+        let forged = String::from_utf8_lossy(&tag).replacen("\nv-good\n", "\nv-evil\n", 1);
+        let out = std::process::Command::new("git").current_dir(&d).args(["hash-object", "-t", "tag", "-w", "--stdin"]).stdin(std::process::Stdio::piped()).stdout(std::process::Stdio::piped()).spawn().unwrap();
+        use std::io::Write;
+        out.stdin.as_ref().unwrap().write_all(forged.as_bytes()).unwrap();
+        let hash = String::from_utf8_lossy(&out.wait_with_output().unwrap().stdout).trim().to_string();
+        if !hash.is_empty() {
+            assert_ne!(judge(&d, keys.clone(), "verify-tag", &hash), "good:owner", "a changed tag does not pass");
+        }
+        let _ = std::fs::remove_dir_all(d);
+    }
+
+    /// без правила подписей (off) проверка не идёт вовсе
+    #[test]
+    fn the_off_policy_skips_the_check_and_says_so() {
+        let st = Stamp::default();
+        assert_eq!(verify(Path::new("/nonexistent"), &st, false, "off", "verify-tag", "x"), "off");
+    }
+}
+

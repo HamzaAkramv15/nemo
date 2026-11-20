@@ -68,6 +68,23 @@ pub(crate) fn copy_bins(from: &Path, to: &Path) -> std::io::Result<()> {
     Ok(())
 }
 
+/// журнал решений «поставить, хотя подпись не прошла»: время, версия, коммит, что именно не сошлось, как было решено
+pub fn overrides_path() -> std::path::PathBuf {
+    nemo_px::paths::state_dir().join("update-overrides.log")
+}
+
+/// строка журнала (отдельно от записи в файл — чтобы проверять)
+pub fn override_line(at: u64, i: &Info, policy: &str, how: &str) -> String {
+    format!("{at}\tversion={}\tcommit={}\tsignature={}\tpolicy={policy}\tdecided={how}\n", i.latest, i.target, i.sig)
+}
+
+fn record_override(i: &Info, policy: &str, how: &str) {
+    use std::io::Write;
+    if let Ok(mut f) = std::fs::OpenOptions::new().create(true).append(true).open(overrides_path()) {
+        let _ = f.write_all(override_line(now(), i, policy, how).as_bytes());
+    }
+}
+
 /// поставить найденное обновление; Err — почему нет
 pub fn apply(set: &Settings, force: bool) -> Result<String, String> {
     require_enabled()?;
@@ -79,6 +96,11 @@ pub fn apply(set: &Settings, force: bool) -> Result<String, String> {
     }
     if !i.available {
         return Ok(crate::tf!("уже свежее: {}", "already up to date: {}", "já está atualizado: {}", installed().version));
+    }
+    if force && !i.sig_ok(&set.update_verify) {
+        // сознательное решение человека: говорим, что не сошлось, и записываем его
+        progress(&crate::tf!("ставлю без подтверждённой подписи ({}): решение записано в {}", "installing without a verified signature ({}): the decision is recorded in {}", "instalando sem assinatura verificada ({}): decisão registrada em {}", sig_text(&i.sig), nemo_px::paths::pretty(&overrides_path())));
+        record_override(&i, &set.update_verify, "apply --force");
     }
     if !force && !i.sig_ok(&set.update_verify) {
         return Err(crate::tf!("{} — не ставлю (настройки → обновления → подписи)", "{}: not installing (settings → updates → signatures)", "{}: não será instalado (configurações → atualizações → assinaturas)", sig_text(&i.sig)));
@@ -106,6 +128,11 @@ pub fn install_tag(set: &Settings, want: &str, force: bool) -> Result<String, St
     let known = has_commit(&dir, &st.commit);
     let mut i = Info { latest: tag[1..].to_string(), reference: tag.clone(), target, available: true, at: now(), ..Default::default() };
     i.sig = verify(&dir, &st, known, &set.update_verify, "verify-tag", &tag_ref(&tag));
+    if force && !i.sig_ok(&set.update_verify) {
+        // сознательное решение человека: говорим, что не сошлось, и записываем его
+        progress(&crate::tf!("ставлю без подтверждённой подписи ({}): решение записано в {}", "installing without a verified signature ({}): the decision is recorded in {}", "instalando sem assinatura verificada ({}): decisão registrada em {}", sig_text(&i.sig), nemo_px::paths::pretty(&overrides_path())));
+        record_override(&i, &set.update_verify, "to --force");
+    }
     if !force && !i.sig_ok(&set.update_verify) {
         return Err(crate::tf!("{} — не ставлю (настройки → обновления → подписи)", "{}: not installing (settings → updates → signatures)", "{}: não será instalado (configurações → atualizações → assinaturas)", sig_text(&i.sig)));
     }
@@ -459,6 +486,19 @@ mod snapshot_tests {
         assert_eq!(a[0], "create");
         assert!(a.iter().any(|x| x == "nemo: before 3.2.0"));
         assert!(a.windows(2).any(|w| w == ["--cleanup-algorithm", "number"]));
+    }
+}
+
+#[cfg(test)]
+mod override_tests {
+    use super::*;
+
+    #[test]
+    fn an_override_leaves_one_complete_line_in_the_log() {
+        let i = Info { latest: "9.9.9".into(), target: "abc123".into(), sig: "bad".into(), ..Default::default() };
+        let l = override_line(1_700_000_000, &i, "require", "apply --force");
+        assert_eq!(l, "1700000000\tversion=9.9.9\tcommit=abc123\tsignature=bad\tpolicy=require\tdecided=apply --force\n");
+        assert_eq!(l.matches('\n').count(), 1, "one line per decision");
     }
 }
 

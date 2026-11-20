@@ -1191,7 +1191,6 @@ const PAIRS: &[(&str, &str)] = &[
     ("GitHub, {}: открытых сообщений {}, закрытых {}, заметок безопасности {}", "GitHub, {}: {} open reports, {} closed, {} security advisories"),
     ("   это не гарантия: нашлось только то, о чём кто-то написал", "   not a guarantee: this is only what someone reported"),
     ("о проблемах с этой версией не проверялось: кнопка «сообщения»", "problems with this version not checked yet: the «reports» button"),
-    ("подпись не проходит правило: можно поставить всё равно, на свой риск", "the signature fails the rule: you can install anyway, at your own risk"),
     ("что это значит", "what this means"),
     ("сообщения", "reports"),
     ("ставить всё равно", "install anyway"),
@@ -1200,4 +1199,8 @@ const PAIRS: &[(&str, &str)] = &[
     ("снимок системы и вопрос в терминале — перед установкой", "a system snapshot and a question in the terminal come first"),
     ("то же, даже если подпись не проходит правило (ты уверен)", "the same, even if the signature fails the rule (you are sure)"),
     ("кофе: выкл. через, мин (0 — без срока)", "coffee off after, min (0: no limit)"),
+    ("подпись НЕ сходится: файлы могли быть подменены. Ставить можно только осознанно; решение запишется в журнал", "the signature does NOT match: the files may have been swapped. Install only on purpose; the decision is logged"),
+    ("выпуск не подписан: подлинность не проверена. Ставить можно только осознанно; решение запишется в журнал", "the release is not signed: its authenticity is unchecked. Install only on purpose; the decision is logged"),
+    ("подпись не проходит ваше правило: можно поставить всё равно, на свой риск; решение запишется в журнал", "the signature fails your rule: you can install anyway, at your own risk; the decision is logged"),
+    ("напиши INSTALL, чтобы продолжить:", "type INSTALL to continue:"),
 ];

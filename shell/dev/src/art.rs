@@ -130,16 +130,16 @@ impl D<'_> {
 }
 
 const CARDS: [[&str; 7]; 10] = [
-    ["ram", "~15 MB shell", "bar, launcher, dock, notifications, widgets:", "one Rust binary, no toolkit, no GPU context", "шелл на 15 МБ", "бар, лаунчер, док, уведомления, виджеты:", "один бинарь на Rust, без тулкитов и GPU"],
+    ["ram", "~11 MB shell", "bar, launcher, dock, notifications, widgets:", "one Rust binary, no toolkit, no GPU context", "шелл на 11 МБ", "бар, лаунчер, док, уведомления, виджеты:", "один бинарь на Rust, без тулкитов и GPU"],
     ["drop", "one accent", "pick a colour: Qt, KDE, GTK, kitty, browser,", "the cursor and the login screen follow", "один акцент", "выбери цвет: Qt, KDE, GTK, kitty, браузер,", "курсор и экран входа перекрасятся"],
     ["lock", "login screen", "our own greeter in Rust: the lock screen's", "face; greetd checks the password", "экран входа", "свой, на Rust: лицо экрана блокировки;", "пароль проверяет greetd"],
     ["play", "made for games", "tearing and VRR on nemo-niri; while you play", "notifications wait, power goes to max", "для игр", "tearing и VRR на nemo-niri; пока играешь,", "уведомления ждут, питание на максимум"],
-    ["folder", "files and player", "nemo-files: tabs, split view, trash and the", "file dialog of every app; nemo-view, nemo-play", "файлы и плеер", "nemo-files: вкладки, корзина и диалог", "выбора файлов для всех; просмотр, плеер"],
+    ["folder", "files and player", "nemo-files: tabs, split view, trash and the", "file dialog of every app; viewer and player", "файлы и плеер", "nemo-files: вкладки, корзина и диалог", "выбора файлов для всех; просмотр, плеер"],
     ["camera", "screenshots", "area, window or screen; loupe, colour picker,", "pen, arrows, mosaic, numbered badges", "скриншоты", "область, окно или экран; лупа, пипетка,", "перо, стрелки, мозаика, номерки"],
     ["eye", "stream curtain", "viewers of a stream see a frozen, blurred", "screen while you keep working", "шторка стрима", "зрители видят размытый стоп-кадр,", "а ты спокойно работаешь дальше"],
     ["down", "signed updates", "one click or nemo update, built from source,", "tags checked by the author's key, rollback", "обновления", "в один клик или nemo update, сборка", "из исходников, подпись автора, откат"],
-    ["screen", "any distro", "Arch, Fedora, Debian, openSUSE, Void, Alpine,", "Gentoo: one installer; NixOS: a flake", "8 дистрибутивов", "Arch, Fedora, Debian, openSUSE, Void, Alpine,", "Gentoo — установщик; NixOS — flake"],
-    ["text", "eight languages", "en ru pt-BR es de fr uk pl,", "switched live, the login screen too", "восемь языков", "en ru pt-BR es de fr uk pl,", "на лету, экран входа тоже"],
+    ["screen", "many distros", "Arch, Fedora, Debian, openSUSE, Void,", "Alpine, Gentoo, NixOS; tested on Fedora", "дистрибутивы", "Arch, Fedora, Debian, openSUSE, Void,", "Alpine, Gentoo, NixOS; проверено на Fedora"],
+    ["text", "nine languages", "en ru pt-BR es de fr uk pl ar,", "switched live, the login screen too", "девять языков", "en ru pt-BR es de fr uk pl ar,", "на лету, экран входа тоже"],
 ];
 
 /// акцент — тот же, что на скриншотах (палитра шелла), а без настроек — «кровь»
@@ -264,7 +264,7 @@ fn social(d: &mut D) -> RgbaImage {
     d.text(tx, 104.0, "nemo", 48.0, text);
     d.rect(tx as i64, 160, tx as i64 + 31, 163, accent);
     d.text(tx, 176.0, "a pixel-art desktop for niri", 16.0, dim);
-    d.text(tx, 204.0, "Rust Wayland shell in ~15 MB · own file manager · one accent for every app", 8.0, faint);
+    d.text(tx, 204.0, "Rust Wayland shell in ~11 MB · own file manager · one accent for every app", 8.0, faint);
     imageops::resize(&d.im, (w * 2) as u32, (h * 2) as u32, imageops::FilterType::Nearest)
 }
 

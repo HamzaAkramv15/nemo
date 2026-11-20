@@ -640,7 +640,6 @@ const AR: &[(&str, &str)] = &[
     ("GitHub, {}: {} open reports, {} closed, {} security advisories", "GitHub، {}: {} بلاغات مفتوحة، {} مغلقة، {} تنبيهات أمنية"),
     ("   not a guarantee: this is only what someone reported", "   هذا ليس ضمانًا: فقط ما أبلغ عنه أحد"),
     ("problems with this version not checked yet: the «reports» button", "لم تُفحص مشكلات هذا الإصدار بعد: زر «بلاغات»"),
-    ("the signature fails the rule: you can install anyway, at your own risk", "التوقيع لا يوافق القاعدة: يمكن التثبيت رغم ذلك على مسؤوليتك"),
     ("what this means", "ماذا يعني هذا"),
     ("reports", "بلاغات"),
     ("install anyway", "ثبّت رغم ذلك"),
@@ -649,4 +648,8 @@ const AR: &[(&str, &str)] = &[
     ("a system snapshot and a question in the terminal come first", "أولًا لقطة للنظام وسؤال في الطرفية"),
     ("the same, even if the signature fails the rule (you are sure)", "الأمر نفسه حتى لو لم يوافق التوقيع القاعدة (أنت متأكد)"),
     ("coffee off after, min (0: no limit)", "القهوة تنطفئ بعد، دقيقة (0: بلا حد)"),
+    ("the signature does NOT match: the files may have been swapped. Install only on purpose; the decision is logged", "التوقيع لا يطابق: ربما استُبدلت الملفات. ثبّت عن قصد فقط؛ يُسجَّل القرار"),
+    ("the release is not signed: its authenticity is unchecked. Install only on purpose; the decision is logged", "الإصدار غير موقّع: لم تُفحص أصالته. ثبّت عن قصد فقط؛ يُسجَّل القرار"),
+    ("the signature fails your rule: you can install anyway, at your own risk; the decision is logged", "التوقيع لا يوافق قاعدتك: يمكن التثبيت رغم ذلك على مسؤوليتك؛ يُسجَّل القرار"),
+    ("type INSTALL to continue:", "اكتب INSTALL للمتابعة:"),
 ];

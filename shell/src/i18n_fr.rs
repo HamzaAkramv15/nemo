@@ -1551,7 +1551,6 @@ const FR: &[(&str, &str)] = &[
     ("GitHub, {}: {} open reports, {} closed, {} security advisories", "GitHub, {} : {} signalements ouverts, {} fermés, {} avis de sécurité"),
     ("   not a guarantee: this is only what someone reported", "   pas une garantie : seulement ce que quelqu'un a signalé"),
     ("problems with this version not checked yet: the «reports» button", "problèmes de cette version pas encore vérifiés : bouton « signalements »"),
-    ("the signature fails the rule: you can install anyway, at your own risk", "la signature échoue à la règle : installation possible quand même, à vos risques"),
     ("what this means", "ce que cela signifie"),
     ("reports", "signalements"),
     ("install anyway", "installer quand même"),
@@ -1560,4 +1559,8 @@ const FR: &[(&str, &str)] = &[
     ("a system snapshot and a question in the terminal come first", "d'abord un instantané du système et une question dans le terminal"),
     ("the same, even if the signature fails the rule (you are sure)", "pareil, même si la signature échoue à la règle (vous êtes sûr)"),
     ("coffee off after, min (0: no limit)", "café s'éteint après, min (0 : sans limite)"),
+    ("the signature does NOT match: the files may have been swapped. Install only on purpose; the decision is logged", "la signature ne correspond PAS : les fichiers ont pu être remplacés. Installez seulement en connaissance de cause ; la décision est journalisée"),
+    ("the release is not signed: its authenticity is unchecked. Install only on purpose; the decision is logged", "la version n'est pas signée : authenticité non vérifiée. Installez seulement en connaissance de cause ; la décision est journalisée"),
+    ("the signature fails your rule: you can install anyway, at your own risk; the decision is logged", "la signature échoue à votre règle : installation possible à vos risques ; la décision est journalisée"),
+    ("type INSTALL to continue:", "tapez INSTALL pour continuer :"),
 ];

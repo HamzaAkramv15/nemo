@@ -16,20 +16,20 @@ A pixel-art desktop for niri, drawn in whole pixels. A fork of [Yami](https://gi
 
 </div>
 
-https://github.com/user-attachments/assets/d5cbbf36-4591-4cba-adb6-3eda963a2db0
 
 <img src=".github/assets/clean.png" width="100%" alt="The Nemo desktop as it is: the bar, the clock, CPU and music widgets on the pixel wallpaper">
 
-**Nemo** is a fork of **nemo** (闇, "darkness"), which turns the [niri](https://github.com/YaLTeR/niri) Wayland compositor into a
-finished desktop: dark graphite, one accent colour, crisp pixel fonts. Its shell, **nemo-shell**,
-draws the bar, launcher, dock, notifications, lock screen, widgets and settings itself, in Rust with no
-toolkit, and idles at **about 15 MB of RAM**. The file manager, image viewer, player, screenshots and
-login screen are modules of their own: take the whole desktop, or only the pieces your own setup needs.
-Every app follows the same palette, and updates arrive signed (as ready binaries on x86_64).
+**Nemo** is a desktop for the [niri](https://github.com/YaLTeR/niri) Wayland compositor: dark graphite, one accent
+colour, crisp pixel fonts. It began as a fork of [**Yami**](https://github.com/Trendorin/yami) (闇, "darkness") by
+Trendorin, and the credit for that foundation is below. Its shell, **nemo-shell**, draws the bar, launcher, dock,
+notifications, lock screen, widgets and settings itself, in Rust with no toolkit, and idles at about
+**10-12 MB of RAM**. The file manager, image viewer, player, screenshots and login screen are apps of their own:
+take the whole desktop, or only the pieces your own setup needs. Every app follows the same palette, and updates
+arrive signed (as ready binaries on x86_64).
 
 <img src=".github/assets/features-en.png" width="100%" alt="What is inside: a ~15 MB shell, one accent for everything, our own login screen, made for games, files, viewer and player, screenshots, a curtain for streams, signed updates, any distribution, eight languages">
 
-Install on any of eight distributions with one command:
+The installer knows eight distributions (it has been tested on Fedora so far); one command:
 
 ```sh
 bash <(curl -fsSL https://raw.githubusercontent.com/HamzaAkramv15/nemo/main/install.sh)
@@ -39,35 +39,38 @@ Everything it does and its flags: [Installation](#installation).
 
 ## About this fork
 
-Nemo is a fork of [**Yami**](https://github.com/Trendorin/yami) by [Trendorin](https://github.com/Trendorin)
-and its contributors, and it exists because of their work: the shell, the drawing library, the
-installer, the updater, the modules and the whole pixel look are theirs. Thank you. Nemo keeps their
-MIT license and copyright line ([LICENSE](LICENSE)), tracks their code, and takes its own name and
-logo, as their license asks of a fork.
+Nemo began as a fork of [**Yami**](https://github.com/Trendorin/yami) by [Trendorin](https://github.com/Trendorin) and its
+contributors, and it exists because of their work. Thank you. Nemo keeps their MIT license and copyright line
+([LICENSE](LICENSE)) and takes its own name and logo, as their license asks of a fork.
 
-Nemo is at version 0.1, built on nemo 3.0.0 (the programs still report nemo's version, which updates and
-the modules depend on). What Nemo adds on top of nemo 3.0.0:
+**What we took from Yami** (the foundation, kept and still credited):
 
-- **Clock and calendar:** a 12-hour format with AM/PM, three date styles, a week that starts on
-  Monday, Sunday or Saturday.
-- **Night light:** all day with no schedule, a temperature slider, `nemo night …` from a terminal or a key.
-- **Blur:** a strength slider, and a real blur that includes the windows behind a panel.
-- **Ready scripts:** twenty small offline scripts for the bar and widgets (`nemo scripts`).
-- **The Nemo look:** pixel character where it is cheap (notched corners, the pixel cursor, dithered motion, the fish) and normal where you read (system sans, smooth icons, soft shadows). Also a built-in theme: `nemo theme apply Nemo`.
-- **Startup apps:** a page that lists what starts at login with a switch for each (settings → system → startup apps), reversible and never deleting your files.
-- **Normal icons:** smooth vector icons for the bar and panels next to the pixel ones (settings → look).
-- **kitty:** fish-style suggestions as you type, notifications for long commands, splits.
-- **The name and the fish.**
+- the idea and the architecture of a shell that draws everything itself, in whole pixels, with no toolkit, on top of niri;
+- the drawing library (now `nemo-px`), the palette system and the pixel look;
+- the installer, the signed updater with rollback, and the split into a shell plus separate apps (files, viewer, player,
+  screenshots, login screen, the patched niri);
+- the settings, bar, launcher and widgets that Nemo then grew from.
 
-The programs and folders keep the name **Nemo** (`nemo`, `nemo-shell`, `~/.config/nemo`, the
-`nemo-files` and other modules), so everything stays compatible with nemo, its modules and your
-existing settings. The modules (file manager, viewer, player, screenshots, login screen, the niri
-fork) are still [Trendorin's repositories](https://github.com/Trendorin) and are fetched from there.
+**What Nemo is now, on its own:**
 
-Updates: the built-in updater only installs releases signed with the key in `keys/allowed_signers`,
-which is nemo's author's, and Nemo has no signed releases of its own yet. To update Nemo, pull this
-repository and run `./install.sh --update` from the checkout (settings are kept, a rollback point is
-made first); see [Updates](#updates). Bugs that also exist in Nemo are best reported there too.
+- its own name, logo (a minimal fish that follows the palette) and look, its own repositories (`nemo`, `nemo-files`, `nemo-view`,
+  `nemo-play`, `nemo-shot`, `nemo-greet`, `nemo-niri`) and its own release key: releases are signed by Nemo, from 3.2.0 on;
+- notifications as an island in the bar, repeats collapsed into one card, muted apps;
+- one launcher search for applications, windows, settings, files (an index plus a scan of your usual folders), a calculator,
+  unit conversion, emoji and clipboard history;
+- updates that explain themselves (what changes, security mentions, restart, reports from GitHub) with a recorded
+  break-glass override, and distribution updates (Fedora holds back what can break the system);
+- a 12-hour clock, week numbers, Hijri dates, Arabic shaping and right-to-left text, night light, caffeine that survives a restart,
+  power profiles on plug and unplug, a high-contrast theme, a keybinding cheat sheet;
+- your distribution's own logo in fastfetch, recoloured from the shell's palette;
+- a refinement pass on Files (replacing a file keeps the old one in the trash) and on memory (a file window idles at about 8 MB).
+
+Programs, commands and folders are all called Nemo (`nemo`, `nemo-shell`, `~/.config/nemo`). An installation made under the
+old name moves over by itself; saved themes and exports in the old format still import.
+
+Updates: the built-in updater installs only releases signed with the key in `keys/allowed_signers`, which is Nemo's. To
+update from source, pull this repository and run `./install.sh --update` (settings are kept, a rollback point is made
+first); see [Updates](#updates). Bugs that come from the Yami foundation are best reported to both projects.
 
 ## Features
 
@@ -336,20 +339,23 @@ neutral: the system font, rounded corners, soft shadows. The pixel look of the s
 
 ## Resource usage
 
-Measured on this setup (1920×1080, Arch, PSS — shared library pages split fairly; RSS in brackets):
+Measured on one machine (Fedora 45, 1920×1080, niri, 2026-11-20) with `tools/budget.sh` and `/proc` (PSS: shared library pages
+split fairly). Idle means nothing open and the screen unlocked; a locked screen roughly triples the shell's memory and wakes it
+ten times a second, so it is not counted.
 
-| What | Memory |
-|---|---|
-| nemo-shell, idle (bar, dock, widgets, notifications, tray) | 12.5 MB (16 MB) |
-| nemo-shell with the settings open | 18 MB |
-| nemo-shell during a screenshot (frozen frame), freed on close | 32 MB → 16 MB |
-| nemo-files --portal (file dialog + FileManager1 service, always on) | 0.8 MB (3.2 MB) |
-| nemo-files window on the home folder | 11 MB (14 MB) — Dolphin: 69 MB (161 MB) |
-| nemo-view on a 1080p PNG, both neighbours decoded ahead | 49 MB (53 MB) — Gwenview: 96 MB (188 MB) |
-| binaries on disk: shell + files + view + player | 8.7 + 6.4 + 2.3 + 1.6 MB |
+| What | Measured | Limit in `tools/budget.txt` |
+|---|---|---|
+| nemo-shell, idle (bar, dock, widgets, notifications, tray) | 10.1-11.9 MB | 18 MB |
+| nemo-agents, idle | 2.6 MB | none |
+| nemo-files window, empty folder | 7.7 MB | none |
+| nemo-files window, a folder of 30,300 entries | 17-23 MB (0.2 s of CPU to open) | none |
+| shell wakeups per second, CPU, threads | 5, 0%, 20 | 15, 2%, 26 |
+| binaries on disk: shell, agents, files | 11.6, 5.3, 6.4 MB | 13, 6 MB (shell, agents) |
 
-Always running: about 13 MB for the shell and the portal together. No GPU context, no toolkit,
-no interpreter; windows are drawn into shared memory and only when something changes. Code a
+Not measured yet: start-up and login time, memory with many windows, growth over a full day, battery use, GPU memory. The
+numbers here are what one laptop reported, not a promise for yours; run `tools/budget.sh` on your own.
+
+No GPU context, no toolkit, no interpreter; windows are drawn into shared memory and only when something changes. Code a
 program has stopped running (its start-up, a closed settings window) goes back to the kernel.
 
 ## Keys
