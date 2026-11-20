@@ -7,7 +7,7 @@ use nemo_px::paths::pids;
 use crate::cmd::Sty;
 
 /// программа → для чего (RU, EN); true — без неё не работает основное
-const DEPS: &[(&str, &str, &str, bool)] = &[
+pub(crate) const DEPS: &[(&str, &str, &str, bool)] = &[
     ("niri", "композитор", "the compositor", true),
     ("setsid", "запуск программ", "launching programs", true),
     ("grim", "скриншоты, шторка", "screenshots, the curtain", false),
@@ -40,7 +40,7 @@ pub fn which(c: &str) -> bool {
 
 /// сам шелл: nemo-shell (или nemo) без команды либо с `run`; `nemo update apply` и прочие команды
 /// CLI — тоже процессы nemo-shell, их за шелл не считаем
-fn shell_pids() -> Vec<u32> {
+pub(crate) fn shell_pids() -> Vec<u32> {
     let Ok(rd) = std::fs::read_dir("/proc") else { return vec![] };
     rd.flatten()
         .filter_map(|e| e.file_name().to_str()?.parse::<u32>().ok())
@@ -53,7 +53,7 @@ fn shell_pids() -> Vec<u32> {
         .collect()
 }
 
-fn pss_mb(pid: u32) -> f32 {
+pub(crate) fn pss_mb(pid: u32) -> f32 {
     std::fs::read_to_string(format!("/proc/{pid}/smaps_rollup")).ok().and_then(|t| crate::sys::kv_num(&t, "Pss:")).map(|k| k as f32 / 1024.0).unwrap_or(0.0)
 }
 

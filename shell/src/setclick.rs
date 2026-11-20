@@ -177,6 +177,7 @@ impl App {
                     "dock_running" => s.dock_running = !s.dock_running,
                     "dock_labels" => s.dock_labels = !s.dock_labels,
                     "dock_badges" => s.dock_badges = !s.dock_badges,
+                    "settings_simple" => s.settings_simple = !s.settings_simple,
                     "dock_launcher" => s.dock_launcher = !s.dock_launcher,
                     "dock_trash" => s.dock_trash = !s.dock_trash,
                     "float_pip" => s.float_pip = !s.float_pip,
@@ -427,6 +428,16 @@ impl App {
                         // после обновления список устарел: следующая проверка — заново
                         self.st.sys_upd.found = None;
                     }
+                }
+                "diag_refresh" => self.st.diag = Some(crate::diagtab::collect()),
+                "diag_open_cfg" => App::spawn(&["xdg-open".to_string(), nemo_px::paths::nemo_dir().to_string_lossy().to_string()]),
+                "diag_open_state" => App::spawn(&["xdg-open".to_string(), nemo_px::paths::state_dir().to_string_lossy().to_string()]),
+                "diag_report" => {
+                    // архив для issue в домашней папке; команда та же, что в терминале: nemo report
+                    let tm = nemo_px::time::local_now();
+                    let file = nemo_px::paths::home().join(format!("nemo-report-{:04}{:02}{:02}-{:02}{:02}.tar.gz", tm.year, tm.mon, tm.day, tm.hour, tm.min));
+                    App::spawn(&[nemo_px::paths::self_exe().to_string_lossy().to_string(), "report".into(), "-o".into(), file.to_string_lossy().to_string()]);
+                    self.toast_note("состояние", &crate::tf!("отчёт: {}", "report: {}", "relatório: {}", nemo_px::paths::pretty(&file)));
                 }
                 "sysupd_run_all" => {
                     // всё, включая удержанное (ядро, драйверы, основа): человек уверен; терминал переспросит, снимок делается

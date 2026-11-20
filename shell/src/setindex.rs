@@ -130,6 +130,7 @@ mod tests {
             ("animtab.rs", include_str!("animtab.rs")),
             ("updtab.rs", include_str!("updtab.rs")),
             ("sysupd.rs", include_str!("sysupd.rs")),
+            ("diagtab.rs", include_str!("diagtab.rs")),
         ];
         let mut missing = vec![];
         for (f, src) in files {

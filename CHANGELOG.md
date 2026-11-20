@@ -9,6 +9,8 @@ has its Russian line in CHANGELOG.ru.md: `tools/check.sh` checks that.
 
 ## Unreleased
 
+- Settings reorganised (nothing removed): five groups (appearance, desktop, every day, system, diagnostics) with «actions» folded into «every day»; every tab has a one-line description under the window header; the bottom of the tab list has «essentials only» (`settingsSimple`) to hide the deeper tabs, search still finds everything. A new tab, «status» (diagnostics): what is running and how much memory it takes, which programs Nemo relies on are missing, versions, the signature policy and the log of installs made despite a signature, buttons for the settings and logs folders and for an issue report archive.
+
 - The README pictures are Nemo's own now (they were Yami's author's desktop): `tools/readme-shots-offline.sh` renders them from the real drawing code of the shell and the apps with made-up data, without touching your desktop, and composes the desktop picture from the panels.
 - Screenshot comparison in the gate: `tools/golden.sh` renders every target that does not show the clock (134 pictures) and compares it with recorded hashes; `tools/golden.sh --update` takes new pictures after a look.
 - Dock: the name of a long window title is shortened with an ellipsis instead of being cut at the edge of the surface (the side dock's surface is wider), and the scan lines are drawn only on the panel, not over the icons and the label.

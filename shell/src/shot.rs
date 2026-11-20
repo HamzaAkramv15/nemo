@@ -148,6 +148,7 @@ const TARGETS: &[&str] = &[
     "settings:notif",
     "settings:system-scroll",
     "settings:updates",
+    "settings:diag",
     "settings:updates-new",
     "settings:updates-report",
     "settings:updates-unsigned",
@@ -418,6 +419,17 @@ fn shoot(st: &mut State, res: &mut Res, target: &str, path: &Path) {
         "settings" => {
             st.modal = Some(Modal::Settings);
             st.stab = crate::settings::find(arg).map(|t| t.id).unwrap_or("color");
+            if arg == "diag" {
+                // образец: не процессы этой машины
+                st.diag = Some(crate::diagtab::Diag {
+                    procs: vec![("nemo-shell".into(), 10.4, 20), ("nemo-agents".into(), 2.6, 5), ("nemo-files --portal".into(), 0.8, 3)],
+                    present: 22,
+                    missing: vec![("wlsunset", "ночной свет", false), ("tesseract", "текст со скриншота", false)], // i18n-ok
+                    niri: "niri 26.04-nemo.6".into(),
+                    overrides: 1,
+                    last_override: "2026-11-20 14:02 · 3.2.1 · unsigned".into(),
+                });
+            }
             if arg == "bt" {
                 // образец, а не адаптер этой машины: подключённые с зарядом, сопряжённое, новое рядом
                 mock_bt(st);

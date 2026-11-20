@@ -42,27 +42,19 @@ pub const GROUPS: &[(&str, &[Tab])] = &[
         &[
             tab("color", "цвет", "drop", "палитра акцент цвет тема темы шаблон светлая тёмная стекло прозрачность плотность palette accent colour color theme themes template light dark glass opacity paleta destaque cor cores tema temas modelo claro escuro vidro transparência", tab_color), // i18n-ok
             tab("wall", "обои", "image", "обои картинка фон папка миниатюры skwd skwd-wall видео wallpaper background image folder thumbnails picker video papel parede imagem fundo pasta miniaturas seletor vídeo", crate::wall::tab), // i18n-ok
+            tab("fonts", "шрифты", "text", "шрифт размер терминал fastfetch браузер fonts size terminal browser fonte fontes tamanho terminal navegador", crate::fonttab::tab), // i18n-ok
             tab("look", "вид", "eye", "пиксельность пиксели лёгкий режим слабый тормозит виртуалка эффекты развёртка размытие значки иконки курсор pixel pixelation lite slow lag vm animation effects reveal scanlines blur icons cursor visual aparência pixels pixelização leve lento animação efeitos desfoque ícones cursor", tab_look), // i18n-ok
             tab("anim", "анимации", "slides", "анимации появление закрытие скорость длительность узор дизеринг развёртка шум диагональ блоки плавно сразу движение animations reveal open close speed duration pattern dither fade motion animações abrir fechar velocidade duração padrão movimento", crate::animtab::tab), // i18n-ok
-            tab("fonts", "шрифты", "text", "шрифт размер терминал fastfetch браузер fonts size terminal browser fonte fontes tamanho terminal navegador", crate::fonttab::tab), // i18n-ok
         ],
     ),
     (
         "рабочий стол",
         &[
             tab("bar", "бар", "menu", "бар модули часы разделитель плавающий плашка ширина центр трей стрелка температура bar modules clock separator floating pill width center tray arrow temperature barra módulos relógio separador flutuante largura centro bandeja temperatura", crate::bartab::tab_bar), // i18n-ok
-            tab("widgets", "виджеты", "grid", "виджеты график часы заметка widgets graph clock note widgets gráfico relógio nota", tab_widgets), // i18n-ok
             tab("dock", "док", "tile", "док закреплённые dock pinned dock fixados", tab_dock), // i18n-ok
+            tab("widgets", "виджеты", "grid", "виджеты график часы заметка widgets graph clock note widgets gráfico relógio nota", tab_widgets), // i18n-ok
             tab("windows", "окна", "float", "окна отступы плавающие стол заголовки углы скругление рамка gaps floating stacking windows titlebars corners rounded radius border janelas espaço flutuantes títulos cantos arredondados borda mosaico", tab_windows), // i18n-ok
             tab("screens", "экраны", "screen", "экраны монитор разрешение частота масштаб vrr hz герц поворот display monitor resolution refresh scale rotation telas tela monitor resolução frequência escala rotação", crate::displays::tab), // i18n-ok
-        ],
-    ),
-    (
-        "действия",
-        &[
-            Tab { own_scroll: true, ..tab("keys", "клавиши", "keys", "клавиши сочетания хоткеи раскладка keys shortcuts hotkeys layout keyboard teclas atalhos teclado layout disposição", crate::keys::tab) }, // i18n-ok
-            tab("shots", "скриншоты", "camera", "скриншоты снимок лупа screenshot loupe captura capturas tela imagem lupa", tab_shots), // i18n-ok
-            tab("games", "игры", "play", "игры steam proton разрывы gamemode ntsync tearing games shader jogos jogo cortes shader", crate::games::tab), // i18n-ok
         ],
     ),
     (
@@ -71,6 +63,9 @@ pub const GROUPS: &[(&str, &[Tab])] = &[
             tab("comfort", "комфорт", "coffee", "комфорт кофе не засыпать бодрствование сон блокировка экран гаснет простой ночной свет тёплый не беспокоить рыбка характер comfort caffeine coffee keep awake sleep idle lock screen off night light warm do not disturb fish character personality conforto café não dormir inatividade luz noturna não perturbe", tab_comfort), // i18n-ok
             tab("region", "язык и время", "clock", "язык и время часы 12 24 формат дата неделя выходные пятница суббота хиджра арабские цифры календарь language time clock 12 24 hour format date week start weekend friday saturday hijri arabic digits calendar idioma horário relógio formato data semana fim de semana", tab_region), // i18n-ok
             tab("notif", "уведомления", "bell", "уведомления не беспокоить место история osd громкость яркость notifications do not disturb position history osd volume brightness notificações notificação perturbe posição histórico volume brilho", tab_notif), // i18n-ok
+            Tab { own_scroll: true, ..tab("keys", "клавиши", "keys", "клавиши сочетания хоткеи раскладка keys shortcuts hotkeys layout keyboard teclas atalhos teclado layout disposição", crate::keys::tab) }, // i18n-ok
+            tab("shots", "скриншоты", "camera", "скриншоты снимок лупа screenshot loupe captura capturas tela imagem lupa", tab_shots), // i18n-ok
+            tab("games", "игры", "play", "игры steam proton разрывы gamemode ntsync tearing games shader jogos jogo cortes shader", crate::games::tab), // i18n-ok
         ],
     ),
     (
@@ -82,10 +77,53 @@ pub const GROUPS: &[(&str, &[Tab])] = &[
             tab("bt", "bluetooth", "bt", "bluetooth блютуз наушники колонки мышь клавиатура сопряжение подключить забыть заряд bluetooth headphones speaker mouse keyboard pair connect forget battery fones caixa de som mouse teclado parear conectar esquecer bateria", crate::bttab::tab), // i18n-ok
             tab("agents", "службы", "bolt", "службы трей polkit порталы флешки телефоны автоподключение обложки тексты погода services tray portals automount drives phones covers lyrics weather serviços serviço bandeja portais discos telefones montagem capas letras clima", crate::agents::tab), // i18n-ok
             tab("updates", "обновления", "down", "обновления версия откат updates version rollback atualizações atualizar versão reverter система софт дистрибутив пакеты fedora dnf arch pacman debian ubuntu apt opensuse zypper безопасные удержано ядро system software distribution packages upgrade held back kernel safe sistema atualizações do sistema pacotes", crate::update::tab), // i18n-ok
+        ],
+    ),
+    (
+        "диагностика",
+        &[
+            tab("diag", "состояние", "gauge", "состояние диагностика здоровье память процессы версии журнал отчёт проверка зависимости diagnostics health status memory processes versions log report doctor dependencies", crate::diagtab::tab_diag), // i18n-ok
             tab("about", "о шелле", "about", "о шелле версия память about version memory sobre versão memória", tab_about), // i18n-ok
         ],
     ),
 ];
+
+/// одна строка про вкладку: что на ней и зачем; показывается под заголовком окна. Ключ — id вкладки
+pub fn desc(id: &str) -> &'static str {
+    match id {
+        "color" => "палитра, акцент и прозрачность: цвета всего рабочего стола и программ",
+        "wall" => "обои: своя картинка, папка с картинками или рисунок палитры",
+        "fonts" => "шрифты шелла, терминала и браузера",
+        "look" => "вид деталей: пиксельность, углы, размытие, значки, лёгкий режим",
+        "anim" => "как окна и панели появляются и исчезают",
+        "bar" => "что показывает полоса сверху: модули, форма, часы",
+        "dock" => "док с программами: край, размер, прятать, числа на значках",
+        "widgets" => "виджеты на рабочем столе: добавить, переставить, настроить",
+        "windows" => "как окна расставляются и выглядят: отступы, углы, заголовки",
+        "screens" => "мониторы: разрешение, частота, масштаб, поворот",
+        "comfort" => "экран и питание: засыпание, блокировка, кофе, ночной свет",
+        "region" => "язык, формат времени и даты, календарь",
+        "notif" => "уведомления: где показываются, сколько, не беспокоить",
+        "keys" => "клавиши: что делает каждое сочетание, свои сочетания",
+        "shots" => "скриншоты: куда сохраняются и что делать после снимка",
+        "games" => "игры: что включается на время игры",
+        "system" => "сеанс: язык, сон, блокировка, строки nemo в конфиге niri",
+        "startup" => "что запускается при входе: включить или выключить",
+        "login" => "экран входа: вид, пользователи, numlock, менеджер входа",
+        "bt" => "bluetooth: устройства, сопряжение, заряд",
+        "agents" => "службы: окна паролей, трей, порталы, диски, погода",
+        "updates" => "обновления Nemo и системы, проверка подписей, откат",
+        "diag" => "здоровье рабочего стола: память, версии, нехватка программ, журнал решений",
+        "about" => "о Nemo: версия, авторы, модули",
+        _ => "",
+    }
+}
+
+/// вкладки для тех, кому нужно больше обычного: глубокие настройки, службы, детали вида. Режим «только основное»
+/// прячет их из списка слева; поиск находит всё всегда, а открытая вкладка не исчезает из-под рук
+pub fn advanced(id: &str) -> bool {
+    matches!(id, "look" | "anim" | "widgets" | "windows" | "games" | "system" | "startup" | "login" | "agents")
+}
 
 /// все вкладки подряд
 pub fn tabs() -> impl Iterator<Item = &'static Tab> {
@@ -100,7 +138,7 @@ pub fn find(id: &str) -> Option<&'static Tab> {
 /// где рисовать содержимое (видимая часть) — общее для рисования и колеса
 fn body_rect(w: i32, h: i32, sw: i32) -> R {
     let fr = R::new(0, 0, w - 6, h - 6);
-    R::new(1 + sw + 20, 48, fr.right() - sw - 1 - 48, fr.h - 64)
+    R::new(1 + sw + 20, 56, fr.right() - sw - 1 - 48, fr.h - 72)
 }
 
 fn side_rect(h: i32, sw: i32) -> R {
@@ -140,6 +178,13 @@ pub(crate) fn scrollbar(ui: &mut Ui, r: R, view: i32, full: i32, at: i32) {
 /// словах-подсказках (на всех языках сразу), без учёта регистра
 /// высота поля поиска над списком вкладок
 const SEARCH_H: i32 = 36;
+/// низ колонки вкладок: переключатель «только основное»
+const FOOT_H: i32 = 30;
+
+/// вкладка в списке слева: модуль есть, подходит запросу, а в режиме «только основное» — не из глубоких (открытая и найденная остаются)
+fn listed(st: &State, tb: &Tab, query: &str) -> bool {
+    st.mods_here.shows(tb.id) && tab_matches(tb, query) && (!st.set.settings_simple || !advanced(tb.id) || st.stab == tb.id || !query.trim().is_empty())
+}
 
 pub fn tab_matches(tb: &Tab, query: &str) -> bool {
     let q = query.trim().to_lowercase();
@@ -184,18 +229,17 @@ pub fn draw(ui: &mut Ui, st: &State, w: i32, h: i32) {
     let query = st.search_field.text.clone();
     let focused = st.field_focus == Some("set_search");
     ui.field(R::new(side.x + 8, side.y + 6, side.w - 16, 24), &st.search_field, "поиск", focused, false, Act::SField("set_search"));
-    ui.cv.push_clip(R::new(side.x, side.y + SEARCH_H, side.w, side.h - SEARCH_H));
+    ui.cv.push_clip(R::new(side.x, side.y + SEARCH_H, side.w, side.h - SEARCH_H - FOOT_H));
     let mut y = side.y + SEARCH_H + 8 - st.stab_scroll;
-    let any = !query.trim().is_empty();
     for (gname, tabs) in GROUPS {
-        if any && !tabs.iter().any(|tb| st.mods_here.shows(tb.id) && tab_matches(tb, &query)) {
+        if !tabs.iter().any(|tb| listed(st, tb, &query)) {
             continue;
         }
         ui.cv.fill(R::new(side.x + 12, y + 8, 4, 4), t.red.alpha(0.7));
         ui.text_in(PX, R::new(side.x + 22, y, side.w - 30, HEAD_H - 4), gname, t.text_faint);
         y += HEAD_H;
         // вкладки модулей, которых нет (скриншоты без nemo-shot, экран входа без nemo-greet), прячутся
-        for tb in tabs.iter().filter(|tb| st.mods_here.shows(tb.id) && tab_matches(tb, &query)) {
+        for tb in tabs.iter().filter(|tb| listed(st, tb, &query)) {
             let r = R::new(side.x + 8, y, side.w - 16, ROW_H - 2);
             ui.button(r, tb.name, tb.icon, Tone::Ghost, st.stab == tb.id, true, Act::STab(tb.id));
             if st.stab == tb.id {
@@ -208,12 +252,22 @@ pub fn draw(ui: &mut Ui, st: &State, w: i32, h: i32) {
     let side_full = y + st.stab_scroll - side.y;
     st.stab_h.set(side_full);
     ui.cv.pop_clip();
-    scrollbar(ui, R::new(side.right() - 5, side.y + 2, 4, side.h - 4), side.h, side_full, st.stab_scroll);
+    scrollbar(ui, R::new(side.right() - 5, side.y + 2, 4, side.h - 4 - FOOT_H), side.h - FOOT_H, side_full, st.stab_scroll);
+    // внизу колонки: все вкладки или только основные
+    ui.cv.fill(R::new(side.x, side.bottom() - FOOT_H, side.w, 1), t.border);
+    let (label, icon) = if st.set.settings_simple { ("все настройки", "plus") } else { ("только основное", "leaf") };
+    ui.button(R::new(side.x + 8, side.bottom() - FOOT_H + 3, side.w - 16, FOOT_H - 6), label, icon, Tone::Ghost, st.set.settings_simple, true, Act::SBool("settings_simple"));
     // содержимое: фон-зона для колеса, вкладка со сдвигом, полоса прокрутки справа
     let body = body_rect(w, h, sw);
     let tb = find(st.stab).unwrap_or(&GROUPS[0].1[0]);
     let off = if tb.own_scroll { 0 } else { scroll_of(st) };
     ui.zone(R::new(side.right() + 1, 31, fr.right() - side.right() - 2, fr.h - 32), Act::SScroll, Cur::Default);
+    // что на этой вкладке и зачем: одна строка под заголовком окна
+    if st.search_field.text.trim().is_empty() {
+        let d = (ui.tr)(desc(tb.id)).to_string();
+        let d = ui.f.elide(PX, &d, body.w);
+        ui.text_in(PX, R::new(body.x, 32, body.w, 16), &d, t.text_faint);
+    }
     ui.cv.push_clip(R::new(body.x - 4, body.y - 4, body.w + 8, body.h + 8));
     ui.cv.reach = i32::MIN;
     if st.search_field.text.trim().is_empty() {
@@ -248,7 +302,7 @@ impl App {
     /// колесо над списком вкладок
     pub fn settings_side_scroll(&mut self, d: i32) {
         let h = SIZE.1;
-        let max = (self.st.stab_h.get() - side_rect(h, SIDE_W).h).max(0);
+        let max = (self.st.stab_h.get() - (side_rect(h, SIDE_W).h - FOOT_H)).max(0);
         self.st.stab_scroll = (self.st.stab_scroll + d * WHEEL).clamp(0, max);
         self.dirty(&SKind::Modal);
     }
@@ -318,6 +372,7 @@ impl App {
                 crate::sysupd::start(&mut self.st, tx, false);
             }
             "login" => self.st.login_probe = crate::login::probe(),
+            "diag" => self.st.diag = Some(crate::diagtab::collect()),
             "look" if self.st.sets.is_none() => self.sets_load(),
             _ => {}
         }
