@@ -390,6 +390,8 @@ pub struct State {
     pub dock_leave: Option<Instant>,
     pub dock_bounce: Vec<(String, Instant)>,
     /// числа и прогресс от программ (ключ — id программы без .desktop, в нижнем регистре), launcher_entry.rs
+    /// отпечаток папок программ, при котором прочитан список apps (px::icons::apps_stamp)
+    pub apps_stamp: u128,
     pub launcher_entries: std::collections::HashMap<String, crate::launcher_entry::Entry>,
     /// наведение в доке для анимации: (сейчас, до этого, когда сменилось)
     pub dock_hov: std::cell::Cell<(Option<usize>, Option<usize>, Instant)>,
@@ -614,6 +616,7 @@ impl State {
             dock_hover: false,
             dock_leave: None,
             dock_bounce: vec![],
+            apps_stamp: 0,
             launcher_entries: Default::default(),
             dock_hov: std::cell::Cell::new((None, None, Instant::now())),
             trash_full: false,

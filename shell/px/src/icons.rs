@@ -631,6 +631,24 @@ fn app_dirs() -> Vec<PathBuf> {
     v
 }
 
+/// отпечаток папок программ: время изменения каждой папки и её подпапок. Поставили или убрали программу — папка
+/// менялась (пакетный менеджер кладёт файлы переименованием), отпечаток другой; список перечитывать нужно только тогда
+pub fn apps_stamp() -> u128 {
+    let mut h: u128 = 0;
+    let mtime = |p: &std::path::Path| std::fs::metadata(p).and_then(|m| m.modified()).ok().and_then(|t| t.duration_since(std::time::UNIX_EPOCH).ok()).map_or(0, |d| d.as_nanos());
+    for d in app_dirs() {
+        h = h.rotate_left(7) ^ mtime(&d);
+        if let Ok(rd) = std::fs::read_dir(&d) {
+            for e in rd.flatten() {
+                if e.file_type().is_ok_and(|t| t.is_dir()) {
+                    h = h.rotate_left(5) ^ mtime(&e.path());
+                }
+            }
+        }
+    }
+    h
+}
+
 fn localized(m: &HashMap<String, String>, key: &str) -> String {
     let lang = std::env::var("LANG").unwrap_or_default();
     let short: String = lang.chars().take_while(|c| c.is_ascii_alphabetic()).collect();

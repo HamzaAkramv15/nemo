@@ -493,12 +493,11 @@ impl<'a> Canvas<'a> {
         let w = self.w as usize;
         for y in r.y..r.y + r.h {
             let row = y as usize * w;
+            let span = &mut self.buf[row + r.x as usize..row + (r.x + r.w) as usize];
             if src >> 24 == 255 {
-                self.buf[row + r.x as usize..row + (r.x + r.w) as usize].fill(src);
+                span.fill(src);
             } else {
-                for x in r.x..r.x + r.w {
-                    self.blend_at(row + x as usize, src);
-                }
+                over_row(span, src);
             }
         }
     }
@@ -1075,6 +1074,34 @@ impl<'a> Canvas<'a> {
 }
 
 /// src поверх d (оба предумножены)
+/// `over` для целой строки одним цветом: два канала за раз в одном слове. Тот же результат, что у `over`, до бита
+/// (проверено перебором): деление на 255 с округлением — ((x+127) + ((x+127)>>8) + 1) >> 8
+pub fn over_row(row: &mut [u32], src: u32) {
+    let sa = src >> 24;
+    if sa == 0 {
+        return;
+    }
+    if sa == 255 {
+        row.fill(src);
+        return;
+    }
+    let inv = 255 - sa;
+    let (srb, sag) = (src & 0x00ff_00ff, (src >> 8) & 0x00ff_00ff);
+    // x/255 по каналам-половинкам слова; каждая половинка < 65536, переносов между ними нет
+    let div = |x: u32| {
+        let t = x + 0x007f_007f;
+        ((t + ((t >> 8) & 0x00ff_00ff) + 0x0001_0001) >> 8) & 0x00ff_00ff
+    };
+    // сумма с потолком 255 в каждой половинке
+    let sat = |v: u32| (v | (((v >> 8) & 0x0001_0001) * 255)) & 0x00ff_00ff;
+    for p in row {
+        let d = *p;
+        let rb = sat(srb + div((d & 0x00ff_00ff) * inv));
+        let ag = sat(sag + div(((d >> 8) & 0x00ff_00ff) * inv));
+        *p = ag << 8 | rb;
+    }
+}
+
 #[inline]
 pub fn over(d: u32, src: u32) -> u32 {
     let sa = src >> 24;
@@ -1447,3 +1474,35 @@ pub fn overlay_up(src: &[u32], w: i32, h: i32, dst: &mut [u32], pw: i32, ph: i32
         }
     }
 }
+
+#[cfg(test)]
+mod over_row_tests {
+    use super::*;
+
+    /// то же, что `over`, для каждой прозрачности и множества цветов фона и источника
+    #[test]
+    fn the_packed_blend_equals_the_plain_one() {
+        let mut seed = 0x1234_5678u32;
+        let mut rnd = || {
+            seed ^= seed << 13;
+            seed ^= seed >> 17;
+            seed ^= seed << 5;
+            seed
+        };
+        for sa in 0..=255u32 {
+            for _ in 0..200 {
+                // предумноженный источник: каждый канал не больше альфы; фон — любой допустимый предумноженный
+                let ch = |m: u32, r: u32| r % (m + 1);
+                let (r0, r1, r2) = (rnd(), rnd(), rnd());
+                let src = sa << 24 | ch(sa, r0) << 16 | ch(sa, r1) << 8 | ch(sa, r2);
+                let da = rnd() & 255;
+                let (q0, q1, q2) = (rnd(), rnd(), rnd());
+                let d = da << 24 | ch(da, q0) << 16 | ch(da, q1) << 8 | ch(da, q2);
+                let mut row = [d];
+                over_row(&mut row, src);
+                assert_eq!(row[0], over(d, src), "src {src:08x} dst {d:08x}");
+            }
+        }
+    }
+}
+

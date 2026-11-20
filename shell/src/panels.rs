@@ -62,7 +62,13 @@ impl App {
         self.st.modal = Some(m);
         match m {
             Modal::Launcher => {
-                self.st.apps = icons::load_apps();
+                // список программ читается заново, только если папки программ менялись: разбор сотен .desktop на каждое открытие
+                // лаунчера был десятками миллисекунд процессора прямо в начале анимации
+                let stamp = icons::apps_stamp();
+                if self.st.apps.is_empty() || stamp != self.st.apps_stamp {
+                    self.st.apps = icons::load_apps();
+                    self.st.apps_stamp = stamp;
+                }
                 self.st.launcher.open(clip, &self.st.apps, &self.st.niri.wins);
                 if clip {
                     launcher::load_clip(self.tx.clone());
