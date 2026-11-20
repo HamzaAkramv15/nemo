@@ -43,6 +43,13 @@ impl App {
         reap_inherited();
         self.caffeine_tick();
         let now = Instant::now();
+        // служба с окнами паролей, показом экрана и дисками упала — поднять заново (ей никто больше не следит)
+        if now.duration_since(self.agents_seen) >= Duration::from_secs(20) {
+            self.agents_seen = now;
+            if crate::proc::have("nemo-agents") && !crate::agents::alive() {
+                App::spawn(&["nemo-agents".to_string()]);
+            }
+        }
         // старт позади (конфиги, темы значков, шрифты, все модули) или окно закрыто полминуты
         // назад: их код больше не исполняется — из памяти; нужное вернётся из кеша страниц
         // и дальше раз в три минуты, пока шелл простаивает: часы и тик каждую секунду возвращают в память одни и те же

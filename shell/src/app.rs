@@ -436,6 +436,8 @@ pub struct App {
     /// когда отдать ядру код, который больше не исполняется (nemo_px::shed_code): через 30 с после
     /// старта и после закрытия настроек или выбора обоев (их код велик, а нужен изредка)
     pub(crate) shed_at: Option<Instant>,
+    /// когда в последний раз проверяли, жива ли служба nemo-agents
+    pub(crate) agents_seen: Instant,
     /// нить сна ждёт здесь «заперто», чтобы отпустить сон (sleep.rs)
     pub(crate) sleep_ack: Option<std::sync::mpsc::Sender<()>>,
     pub(crate) lock_state: SessionLockState,
@@ -702,6 +704,7 @@ pub fn run() {
         frac_mgr,
         scratch: vec![],
         shed_at: Some(Instant::now() + Duration::from_secs(30)),
+        agents_seen: Instant::now(),
         sleep_ack: None,
         lock_state: SessionLockState::new(&globals, &qh),
         lock: None,

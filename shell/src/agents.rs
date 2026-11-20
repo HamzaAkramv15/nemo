@@ -72,6 +72,16 @@ impl App {
     }
 }
 
+/// служба жива: её замок (flock в XDG_RUNTIME_DIR) держит процесс. Нет файла или замок свободен — службы нет
+pub fn alive() -> bool {
+    use std::os::fd::AsRawFd;
+    let Some(dir) = std::env::var_os("XDG_RUNTIME_DIR") else { return true };
+    let Ok(f) = std::fs::File::open(std::path::PathBuf::from(dir).join("nemo-agents.lock")) else { return false };
+    // замок общий и без ожидания: получили — значит, исключительного держателя нет; не получили — держит служба
+    let got = unsafe { libc::flock(f.as_raw_fd(), libc::LOCK_SH | libc::LOCK_NB) } == 0;
+    !got
+}
+
 /// файл настроек nemo-agents: шелл только правит его и просит службу перечитать
 #[derive(serde::Serialize, serde::Deserialize, Clone, Debug)]
 #[serde(default, rename_all = "camelCase")]
@@ -157,4 +167,28 @@ pub fn tab(ui: &mut Ui, st: &State, b: R) {
     ui.text_in(crate::font::PX, R::new(b.x, y, b.w, 20), "трей и пароли — после перезапуска; порталы — после входа", t.text_faint);
     y += 26;
     ui.button(R::new(b.x, y, 220, 28), "перезапустить шелл", "reboot", Tone::Plain, false, true, Act::SCycle("restart_shell"));
+}
+
+#[cfg(test)]
+mod alive_tests {
+    use std::os::fd::AsRawFd;
+
+    #[test]
+    fn a_held_lock_means_the_service_is_alive_and_a_free_one_means_it_is_gone() {
+        let dir = nemo_px::paths::private_tmp("agents-alive").unwrap();
+        let old = std::env::var_os("XDG_RUNTIME_DIR");
+        std::env::set_var("XDG_RUNTIME_DIR", &dir);
+        assert!(!super::alive(), "no lock file: not running");
+        let f = std::fs::File::create(dir.join("nemo-agents.lock")).unwrap();
+        assert!(!super::alive(), "a file nobody holds: not running (a crashed service leaves one behind)");
+        assert_eq!(unsafe { libc::flock(f.as_raw_fd(), libc::LOCK_EX | libc::LOCK_NB) }, 0);
+        assert!(super::alive(), "held exclusively: running");
+        drop(f);
+        assert!(!super::alive(), "released when the process dies");
+        match old {
+            Some(v) => std::env::set_var("XDG_RUNTIME_DIR", v),
+            None => std::env::remove_var("XDG_RUNTIME_DIR"),
+        }
+        let _ = std::fs::remove_dir_all(dir);
+    }
 }
