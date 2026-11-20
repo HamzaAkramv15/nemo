@@ -930,7 +930,7 @@ pub fn fastfetch(cx: &Cx, p: &P) -> Res {
     // config.jsonc — наш, пока его первая строка наша (или его нет); свой не перезаписываем: наш вид
     // ложится рядом, в nemo.jsonc (fastfetch -c ~/.config/fastfetch/nemo.jsonc)
     let main = cx.cfg.join("fastfetch/config.jsonc");
-    let own = read_lossy(&main).ok().is_some_and(|t| !t.trim_start().split('\n').next().unwrap_or("").starts_with("// NEMO"));
+    let own = read_lossy(&main).ok().is_some_and(|t| { let first = t.trim_start().split('\n').next().unwrap_or(""); !(first.starts_with("// NEMO") || first.starts_with("// YAMI")) });
     let target = if own { cx.cfg.join("fastfetch/nemo.jsonc") } else { main };
     let mut body = format!("// NEMO: пишет {WHO} по палитре шелла\n"); // i18n-ok
     jdump(&conf, 0, &mut body);
