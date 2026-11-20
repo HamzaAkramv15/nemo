@@ -118,8 +118,12 @@ const TARGETS: &[&str] = &[
     "widget:script",
     "widget:script-none",
     "widget:clock-reef",
+    "widget:clock-reefbare",
     "widget:cal-reef",
     "widget:graph-reef",
+    "widget:sky",
+    "widget:vitals",
+    "widget:week",
     "popup:weather",
     "popup:weather-none",
     "notif",
@@ -791,14 +795,21 @@ fn shoot(st: &mut State, res: &mut Res, target: &str, path: &Path) {
             if k == "bt" {
                 mock_bt(st);
             }
+            if matches!(k, "vitals" | "sky") {
+                st.sys.cpu = 0.34;
+                st.sys.mem = 0.68;
+                st.sys.temp = 82.0;
+                st.sys.disk = 0.41;
+            }
             let mut w = Widget { on: true, ..Widget::new(900, k) };
             if matches!(var, "s" | "l") {
                 w.size = var.into();
             }
             // рифовый вид (#14): подложка с линией воды и пузырьками
-            if var == "reef" {
+            if var == "reef" || var == "reefbare" {
                 st.set.widget_look = "reef".into();
-                w.frame = true;
+                // reefbare: без подложки пузырьки остаются
+                w.frame = var == "reef";
                 w.size = if k == "clock" { "m".into() } else { "s".into() };
                 w.date = true;
                 if k == "graph" {

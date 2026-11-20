@@ -98,6 +98,11 @@ impl Widget {
         if kind == "clock" {
             w.frame = false;
         }
+        // свои карточки: подложка — часть вида
+        if matches!(kind, "sky" | "vitals" | "week") {
+            w.frame = true;
+            w.date = true;
+        }
         w
     }
 }
@@ -398,6 +403,10 @@ pub struct Settings {
     pub widget_contrast: bool,
     /// вид подложек виджетов: plain — как есть, reef — рифовый (линия воды сверху, пузырьки в углу), под обои по умолчанию
     pub widget_look: String,
+    /// подложка виджетов: glass — стекло темы, solid — плотная, outline — почти прозрачная с рамкой
+    pub widget_panel: String,
+    /// непрозрачность подложки 0.15…1.0; 0 — как у стекла темы
+    pub widget_alpha: f32,
 
     /// клавиши: id из keys::BINDS → сочетание ("" — выключено); чего нет — по умолчанию
     pub binds: std::collections::BTreeMap<String, String>,
@@ -495,7 +504,7 @@ pub fn page_keys(tab: &str) -> &'static [&'static str] {
         "anim" => &["animations", "animSpeed", "animClose", "reveal", "revealGrain", "anims"],
         "wall" => &["wallDir", "wallFit", "wallPixel", "wallTone", "wallDim", "wallKanji"],
         "bar" => &["bar*", "taskWidth", "cpuStyle", "tempStyle", "trayMode", "trayPixel", "batHideFull", "privacyMic", "privacyCam", "privacyScreen", "mediaViz", "mediaView", "controlTiles"],
-        "widgets" => &["widgets", "widgetContrast", "widgetLook"],
+        "widgets" => &["widgets", "widgetContrast", "widgetLook", "widgetPanel", "widgetAlpha"],
         "dock" => &["dock*"],
         "windows" => &["stacking", "titlebars", "floatMedia", "floatPip", "floatApps", "floatW", "floatH", "winGap", "winLeft", "winRight", "winTop", "winBottom", "winRadius", "winBorder", "castHide"],
         "notif" => &["dnd", "notifTimeout", "notifMax", "notifHistory", "notifPos", "osdPos", "osdBright", "notifOffset", "osdOffset", "notifImages", "island", "notifMuted"],
@@ -791,6 +800,8 @@ impl Default for Settings {
             ],
             widget_contrast: true,
             widget_look: "plain".into(),
+            widget_panel: "glass".into(),
+            widget_alpha: 0.0,
             binds: Default::default(),
             custom_binds: vec![],
             fetch_full: false,
@@ -955,6 +966,12 @@ impl Settings {
             if !["", "power-saver", "balanced", "performance"].contains(&p.as_str()) {
                 p.clear();
             }
+        }
+        if !["glass", "solid", "outline"].contains(&self.widget_panel.as_str()) {
+            self.widget_panel = "glass".into();
+        }
+        if self.widget_alpha != 0.0 {
+            self.widget_alpha = self.widget_alpha.clamp(0.15, 1.0);
         }
         if !["plain", "reef"].contains(&self.widget_look.as_str()) {
             self.widget_look = "plain".into();

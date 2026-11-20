@@ -1627,4 +1627,13 @@ const ES: &[(&str, &str)] = &[
     ("reef", "arrecife"),
     ("reef layout", "disposición de arrecife"),
     ("around the fish; old ones go off", "alrededor del pez; los viejos se apagan"),
+    ("sky", "cielo"),
+    ("week", "semana"),
+    ("widget panels", "paneles de widgets"),
+    ("panel style", "estilo del panel"),
+    ("from the theme", "del tema"),
+    ("solid", "sólido"),
+    ("outline", "contorno"),
+    ("glass", "cristal"),
+    ("widget panel opacity", "opacidad del panel del widget"),
 ];

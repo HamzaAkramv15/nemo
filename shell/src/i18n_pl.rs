@@ -1627,4 +1627,13 @@ const PL: &[(&str, &str)] = &[
     ("reef", "rafowy"),
     ("reef layout", "układ rafy"),
     ("around the fish; old ones go off", "wokół ryby; dawne wyłączone"),
+    ("sky", "niebo"),
+    ("week", "tydzień"),
+    ("widget panels", "podkład widżetów"),
+    ("panel style", "styl podkładu"),
+    ("from the theme", "z motywu"),
+    ("solid", "pełny"),
+    ("outline", "kontur"),
+    ("glass", "szkło"),
+    ("widget panel opacity", "krycie podkładu widżetu"),
 ];

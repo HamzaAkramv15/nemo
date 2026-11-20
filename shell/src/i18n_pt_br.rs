@@ -1404,4 +1404,13 @@ const PT_BR: &[(&str, &str)] = &[
     ("reef", "recife"),
     ("reef layout", "layout de recife"),
     ("around the fish; old ones go off", "em volta do peixe; os antigos desligam"),
+    ("sky", "céu"),
+    ("week", "semana"),
+    ("widget panels", "painéis dos widgets"),
+    ("panel style", "estilo do painel"),
+    ("from the theme", "do tema"),
+    ("solid", "sólido"),
+    ("outline", "contorno"),
+    ("glass", "vidro"),
+    ("widget panel opacity", "opacidade do painel do widget"),
 ];

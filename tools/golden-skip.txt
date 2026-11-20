@@ -25,3 +25,5 @@ welcome-hello-leave.png
 welcome-hello.png
 widget-clock.png
 widget-clock-reef.png
+widget-clock-reefbare.png
+widget-sky.png

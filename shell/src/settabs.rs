@@ -272,7 +272,17 @@ pub(crate) fn tab_widgets(ui: &mut Ui, st: &State, b: R) {
     ui.toggle(R::new(px, y, pw, 40), "в тон обоям", "на светлом — тёмный текст с тенью", s.widget_contrast, Act::SBool("widget_contrast"));
     y += 52;
     // рифовый вид: подложки с линией воды и пузырьками, и раскладка вокруг рыбки на обоях по умолчанию
-    y = title(ui, px, y, pw, "рифовый вид");
+    y = title(ui, px, y, pw, "подложка виджетов");
+    let kind = match s.widget_panel.as_str() {
+        "solid" => "плотная",
+        "outline" => "контур",
+        _ => "стекло",
+    };
+    opt_btn(ui, R::new(px, y, pw, 26), "стиль подложки", kind, Act::SCycle("widget_panel"));
+    y += 32;
+    let alpha = if s.widget_alpha == 0.0 { crate::i18n::tr("по теме").to_string() } else { format!("{:.0}%", s.widget_alpha * 100.0) };
+    ui.slider(R::new(px, y, pw, 40), "прозрачность подложки", s.widget_alpha, &alpha, 20, Act::SSlider("widget_alpha", 0.0, 1.0, 20));
+    y += 50;
     let look = if s.widget_look == "reef" { "рифовый" } else { "обычный" };
     opt_btn(ui, R::new(px, y, pw, 26), "вид подложек", look, Act::SCycle("widget_look"));
     y += 32;

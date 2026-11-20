@@ -496,6 +496,10 @@ impl App {
                     s.icon_style = cycle(&[("", ""), ("pixel", ""), ("normal", "")], &s.icon_style).into();
                     self.settings_changed();
                 }
+                "widget_panel" => {
+                    s.widget_panel = cycle(&[("glass", ""), ("solid", ""), ("outline", "")], &s.widget_panel).into();
+                    self.settings_changed();
+                }
                 "widget_look" => {
                     s.widget_look = cycle(&[("plain", ""), ("reef", "")], &s.widget_look).into();
                     self.settings_changed();

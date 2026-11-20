@@ -10,6 +10,7 @@ has its Russian line in CHANGELOG.ru.md: `tools/check.sh` checks that.
 ## Unreleased
 
 - Default wallpaper: the reef (pixel ruins under water) with the new fish as its one fish, shipped in `config/wallpapers` and installed to `~/.local/share/nemo/wallpapers`. A fresh install uses it; an existing choice, including the palette's pixel wallpaper, stays.
+- Widgets: three new designed widgets, **sky** (time, date and weather in one card), **status** (slim gauges: processor, memory, temperature, disk) and **week** (a strip of seven days), sharing one card look. Panels are customizable (style: glass, solid, outline; opacity). The reef look now has a smooth waterline and keeps its bubbles on a widget without a panel. Fixed: the system gauges read fractions as percent (they are 0 to 1).
 - Widgets: an optional **reef look** (a waterline and bubbles on framed widgets) and a **reef layout** button that places a clock, a calendar and two graphs around the fish; your old widgets are switched off, not deleted.
 - Fix: the fish-character button now really cycles quiet, playful and off (playful could not be picked before).
 

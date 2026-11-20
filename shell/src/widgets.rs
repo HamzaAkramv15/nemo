@@ -16,7 +16,7 @@ use smithay_client_toolkit::seat::keyboard::{KeyEvent, Keysym};
 use smithay_client_toolkit::shell::wlr_layer::{Anchor, KeyboardInteractivity, Layer};
 use smithay_client_toolkit::shell::WaylandSurface;
 
-pub const KINDS: &[(&str, &str)] = &[("clock", "часы"), ("graph", "график"), ("net", "сеть"), ("media", "музыка"), ("cal", "календарь"), ("weather", "погода"), ("bt", "bluetooth"), ("script", "скрипт")];
+pub const KINDS: &[(&str, &str)] = &[("clock", "часы"), ("graph", "график"), ("net", "сеть"), ("media", "музыка"), ("cal", "календарь"), ("weather", "погода"), ("bt", "bluetooth"), ("script", "скрипт"), ("sky", "небо"), ("vitals", "состояние"), ("week", "неделя")];
 pub const SOURCES: &[(&str, &str)] = &[("cpu", "процессор"), ("ram", "память"), ("temp", "температура"), ("gpu", "видеокарта")];
 pub const STYLES: &[(&str, &str)] = &[("bars", "столбики"), ("line", "линия"), ("blocks", "клетки"), ("wave", "волна"), ("dots", "точки")];
 pub const ANIMS: &[(&str, &str)] = &[("scroll", "бегущий"), ("rise", "рост"), ("flicker", "мерцание"), ("none", "без анимации")];
@@ -49,6 +49,9 @@ pub fn size_of(w: &Widget) -> (i32, i32) {
         "media" => ((320, 112), (400, 136), (500, 170)),
         "cal" => ((236, 220), (280, 252), (350, 316)),
         "weather" => ((230, 96), (300, 150), (390, 176)),
+        "sky" => ((300, 164), (380, 204), (480, 252)),
+        "vitals" => ((284, 124), (324, 168), (380, 212)),
+        "week" => ((340, 116), (424, 132), (540, 156)),
         "bt" => ((230, 76), (300, 120), (380, 164)),
         "script" => ((220, 64), (300, 110), (400, 160)),
         _ => ((200, 100), (300, 140), (400, 200)),
@@ -378,40 +381,166 @@ pub fn viz(ui: &mut Ui, r: R, bands: &[f32], style: &str, c: C, idle: bool) {
 }
 
 fn panel(ui: &mut Ui, st: &State, w: &Widget, r: R) {
-    let t = ui.t;
-    if !w.frame {
-        return;
+    if w.frame {
+        panel_box(ui, st, r);
     }
-    ui.cv.pxbox(r, &BoxStyle::new(t.glass_bg(), t.border).shadow(4));
+    // рифовые пузырьки остаются и без подложки
     if st.set.widget_look == "reef" {
-        reef_trim(ui, r);
+        reef_trim(ui, r, w.frame);
     }
 }
 
-/// рифовая отделка подложки: сверху «линия воды» (светлые чёрточки через клетку, как рябь), в правом нижнем углу три
-/// пузырька-кольца. Всё в целых пикселях и в цветах темы, без своих цветов
-fn reef_trim(ui: &mut Ui, r: R) {
+/// подложка по настройкам: стекло темы / плотная / почти прозрачная с рамкой; непрозрачность — ползунок (0 — как у стекла)
+fn panel_box(ui: &mut Ui, st: &State, r: R) {
     let t = ui.t;
-    let ripple = t.text_hi.alpha(0.55);
-    let mut x = r.x + 8;
-    let mut up = false;
-    while x + 6 < r.right() - 8 {
-        ui.cv.fill(R::new(x, r.y + 3 + up as i32, 6, 2), ripple);
-        x += 12;
-        up = !up;
+    let a = st.set.widget_alpha;
+    let (fill, line) = match st.set.widget_panel.as_str() {
+        "solid" => (t.panel.alpha(if a > 0.0 { a } else { 1.0 }), t.border),
+        "outline" => (t.bg.alpha(if a > 0.0 { a } else { 0.14 }), t.border.lerp(t.text_hi, 0.35)),
+        _ => (if a > 0.0 { t.bg.alpha(a) } else { t.glass_bg() }, t.border),
+    };
+    ui.cv.pxbox(r, &BoxStyle::new(fill, line).shadow(if st.set.widget_panel == "outline" { 0 } else { 4 }));
+}
+
+/// карточка своих виджетов (небо, состояние, неделя): стеклянная подложка, тонкая светлая кромка сверху и короткая
+/// акцентная черта в левом верхнем углу — один и тот же вид у всех трёх, чтобы читались как один набор
+fn card(ui: &mut Ui, st: &State, w: &Widget, r: R, c: C) {
+    let t = ui.t;
+    if !w.frame {
+        if st.set.widget_look == "reef" {
+            reef_trim(ui, r, false);
+        }
+        return;
     }
-    // пузырьки: кольцо 5×5 с пустой серединой и два поменьше выше
+    panel_box(ui, st, r);
+    ui.cv.fill(R::new(r.x + 2, r.y + 1, r.w - 4, 1), t.text_hi.alpha(0.16));
+    ui.cv.fill(R::new(r.x + 18, r.y, 28, 3), c);
+    if st.set.widget_look == "reef" {
+        reef_trim(ui, r, true);
+    }
+}
+
+/// небо: время крупно, под ним дата, ниже черта и погода одной строкой — всё, что смотрят утром, в одном месте
+fn sky(ui: &mut Ui, st: &State, w: &Widget, r: R, c: C) {
+    let t = ui.t;
+    let tm = local_now();
+    let big = match w.size.as_str() {
+        "s" => 56,
+        "l" => 96,
+        _ => 72,
+    };
+    let face = font::px(big);
+    let mut x = r.x;
+    x += ui.text(face, x, r.y, &crate::clock::hour_text(&tm), t.text);
+    x += ui.text(face, x, r.y, ":", if tm.sec % 2 == 1 { t.dim } else { c });
+    x += ui.text(face, x, r.y, &format!("{:02}", tm.min), t.text);
+    if let Some(p) = crate::clock::ampm(&tm) {
+        ui.text(PX, x + 8, r.y + 6, p, t.text_dim);
+    }
+    let mut y = r.y + ui.f.line(face) + 4;
+    let s = nemo_px::i18n::long_date(crate::i18n::tr(RU_DAY_FULL[tm.wday as usize]), tm.day as u32, (tm.mon - 1) as usize, crate::i18n::tr(RU_MON[(tm.mon - 1) as usize]));
+    ui.text(PX, r.x, y, &s, t.text_dim);
+    y += 24;
+    let Some(wt) = crate::weather::ready(st) else { return };
+    if y + 30 > r.bottom() {
+        return;
+    }
+    ui.cv.fill(R::new(r.x, y, r.w, 1), t.border);
+    y += 10;
+    ui.cv.icon(crate::weather::icon(wt.code, wt.day), r.x, y + 1, 3, c);
+    let f32_ = font::px(32);
+    let tw = ui.cv.text(ui.f, f32_, r.x + 34, y - 2, &crate::weather::deg(wt.temp), t.text);
+    let tx = r.x + 34 + tw + 12;
+    ui.text_in(PX, R::new(tx, y, r.right() - tx, 18), crate::weather::text(wt.code), t.text_dim);
+    ui.cv.text_in(ui.f, PX, R::new(tx, y + 18, r.right() - tx, 18), &wt.place, t.text_faint);
+}
+
+/// состояние: тонкие шкалы из клеток — процессор, память, температура, диск; сколько строк — по размеру. Цвет шкалы
+/// зеленеет на «норме» и желтеет от 80%, но число всегда рядом, так что цвет не единственный признак
+fn vitals(ui: &mut Ui, st: &State, w: &Widget, r: R, c: C) {
+    let t = ui.t;
+    let sy = &st.sys;
+    let rows: [(&str, f32, String); 4] = [
+        // датчики отдают доли единицы, температуру — в градусах
+        ("процессор", sy.cpu * 100.0, format!("{:.0}%", sy.cpu * 100.0)),
+        ("память", sy.mem * 100.0, format!("{:.0}%", sy.mem * 100.0)),
+        ("температура", sy.temp, format!("{:.0}°", sy.temp)),
+        ("диск", sy.disk * 100.0, format!("{:.0}%", sy.disk * 100.0)),
+    ];
+    let n = match w.size.as_str() {
+        "s" => 2,
+        "l" => 4,
+        _ => 3,
+    };
+    let rh = r.h / n as i32;
+    for (i, (name, pct, val)) in rows.iter().take(n).enumerate() {
+        let y = r.y + i as i32 * rh;
+        ui.text_in(PX, R::new(r.x, y, r.w / 2, 18), name, t.text_dim);
+        let vw = ui.w(PX, val);
+        ui.text(PX, r.right() - vw, y, val, if *pct >= 80.0 { color(&t, "warn") } else { t.text });
+        // клетки 6×6 через 2 пикселя; температура — от 30 до 90 градусов
+        let share = if *name == "температура" { ((pct - 30.0) / 60.0).clamp(0.0, 1.0) } else { (pct / 100.0).clamp(0.0, 1.0) };
+        let cells = ((r.w + 2) / 8).max(1);
+        let on = (share * cells as f32).round() as i32;
+        let col = if *pct >= 80.0 { color(&t, "warn") } else { c };
+        for k in 0..cells {
+            ui.cv.fill(R::new(r.x + k * 8, y + 22, 6, 6), if k < on { col } else { t.text_faint.alpha(0.28) });
+        }
+    }
+}
+
+/// неделя: семь дней подряд, сегодня — акцентной плиткой; сверху месяц и номер недели. Читается одним взглядом, в отличие от
+/// месячной сетки, и занимает вдвое меньше места
+fn week(ui: &mut Ui, st: &State, r: R, c: C) {
+    let t = ui.t;
+    let now = local_now();
+    let today = days_from_civil(now.year, now.mon, now.day);
+    let first_col = week_start_col(&st.set.week_start);
+    // понедельник = 0: сдвиг сегодняшнего дня от начала недели
+    let col_today = ((today + 3).rem_euclid(7) as i32 - first_col).rem_euclid(7);
+    let start = today - col_today as i64;
+    let head = format!("{} {}", crate::i18n::tr(RU_MON_NOM[now.mon as usize - 1]), now.year);
+    ui.text_in(PX, R::new(r.x, r.y, r.w, 18), &head, t.text);
+    // номер недели — справа
+    let num = format!("№ {}", iso_week(start + 3));
+    let nw = ui.w(PX, &num);
+    ui.text(PX, r.right() - nw, r.y, &num, t.text_faint);
+    let cw = r.w / 7;
+    let ch = (r.h - 26).max(36);
+    for i in 0..7 {
+        let (_, _, d) = civil_from_days(start + i as i64);
+        let day = (first_col + i) % 7;
+        let b = R::new(r.x + i * cw + 2, r.y + 26, cw - 4, ch);
+        let is_today = i == col_today;
+        if is_today {
+            ui.cv.pxbox(b, &BoxStyle::new(c, t.ember).bevel(true));
+        }
+        let (lc, nc) = if is_today { (t.on_accent, t.on_accent) } else if is_weekend(day, &st.set.weekend) { (t.red.fade(0.8), t.red.lerp(t.text, 0.4)) } else { (t.text_faint, t.text) };
+        ui.text_center(PX, R::new(b.x, b.y + 4, b.w, 16), crate::i18n::tr(["пн", "вт", "ср", "чт", "пт", "сб", "вс"][day as usize]), lc);
+        ui.text_center(font::px(32), R::new(b.x, b.y + 20, b.w, b.h - 22), &d.to_string(), nc);
+    }
+}
+
+/// рифовая отделка: у подложки — гладкая линия воды сверху (две сплошные черты разной яркости, без разрывов) и три пузырька
+/// в нижнем правом углу; без подложки остаются только пузырьки. Всё в целых пикселях и в цветах темы
+fn reef_trim(ui: &mut Ui, r: R, framed: bool) {
+    let t = ui.t;
+    if framed {
+        ui.cv.fill(R::new(r.x + 10, r.y + 5, r.w - 20, 1), t.text_hi.alpha(0.34));
+        ui.cv.fill(R::new(r.x + 22, r.y + 7, r.w - 44, 1), t.text_hi.alpha(0.16));
+    }
+    // пузырьки: кольцо 7×7 с пустой серединой и два поменьше рядом
     let ring = |ui: &mut Ui, x: i32, y: i32, n: i32, c: C| {
         ui.cv.fill(R::new(x + 1, y, n - 2, 1), c);
         ui.cv.fill(R::new(x + 1, y + n - 1, n - 2, 1), c);
         ui.cv.fill(R::new(x, y + 1, 1, n - 2), c);
         ui.cv.fill(R::new(x + n - 1, y + 1, 1, n - 2), c);
     };
-    let c = t.red.alpha(0.8);
-    let (bx, by) = (r.right() - 22, r.bottom() - 18);
+    let c = t.text_hi.alpha(0.75);
+    let (bx, by) = (r.right() - 24, r.bottom() - 20);
     ring(ui, bx, by, 7, c);
-    ring(ui, bx - 10, by + 7, 5, c.alpha(0.6));
-    ring(ui, bx + 4, by - 10, 5, c.alpha(0.5));
+    ring(ui, bx - 11, by + 8, 5, c.alpha(0.55));
+    ring(ui, bx + 5, by - 11, 5, c.alpha(0.45));
 }
 
 /// средняя яркость обоев (0..1) под прямоугольником r монитора ow×oh. Картинка обоев ложится на
@@ -494,6 +623,16 @@ fn draw_widget(ui: &mut Ui, st: &State, w: &Widget, sw: i32, sh: i32) {
                     let on = i < (tm.sec / 5) as i32 + 1;
                     ui.cv.fill(R::new(pad + i * (cw + 2), yy, cw, 4), if on { c } else { t.border.fade(0.7) });
                 }
+            }
+        }
+        "sky" | "vitals" | "week" => {
+            card(ui, st, w, r, c);
+            let pad = 18;
+            let inner = R::new(pad, pad - 2, r.w - 2 * pad, r.h - 2 * pad + 2);
+            match w.kind.as_str() {
+                "sky" => sky(ui, st, w, inner, c),
+                "vitals" => vitals(ui, st, w, inner, c),
+                _ => week(ui, st, inner, c),
             }
         }
         "graph" => {

@@ -716,4 +716,13 @@ const AR: &[(&str, &str)] = &[
     ("reef", "الشعاب"),
     ("reef layout", "تخطيط الشعاب"),
     ("around the fish; old ones go off", "حول السمكة؛ تُعطَّل السابقة"),
+    ("sky", "السماء"),
+    ("week", "الأسبوع"),
+    ("widget panels", "لوحات الودجات"),
+    ("panel style", "نمط اللوحة"),
+    ("from the theme", "من السمة"),
+    ("solid", "معتم"),
+    ("outline", "حدود"),
+    ("glass", "زجاج"),
+    ("widget panel opacity", "عتامة لوحة الودجة"),
 ];

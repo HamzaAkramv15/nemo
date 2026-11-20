@@ -248,6 +248,7 @@ pub fn settings_set_f32(s: &mut Settings, key: &str, v: f32) {
     match key {
         "tint" => s.tint = (v * 10.0).round() / 10.0,
         "glass" => s.glass = (v * 100.0).round() / 100.0,
+        "widget_alpha" => s.widget_alpha = if v < 0.05 { 0.0 } else { ((v * 20.0).round() / 20.0).clamp(0.15, 1.0) },
         "lift" => s.lift = (v * 100.0).round() / 100.0,
         "inner" => s.inner = (v * 100.0).round() / 100.0,
         "dim" => s.dim = (v * 100.0).round() / 100.0,
@@ -275,6 +276,7 @@ pub fn settings_get_f32(s: &Settings, key: &str) -> f32 {
         "pixel_level" => crate::settabs::pixel_level(s) as f32,
         "tint" => s.tint,
         "glass" => s.glass,
+        "widget_alpha" => s.widget_alpha,
         "lift" => s.lift,
         "inner" => s.inner,
         "dim" => s.dim,

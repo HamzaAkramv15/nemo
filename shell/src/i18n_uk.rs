@@ -1627,4 +1627,13 @@ const UK: &[(&str, &str)] = &[
     ("reef", "рифовий"),
     ("reef layout", "рифова розкладка"),
     ("around the fish; old ones go off", "навколо рибки; старі вимикаються"),
+    ("sky", "небо"),
+    ("week", "тиждень"),
+    ("widget panels", "підкладка віджетів"),
+    ("panel style", "стиль підкладки"),
+    ("from the theme", "з теми"),
+    ("solid", "щільна"),
+    ("outline", "контур"),
+    ("glass", "скло"),
+    ("widget panel opacity", "прозорість підкладки віджета"),
 ];

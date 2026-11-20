@@ -1267,4 +1267,13 @@ const PAIRS: &[(&str, &str)] = &[
     ("рифовый", "reef"),
     ("рифовая раскладка", "reef layout"),
     ("вокруг рыбки; прежние выключаются", "around the fish; old ones go off"),
+    ("небо", "sky"),
+    ("неделя", "week"),
+    ("подложка виджетов", "widget panels"),
+    ("стиль подложки", "panel style"),
+    ("по теме", "from the theme"),
+    ("плотная", "solid"),
+    ("контур", "outline"),
+    ("стекло", "glass"),
+    ("прозрачность подложки", "widget panel opacity"),
 ];
