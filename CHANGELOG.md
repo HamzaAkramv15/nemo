@@ -9,6 +9,11 @@ has its Russian line in CHANGELOG.ru.md: `tools/check.sh` checks that.
 
 ## Unreleased
 
+- The README pictures are Nemo's own now (they were Yami's author's desktop): `tools/readme-shots-offline.sh` renders them from the real drawing code of the shell and the apps with made-up data, without touching your desktop, and composes the desktop picture from the panels.
+- Screenshot comparison in the gate: `tools/golden.sh` renders every target that does not show the clock (134 pictures) and compares it with recorded hashes; `tools/golden.sh --update` takes new pictures after a look.
+- Dock: the name of a long window title is shortened with an ellipsis instead of being cut at the edge of the surface (the side dock's surface is wider), and the scan lines are drawn only on the panel, not over the icons and the label.
+- Animations: redraws are capped near 70 frames a second (a 144 Hz screen drew every refresh), the default durations are about 20% shorter, translucent fills use an exact packed blend, and the launcher no longer re-reads every `.desktop` file on each open. Opening and closing the launcher went from about 88 ms to about 50 ms of CPU.
+
 - Dock, as options (settings → dock): numbers and progress bars on icons (`dockBadges`: what apps report over the Unity LauncherEntry interface, or the count of their notifications), an adjustable zoom under the cursor (`dockZoom`, up to 32 px). The right-click menu now lists the app's own actions from its .desktop file (new private window, compose…). Unity-style keys: `Mod+Alt+1…9` open or show the Nth dock app, again to cycle its windows (`nemo msg dock N`, `dock N new` for a new window).
 - Updates: installing despite a failed signature is written to `~/.local/state/nemo/update-overrides.log` (time, version, commit, what failed, policy); the page says whether the signature is bad (files may have been swapped) or just missing, and `nemo update apply --force` asks you to type INSTALL.
 - The shell restarts `nemo-agents` within about 20 seconds if it dies (it used to stay dead until the shell restarted).
