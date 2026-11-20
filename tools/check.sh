@@ -73,6 +73,8 @@ for look in plain nemo; do
   done
 done
 ((ag)) && bad "nemo-agents shot" || ok "nemo-agents shot: plain and nemo, every language"
+# visual regression: the picture of every target that does not show the clock against tools/golden.txt
+if "$ROOT/tools/golden.sh" >"$TMP/golden.log" 2>&1; then ok "$(head -1 "$TMP/golden.log")"; else cat "$TMP/golden.log" | head -14; bad "visual regression (tools/golden.sh; after looking: tools/golden.sh --update)"; fi
 step "lint and budget"
 tools/lint.sh && ok "clippy ratchet and cargo-deny" || bad "lint (tools/lint.sh)"
 tools/budget.sh 8 && ok "size and idle budget" || bad "budget (tools/budget.sh)"
