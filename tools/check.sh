@@ -73,6 +73,8 @@ for look in plain nemo; do
   done
 done
 ((ag)) && bad "nemo-agents shot" || ok "nemo-agents shot: plain and nemo, every language"
+# widgets: every kind, framed, at every size, must fit inside its card (tools/widget-audit.sh)
+if "$ROOT/tools/widget-audit.sh" >"$TMP/widgets.log" 2>&1; then ok "$(head -1 "$TMP/widgets.log")"; else cat "$TMP/widgets.log" | head -12; bad "widget cards (tools/widget-audit.sh)"; fi
 # visual regression: the picture of every target that does not show the clock against tools/golden.txt
 if "$ROOT/tools/golden.sh" >"$TMP/golden.log" 2>&1; then ok "$(head -1 "$TMP/golden.log")"; else cat "$TMP/golden.log" | head -14; bad "visual regression (tools/golden.sh; after looking: tools/golden.sh --update)"; fi
 step "lint and budget"

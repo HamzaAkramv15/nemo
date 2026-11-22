@@ -361,8 +361,6 @@ pub struct Settings {
     pub dock_labels: bool,
     /// числа и полосы прогресса на значках (от самих программ по шине и из уведомлений)
     pub dock_badges: bool,
-    /// в настройках слева только основные вкладки (поиск находит всё)
-    pub settings_simple: bool,
     /// на сколько пикселей растёт значок под курсором (0 — не растёт)
     pub dock_zoom: i32,
     pub dock_running: bool,
@@ -774,7 +772,6 @@ impl Default for Settings {
             dock_bounce: true,
             dock_labels: true,
             dock_badges: false,
-            settings_simple: false,
             dock_zoom: 8,
             dock_running: true,
             dock_launcher: true,

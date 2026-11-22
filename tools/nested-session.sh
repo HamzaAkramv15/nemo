@@ -30,6 +30,8 @@ nested_available() {
 }
 
 nested_fixture_settings() {
+  # NESTED_SETTINGS_FILE=/path/shell.json: a settings file of your own (for reproducing a report); the fixture name is then only a label
+  if [[ -n ${NESTED_SETTINGS_FILE:-} ]]; then cat "$NESTED_SETTINGS_FILE"; return; fi
   case "$1" in
     minimal) echo '{}' ;;
     realistic)

@@ -53,7 +53,7 @@ pub struct Kind {
     pub id: &'static str,
     /// имя вида — русская строка, переводится при показе
     pub name: &'static str,
-    /// размеры холста для классов s / m / l (без поля +4 на тень)
+    /// размеры видимой карточки для классов s / m / l (поле под тень и всплытие добавляет `canvas`)
     pub sizes: [(i32, i32); 3],
     pub needs: &'static [Need],
     /// новый виджет этого вида с подложкой и датой (карточки «небо», «состояние», «неделя»)
@@ -68,21 +68,21 @@ pub struct Kind {
 use Need::*;
 
 pub const REGISTRY: &[Kind] = &[
-    Kind { id: "clock", name: "часы", sizes: [(260, 100), (360, 128), (540, 190)], needs: &[Seconds], card: false, in_wizard: true, opts: &[SECONDS, DATE], draw: w::draw_clock },
-    Kind { id: "graph", name: "график", sizes: [(220, 96), (300, 124), (440, 180)], needs: &[Seconds], card: false, in_wizard: true, opts: &[SOURCE, STYLE, ANIM, LABEL], draw: w::draw_graph },
-    Kind { id: "net", name: "сеть", sizes: [(220, 96), (300, 124), (440, 180)], needs: &[Seconds], card: false, in_wizard: true, opts: &[STYLE, ANIM, LABEL], draw: w::draw_net },
-    Kind { id: "media", name: "музыка", sizes: [(320, 112), (400, 136), (500, 170)], needs: &[Media], card: false, in_wizard: true, opts: &[EQUALIZER, LABEL], draw: w::draw_media },
-    Kind { id: "cal", name: "календарь", sizes: [(236, 220), (280, 252), (350, 316)], needs: &[], card: false, in_wizard: true, opts: &[], draw: w::draw_cal },
-    Kind { id: "weather", name: "погода", sizes: [(230, 96), (300, 150), (390, 176)], needs: &[Weather], card: false, in_wizard: true, opts: &[], draw: w::draw_weather },
-    Kind { id: "bt", name: "bluetooth", sizes: [(230, 76), (300, 120), (380, 164)], needs: &[], card: false, in_wizard: true, opts: &[], draw: w::draw_bt },
-    Kind { id: "script", name: "скрипт", sizes: [(220, 64), (300, 110), (400, 160)], needs: &[], card: false, in_wizard: false, opts: &[Opt::Script], draw: w::draw_script },
-    Kind { id: "sky", name: "небо", sizes: [(300, 164), (380, 204), (480, 252)], needs: &[Seconds, Weather], card: true, in_wizard: true, opts: &[], draw: w::draw_sky },
-    Kind { id: "vitals", name: "состояние", sizes: [(284, 124), (324, 168), (380, 212)], needs: &[Seconds], card: true, in_wizard: true, opts: &[], draw: w::draw_vitals },
-    Kind { id: "week", name: "неделя", sizes: [(340, 116), (424, 132), (540, 156)], needs: &[], card: true, in_wizard: true, opts: &[], draw: w::draw_week },
+    Kind { id: "clock", name: "часы", sizes: [(252, 130), (260, 152), (320, 196)], needs: &[Seconds], card: false, in_wizard: true, opts: &[SECONDS, DATE], draw: w::draw_clock },
+    Kind { id: "graph", name: "график", sizes: [(220, 80), (300, 108), (440, 164)], needs: &[Seconds], card: false, in_wizard: true, opts: &[SOURCE, STYLE, ANIM, LABEL], draw: w::draw_graph },
+    Kind { id: "net", name: "сеть", sizes: [(220, 80), (300, 108), (440, 164)], needs: &[Seconds], card: false, in_wizard: true, opts: &[STYLE, ANIM, LABEL], draw: w::draw_net },
+    Kind { id: "media", name: "музыка", sizes: [(320, 96), (400, 120), (500, 154)], needs: &[Media], card: false, in_wizard: true, opts: &[EQUALIZER, LABEL], draw: w::draw_media },
+    Kind { id: "cal", name: "календарь", sizes: [(236, 204), (280, 236), (350, 300)], needs: &[], card: false, in_wizard: true, opts: &[], draw: w::draw_cal },
+    Kind { id: "weather", name: "погода", sizes: [(230, 80), (300, 142), (390, 166)], needs: &[Weather], card: false, in_wizard: true, opts: &[], draw: w::draw_weather },
+    Kind { id: "bt", name: "bluetooth", sizes: [(230, 60), (300, 104), (380, 148)], needs: &[], card: false, in_wizard: true, opts: &[], draw: w::draw_bt },
+    Kind { id: "script", name: "скрипт", sizes: [(220, 48), (300, 94), (400, 144)], needs: &[], card: false, in_wizard: false, opts: &[Opt::Script], draw: w::draw_script },
+    Kind { id: "sky", name: "небо", sizes: [(300, 148), (380, 188), (480, 236)], needs: &[Seconds, Weather], card: true, in_wizard: true, opts: &[], draw: w::draw_sky },
+    Kind { id: "vitals", name: "состояние", sizes: [(284, 108), (324, 152), (380, 196)], needs: &[Seconds], card: true, in_wizard: true, opts: &[], draw: w::draw_vitals },
+    Kind { id: "week", name: "неделя", sizes: [(340, 108), (424, 120), (540, 144)], needs: &[], card: true, in_wizard: true, opts: &[], draw: w::draw_week },
 ];
 
 /// размеры неизвестного вида (виджет из чужого конфига): как раньше
-const UNKNOWN: [(i32, i32); 3] = [(200, 100), (300, 140), (400, 200)];
+const UNKNOWN: [(i32, i32); 3] = [(200, 84), (300, 124), (400, 184)];
 
 pub fn get(id: &str) -> Option<&'static Kind> {
     REGISTRY.iter().find(|k| k.id == id)
@@ -108,7 +108,8 @@ pub fn any_needs(widgets: &[Widget], need: Need) -> bool {
     widgets.iter().any(|w| w.on && needs(&w.kind, need))
 }
 
-/// размер холста виджета с полем +4 под тень: класс s / m (любой другой) / l
+/// размер окна виджета: карточка класса s / m (любой другой) / l, по бокам и снизу поле под тень (MARGIN: мягкая тень уходит на 12 px, раньше
+/// окно давало ей 4 и обрезало), сверху запас под всплытие (RISE)
 pub fn canvas(kind: &str, size: &str) -> (i32, i32) {
     let sizes = get(kind).map_or(UNKNOWN, |k| k.sizes);
     let (w, h) = sizes[match size {
@@ -116,7 +117,7 @@ pub fn canvas(kind: &str, size: &str) -> (i32, i32) {
         "l" => 2,
         _ => 1,
     }];
-    (w + 4, h + 4)
+    (w + 2 * w::MARGIN, h + w::RISE + w::MARGIN)
 }
 
 /// настройки виджета в порядке показа: выборы вида, затем размер и цвет, затем переключатели (подложка первой)
@@ -201,11 +202,12 @@ mod tests {
     #[test]
     fn sizes_match_the_old_table() {
         // значения до реестра: s / m / l с полем 4 под тень
-        assert_eq!(canvas("clock", "s"), (264, 104));
-        assert_eq!(canvas("clock", "m"), (364, 132));
-        assert_eq!(canvas("clock", "l"), (544, 194));
-        assert_eq!(canvas("sky", "m"), (384, 208));
-        assert_eq!(canvas("nope", "l"), (404, 204));
+        // карточка как была (ширина и высота за вычетом всплытия), окно — карточка + поле под тень и всплытие
+        assert_eq!(canvas("clock", "s"), (252 + 24, 130 + 16 + 12));
+        assert_eq!(canvas("clock", "m"), (260 + 24, 152 + 16 + 12));
+        assert_eq!(canvas("clock", "l"), (320 + 24, 196 + 16 + 12));
+        assert_eq!(canvas("sky", "m"), (380 + 24, 188 + 16 + 12));
+        assert_eq!(canvas("nope", "l"), (400 + 24, 184 + 16 + 12));
     }
 
     #[test]

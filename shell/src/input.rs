@@ -271,7 +271,7 @@ impl App {
                         let (bars, bars_x) = ([bt, oh - bb], [bl, ow - br]);
                         let others: Vec<crate::gfx::R> = self.surfs.iter().filter(|(k, s)| **k != sid && matches!(s.kind, SKind::Widget(_)) && !s.closing && s.output == out).map(|(_, s)| visible(s.margin.0, s.margin.1, s.w, s.h)).collect();
                         let (vx, vy, cross) = crate::widgets::snap(v.x, v.y, v.w, v.h, ow, oh, &bars, &bars_x, &others);
-                        (vx, vy - RISE, cross)
+                        (vx - crate::widgets::MARGIN, vy - RISE, cross)
                     };
                     let (x0, x1, y0, y1) = self.widget_bounds(&out, ww, wh);
                     let (nx, ny) = (nx.clamp(x0, x1), ny.clamp(y0, y1));
@@ -338,6 +338,10 @@ impl App {
         if let Act::WDrag(_) = p.act {
             // виджет переставили: обои под ним другие; крест гаснет
             self.widget_contrast();
+            // вне режима расстановки «готово» не нажимают: положение пишется сразу, как отпустили
+            if p.moved && !self.st.editing {
+                self.save_now();
+            }
             if self.st.snap_cross != (false, false) {
                 self.st.snap_cross = (false, false);
                 self.dirty(&SKind::EditGrid);

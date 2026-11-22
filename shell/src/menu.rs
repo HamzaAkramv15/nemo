@@ -187,6 +187,15 @@ impl App {
                     self.close_popup();
                 }
             }
+            MAct::Widget(_, "edit", _) => self.set_editing(true),
+            MAct::Widget(id, "reset", _) => {
+                // на место: ещё не ставленный виджет (-1, -1) занимает первое свободное место слева
+                if let Some(w) = self.st.set.widget_mut(id) {
+                    w.x = -1;
+                    w.y = -1;
+                }
+                self.settings_changed();
+            }
             MAct::Widget(id, key, val) => {
                 if let Some(w) = self.st.set.widget_mut(id) {
                     crate::widgets::set_opt(w, key, &val);

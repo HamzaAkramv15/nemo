@@ -158,8 +158,8 @@ impl App {
                 SKind::Curtain => crate::curtain::draw(&mut ui, st, &s.output, w, h),
                 SKind::CurtainBadge => crate::curtain::draw_badge(&mut ui, w, h),
             }
-            // развёртка — только панели: не обои, не оверлей скриншота, не шторка
-            if st.set.scanlines && !matches!(s.kind, SKind::Dim | SKind::Catcher | SKind::Wall | SKind::EditGrid | SKind::Curtain | SKind::CurtainBadge | SKind::DockEdge | SKind::Dock | SKind::Title(_) | SKind::Grip(_)) {
+            // развёртка — только панели: не обои, не оверлей скриншота, не шторка; виджеты кладут её сами на подложку (widgets::panel_box), чтобы строки не резали цифры
+            if st.set.scanlines && !matches!(s.kind, SKind::Dim | SKind::Catcher | SKind::Wall | SKind::EditGrid | SKind::Curtain | SKind::CurtainBadge | SKind::DockEdge | SKind::Dock | SKind::Title(_) | SKind::Grip(_) | SKind::Widget(_)) {
                 ui.cv.scanlines(if st.t.light { 0.06 } else { 0.22 });
             }
             if k < 1.0 && !matches!(s.kind, SKind::Dim | SKind::Catcher) {

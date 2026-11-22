@@ -177,7 +177,6 @@ impl App {
                     "dock_running" => s.dock_running = !s.dock_running,
                     "dock_labels" => s.dock_labels = !s.dock_labels,
                     "dock_badges" => s.dock_badges = !s.dock_badges,
-                    "settings_simple" => s.settings_simple = !s.settings_simple,
                     "dock_launcher" => s.dock_launcher = !s.dock_launcher,
                     "dock_trash" => s.dock_trash = !s.dock_trash,
                     "float_pip" => s.float_pip = !s.float_pip,

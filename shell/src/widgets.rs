@@ -26,13 +26,40 @@ pub fn name_of(list: &[(&'static str, &'static str)], id: &str) -> &'static str 
     list.iter().find(|x| x.0 == id).map(|x| x.1).unwrap_or("?")
 }
 
+/// яркость цвета для контраста (WCAG): 0..1
+fn luminance(c: C) -> f32 {
+    let (r, g, b) = c.rgbf();
+    let lin = |v: f32| if v <= 0.03928 { v / 12.92 } else { ((v + 0.055) / 1.055).powf(2.4) };
+    0.2126 * lin(r) + 0.7152 * lin(g) + 0.0722 * lin(b)
+}
+
+/// контраст двух цветов (1..21)
+fn contrast(a: C, b: C) -> f32 {
+    let (x, y) = (luminance(a), luminance(b));
+    (x.max(y) + 0.05) / (x.min(y) + 0.05)
+}
+
+/// цвет, поднятый к белому (на тёмном) или к чёрному (на светлом) ровно настолько, чтобы на `bg` его контраст был не меньше `min`:
+/// тёмный акцент (#51597d) на тёмном стекле почти не виден, а акцент менять нельзя — он общий для всего рабочего стола
+pub fn readable(c: C, bg: C, min: f32) -> C {
+    let toward = if luminance(bg) < 0.4 { C(0xffffffff) } else { C(0xff000000) };
+    let mut k = 0.0;
+    let mut out = c;
+    while contrast(out, bg) < min && k < 1.0 {
+        k += 0.05;
+        out = c.lerp(toward, k);
+    }
+    out
+}
+
 pub fn color(t: &Theme, c: &str) -> C {
     match c {
         "bright" => t.ember,
         "ok" => t.ok,
         "warn" => t.warn,
         "text" => t.text,
-        _ => t.red,
+        // акцент — читаемый на подложке виджета (4,5:1: стекло над яркими обоями светлее фона темы)
+        _ => readable(t.red, t.bg, 4.5),
     }
 }
 
@@ -85,6 +112,8 @@ pub fn widget_menu(w: &Widget) -> Vec<MItem> {
         }
     }
     items.push(MItem::sep());
+    items.push(MItem::new("расставить", "drag", MAct::Widget(id, "edit", String::new())));
+    items.push(MItem::new("на место", "reboot", MAct::Widget(id, "reset", String::new())));
     items.push(MItem::new("спрятать", "eye", MAct::Widget(id, "on", String::new())));
     items.push(MItem::new("убрать совсем", "trash", MAct::WidgetDel(id)).danger());
     items
@@ -363,12 +392,18 @@ fn panel(ui: &mut Ui, st: &State, w: &Widget, r: R) {
 fn panel_box(ui: &mut Ui, st: &State, r: R) {
     let t = ui.t;
     let a = st.set.widget_alpha;
+    // рамка светлее обычной: почти чёрная линия вокруг тёмного стекла на яркой картинке выглядит дырой
+    let edge = t.border.lerp(t.text_hi, 0.16);
     let (fill, line) = match st.set.widget_panel.as_str() {
-        "solid" => (t.panel.alpha(if a > 0.0 { a } else { 1.0 }), t.border),
+        "solid" => (t.panel.alpha(if a > 0.0 { a } else { 1.0 }), edge),
         "outline" => (t.bg.alpha(if a > 0.0 { a } else { 0.14 }), t.border.lerp(t.text_hi, 0.35)),
-        _ => (if a > 0.0 { t.bg.alpha(a) } else { t.glass_bg() }, t.border),
+        _ => (if a > 0.0 { t.bg.alpha(a) } else { t.glass_bg() }, edge),
     };
     ui.cv.pxbox(r, &BoxStyle::new(fill, line).shadow(if st.set.widget_panel == "outline" { 0 } else { 4 }));
+    // строки развёртки — на подложке, под содержимым: поверх цифр они их режут
+    if st.set.scanlines {
+        ui.cv.scanlines_in(r, if ui.t.light { 0.06 } else { 0.22 });
+    }
 }
 
 /// карточка своих виджетов (небо, состояние, неделя): стеклянная подложка, тонкая светлая кромка сверху и короткая
@@ -460,8 +495,9 @@ fn vitals_body(ui: &mut Ui, st: &State, w: &Widget, r: R, c: C) {
 
 /// неделя: семь дней подряд, сегодня — акцентной плиткой; сверху месяц и номер недели. Читается одним взглядом, в отличие от
 /// месячной сетки, и занимает вдвое меньше места
-fn week_body(ui: &mut Ui, st: &State, r: R, c: C) {
+fn week_body(ui: &mut Ui, st: &State, r: R, c: C, w_small: bool) {
     let t = ui.t;
+    let ar = readable(t.red, t.bg, 4.5);
     let now = local_now();
     let today = days_from_civil(now.year, now.mon, now.day);
     let first_col = week_start_col(&st.set.week_start);
@@ -484,9 +520,9 @@ fn week_body(ui: &mut Ui, st: &State, r: R, c: C) {
         if is_today {
             ui.cv.pxbox(b, &BoxStyle::new(c, t.ember).bevel(true));
         }
-        let (lc, nc) = if is_today { (t.on_accent, t.on_accent) } else if is_weekend(day, &st.set.weekend) { (t.red.fade(0.8), t.red.lerp(t.text, 0.4)) } else { (t.text_faint, t.text) };
+        let (lc, nc) = if is_today { (t.on_accent, t.on_accent) } else if is_weekend(day, &st.set.weekend) { (ar, ar.lerp(t.text, 0.4)) } else { (t.text_faint, t.text) };
         ui.text_center(PX, R::new(b.x, b.y + 4, b.w, 16), crate::i18n::tr(["пн", "вт", "ср", "чт", "пт", "сб", "вс"][day as usize]), lc);
-        ui.text_center(font::px(32), R::new(b.x, b.y + 20, b.w, b.h - 22), &d.to_string(), nc);
+        ui.text_center(font::px(if w_small { 24 } else { 32 }), R::new(b.x, b.y + 18, b.w, b.h - 18), &d.to_string(), nc);
     }
 }
 
@@ -495,21 +531,20 @@ fn week_body(ui: &mut Ui, st: &State, r: R, c: C) {
 fn reef_trim(ui: &mut Ui, r: R, framed: bool) {
     let t = ui.t;
     if framed {
-        ui.cv.fill(R::new(r.x + 10, r.y + 5, r.w - 20, 1), t.text_hi.alpha(0.34));
-        ui.cv.fill(R::new(r.x + 22, r.y + 7, r.w - 44, 1), t.text_hi.alpha(0.16));
+        ui.cv.fill(R::new(r.x + 10, r.y + 5, r.w - 20, 1), t.text_hi.alpha(0.22));
     }
-    // пузырьки: кольцо 7×7 с пустой серединой и два поменьше рядом
+    // пузырьки всплывают над правым верхним углом, в запасе под всплытие (RISE) над карточкой: они не лежат на содержимом
     let ring = |ui: &mut Ui, x: i32, y: i32, n: i32, c: C| {
         ui.cv.fill(R::new(x + 1, y, n - 2, 1), c);
         ui.cv.fill(R::new(x + 1, y + n - 1, n - 2, 1), c);
         ui.cv.fill(R::new(x, y + 1, 1, n - 2), c);
         ui.cv.fill(R::new(x + n - 1, y + 1, 1, n - 2), c);
     };
-    let c = t.text_hi.alpha(0.75);
-    let (bx, by) = (r.right() - 24, r.bottom() - 20);
-    ring(ui, bx, by, 7, c);
-    ring(ui, bx - 11, by + 8, 5, c.alpha(0.55));
-    ring(ui, bx + 5, by - 11, 5, c.alpha(0.45));
+    let c = readable(t.red, t.bg, 4.5).alpha(0.85);
+    let (bx, by) = (r.right() - 26, r.y - 8);
+    ring(ui, bx, by, 6, c);
+    ring(ui, bx + 8, by - 6, 5, c.alpha(0.65));
+    ring(ui, bx + 15, by - 2, 4, c.alpha(0.5));
 }
 
 /// средняя яркость обоев (0..1) под прямоугольником r монитора ow×oh. Картинка обоев ложится на
@@ -546,6 +581,11 @@ pub fn draw(ui: &mut Ui, st: &State, id: u32, sw: i32, sh: i32) {
             ui.t = Theme::new(s.accent_rgb(), s.tint, s.glass, s.lift, s.inner, light);
         }
         ui.cv.text_shade = Some(if light { C(0xffffffff).alpha(0.55) } else { C(0xff000000).alpha(0.6) });
+    }
+    // на стеклянной подложке подписи и слабый текст светлее (над картинкой обоев тёмная тема даёт им мало контраста)
+    if w.frame {
+        ui.t.text_dim = readable(ui.t.text_dim.lerp(ui.t.text, 0.25), ui.t.bg, 4.5);
+        ui.t.text_faint = readable(ui.t.text_faint.lerp(ui.t.text_dim, 0.6), ui.t.bg, 3.2);
     }
     draw_widget(ui, st, w, sw, sh);
     ui.t = saved;
@@ -690,14 +730,21 @@ pub(crate) fn draw_week(ui: &mut Ui, st: &State, w: &Widget, r: R, c: C) {
     card(ui, st, w, r, c);
     let pad = 18;
     let inner = R::new(pad, pad - 2, r.w - 2 * pad, r.h - 2 * pad + 2);
-    week_body(ui, st, inner, c);
+    week_body(ui, st, inner, c, w.size == "s");
 }
 
 fn draw_widget(ui: &mut Ui, st: &State, w: &Widget, sw: i32, sh: i32) {
     let id = w.id;
     let t = ui.t;
-    let r = R::new(0, 0, sw - 4, sh - 4);
+    // карточка стоит в окне со смещением MARGIN: слева и справа остаётся место под тень
+    ui.cv.ox += MARGIN;
+    let r = R::new(0, 0, sw - 2 * MARGIN, sh - MARGIN);
     let c = color(&t, &w.color);
+    // вне режима расстановки виджет тоже живой: правая кнопка — меню, тяни — и он переедет (позиция запишется при отпускании).
+    // Зона кладётся первой: зоны содержимого (щелчок скрипта, перемотка, стрелки календаря) лежат выше и работают как раньше
+    if !st.editing {
+        ui.zone(r, Act::WDrag(id), Cur::Default);
+    }
     if let Some(k) = crate::widgetkind::get(&w.kind) {
         (k.draw)(ui, st, w, r, c);
     }
@@ -712,6 +759,7 @@ fn draw_widget(ui: &mut Ui, st: &State, w: &Widget, sw: i32, sh: i32) {
         ui.zone(r, Act::WDrag(id), Cur::Grab);
         ui.button(R::new(r.right() - 28, r.y + 4, 24, 22), "", "gear", Tone::Primary, false, true, Act::WMenu(id));
     }
+    ui.cv.ox -= MARGIN;
 }
 
 /// карточка музыки: обложка, трек, полоса, кнопки, эквалайзер
@@ -782,6 +830,7 @@ pub fn media_card(ui: &mut Ui, st: &State, r: R, style: &str, c: C, label: bool,
 /// месяц сеткой: сегодня — в акценте, выходные — тусклее
 pub fn calendar(ui: &mut Ui, st: &State, r: R, month_shift: i32, c: C, nav: bool) {
     let t = ui.t;
+    let ar = readable(t.red, t.bg, 4.5);
     let now = local_now();
     let mut y = now.year;
     let mut m = now.mon as i32 - 1 + month_shift;
@@ -806,7 +855,7 @@ pub fn calendar(ui: &mut Ui, st: &State, r: R, month_shift: i32, c: C, nav: bool
     let first_col = week_start_col(&st.set.week_start);
     for i in 0..7 {
         let day = (first_col + i) % 7;
-        ui.text_center(PX, R::new(r.x + i * cw, r.y + 26, cw, 18), ["пн", "вт", "ср", "чт", "пт", "сб", "вс"][day as usize], if is_weekend(day, &st.set.weekend) { t.red.fade(0.7) } else { t.text_faint });
+        ui.text_center(PX, R::new(r.x + i * cw, r.y + 26, cw, 18), ["пн", "вт", "ср", "чт", "пт", "сб", "вс"][day as usize], if is_weekend(day, &st.set.weekend) { ar } else { t.text_faint });
     }
     // первый день месяца
     let first = days_from_civil(y, m as u32 + 1, 1);
@@ -831,7 +880,7 @@ pub fn calendar(ui: &mut Ui, st: &State, r: R, month_shift: i32, c: C, nav: bool
         if today {
             ui.cv.pxbox(rr, &BoxStyle::new(c, t.ember).bevel(true));
         }
-        let col = if today { t.on_accent } else if is_weekend((first_col + cell % 7) % 7, &st.set.weekend) { t.red.lerp(t.text, 0.4) } else { t.text };
+        let col = if today { t.on_accent } else if is_weekend((first_col + cell % 7) % 7, &st.set.weekend) { ar.lerp(t.text, 0.4) } else { t.text };
         ui.text_center(PX, rr, &d.to_string(), col);
     }
 }
@@ -925,11 +974,12 @@ const MAGNET: i32 = 12;
 const GRID_MAGNET: i32 = 8;
 /// поверхность виджета выше видимой части на запас под всплытие (render.rs) и больше на тень
 pub const RISE: i32 = 16;
-pub const SHADOW: i32 = 4;
+/// поле под тень слева, справа и снизу: мягкая тень уходит на 12 px (3 × 4), окно виджета обязано её вместить, иначе она обрезается по краю окна
+pub const MARGIN: i32 = 12;
 
 /// видимая часть виджета, чья поверхность w×h стоит на (x, y): к ней и притягивать
 pub fn visible(x: i32, y: i32, w: i32, h: i32) -> R {
-    R::new(x, y + RISE, w - SHADOW, h - RISE - SHADOW)
+    R::new(x + MARGIN, y + RISE, w - 2 * MARGIN, h - RISE - MARGIN)
 }
 
 /// одна ось: начало pos у отрезка длиной size. guides — линии (координата, это крест); к линии
@@ -1107,7 +1157,7 @@ impl App {
         let (ow, oh) = self.output_size(out);
         let (bt, br, bb, bl) = self.bar_reserve(out);
         let top = (bt - RISE).max(0);
-        (bl, (ow - br - ww + SHADOW).max(bl), top, (oh - bb - wh + SHADOW).max(top))
+        (bl - MARGIN, (ow - br - ww + MARGIN).max(bl - MARGIN), top, (oh - bb - wh + MARGIN).max(top))
     }
 
     /// файл, где лежит набор виджетов и вид до последней раскладки
@@ -1288,7 +1338,37 @@ mod tests {
 
     #[test]
     fn visible_part_leaves_rise_and_shadow() {
+        // окно 364×132: слева и справа поле под тень (12), сверху запас под всплытие (16), снизу поле под тень (12)
         let v = visible(48, 100, 364, 132);
-        assert_eq!((v.x, v.y, v.w, v.h), (48, 116, 360, 112));
+        assert_eq!((v.x, v.y, v.w, v.h), (60, 116, 340, 104));
+    }
+}
+
+#[cfg(test)]
+mod size_tests {
+    use super::*;
+    use crate::font::{px, Fonts};
+
+    /// содержимое часов (цифры, дата, полоса секунд) должно умещаться в карточку каждого размера: раньше полоса секунд выходила за её нижний край.
+    /// Шрифты в тесте (во временном доме) шире установленных, так что карточка с запасом и для обоих
+    #[test]
+    fn the_clock_content_fits_its_card_at_every_size() {
+        let mut f = Fonts::new();
+        let mut short: Vec<String> = vec![];
+        let dates = ["Wednesday, 30 September", "Donnerstag, 30. September", "понедельник, 30 сентября", "Mittwoch, 30. Dezember", "quarta-feira, 30 de setembro"]; // i18n-ok
+        for (i, (size, big)) in [("s", 48u16), ("m", 64), ("l", 96)].into_iter().enumerate() {
+            let face = px(big);
+            let digits = f.width(face, "12:59") + 6 + f.width(PX, "PM") + 8;
+            let date = dates.iter().map(|d| f.width(PX, d)).max().unwrap_or(0);
+            let pad = 14;
+            let need_w = (digits.max(date) + 2 * pad) as i32;
+            let need_h = pad + f.line(face) + 6 + 24 + 4 + pad;
+            let (bw, bh) = crate::widgetkind::get("clock").unwrap().sizes[i];
+            eprintln!("clock {size}: needs {need_w}x{need_h}, has {bw}x{bh}");
+            if bw < need_w || bh < need_h {
+                short.push(format!("clock {size}: card {bw}x{bh}, the content needs {need_w}x{need_h}"));
+            }
+        }
+        assert!(short.is_empty(), "{short:?}");
     }
 }

@@ -235,7 +235,8 @@ pub fn run(args: &[String]) -> i32 {
                 println!("nemo-shell shot [TARGET…] [--lang CODE] [--defaults] [--fit] [--transparent] [-o DIR]\ntargets: {}", TARGETS.join(" "));
                 return 0;
             }
-            t if TARGETS.contains(&t) => targets.push(t.to_string()),
+            // widget:КИНД-СУФФИКС — любой вид любого размера (s, m, l) с подложкой (f): `widget:graph-lf`; для проверки всех видов подряд
+            t if TARGETS.contains(&t) || t.strip_prefix("widget:").is_some_and(|r| crate::widgetkind::get(r.split('-').next().unwrap_or("")).is_some()) => targets.push(t.to_string()),
             t => {
                 eprintln!("shot: unknown target {t}; `nemo-shell shot list`");
                 return 2;
@@ -825,8 +826,13 @@ fn shoot(st: &mut State, res: &mut Res, target: &str, path: &Path) {
                 st.sys.disk = 0.41;
             }
             let mut w = Widget { on: true, ..Widget::new(900, k) };
-            if matches!(var, "s" | "l") {
-                w.size = var.into();
+            if matches!(var, "s" | "m" | "l" | "sf" | "mf" | "lf" | "f") {
+                if let Some(z) = var.get(..1).filter(|z| matches!(*z, "s" | "m" | "l")) {
+                    w.size = z.into();
+                }
+                if var.ends_with('f') {
+                    w.frame = true;
+                }
             }
             // рифовый вид (#14): подложка с линией воды и пузырьками
             if var == "reef" || var == "reefbare" {
@@ -987,7 +993,11 @@ fn shoot(st: &mut State, res: &mut Res, target: &str, path: &Path) {
             "popup" => crate::popups::draw(&mut ui, st, w, h),
             "tip" => crate::tips::draw(&mut ui, st, w, h),
             "menu" => crate::menu::draw(&mut ui, st, w, h),
-            "widget" => crate::widgets::draw(&mut ui, st, 900, w, h),
+            "widget" => {
+                // как в живом окне: сверху запас под всплытие, карточка ниже
+                ui.cv.oy = crate::widgets::RISE;
+                crate::widgets::draw(&mut ui, st, 900, w, h - crate::widgets::RISE)
+            }
             "grid" => {
                 crate::wall::draw(&mut ui, st, w, h);
                 nemo_px::gfx::text_layer();

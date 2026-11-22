@@ -51,8 +51,8 @@ pub fn rich(n: &Note) -> bool {
 pub enum Pick<'a> {
     /// громкость, яркость, раскладка или шторка
     Osd(&'static str),
-    /// уведомление и сколько ещё ждут за ним
-    Note(&'a Note, usize),
+    /// уведомление, сколько ещё ждут за ним и как далеко ушло (0 — показывается, 0..1 — уходит: таблетка сжимается и гаснет, а не пропадает разом)
+    Note(&'a Note, usize, f32),
     Nothing,
 }
 
@@ -66,10 +66,34 @@ pub fn pick(st: &State) -> Pick<'_> {
         return Pick::Osd(kind);
     }
     let live: Vec<&Note> = st.notifs.popups.iter().filter(|id| st.notifs.leaving_since(**id).is_none()).filter_map(|id| st.notifs.get(*id)).collect();
-    match live.first() {
-        Some(n) => Pick::Note(n, live.len() - 1),
+    if let Some(n) = live.first() {
+        return Pick::Note(n, live.len() - 1, 0.0);
+    }
+    // последнее уходящее: таблетка доигрывает уход вместе с карточкой
+    let gone = st.notifs.popups.iter().find_map(|id| Some((st.notifs.get(*id)?, st.notifs.leaving_since(*id)?)));
+    match gone {
+        Some((n, at)) => Pick::Note(n, 0, (at.elapsed().as_secs_f32() / st.notifs.leave_s.max(0.01)).clamp(0.01, 1.0)),
         None => Pick::Nothing,
     }
+}
+
+thread_local! {
+    /// последняя нарисованная таблетка: какое уведомление, с какой ширины оно начало раскрываться, какой ширины сейчас и когда
+    static LAST: std::cell::Cell<Option<(u32, i32, i32, std::time::Instant)>> = const { std::cell::Cell::new(None) };
+}
+
+/// с какой ширины раскрывается таблетка уведомления `id`: если секунду назад на баре была таблетка другого уведомления — с её ширины
+/// (одна таблетка перетекает в другую), иначе с 45% полной
+fn pill_start(id: u32, full: i32) -> i32 {
+    match LAST.with(|l| l.get()) {
+        Some((last, start, _, _)) if last == id => start,
+        Some((_, _, cur, at)) if at.elapsed().as_secs_f32() < 1.0 => cur,
+        _ => (full as f32 * 0.45).round() as i32,
+    }
+}
+
+fn pill_remember(id: u32, start: i32, cur: i32) {
+    LAST.with(|l| l.set(Some((id, start, cur, std::time::Instant::now()))));
 }
 
 /// одна строка для таблетки: программа, заголовок и, если влезает как строка, текст; без переводов строк
@@ -102,7 +126,7 @@ pub fn draw(ui: &mut Ui, st: &State, w: i32, bar_h: i32, span: (i32, i32)) {
     let py = (bar_h - ph) / 2;
     match pick(st) {
         Pick::Nothing => {}
-        Pick::Note(n, more) => {
+        Pick::Note(n, more, gone) => {
             let icon_w = 22;
             let (count, extra) = (if n.count > 1 { format!("×{}", n.count) } else { String::new() }, if more > 0 { format!("+{more}") } else { String::new() });
             let chips = if count.is_empty() { 0 } else { ui.w(PX, &count) + 8 } + if extra.is_empty() { 0 } else { ui.w(PX, &extra) + 8 };
@@ -113,10 +137,22 @@ pub fn draw(ui: &mut Ui, st: &State, w: i32, bar_h: i32, span: (i32, i32)) {
             let cx = px + full / 2;
             let age = n.born.elapsed().as_secs_f32();
             let e = ease(age);
-            if age < 0.16 {
+            if age < 0.16 || gone > 0.0 {
                 ui.anim = true;
             }
-            let cur = (full as f32 * (0.45 + 0.55 * e)).round() as i32;
+            // раскрытие: с ширины прежней таблетки (или 45%) до полной; уход: сжатие и угасание
+            let start = pill_start(n.id, full);
+            let cur = if gone > 0.0 {
+                let k = 1.0 - gone * gone;
+                (full as f32 * (0.45 + 0.55 * k)).round() as i32
+            } else {
+                (start as f32 + (full - start) as f32 * e).round() as i32
+            };
+            pill_remember(n.id, start, cur);
+            let prev_opacity = ui.cv.opacity;
+            if gone > 0.0 {
+                ui.cv.opacity = prev_opacity * (1.0 - gone * gone);
+            }
             let r = R::new(cx - cur / 2, py, cur, ph);
             let edge = if n.critical { t.ember } else { t.red };
             pill(ui, r, ph / 2, t.surface, edge);
@@ -140,7 +176,11 @@ pub fn draw(ui: &mut Ui, st: &State, w: i32, bar_h: i32, span: (i32, i32)) {
                 }
             }
             ui.cv.pop_clip();
-            ui.zone(r, Act::NotifClick(n.id), Cur::Pointer);
+            ui.cv.opacity = prev_opacity;
+            // уходящая таблетка уже не ловит нажатий
+            if gone == 0.0 {
+                ui.zone(r, Act::NotifClick(n.id), Cur::Pointer);
+            }
         }
         Pick::Osd(kind) => {
             let (icon, label, value, warn): (&str, String, Option<f32>, bool) = match kind {

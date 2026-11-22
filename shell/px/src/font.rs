@@ -413,12 +413,18 @@ impl Fonts {
                     }
                 }
                 if ww > max {
-                    // длинное слово режем по буквам
+                    // длинное слово режем: по возможности после / - _ . : (путь и имя файла не рвутся посреди числа), иначе по буквам
+                    let word_off = cur.len();
                     for ch in word.chars() {
                         let a = self.advance(face, ch);
                         if cw + a > max && cw > 0 {
+                            let tail = cur[word_off.min(cur.len())..].rfind(['/', '-', '_', '.', ':']).map(|p| word_off.min(cur.len()) + p + 1).filter(|cut| *cut < cur.len()).map(|cut| cur.split_off(cut));
                             lines.push(std::mem::take(&mut cur));
                             cw = 0;
+                            if let Some(t) = tail {
+                                cw = self.width(face, &t);
+                                cur = t;
+                            }
                             if lines.len() >= max_lines {
                                 break 'outer;
                             }
@@ -454,5 +460,30 @@ impl Fonts {
 
     pub fn wrap_height(&mut self, face: Face, s: &str, max: i32, max_lines: usize) -> i32 {
         self.wrap(face, s, max, max_lines).len() as i32 * (self.line(face) + 2)
+    }
+}
+
+#[cfg(test)]
+mod wrap_tests {
+    use super::*;
+
+    #[test]
+    fn a_long_path_breaks_at_a_separator_not_in_the_middle_of_a_number() {
+        let mut f = Fonts::new();
+        let s = "~/Pictures/Screenshots/shot-1200.png";
+        let max = f.width(px(16), "~/Pictures/Screenshots/shot-") + 4;
+        let lines = f.wrap(px(16), s, max, 4);
+        assert!(lines.len() >= 2, "{lines:?}");
+        assert_eq!(lines.concat(), s, "nothing lost");
+        for l in &lines[..lines.len() - 1] {
+            assert!(l.ends_with(['/', '-', '_', '.', ':']), "a line ends inside a word: {l:?} of {lines:?}");
+        }
+    }
+
+    #[test]
+    fn a_long_word_with_no_separator_still_breaks_by_letters() {
+        let mut f = Fonts::new();
+        let lines = f.wrap(px(16), "abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyz", 90, 6);
+        assert!(lines.len() >= 2 && lines.concat() == "abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyz", "{lines:?}");
     }
 }

@@ -119,12 +119,6 @@ pub fn desc(id: &str) -> &'static str {
     }
 }
 
-/// вкладки для тех, кому нужно больше обычного: глубокие настройки, службы, детали вида. Режим «только основное»
-/// прячет их из списка слева; поиск находит всё всегда, а открытая вкладка не исчезает из-под рук
-pub fn advanced(id: &str) -> bool {
-    matches!(id, "look" | "anim" | "widgets" | "windows" | "games" | "system" | "startup" | "login" | "agents")
-}
-
 /// все вкладки подряд
 pub fn tabs() -> impl Iterator<Item = &'static Tab> {
     GROUPS.iter().flat_map(|g| g.1.iter())
@@ -178,12 +172,9 @@ pub(crate) fn scrollbar(ui: &mut Ui, r: R, view: i32, full: i32, at: i32) {
 /// словах-подсказках (на всех языках сразу), без учёта регистра
 /// высота поля поиска над списком вкладок
 const SEARCH_H: i32 = 36;
-/// низ колонки вкладок: переключатель «только основное»
-const FOOT_H: i32 = 30;
-
-/// вкладка в списке слева: модуль есть, подходит запросу, а в режиме «только основное» — не из глубоких (открытая и найденная остаются)
+/// вкладка в списке слева: модуль есть и она подходит запросу
 fn listed(st: &State, tb: &Tab, query: &str) -> bool {
-    st.mods_here.shows(tb.id) && tab_matches(tb, query) && (!st.set.settings_simple || !advanced(tb.id) || st.stab == tb.id || !query.trim().is_empty())
+    st.mods_here.shows(tb.id) && tab_matches(tb, query)
 }
 
 pub fn tab_matches(tb: &Tab, query: &str) -> bool {
@@ -229,7 +220,7 @@ pub fn draw(ui: &mut Ui, st: &State, w: i32, h: i32) {
     let query = st.search_field.text.clone();
     let focused = st.field_focus == Some("set_search");
     ui.field(R::new(side.x + 8, side.y + 6, side.w - 16, 24), &st.search_field, "поиск", focused, false, Act::SField("set_search"));
-    ui.cv.push_clip(R::new(side.x, side.y + SEARCH_H, side.w, side.h - SEARCH_H - FOOT_H));
+    ui.cv.push_clip(R::new(side.x, side.y + SEARCH_H, side.w, side.h - SEARCH_H));
     let mut y = side.y + SEARCH_H + 8 - st.stab_scroll;
     // раскрыта группа открытой вкладки (щелчок по другой группе открывает её первую вкладку); при поиске — все, где есть совпадения.
     // Так список всегда умещается в окно: пять заголовков и вкладки одной группы, а не тридцать строк с прокруткой
@@ -266,11 +257,7 @@ pub fn draw(ui: &mut Ui, st: &State, w: i32, h: i32) {
     let side_full = y + st.stab_scroll - side.y;
     st.stab_h.set(side_full);
     ui.cv.pop_clip();
-    scrollbar(ui, R::new(side.right() - 5, side.y + 2, 4, side.h - 4 - FOOT_H), side.h - FOOT_H, side_full, st.stab_scroll);
-    // внизу колонки: все вкладки или только основные
-    ui.cv.fill(R::new(side.x, side.bottom() - FOOT_H, side.w, 1), t.border);
-    let (label, icon) = if st.set.settings_simple { ("все настройки", "plus") } else { ("только основное", "leaf") };
-    ui.button(R::new(side.x + 8, side.bottom() - FOOT_H + 3, side.w - 16, FOOT_H - 6), label, icon, Tone::Ghost, st.set.settings_simple, true, Act::SBool("settings_simple"));
+    scrollbar(ui, R::new(side.right() - 5, side.y + 2, 4, side.h - 4), side.h, side_full, st.stab_scroll);
     // содержимое: фон-зона для колеса, вкладка со сдвигом, полоса прокрутки справа
     let body = body_rect(w, h, sw);
     let tb = find(st.stab).unwrap_or(&GROUPS[0].1[0]);
@@ -316,7 +303,7 @@ impl App {
     /// колесо над списком вкладок
     pub fn settings_side_scroll(&mut self, d: i32) {
         let h = SIZE.1;
-        let max = (self.st.stab_h.get() - (side_rect(h, SIDE_W).h - FOOT_H)).max(0);
+        let max = (self.st.stab_h.get() - side_rect(h, SIDE_W).h).max(0);
         self.st.stab_scroll = (self.st.stab_scroll + d * WHEEL).clamp(0, max);
         self.dirty(&SKind::Modal);
     }

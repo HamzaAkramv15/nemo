@@ -133,7 +133,7 @@ fn card_h(ui_f: &mut font::Fonts, n: &Note) -> i32 {
     if n.actions.iter().any(|a| a.0 != "default") {
         h += 6 + 22;
     }
-    h + 22
+    h + 16
 }
 
 pub fn size(st: &State, f: &mut font::Fonts) -> (i32, i32) {
@@ -156,6 +156,13 @@ pub fn draw(ui: &mut Ui, st: &State, w: i32, _h: i32) {
     let mut y = 0;
     let island = crate::island::on(st);
     let low = crate::bar::low(&st.set);
+    // остров: все карточки стопки одной ширины (по самой широкой), иначе стопка ступенчатая и неровная
+    let island_cw = if island {
+        let rich: Vec<&Note> = st.notifs.popups.iter().filter_map(|id| st.notifs.get(*id)).filter(|n| crate::island::rich(n)).collect();
+        rich.iter().map(|n| island_w(ui.f, n)).max().unwrap_or(0)
+    } else {
+        0
+    };
     for id in &st.notifs.popups {
         let Some(n) = st.notifs.get(*id) else { continue };
         if island && !crate::island::rich(n) {
@@ -182,7 +189,7 @@ pub fn draw(ui: &mut Ui, st: &State, w: i32, _h: i32) {
         let pixel = !matches!(style, "fade" | "none");
         ui.cv.opacity = if pixel { (0.35 + 0.65 * k).min(1.0) } else { step };
         let z0 = ui.zones.len();
-        let cw = if island { island_w(ui.f, n) } else { W };
+        let cw = if island { island_cw } else { W };
         // остров: карточка висит на баре, вплотную; раскрывается от бара вниз (у нижнего бара — вверх)
         let e = 1.0 - (1.0 - k) * (1.0 - k);
         let r = if island { R::new((w - cw) / 2, y, cw, ch) } else { R::new(x0, y, W, ch) };
