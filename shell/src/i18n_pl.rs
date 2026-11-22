@@ -1669,4 +1669,9 @@ const PL: &[(&str, &str)] = &[
     ("off when idle", "gaśnie w bezczynności"),
     ("when idle, on battery", "w bezczynności, na baterii"),
     ("goes out after, s", "gaśnie po, s"),
+    ("roundness", "zaokrąglenie"),
+    ("bar plate", "płytka paska"),
+    ("classic", "klasyczna"),
+    ("gap between plates", "odstęp między płytkami"),
+    ("plate style", "styl płytki"),
 ];

@@ -758,4 +758,9 @@ const AR: &[(&str, &str)] = &[
     ("off when idle", "تنطفئ عند الخمول"),
     ("when idle, on battery", "عند الخمول على البطارية"),
     ("goes out after, s", "تنطفئ بعد، ث"),
+    ("roundness", "الاستدارة"),
+    ("bar plate", "لوحة الشريط"),
+    ("classic", "كلاسيكية"),
+    ("gap between plates", "المسافة بين الألواح"),
+    ("plate style", "نمط اللوحة"),
 ];

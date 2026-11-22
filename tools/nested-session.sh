@@ -72,7 +72,7 @@ nested_start() {
   # GIO_USE_VFS=local: no gvfs daemon (it leaves a FUSE mount inside the folder); GSETTINGS_BACKEND=memory: nothing reaches dconf
   setsid env -i HOME="$t/home" XDG_CONFIG_HOME="$t/home/.config" XDG_STATE_HOME="$t/home/.local/state" XDG_DATA_HOME="$t/home/.local/share" \
     XDG_CACHE_HOME="$t/home/.cache" XDG_RUNTIME_DIR="$t/run" WAYLAND_DISPLAY="$host" PATH="$t/bin:/usr/bin:/bin" LANG=C.UTF-8 \
-    GIO_USE_VFS=local GSETTINGS_BACKEND=memory NEMO_NO_KBD=1 dbus-run-session -- "$niri" -c "$t/niri.kdl" >"$t/niri.log" 2>&1 &
+    GIO_USE_VFS=local GSETTINGS_BACKEND=memory NEMO_NO_KBD=1 NEMO_TEST_IPC=1 dbus-run-session -- "$niri" -c "$t/niri.kdl" >"$t/niri.log" 2>&1 &
   NESTED_NIRI_PID=$!
   NESTED_SHELL_PID=""
   for i in $(seq 1 40); do

@@ -1669,4 +1669,9 @@ const DE: &[(&str, &str)] = &[
     ("off when idle", "aus bei Ruhe"),
     ("when idle, on battery", "in Ruhe, im Akkubetrieb"),
     ("goes out after, s", "aus nach, s"),
+    ("roundness", "Rundung"),
+    ("bar plate", "Leistenfeld"),
+    ("classic", "klassisch"),
+    ("gap between plates", "Abstand zwischen Feldern"),
+    ("plate style", "Feldstil"),
 ];

@@ -76,6 +76,7 @@ mod widgetkind;
 mod layouts;
 mod widgetpanel;
 mod kbdlight;
+mod testdrive;
 mod distro_logo;
 mod recolor_art;
 mod recolor_data;

@@ -1446,4 +1446,9 @@ const PT_BR: &[(&str, &str)] = &[
     ("off when idle", "apaga ao ficar parado"),
     ("when idle, on battery", "parado, na bateria"),
     ("goes out after, s", "apaga após, s"),
+    ("roundness", "curvatura"),
+    ("bar plate", "placa da barra"),
+    ("classic", "clássica"),
+    ("gap between plates", "espaço entre placas"),
+    ("plate style", "estilo da placa"),
 ];

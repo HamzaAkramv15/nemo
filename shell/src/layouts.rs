@@ -62,7 +62,9 @@ pub fn parse(id: &str, text: &str, user: bool) -> Option<Layout> {
 }
 
 pub fn user_dir() -> PathBuf {
-    nemo_px::paths::config_dir().join("layouts")
+    // config_dir() — это ~/.config (или XDG_CONFIG_HOME), папка Nemo в нём — nemo: сквозная проверка (tools/e2e.sh) нашла, что раньше своя раскладка
+    // сохранялась в ~/.config/layouts, мимо документации
+    nemo_px::paths::config_dir().join("nemo").join("layouts")
 }
 
 fn load_all() -> Vec<Layout> {
@@ -188,6 +190,11 @@ mod tests {
         let back: Vec<Widget> = serde_json::from_value(json.get("widgets").unwrap().clone()).unwrap();
         assert_eq!(back.last().unwrap(), &w);
         assert_eq!(back.last().unwrap().layout, "aurora");
+    }
+
+    #[test]
+    fn your_layouts_live_in_the_nemo_config_folder() {
+        assert!(user_dir().ends_with("nemo/layouts"), "{}", user_dir().display());
     }
 
     #[test]

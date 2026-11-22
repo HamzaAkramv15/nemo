@@ -258,6 +258,15 @@ pub(crate) fn tab_widgets(ui: &mut Ui, st: &State, b: R) {
         let frac = if s.widget_alpha == 0.0 { 0.0 } else { (s.widget_alpha - 0.2) / 0.8 };
         ui.slider(R::new(px, y, pw, 40), "прозрачность подложки", frac, &alpha, 20, Act::SSlider("widget_alpha", 0.0, 1.0, 20));
         y += 50;
+        // форма: скругление, рамка и тень — общие для всех стилей; крайнее левое значение — «как задумано стилем»
+        let by_style = |v: i32, unit: &str| if v < 0 { crate::i18n::tr("по стилю").to_string() } else { format!("{v}{unit}") };
+        let hw = (pw - 12) / 2;
+        ui.slider(R::new(px, y, hw, 40), "скругление", (s.widget_radius + 1) as f32 / 25.0, &by_style(s.widget_radius, " px"), 25, Act::SSlider("widget_radius", 0.0, 1.0, 25));
+        ui.slider(R::new(px + hw + 12, y, hw, 40), "рамка", (s.widget_border + 1) as f32 / 5.0, &by_style(s.widget_border, " px"), 5, Act::SSlider("widget_border", 0.0, 1.0, 5));
+        y += 50;
+        let shadow_frac = if s.widget_shadow < 0 { 0.0 } else { (s.widget_shadow / 10 + 1) as f32 / 11.0 };
+        ui.slider(R::new(px, y, hw, 40), "тень", shadow_frac, &by_style(s.widget_shadow, "%"), 11, Act::SSlider("widget_shadow", 0.0, 1.0, 11));
+        y += 50;
         y = title(ui, px, y, pw, "отделка");
         let lw = (pw - 3 * 6) / 4;
         for (i, (id, name)) in widgetpanel::LOOKS.iter().enumerate() {

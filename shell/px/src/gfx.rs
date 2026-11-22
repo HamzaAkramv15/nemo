@@ -607,6 +607,26 @@ impl<'a> Canvas<'a> {
         }
     }
 
+    /// размытие под скруглением в пикселях (rad — настоящий радиус формы, а не число фасок, как у blur_rect): размытие не выходит за углы формы
+    pub fn blur_round(&mut self, r: R, rad: i32) {
+        let rad = rad.min(r.w / 2).min(r.h / 2).max(0);
+        let r = R::new(r.x + self.ox, r.y + self.oy, r.w, r.h);
+        if self.blur.iter().any(|b| b.x <= r.x && b.y <= r.y && b.right() >= r.right() && b.bottom() >= r.bottom()) {
+            return;
+        }
+        if rad <= 0 {
+            self.blur.push(r);
+            return;
+        }
+        self.blur.push(R::new(r.x, r.y + rad, r.w, r.h - 2 * rad));
+        for j in 0..rad {
+            let d = rad as f32 - 0.5 - j as f32;
+            let cut = rad - ((rad * rad) as f32 - d * d).max(0.0).sqrt().round() as i32;
+            self.blur.push(R::new(r.x + cut, r.y + j, r.w - 2 * cut, 1));
+            self.blur.push(R::new(r.x + cut, r.bottom() - 1 - j, r.w - 2 * cut, 1));
+        }
+    }
+
     /// радиус скругления для фаски n: мелкие элементы круглятся меньше панелей
     fn rad(&self, r: R, n: i32) -> i32 {
         if self.style.corners != Corners::Round || n <= 0 {

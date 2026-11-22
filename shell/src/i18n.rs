@@ -1309,4 +1309,9 @@ const PAIRS: &[(&str, &str)] = &[
     ("гаснет при простое", "off when idle"),
     ("при простое на батарее", "when idle, on battery"),
     ("гаснет через, с", "goes out after, s"),
+    ("скругление", "roundness"),
+    ("плашка бара", "bar plate"),
+    ("классическая", "classic"),
+    ("просвет между плашками", "gap between plates"),
+    ("стиль плашки", "plate style"),
 ];

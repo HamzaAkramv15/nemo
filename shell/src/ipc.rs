@@ -131,6 +131,8 @@ impl crate::app::App {
             // «жив ли шелл» для install.sh и deploy.sh: ответ сокета, ничего не делает
             "ping" => {}
             "restart" => self.restart = true,
+            // тестовый вход (testdrive.rs): работает только с NEMO_TEST_IPC=1
+            c if c.starts_with("t:") => self.test_cmd(&c[2..]),
             c if self.update_ipc(c) => {}
             // медиаклавиши и бар: команда показанному плееру; player — другой плеер (#24)
             c if c.starts_with("media ") => match c[6..].trim() {

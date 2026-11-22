@@ -101,6 +101,16 @@ pub fn split(s: &Settings) -> bool {
     s.bar_split && !vert(s)
 }
 
+/// плашка бара (плавающего, раздельного, уже экрана): выбранный стиль подложки или классический вид темы
+fn plate(ui: &mut Ui, st: &State, r: R) {
+    let t = ui.t;
+    if crate::widgetpanel::valid_style(&st.set.bar_panel) {
+        crate::widgetpanel::paint_opts(ui, st, &st.set.bar_panel, 0.0, crate::widgetpanel::Opts::bar(&st.set), r);
+    } else {
+        ui.cv.pxbox(r, &BoxStyle::new(t.glass_panel(), t.border).shadow(SHADE));
+    }
+}
+
 pub fn draw(ui: &mut Ui, st: &State, out: &str, w: i32, h: i32) {
     if vert(&st.set) {
         return draw_v(ui, st, out, h);
@@ -123,7 +133,7 @@ pub fn draw(ui: &mut Ui, st: &State, out: &str, w: i32, h: i32) {
     } else {
         // плашка: рамка со всех сторон, фаска на углах, жёсткая тень (место под неё — справа и снизу)
         let pw = w - SHADE;
-        ui.cv.pxbox(R::new(0, 0, pw, H), &BoxStyle::new(t.glass_panel(), t.border).shadow(SHADE));
+        plate(ui, st, R::new(0, 0, pw, H));
         pw
     };
 
@@ -162,15 +172,16 @@ pub fn draw(ui: &mut Ui, st: &State, out: &str, w: i32, h: i32) {
         // середину не рисуем плашкой, пока над ней остров: таблетка сама плашка
         if gw > 0 && !crate::island::shows(st) {
             let c = R::new(scx - pad_in, 0, gw + 2 * pad_in, H);
-            // не залезать на соседей: между плашками просвет не меньше 6 px
-            let lo = plates.first().filter(|p| p.x == 0).map_or(c.x, |p| c.x.max(p.right() + 6));
-            let hi = plates.iter().find(|p| p.x > 0).map_or(c.right(), |p| c.right().min(p.x - 6));
+            // не залезать на соседей: между плашками просвет не меньше выбранного (bar_split_gap)
+            let gap = set.bar_split_gap;
+            let lo = plates.first().filter(|p| p.x == 0).map_or(c.x, |p| c.x.max(p.right() + gap));
+            let hi = plates.iter().find(|p| p.x > 0).map_or(c.right(), |p| c.right().min(p.x - gap));
             if hi > lo {
                 plates.push(R::new(lo, 0, hi - lo, H));
             }
         }
         for p in plates {
-            ui.cv.pxbox(p, &BoxStyle::new(t.glass_panel(), t.border).shadow(SHADE));
+            plate(ui, st, p);
             ui.zone(p, Act::BarBg, Cur::Default);
         }
     }
@@ -242,7 +253,8 @@ fn sep(ui: &mut Ui, st: &State, x: i32, w: i32) {
     let c = match st.set.bar_sep_color.as_str() {
         "accent" => t.red,
         "dim" => t.text_faint,
-        _ => t.border,
+        // рамка плашки того же цвета, что и разделитель: на плашке он пропадал; тусклый текст виден на любой подложке
+        _ => t.text_faint,
     };
     let cx = x + w / 2 - 1;
     match st.set.bar_sep.as_str() {
@@ -287,7 +299,7 @@ fn module(ui: &mut Ui, st: &State, out: &str, m: &str, x: i32, measure: bool) ->
                 let r = R::new(x, 0, 26, H - 1);
                 let hov = ui.hover(r) || st.modal == Some(crate::app::Modal::Launcher);
                 for i in 0..4 {
-                    let c = if i == 0 || hov { t.red } else { t.dim };
+                    let c = if i == 0 || hov { t.red } else { t.text_faint };
                     ui.cv.fill(R::new(x + 6 + (i % 2) * 8, cy - 7 + (i / 2) * 8, 6, 6), c);
                 }
                 ui.zone(r, Act::Launcher, Cur::Pointer);
@@ -874,7 +886,7 @@ fn vmodule(ui: &mut Ui, st: &State, out: &str, m: &str, y: i32, measure: bool) -
                 let r = R::new(x0, y, W, 26);
                 let hov = ui.hover(r) || st.modal == Some(crate::app::Modal::Launcher);
                 for i in 0..4 {
-                    let c = if i == 0 || hov { t.red } else { t.dim };
+                    let c = if i == 0 || hov { t.red } else { t.text_faint };
                     ui.cv.fill(R::new(cx - 7 + (i % 2) * 8, y + 6 + (i / 2) * 8, 6, 6), c);
                 }
                 ui.zone(r, Act::Launcher, Cur::Pointer);

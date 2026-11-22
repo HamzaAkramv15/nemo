@@ -225,6 +225,19 @@ fn tab_bar_look(ui: &mut Ui, st: &State, b: R) {
     ui.wrap(PX, R::new(b.x + 4, y + mh + 4, mw - 8, 40), "щёлкни край на схеме — бар переедет туда", t.text_faint, 2);
     y = bot.max(y + mh + 24) + 10;
     y += 40;
+    // плашка плавающего и раздельного бара: тот же набор стилей, что у виджетов, и свои скругление, рамка и просвет
+    y = title(ui, b.x, y, b.w, "плашка бара");
+    let half = (b.w - 20) / 2;
+    let style_name = if crate::widgetpanel::valid_style(&s.bar_panel) { crate::widgets::name_of(crate::widgetpanel::STYLES, &s.bar_panel) } else { "классическая" };
+    opt_btn(ui, R::new(b.x, y, half, 26), "стиль плашки", style_name, Act::SCycle("bar_panel"));
+    let px_or_style = |v: i32| if v < 0 { crate::i18n::tr("по стилю").to_string() } else { format!("{v} px") };
+    ui.slider(R::new(b.x + half + 20, y - 7, half, 40), "скругление", (s.bar_radius + 1) as f32 / 25.0, &px_or_style(s.bar_radius), 25, Act::SSlider("bar_radius", 0.0, 1.0, 25));
+    y += 36;
+    ui.slider(R::new(b.x, y, half, 40), "рамка", (s.bar_border + 1) as f32 / 5.0, &px_or_style(s.bar_border), 5, Act::SSlider("bar_border", 0.0, 1.0, 5));
+    if s.bar_split {
+        ui.slider(R::new(b.x + half + 20, y, half, 40), "просвет между плашками", (s.bar_split_gap - 2) as f32 / 30.0, &format!("{} px", s.bar_split_gap), 30, Act::SSlider("bar_split_gap", 0.0, 1.0, 30));
+    }
+    y += 50;
     y = title(ui, b.x, y, b.w, "отступы и разделители");
     let style = match s.bar_sep.as_str() {
         "line" => "черта",

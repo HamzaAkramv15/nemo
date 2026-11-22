@@ -41,8 +41,8 @@ pub fn style_of<'a>(w: &'a Widget, st: &'a State) -> &'a str {
 enum Shape {
     /// скругление радиуса r со сглаживанием
     Round(i32),
-    /// фаска в n клеток, без сглаживания
-    Notch(i32),
+    /// скругление радиуса r лесенкой пикселей, без сглаживания (пиксельный стиль): ступени берутся от настоящей окружности, а не срезом угла
+    Hard(i32),
     /// только уголки
     Brackets,
 }
@@ -56,6 +56,28 @@ enum Shade {
     Hard(i32),
     /// цветной ореол: цвет, ширина
     Glow(C, i32),
+}
+
+/// настройки формы, общие для всех стилей; -1 — как задумано стилем
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct Opts {
+    /// радиус скругления, px (0 — прямые углы)
+    pub radius: i32,
+    /// толщина рамки, px (0 — без рамки)
+    pub border: i32,
+    /// сила тени, % от задуманной стилем (0 — без тени)
+    pub shadow: i32,
+    /// наибольшая ширина тени, px (0 — без ограничения): у плашек бара место под тень — только поле в несколько пикселей
+    pub spread_cap: i32,
+}
+
+impl Opts {
+    pub fn widgets(s: &crate::config::Settings) -> Opts {
+        Opts { radius: s.widget_radius, border: s.widget_border, shadow: s.widget_shadow, spread_cap: 0 }
+    }
+    pub fn bar(s: &crate::config::Settings) -> Opts {
+        Opts { radius: s.bar_radius, border: s.bar_border, shadow: -1, spread_cap: 3 }
+    }
 }
 
 struct Recipe {
@@ -73,7 +95,30 @@ fn accent(ui: &Ui) -> C {
     crate::widgets::readable(ui.t.red, ui.t.bg, 4.5)
 }
 
-fn recipe(ui: &Ui, st: &State, style: &str, alpha: f32) -> Recipe {
+fn recipe(ui: &Ui, st: &State, style: &str, alpha: f32, o: Opts) -> Recipe {
+    let mut rc = base_recipe(ui, st, style, alpha);
+    if o.radius >= 0 {
+        rc.shape = match rc.shape {
+            Shape::Round(_) => Shape::Round(o.radius),
+            Shape::Hard(_) => Shape::Hard(o.radius),
+            b => b,
+        };
+    }
+    if o.border >= 0 {
+        rc.bw = o.border;
+    }
+    let k = if o.shadow >= 0 { o.shadow as f32 / 100.0 } else { 1.0 };
+    let cap = if o.spread_cap > 0 { o.spread_cap } else { i32::MAX };
+    rc.shade = match rc.shade {
+        Shade::Soft(a, sp, dy) => Shade::Soft(a * k, sp.min(cap), dy.min(cap)),
+        Shade::Hard(d) => Shade::Hard(((d as f32 * k).round() as i32).min(cap)),
+        Shade::Glow(c, sp) => Shade::Glow(c.alpha(c.a() as f32 / 255.0 * k), sp.min(cap)),
+        n => n,
+    };
+    rc
+}
+
+fn base_recipe(ui: &Ui, st: &State, style: &str, alpha: f32) -> Recipe {
     let t = ui.t;
     let a = |default: f32| if alpha > 0.0 { alpha } else { default };
     let hi = if t.light { C(0xff000000) } else { t.text_hi };
@@ -82,7 +127,7 @@ fn recipe(ui: &Ui, st: &State, style: &str, alpha: f32) -> Recipe {
         "frost" => Recipe { shape: Shape::Round(10), fill: t.surface.alpha(a(0.62)), border: hi.alpha(0.22), bw: 1, shade: Shade::Soft(amp(0.28), 10, 2), sheen: true, scan: false },
         "solid" => Recipe { shape: Shape::Round(5), fill: t.panel.alpha(a(1.0)), border: t.border.lerp(hi, 0.10), bw: 1, shade: Shade::Soft(amp(0.30), 6, 2), sheen: false, scan: false },
         "pixel" => Recipe {
-            shape: Shape::Notch(3),
+            shape: Shape::Hard(3),
             fill: t.surface.alpha(a(1.0)),
             border: t.border.lerp(accent(ui), 0.55),
             bw: 2,
@@ -146,6 +191,9 @@ fn round_fill(ui: &mut Ui, r: R, rad: i32, c: C) {
 /// рамка скруглённой формы: прямые стороны заливками, углы — по пикселям с покрытием «наружный круг минус внутренний»
 fn round_ring(ui: &mut Ui, r: R, rad: i32, bw: i32, c: C) {
     let rad = rad.min(r.w / 2).min(r.h / 2).max(0);
+    if bw <= 0 {
+        return;
+    }
     if rad == 0 {
         ui.cv.outline(r, c, bw);
         return;
@@ -171,31 +219,41 @@ fn round_ring(ui: &mut Ui, r: R, rad: i32, bw: i32, c: C) {
     }
 }
 
-/// строка фаски: отрезок [x0, x1) на строке y у прямоугольника с фаской n
-fn notch_span(r: R, n: i32, y: i32) -> Option<(i32, i32)> {
+/// строка скруглённого лесенкой прямоугольника: отрезок [x0, x1) на строке y; ступень — от окружности радиуса rad (для r=3: 2, 1, 1)
+fn hard_span(r: R, rad: i32, y: i32) -> Option<(i32, i32)> {
     if y < r.y || y >= r.bottom() {
         return None;
     }
-    let cut = r.w > 2 * n && r.h > 2 * n && (y < r.y + n || y >= r.bottom() - n);
-    Some(if cut { (r.x + n, r.right() - n) } else { (r.x, r.right()) })
-}
-
-fn notch_fill(ui: &mut Ui, r: R, n: i32, c: C) {
-    if r.w <= 2 * n || r.h <= 2 * n {
-        return ui.cv.fill(r, c);
+    let rad = rad.min(r.w / 2).min(r.h / 2).max(0);
+    let dy = (y - r.y).min(r.bottom() - 1 - y);
+    if dy >= rad {
+        return Some((r.x, r.right()));
     }
-    ui.cv.fill(R::new(r.x + n, r.y, r.w - 2 * n, r.h), c);
-    ui.cv.fill(R::new(r.x, r.y + n, n, r.h - 2 * n), c);
-    ui.cv.fill(R::new(r.right() - n, r.y + n, n, r.h - 2 * n), c);
+    let rf = rad as f32;
+    let d = rf - dy as f32 - 0.5;
+    let ins = rf - (rf * rf - d * d).max(0.0).sqrt();
+    let k = (ins - 0.02).max(0.0).ceil() as i32;
+    Some((r.x + k, r.right() - k))
 }
 
-/// рамка фаски шириной bw: внешняя фигура минус внутренняя (фаска внутри на клетку меньше), без одиночных пикселей по углам
-fn notch_ring(ui: &mut Ui, r: R, n: i32, bw: i32, c: C) {
-    let inner = R::new(r.x + bw, r.y + bw, r.w - 2 * bw, r.h - 2 * bw);
-    let ni = (n - 1).max(0);
+fn hard_fill(ui: &mut Ui, r: R, rad: i32, c: C) {
     for y in r.y..r.bottom() {
-        let Some((a0, a1)) = notch_span(r, n, y) else { continue };
-        match notch_span(inner, ni, y) {
+        if let Some((a0, a1)) = hard_span(r, rad, y) {
+            ui.cv.fill(R::new(a0, y, a1 - a0, 1), c);
+        }
+    }
+}
+
+/// рамка шириной bw: строка внешней фигуры минус строка внутренней (радиус на bw меньше), без одиночных пикселей по углам
+fn hard_ring(ui: &mut Ui, r: R, rad: i32, bw: i32, c: C) {
+    if bw <= 0 {
+        return;
+    }
+    let inner = R::new(r.x + bw, r.y + bw, r.w - 2 * bw, r.h - 2 * bw);
+    let ri = (rad - bw).max(0);
+    for y in r.y..r.bottom() {
+        let Some((a0, a1)) = hard_span(r, rad, y) else { continue };
+        match hard_span(inner, ri, y) {
             Some((b0, b1)) if b1 > b0 => {
                 if b0 > a0 {
                     ui.cv.fill(R::new(a0, y, b0 - a0, 1), c);
@@ -209,12 +267,15 @@ fn notch_ring(ui: &mut Ui, r: R, n: i32, bw: i32, c: C) {
     }
 }
 
-/// жёсткая тень: фигура со сдвигом (d, d) без той части, что закрыта самой панелью (иначе под стеклом тень просвечивает второй рамкой)
-fn hard_shadow(ui: &mut Ui, r: R, n: i32, d: i32, c: C) {
+/// жёсткая тень: та же фигура со сдвигом (d, d) без части, закрытой самой панелью (иначе под стеклом тень просвечивает второй рамкой)
+fn hard_shadow(ui: &mut Ui, r: R, rad: i32, d: i32, c: C) {
+    if d <= 0 {
+        return;
+    }
     let s = R::new(r.x + d, r.y + d, r.w, r.h);
     for y in s.y..s.bottom() {
-        let Some((a0, a1)) = notch_span(s, n, y) else { continue };
-        match notch_span(r, n, y) {
+        let Some((a0, a1)) = hard_span(s, rad, y) else { continue };
+        match hard_span(r, rad, y) {
             Some((b0, b1)) if b0 < a1 && b1 > a0 => {
                 if b0 > a0 {
                     ui.cv.fill(R::new(a0, y, b0 - a0, 1), c);
@@ -289,12 +350,17 @@ fn brackets(ui: &mut Ui, r: R, len: i32, th: i32, c: C) {
 
 /// нарисовать подложку стилем `style` в прямоугольнике r (карточка; поле под тень — вокруг, окно виджета его вмещает: widgets::MARGIN)
 pub fn paint(ui: &mut Ui, st: &State, style: &str, alpha: f32, r: R) {
-    paint_with(ui, st, style, alpha, r, true)
+    paint_with(ui, st, style, alpha, Opts::widgets(&st.set), r, true)
 }
 
-fn paint_with(ui: &mut Ui, st: &State, style: &str, alpha: f32, r: R, blur: bool) {
+/// то же с настройками формы по выбору (плашки бара)
+pub fn paint_opts(ui: &mut Ui, st: &State, style: &str, alpha: f32, o: Opts, r: R) {
+    paint_with(ui, st, style, alpha, o, r, true)
+}
+
+fn paint_with(ui: &mut Ui, st: &State, style: &str, alpha: f32, o: Opts, r: R, blur: bool) {
     let blur = blur && !PREVIEW.with(|p| p.get());
-    let rc = recipe(ui, st, style, alpha);
+    let rc = recipe(ui, st, style, alpha, o);
     let shade_c = C(0xff000000);
     match rc.shape {
         Shape::Round(rad) => {
@@ -304,7 +370,7 @@ fn paint_with(ui: &mut Ui, st: &State, style: &str, alpha: f32, r: R, blur: bool
                 _ => {}
             }
             if blur && rc.fill.a() < 255 {
-                ui.cv.blur_rect(r, rad);
+                ui.cv.blur_round(r, rad);
             }
             round_fill(ui, r, rad, rc.fill);
             if rc.sheen {
@@ -316,20 +382,20 @@ fn paint_with(ui: &mut Ui, st: &State, style: &str, alpha: f32, r: R, blur: bool
             }
             round_ring(ui, r, rad, rc.bw, rc.border);
         }
-        Shape::Notch(n) => {
+        Shape::Hard(rad) => {
             if let Shade::Hard(d) = rc.shade {
-                hard_shadow(ui, r, n, d, shade_c.alpha(if ui.t.light { 0.28 } else { 0.5 }));
+                hard_shadow(ui, r, rad, d, shade_c.alpha(if ui.t.light { 0.28 } else { 0.5 }));
             }
             if blur && rc.fill.a() < 255 {
-                ui.cv.blur_rect(r, n);
+                ui.cv.blur_round(r, rad);
             }
-            notch_fill(ui, r, n, rc.fill);
+            hard_fill(ui, r, rad, rc.fill);
             if rc.scan {
                 let k = if ui.t.light { 0.06 } else { 0.22 };
                 // scanlines_in считает в координатах буфера и сдвиг холста (ox, oy) не применяет: прибавляем сами, иначе полосы уезжают влево-вверх
                 ui.cv.scanlines_in(R::new(r.x + rc.bw + ui.cv.ox, r.y + rc.bw + ui.cv.oy, r.w - 2 * rc.bw, r.h - 2 * rc.bw), k);
             }
-            notch_ring(ui, r, n, rc.bw, rc.border);
+            hard_ring(ui, r, rad, rc.bw, rc.border);
         }
         Shape::Brackets => {
             ui.cv.fill(r, rc.fill);
@@ -349,31 +415,44 @@ pub fn swatch(ui: &mut Ui, st: &State, style: &str, alpha: f32, look: &str, r: R
         ui.cv.fill(R::new(r.x + r.w / 2 - 3 + (j % 6), r.y + j, 1, 1), t.text_faint.alpha(0.25));
     }
     let card = R::new(r.x + 12, r.y + 12, r.w - 24, r.h - 24);
-    paint_with(ui, st, style, alpha, card, false);
+    paint_with(ui, st, style, alpha, Opts::widgets(&st.set), card, false);
     decorate(ui, st, look, style, card, true);
 }
 
 /// подложка с отделкой для примера в настройках (без размытия под окном)
 pub fn paint_preview(ui: &mut Ui, st: &State, style: &str, alpha: f32, look: &str, r: R) {
-    paint_with(ui, st, style, alpha, r, false);
+    paint_with(ui, st, style, alpha, Opts::widgets(&st.set), r, false);
     decorate(ui, st, look, style, r, true);
 }
 
 /// кромка формы для отделки: радиус скругления и отступ от угла, куда можно ставить украшения (у фасок и уголков он другой)
-fn edge_inset(style: &str) -> i32 {
-    match style {
+fn edge_inset(style: &str, radius: i32) -> i32 {
+    let base = match style {
         "pixel" => 8,
         "solid" => 9,
         "outline" => 18,
         "glow" => 12,
         _ => 14,
+    };
+    base.max(radius + 4)
+}
+
+/// радиус скругления стиля, когда пользователь его не менял
+pub fn default_radius(style: &str) -> i32 {
+    match style {
+        "pixel" => 3,
+        "solid" => 5,
+        "glow" => 8,
+        "outline" => 0,
+        _ => 10,
     }
 }
 
 /// отделка: украшение поверх подложки. Всё сидит на самой кромке или за ней, ничего не «плавает» внутри карточки
 pub fn decorate(ui: &mut Ui, st: &State, look: &str, style: &str, r: R, framed: bool) {
     let ac = accent(ui);
-    let inset = edge_inset(style);
+    let radius = if st.set.widget_radius >= 0 { st.set.widget_radius } else { default_radius(style) };
+    let inset = edge_inset(style, radius);
     match look {
         "accent" if framed => {
             // метка в левом верхнем углу, на кромке
@@ -431,18 +510,30 @@ mod tests {
     }
 
     #[test]
-    fn the_notch_ring_covers_the_edge_without_stray_pixels() {
-        // каждая строка рамки: отрезок внешней фигуры минус отрезок внутренней; в средних строках — две полосы bw, на краях — вся строка
+    fn the_rounded_pixel_corner_steps_like_a_circle_and_the_ring_has_no_stray_pixels() {
+        // радиус 3: ступени 2, 1, 1, затем прямой край; радиус 0 — прямоугольник
         let r = R::new(0, 0, 40, 30);
-        let (n, bw) = (3, 2);
+        let insets: Vec<i32> = (0..5).map(|y| hard_span(r, 3, y).unwrap().0).collect();
+        assert_eq!(insets, vec![2, 1, 1, 0, 0]);
+        assert!((0..30).all(|y| hard_span(r, 0, y) == Some((0, 40))));
+        // рамка: на прямых строках ровно bw пикселей с каждой стороны, внутренняя фигура не выходит за внешнюю
+        let (rad, bw) = (4, 2);
         let inner = R::new(bw, bw, 40 - 2 * bw, 30 - 2 * bw);
         for y in 0..30 {
-            let (a0, a1) = notch_span(r, n, y).unwrap();
-            let (b0, b1) = notch_span(inner, n - 1, y).filter(|_| y >= bw && y < 30 - bw).unwrap_or((a0, a0));
+            let (a0, a1) = hard_span(r, rad, y).unwrap();
+            let (b0, b1) = hard_span(inner, rad - bw, y).filter(|_| y >= bw && y < 30 - bw).unwrap_or((a0, a0));
             assert!(a0 <= b0 && b1 <= a1, "row {y}: inner span {b0}..{b1} leaves outer {a0}..{a1}");
-            if y >= n + bw && y < 30 - n - bw {
+            if y >= rad + bw && y < 30 - rad - bw {
                 assert_eq!((b0 - a0, a1 - b1), (bw, bw), "straight rows have a border of exactly {bw} px on both sides");
             }
         }
+    }
+
+    #[test]
+    fn the_overrides_change_only_what_they_name() {
+        let o = Opts { radius: -1, border: -1, shadow: -1, spread_cap: 0 };
+        assert_eq!(o, Opts { radius: -1, border: -1, shadow: -1, spread_cap: 0 });
+        assert_eq!(default_radius("pixel"), 3);
+        assert_eq!(default_radius("glass"), 10);
     }
 }

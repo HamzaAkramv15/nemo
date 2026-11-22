@@ -1669,4 +1669,9 @@ const UK: &[(&str, &str)] = &[
     ("off when idle", "гасне при простої"),
     ("when idle, on battery", "при простої, на батареї"),
     ("goes out after, s", "гасне через, с"),
+    ("roundness", "кути"),
+    ("bar plate", "плашка бару"),
+    ("classic", "класична"),
+    ("gap between plates", "проміжок між плашками"),
+    ("plate style", "стиль плашки"),
 ];

@@ -493,7 +493,13 @@ impl App {
             crate::dbus::notif_closed(*id, 1);
         }
         let changed = shrunk || (!gone.is_empty() && ns.leave_s <= 0.0);
+        // уход идёт, пока что-то в `leaving`: таблетка острова рисуется баром, и его нужно перерисовывать, иначе она висит во всю ширину
+        // до самого исчезновения (сквозная проверка показала именно это)
+        let leaving_now = !ns.leaving.is_empty() || !gone.is_empty();
         self.dirty(&SKind::Notifs);
+        if leaving_now {
+            self.dirty(&SKind::Bar);
+        }
         changed
     }
 

@@ -528,6 +528,12 @@ impl App {
                     s.widget_look = cycle(&[("plain", ""), ("reef", "")], &s.widget_look).into();
                     self.settings_changed();
                 }
+                "bar_panel" => {
+                    let all: Vec<&str> = std::iter::once("").chain(crate::widgetpanel::STYLES.iter().map(|x| x.0)).collect();
+                    let i = all.iter().position(|x| *x == s.bar_panel).unwrap_or(0);
+                    s.bar_panel = all[(i + 1) % all.len()].to_string();
+                    self.settings_changed();
+                }
                 "kbd_light" => {
                     s.kbd_light = cycle(&[("idle_battery", ""), ("idle", ""), ("keep", "")], &s.kbd_light).into();
                     self.settings_changed();

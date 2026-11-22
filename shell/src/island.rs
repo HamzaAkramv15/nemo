@@ -92,6 +92,15 @@ fn pill_start(id: u32, full: i32) -> i32 {
     }
 }
 
+/// для сквозной проверки (testdrive.rs): какое уведомление на таблетке, с какой ширины она начала раскрываться, какая сейчас и сколько мс прошло с последней отрисовки
+pub fn debug_state(st: &State) -> String {
+    let shown = shows(st) as u8;
+    match LAST.with(|l| l.get()) {
+        Some((id, start, cur, at)) => format!("{id} {start} {cur} {} {shown}", at.elapsed().as_millis()),
+        None => format!("none 0 0 0 {shown}"),
+    }
+}
+
 fn pill_remember(id: u32, start: i32, cur: i32) {
     LAST.with(|l| l.set(Some((id, start, cur, std::time::Instant::now()))));
 }

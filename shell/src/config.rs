@@ -280,6 +280,14 @@ pub struct Settings {
     pub bar_float: bool,
     /// раздельный бар: три отдельные плашки (левая группа, середина, правая) с просветами между ними; остров — середина
     pub bar_split: bool,
+    /// стиль плашки плавающего и раздельного бара (widgetpanel::STYLES); пусто — классический вид темы
+    pub bar_panel: String,
+    /// радиус скругления плашек бара, px (-1 — как задумано стилем или темой)
+    pub bar_radius: i32,
+    /// толщина рамки плашек бара, px (-1 — как задумано)
+    pub bar_border: i32,
+    /// просвет между плашками раздельного бара, px
+    pub bar_split_gap: i32,
     /// подсветка клавиатуры: keep — не трогать, idle — гаснет при простое, idle_battery — при простое на батарее (по умолчанию)
     pub kbd_light: String,
     /// через сколько секунд простоя гаснет подсветка
@@ -415,6 +423,12 @@ pub struct Settings {
     pub widget_panel: String,
     /// непрозрачность подложки 0.2…1.0; 0 — как задумано стилем
     pub widget_alpha: f32,
+    /// радиус скругления подложек виджетов, px (-1 — как задумано стилем; 0 — прямые углы)
+    pub widget_radius: i32,
+    /// толщина рамки подложек виджетов, px (-1 — как задумано стилем; 0 — без рамки)
+    pub widget_border: i32,
+    /// сила тени подложек виджетов, % от задуманной стилем (-1 — как задумано; 0 — без тени)
+    pub widget_shadow: i32,
 
     /// клавиши: id из keys::BINDS → сочетание ("" — выключено); чего нет — по умолчанию
     pub binds: std::collections::BTreeMap<String, String>,
@@ -812,6 +826,13 @@ impl Default for Settings {
             widget_look: "plain".into(),
             widget_panel: "glass".into(),
             widget_alpha: 0.0,
+            widget_radius: -1,
+            widget_border: -1,
+            widget_shadow: -1,
+            bar_panel: String::new(),
+            bar_radius: -1,
+            bar_border: -1,
+            bar_split_gap: 6,
             binds: Default::default(),
             custom_binds: vec![],
             fetch_full: false,
@@ -981,6 +1002,15 @@ impl Settings {
             self.kbd_light = "idle_battery".into();
         }
         self.kbd_idle_secs = self.kbd_idle_secs.clamp(5, 600);
+        self.widget_radius = self.widget_radius.clamp(-1, 24);
+        self.widget_border = self.widget_border.clamp(-1, 4);
+        self.widget_shadow = self.widget_shadow.clamp(-1, 100);
+        self.bar_radius = self.bar_radius.clamp(-1, 24);
+        self.bar_border = self.bar_border.clamp(-1, 4);
+        self.bar_split_gap = self.bar_split_gap.clamp(2, 32);
+        if !self.bar_panel.is_empty() && !crate::widgetpanel::valid_style(&self.bar_panel) {
+            self.bar_panel.clear();
+        }
         if !crate::widgetpanel::valid_style(&self.widget_panel) {
             self.widget_panel = "glass".into();
         }

@@ -1669,4 +1669,9 @@ const ES: &[(&str, &str)] = &[
     ("off when idle", "se apaga en reposo"),
     ("when idle, on battery", "en reposo, con batería"),
     ("goes out after, s", "se apaga tras, s"),
+    ("roundness", "redondeo"),
+    ("bar plate", "placa de la barra"),
+    ("classic", "clásica"),
+    ("gap between plates", "espacio entre placas"),
+    ("plate style", "estilo de placa"),
 ];
