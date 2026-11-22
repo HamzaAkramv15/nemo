@@ -9,9 +9,10 @@ use std::time::{Duration, Instant};
 impl App {
     // ── тик: часы, датчики, файл настроек ───────────────────────────────────
     pub(crate) fn tick_interval(&self) -> Duration {
-        let fast = !self.st.notifs.popups.is_empty() || self.st.osd.is_some() || self.st.field_focus.is_some() || self.st.locked || self.st.modal == Some(Modal::Launcher);
+        let fast = !self.st.notifs.popups.is_empty() || self.st.osd.is_some() || self.st.field_focus.is_some() || self.st.modal == Some(Modal::Launcher);
         let fast = fast || self.st.upd.busy.is_some() || self.st.dock_leave.is_some() || !self.st.dock_bounce.is_empty();
-        let ms = if fast { 100 } else { 1000 };
+        // заблокированный экран: четыре тика в секунду (мигание курсора — раз в полсекунды, часы — раз в секунду), а не десять
+        let ms = if fast { 100 } else if self.st.locked { 250 } else { 1000 };
         // текст песни с метками: следующий тик — к смене строки, а не через секунду
         let next = self.lyrics_live().then(|| self.st.lyrics.next_in(self.st.media.now_pos())).flatten().map(|s| (s * 1000.0) as u64 + 20);
         Duration::from_millis(next.map_or(ms, |n| n.clamp(40, ms)))
@@ -163,7 +164,7 @@ impl App {
 
     // ── простой: замок и гашение экрана ─────────────────────────────────────
     pub(crate) fn setup_idle(&mut self) {
-        let cfg = (self.st.set.lock_after, self.st.set.screen_off_after);
+        let cfg = (self.st.set.lock_after, self.st.set.screen_off_after, crate::kbdlight::idle_secs(&self.st.set));
         if cfg == self.idle_cfg && !self.idle_notes.is_empty() {
             return;
         }
@@ -177,6 +178,10 @@ impl App {
         }
         if cfg.1 > 0 {
             self.idle_notes.push(idle.get_idle_notification(cfg.1 * 60_000, &seat, &self.qh, 1));
+        }
+        // подсветка клавиатуры (kbdlight.rs): свой простой, в секундах
+        if cfg.2 > 0 {
+            self.idle_notes.push(idle.get_idle_notification(cfg.2 * 1000, &seat, &self.qh, 2));
         }
     }
 }

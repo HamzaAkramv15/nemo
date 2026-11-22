@@ -75,6 +75,7 @@ mod diagtab;
 mod widgetkind;
 mod layouts;
 mod widgetpanel;
+mod kbdlight;
 mod distro_logo;
 mod recolor_art;
 mod recolor_data;

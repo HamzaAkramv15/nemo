@@ -327,7 +327,14 @@ fn island_w(f: &mut font::Fonts, n: &Note) -> i32 {
 /// плашка с разными радиусами сверху (`rt`) и снизу (`rb`): строки с отступом по окружности (ступени в пиксель, как всё
 /// в Nemo), заливка и тонкая кромка. Радиус 0 со стороны бара — плоский край, кромки там нет
 pub fn pill2(ui: &mut Ui, r: R, rt: i32, rb: i32, fill: crate::gfx::C, edge: crate::gfx::C) {
-    let spans = round_spans(r.h, rt, rb);
+    // форма углов — из темы, как у всех панелей: скругление — капсула, фаска — пиксельная лесенка (до 5 px), прямые — коробка.
+    // Остров раньше всегда был гладкой капсулой и выбивался из пиксельного вида
+    use nemo_px::style::Corners;
+    let spans = match ui.cv.style.corners {
+        Corners::Round => round_spans(r.h, rt, rb),
+        Corners::Notch => chamfer_spans(r.h, rt.min(CHAMFER), rb.min(CHAMFER)),
+        Corners::Square => vec![(0, 0); r.h.max(0) as usize],
+    };
     for (dy, (a, b)) in spans.iter().enumerate() {
         ui.cv.fill(R::new(r.x + a, r.y + dy as i32, r.w - a - b, 1), fill);
     }
@@ -351,6 +358,20 @@ pub fn pill2(ui: &mut Ui, r: R, rt: i32, rb: i32, fill: crate::gfx::C, edge: cra
 /// круглая со всех сторон плашка
 pub fn pill(ui: &mut Ui, r: R, rad: i32, fill: crate::gfx::C, edge: crate::gfx::C) {
     pill2(ui, r, rad, rad, fill, edge)
+}
+
+/// самая крупная фаска плашки в пиксельной теме
+const CHAMFER: i32 = 5;
+
+/// отступы для плашки с фасками: на `rt` верхних строках отступ убывает на пиксель на строку (45°, лесенка), так же снизу
+pub fn chamfer_spans(h: i32, rt: i32, rb: i32) -> Vec<(i32, i32)> {
+    let (rt, rb) = (rt.clamp(0, h / 2), rb.clamp(0, h / 2));
+    (0..h)
+        .map(|dy| {
+            let i = if dy < rt { rt - dy } else if dy >= h - rb { rb - (h - 1 - dy) } else { 0 };
+            (i, i)
+        })
+        .collect()
 }
 
 /// отступы слева и справа для каждой строки плашки высотой `h` с радиусами `rt` сверху и `rb` снизу
@@ -647,7 +668,7 @@ impl App {
 
 #[cfg(test)]
 mod pill_tests {
-    use super::round_spans;
+    use super::{chamfer_spans, round_spans};
 
     #[test]
     fn a_pill_is_round_at_the_ends_and_straight_between() {
@@ -773,7 +794,7 @@ mod dup_tests {
 
 #[cfg(test)]
 mod mute_tests {
-    use super::is_muted;
+    use super::{chamfer_spans, is_muted};
 
     #[test]
     fn muting_matches_the_app_by_name_ignoring_case_and_spaces() {
@@ -784,5 +805,14 @@ mod mute_tests {
         assert!(!is_muted(", ,", ""));
         assert!(!is_muted("steam", ""), "an app with no name is never muted");
     }
-}
 
+    #[test]
+    fn a_chamfer_steps_one_pixel_per_row_on_both_ends_and_a_plain_box_has_none() {
+        let s = chamfer_spans(20, 5, 5);
+        assert_eq!(&s[..6], &[(5, 5), (4, 4), (3, 3), (2, 2), (1, 1), (0, 0)]);
+        assert_eq!(&s[14..], &[(0, 0), (1, 1), (2, 2), (3, 3), (4, 4), (5, 5)]);
+        assert!(chamfer_spans(10, 0, 0).iter().all(|x| *x == (0, 0)));
+        // сторона у бара плоская: сверху фаски нет
+        assert!(chamfer_spans(30, 0, 5)[..20].iter().all(|x| *x == (0, 0)));
+    }
+}

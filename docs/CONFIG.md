@@ -409,13 +409,9 @@ Applying one switches your other widgets off instead of deleting them and rememb
 `{"name": "…", "about": "…", "about_ru": "…", "look": "plain|reef", "panel": "glass|solid|outline", "widgets": [{"kind": "sky", "size": "m", "fx": 0.70, "fy": 0.06, "frame": true}]}`;
 `fx`, `fy` are the position as fractions of the monitor (so a layout fits any resolution), and a widget may also carry `source`, `style`, `anim`, `color`, `frame`, `label`, `seconds`, `date`. Widgets placed by a layout carry its id in `layout` and are replaced when another layout is applied.
 
-`widgetPanel` (default `"glass"`): the panel behind framed widgets: `glass` (the theme's glass), `solid` or `outline` (almost clear, with a light edge). `widgetAlpha` (default `0`, from the theme; 0.15 to 1): how opaque that panel is.
+`widgetPanel` (default `"glass"`): the style of widget panels: `glass`, `frost` (denser, with a sheen), `solid`, `pixel` (notched corners, a hard shadow on the pixel grid, a 2 px border), `outline` (transparent, corner brackets), `glow` (dark with a coloured halo). A widget can have its own (`panel` in its options). Every style is a complete recipe (corners, border, shadow, fill) that does not depend on the global corner and shadow settings. `widgetAlpha` (default `0`, as the style intends; 0.2 to 1): how opaque the fill is. `widgetLook` (default `"plain"`): the trim: `plain`, `accent` (a tag in the corner), `reef` (a highlighted top edge and bubbles that rise above the corner and stay for a widget without a panel), `hud` (corner sights).
 
-`widgetLook` (default `"plain"`): `reef` gives framed widgets a smooth waterline (two thin unbroken lines) along the top and three small bubbles in the bottom corner; a widget without a panel keeps the bubbles. The «reef layout» button in settings → desktop → widgets places a clock, a calendar and two graphs around the fish of the default wallpaper (`~/.local/share/nemo/wallpapers/nemo-reef.png`, the `wallpaper` default on a fresh install) and switches your other widgets off, it does not delete them.
-spot they are drawn with the light variant of the theme (dark text, a deeper accent), on a dark one
-with the dark variant, and every letter gets a hard one-font-pixel shadow in the opposite tone, so a
-clock stays readable on bright or busy wallpapers. Measured on the prepared wallpaper image after a
-new wallpaper, a move, or a settings change.
+`barSplit` (default `false`): split bar: three separate plates (left group, middle, right) with gaps instead of one strip; the island is the middle one. `kbdLight` (default `"idle_battery"`; `keep` or `idle`): the keyboard backlight goes out when idle (by default only on battery) and comes back with the first key; `kbdIdleSecs` (default `20`): after how many seconds. It goes through logind, no root; on an ASUS TUF the backlight drew about 1.5 W.
 
 `widgets` is a list of `{"id", "kind", "on", "x", "y", "source", "style", "anim", "size",
 "color", "frame", "label", "seconds", "date", "text"}`: `kind` is `clock` `graph` `net` `media`

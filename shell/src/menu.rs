@@ -193,6 +193,8 @@ impl App {
                 if let Some(w) = self.st.set.widget_mut(id) {
                     w.x = -1;
                     w.y = -1;
+                    w.fx = -1.0;
+                    w.fy = -1.0;
                 }
                 self.settings_changed();
             }

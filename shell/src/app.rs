@@ -267,6 +267,10 @@ pub struct State {
     pub widget_layouts: bool,
     /// справа в настройках виджетов — стили подложек и отделка
     pub widget_panels: bool,
+    /// справа в настройках виджетов — обзор видов с образцами
+    pub widget_gallery: bool,
+    /// уровень подсветки клавиатуры до простоя (kbdlight.rs); None — не гасили
+    pub kbd_saved: Option<u32>,
     pub editing: bool,
     /// к какой линии креста (по x, по y) прилип виджет, который тащат: она горит на сетке
     pub snap_cross: (bool, bool),
@@ -462,7 +466,7 @@ pub struct App {
     pub lock_surfs: Vec<LockSurf>,
     pub(crate) idle: Option<ext_idle_notifier_v1::ExtIdleNotifierV1>,
     pub(crate) idle_notes: Vec<ext_idle_notification_v1::ExtIdleNotificationV1>,
-    pub(crate) idle_cfg: (u32, u32),
+    pub(crate) idle_cfg: (u32, u32, u32),
     pub(crate) pointer: Option<wl_pointer::WlPointer>,
     pub(crate) keyboard: Option<wl_keyboard::WlKeyboard>,
     pub(crate) enter_serial: u32,
@@ -540,6 +544,8 @@ impl State {
             widget_scripts: false,
             widget_layouts: false,
             widget_panels: false,
+            widget_gallery: false,
+            kbd_saved: None,
             editing: false,
             snap_cross: (false, false),
             notifs: notif::Notifs::default(),
@@ -735,7 +741,7 @@ pub fn run() {
         lock_surfs: vec![],
         idle,
         idle_notes: vec![],
-        idle_cfg: (0, 0),
+        idle_cfg: (0, 0, 0),
         pointer: None,
         keyboard: None,
         enter_serial: 0,

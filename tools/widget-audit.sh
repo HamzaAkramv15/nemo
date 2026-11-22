@@ -9,8 +9,8 @@ BIN="$ROOT/shell/target/release/nemo-shell"; [[ -x $BIN ]] || BIN="$ROOT/shell/t
 KEEP=""; [[ ${1:-} == --keep ]] && KEEP="${2:-}"
 TMP="$(mktemp -d)"; trap 'rm -rf "$TMP"' EXIT
 mkdir -p "$TMP/home" "$TMP/out"
-targets=(); for k in clock graph net media cal weather bt script sky vitals week; do for v in sf mf lf; do targets+=("widget:$k-$v"); done; done
-env -i HOME="$TMP/home" PATH="/usr/bin:/bin" LANG=C.UTF-8 NEMO_FROZEN_NOW=1795000000 "$BIN" shot --defaults --transparent --lang en -o "$TMP/out" "${targets[@]}" >/dev/null 2>&1 || { echo "widget-audit: the screenshot run failed" >&2; exit 2; }
+targets=(); for k in clock graph net media cal weather bt script sky vitals week battery quick; do for v in sf mf lf; do targets+=("widget:$k-$v"); done; done
+env -i HOME="$TMP/home" PATH="/usr/bin:/bin" LANG=C.UTF-8 NEMO_FROZEN_NOW=1795000000 NEMO_NO_KBD=1 "$BIN" shot --defaults --transparent --lang en -o "$TMP/out" "${targets[@]}" >/dev/null 2>&1 || { echo "widget-audit: the screenshot run failed" >&2; exit 2; }
 [[ -n $KEEP ]] && { mkdir -p "$KEEP" && cp "$TMP"/out/widget-*.png "$KEEP"/; }
 python3 -I - "$TMP/out" <<'PY'
 import glob, os, sys

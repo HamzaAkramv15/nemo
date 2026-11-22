@@ -22,7 +22,7 @@ pub const SHADE: i32 = 3;
 /// сужается чужими исключёнными зонами. Полоса во всю ширину — вплотную к краю, как раньше;
 /// плашка (плавает или уже экрана) — с тенью, поверхность выше на её размер
 pub fn geo(s: &Settings, ow: i32) -> (i32, i32, i32) {
-    let m = if s.bar_float { s.num("bar_margin") } else { 0 };
+    let m = if s.bar_float || s.bar_split { s.num("bar_margin") } else { 0 };
     let pc = s.num("bar_width_pc");
     if strip(s) {
         return (0, 0, H);
@@ -93,7 +93,12 @@ pub const EDGES: &[(&str, &str)] = &[("top", "сверху"), ("bottom", "сни
 
 /// бар — полоса во всю ширину вплотную к краю (не плашка)
 pub fn strip(s: &Settings) -> bool {
-    !s.bar_float && s.num("bar_width_pc") >= 100
+    !s.bar_float && !s.bar_split && s.num("bar_width_pc") >= 100
+}
+
+/// раздельный бар: три плашки; только у горизонтального бара (боковой остаётся столбцом)
+pub fn split(s: &Settings) -> bool {
+    s.bar_split && !vert(s)
 }
 
 pub fn draw(ui: &mut Ui, st: &State, out: &str, w: i32, h: i32) {
@@ -102,9 +107,14 @@ pub fn draw(ui: &mut Ui, st: &State, out: &str, w: i32, h: i32) {
     }
     let t = ui.t;
     let set = &st.set;
-    // пустое место бара (модули — поверх): ПКМ — панель управления
-    ui.zone(R::new(0, 0, w, H), Act::BarBg, Cur::Default);
-    let w = if strip(set) {
+    // пустое место бара (модули — поверх): ПКМ — панель управления. У раздельного бара зоны — у самих плашек: между ними мышь проходит насквозь
+    if !split(set) {
+        ui.zone(R::new(0, 0, w, H), Act::BarBg, Cur::Default);
+    }
+    let w = if split(set) {
+        // плашки рисуются ниже, когда известны ширины групп; место под жёсткую тень — справа
+        w - SHADE
+    } else if strip(set) {
         ui.cv.blur_rect(R::new(0, 0, w, H), 0);
         ui.cv.fill(R::new(0, 0, w, H), t.glass_panel());
         // линия — со стороны стола: снизу у верхнего бара, сверху у нижнего
@@ -134,6 +144,36 @@ pub fn draw(ui: &mut Ui, st: &State, out: &str, w: i32, h: i32) {
     };
     let over = if at < 3 && nat > 0 { grow(nat) - (w - pad_l - pad_r) } else { 0 };
     let tw_now = if over > 0 { tasks_width(st, out, nat - over) } else { nat };
+    if split(set) {
+        // раздельный бар: сначала меряем группы (draw = false), рисуем под ними плашки, потом сами модули
+        let pad_in = 8;
+        let le = row(ui, st, out, &mut set.bar_left.iter(), pad_l, 1, false, tw(0, tw_now));
+        let rs = row(ui, st, out, &mut set.bar_right.iter().rev(), w - pad_r, -1, false, tw(2, tw_now));
+        let (sx0, sx1) = (if le > pad_l { le + mid } else { le }, if rs < w - pad_r { rs - mid } else { rs });
+        let gw = row(ui, st, out, &mut set.bar_center.iter(), 0, 1, false, tw(1, tw_now));
+        let scx = if set.bar_center_align == "after-left" { sx0 } else { (w / 2 - gw / 2).clamp(sx0, (sx1 - gw).max(sx0)) };
+        let mut plates: Vec<R> = vec![];
+        if le > pad_l {
+            plates.push(R::new(0, 0, le + pad_in, H));
+        }
+        if rs < w - pad_r {
+            plates.push(R::new(rs - pad_in, 0, w - rs + pad_in, H));
+        }
+        // середину не рисуем плашкой, пока над ней остров: таблетка сама плашка
+        if gw > 0 && !crate::island::shows(st) {
+            let c = R::new(scx - pad_in, 0, gw + 2 * pad_in, H);
+            // не залезать на соседей: между плашками просвет не меньше 6 px
+            let lo = plates.first().filter(|p| p.x == 0).map_or(c.x, |p| c.x.max(p.right() + 6));
+            let hi = plates.iter().find(|p| p.x > 0).map_or(c.right(), |p| c.right().min(p.x - 6));
+            if hi > lo {
+                plates.push(R::new(lo, 0, hi - lo, H));
+            }
+        }
+        for p in plates {
+            ui.cv.pxbox(p, &BoxStyle::new(t.glass_panel(), t.border).shadow(SHADE));
+            ui.zone(p, Act::BarBg, Cur::Default);
+        }
+    }
     let left_end = row(ui, st, out, &mut set.bar_left.iter(), pad_l, 1, true, tw(0, tw_now));
     let right_start = row(ui, st, out, &mut set.bar_right.iter().rev(), w - pad_r, -1, true, tw(2, tw_now));
 

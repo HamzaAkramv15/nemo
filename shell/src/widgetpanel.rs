@@ -16,6 +16,15 @@ use crate::ui::Ui;
 pub const STYLES: &[(&str, &str)] = &[("glass", "стекло"), ("frost", "иней"), ("solid", "плотная"), ("pixel", "пиксельный"), ("outline", "контур"), ("glow", "свечение")];
 pub const LOOKS: &[(&str, &str)] = &[("plain", "чисто"), ("accent", "метка"), ("reef", "рифовый"), ("hud", "прицел")];
 
+thread_local! {
+    /// рисуются образцы в окне настроек: размытие под ними не просить (оно легло бы пятном под само окно)
+    static PREVIEW: std::cell::Cell<bool> = const { std::cell::Cell::new(false) };
+}
+
+pub fn set_preview(on: bool) {
+    PREVIEW.with(|p| p.set(on));
+}
+
 pub fn valid_style(s: &str) -> bool {
     STYLES.iter().any(|x| x.0 == s)
 }
@@ -284,6 +293,7 @@ pub fn paint(ui: &mut Ui, st: &State, style: &str, alpha: f32, r: R) {
 }
 
 fn paint_with(ui: &mut Ui, st: &State, style: &str, alpha: f32, r: R, blur: bool) {
+    let blur = blur && !PREVIEW.with(|p| p.get());
     let rc = recipe(ui, st, style, alpha);
     let shade_c = C(0xff000000);
     match rc.shape {

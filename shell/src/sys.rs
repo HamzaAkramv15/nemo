@@ -98,11 +98,16 @@ pub struct Bat {
     /// от сети, но не заряжается: полная или держит порог (Full, Not charging)
     pub plugged: bool,
     pub mins: Option<u32>,
+    /// сколько берёт сейчас, Вт (только если батарея отдаёт мощность в µW)
+    pub watts: Option<f32>,
+    /// ёмкость сейчас от паспортной, %
+    pub health: Option<u8>,
 }
 
 /// заряд батарей системы (не мышек и наушников: у них scope=Device); несколько — по энергии
 fn read_bat() -> Option<Bat> {
     let (mut now, mut full, mut rate, mut any) = (0.0f64, 0.0f64, 0.0f64, false);
+    let (mut design, mut energy_based) = (0.0f64, false);
     let (mut charging, mut plugged, mut discharging) = (false, false, false);
     for e in fs::read_dir("/sys/class/power_supply").ok()?.flatten() {
         let p = e.path();
@@ -115,6 +120,8 @@ fn read_bat() -> Option<Bat> {
             (Some(n), Some(f)) if f > 0.0 => {
                 // мощность в тех же единицах, что запас: µW к µWh, µA к µAh
                 rate += if num("energy_now").is_some() { num("power_now") } else { num("current_now") }.unwrap_or(0.0).abs();
+                energy_based = num("energy_now").is_some();
+                design += num("energy_full_design").or(num("charge_full_design")).unwrap_or(0.0);
                 (n, f)
             }
             _ => match num("capacity") {
@@ -139,7 +146,14 @@ fn read_bat() -> Option<Bat> {
     let plugged = plugged && !discharging && !charging;
     let left = if charging { full - now } else { now };
     let mins = (rate > 0.0 && (charging || discharging)).then(|| (left / rate * 60.0).round() as u32).filter(|m| *m > 0 && *m < 100 * 60);
-    Some(Bat { pct: ((now / full.max(1e-9)) * 100.0).round().clamp(0.0, 100.0) as u8, charging, plugged, mins })
+    Some(Bat {
+        pct: ((now / full.max(1e-9)) * 100.0).round().clamp(0.0, 100.0) as u8,
+        charging,
+        plugged,
+        mins,
+        watts: (energy_based && rate > 0.0).then_some((rate / 1e6) as f32),
+        health: (design > 0.0 && full <= design * 1.2).then(|| (full / design * 100.0).round().clamp(0.0, 100.0) as u8),
+    })
 }
 
 fn find_temp() -> Option<String> {

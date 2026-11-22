@@ -394,6 +394,75 @@ fn card(ui: &mut Ui, st: &State, w: &Widget, r: R, _c: C) {
     panel(ui, st, w, r);
 }
 
+/// батарея: заряд крупно, состояние, шкала из клеток, время до разряда/полной, мощность и ёмкость от паспортной
+pub(crate) fn draw_battery(ui: &mut Ui, st: &State, w: &Widget, r: R, _c: C) {
+    panel(ui, st, w, r);
+    let t = ui.t;
+    let pad = 16;
+    let inner = R::new(pad, pad - 2, r.w - 2 * pad, r.h - 2 * pad + 2);
+    let Some(b) = st.sys.bat else {
+        ui.text_in(PX, inner, "батареи нет", t.text_faint);
+        return;
+    };
+    let face = font::px(match w.size.as_str() {
+        "s" => 40,
+        "l" => 56,
+        _ => 48,
+    });
+    let low = b.pct <= 15 && !b.charging && !b.plugged;
+    let accent = color(&t, &w.color);
+    let tw = ui.text(face, inner.x, inner.y, &format!("{}%", b.pct), if low { color(&t, "warn") } else { t.text });
+    let state = crate::i18n::tr(if b.charging { "заряжается" } else if b.plugged { "от сети" } else { "от батареи" });
+    let sx = inner.x + tw + 12;
+    ui.text_in(PX, R::new(sx, inner.y + 8, (inner.right() - sx).max(0), 18), state, t.text_dim);
+    // шкала: клетки 6×6 через 2 px, цвет — акцент (жёлтый, пока мало и не заряжается): число рядом, цвет не единственный признак
+    let by = inner.y + ui.f.line(face) + 6;
+    let cells = ((inner.w + 2) / 8).max(1);
+    let on = ((b.pct as f32 / 100.0) * cells as f32).round() as i32;
+    for k in 0..cells {
+        ui.cv.fill(R::new(inner.x + k * 8, by, 6, 6), if k < on { if low { color(&t, "warn") } else { accent } } else { t.text_faint.alpha(0.28) });
+    }
+    let mut y = by + 16;
+    if w.size != "s" {
+        if let Some(m) = b.mins {
+            let when = if m >= 60 { format!("{} {} {} {}", m / 60, crate::i18n::tr("ч"), m % 60, crate::i18n::tr("мин")) } else { format!("{} {}", m, crate::i18n::tr("мин")) };
+            ui.text_in(PX, R::new(inner.x, y, inner.w, 18), &format!("{} {}", crate::i18n::tr(if b.charging { "до полной" } else { "осталось" }), when), t.text_dim);
+        }
+        if let Some(wt) = b.watts {
+            ui.text_right(PX, R::new(inner.x, y, inner.w, 18), &format!("{:.1} {}", wt, crate::i18n::tr("Вт")), t.text);
+        }
+        y += 22;
+    }
+    if w.size == "l" {
+        if let Some(h) = b.health {
+            ui.text_in(PX, R::new(inner.x, y, inner.w, 18), &format!("{} {}%", crate::i18n::tr("ёмкость"), h), t.text_faint);
+        }
+    }
+}
+
+/// быстрые действия: плитки-кнопки (замок, ночной свет, кофе, «не беспокоить», питание, настройки); включённые подсвечены
+pub(crate) fn draw_quick(ui: &mut Ui, st: &State, w: &Widget, r: R, _c: C) {
+    panel(ui, st, w, r);
+    let pad = 16;
+    let (tw, th, n) = match w.size.as_str() {
+        "s" => (56, 48, 3),
+        "l" => (72, 60, 6),
+        _ => (56, 48, 6),
+    };
+    let tiles: [(&str, Act, bool); 6] = [
+        ("lock", Act::LockNow, false),
+        ("moon", Act::NightToggle, st.night.on),
+        ("coffee", Act::CaffeineToggle, st.caffeine.on),
+        ("bell", Act::Dnd, st.set.dnd),
+        ("power", Act::Power, false),
+        ("gear", Act::Settings, st.modal == Some(crate::app::Modal::Settings)),
+    ];
+    for (i, (icon, act, on)) in tiles.into_iter().take(n).enumerate() {
+        let (cx, cy) = ((i % 3) as i32, (i / 3) as i32);
+        ui.button(R::new(pad + cx * (tw + 8), pad + cy * (th + 8), tw, th), "", icon, Tone::Plain, on, true, act);
+    }
+}
+
 /// небо: время крупно, под ним дата, ниже черта и погода одной строкой — всё, что смотрят утром, в одном месте
 fn sky_body(ui: &mut Ui, st: &State, w: &Widget, r: R, c: C) {
     let t = ui.t;
@@ -1048,6 +1117,20 @@ impl App {
         let out = self.focus_out();
         if out.is_empty() {
             return;
+        }
+        // положение в долях монитора: у прежних виджетов (только x, y) считается один раз; дальше пиксели берутся из долей, и при смене
+        // разрешения или масштаба виджет остаётся на том же месте экрана
+        let (ow0, oh0) = self.output_size(&out);
+        if ow0 > 0 && oh0 > 0 {
+            for w in self.st.set.widgets.iter_mut() {
+                if w.fx < 0.0 && w.x >= 0 && w.y >= 0 {
+                    w.fx = w.x as f32 / ow0 as f32;
+                    w.fy = w.y as f32 / oh0 as f32;
+                } else if w.fx >= 0.0 && w.fy >= 0.0 {
+                    w.x = (w.fx * ow0 as f32).round() as i32;
+                    w.y = (w.fy * oh0 as f32).round() as i32;
+                }
+            }
         }
         let want: Vec<Widget> = self.st.set.widgets.iter().filter(|w| w.on && !self.st.locked).cloned().collect();
         // лишние — закрыть

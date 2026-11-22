@@ -120,6 +120,8 @@ pub fn build(l: &Layout, ow: i32, oh: i32, first_id: u32) -> Vec<Widget> {
             }
             w.on = true;
             w.layout = l.id.clone();
+            w.fx = f("fx") as f32;
+            w.fy = f("fy") as f32;
             w.x = (ow as f64 * f("fx")) as i32;
             w.y = (oh as f64 * f("fy")) as i32;
             w

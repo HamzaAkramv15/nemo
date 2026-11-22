@@ -4,7 +4,7 @@
 //   {"text": "21°", "icon": "temp", "color": "accent", "click": "xdg-open https://…", "interval": 600}
 // icon — любой значок 7×7 шелла (список в docs/CONFIG.md), color — роль темы (accent, bright, ok,
 // warn, text, dim). Скрипт, что работает постоянно, шлёт обновления строками; завершившийся
-// запускается снова через `interval` секунд (по умолчанию 10). Каждый модуль — одна нить и одна
+// запускается снова через `interval` секунд (по умолчанию 60; раньше 10 — лишний запуск оболочки и утилит шесть раз в минуту). Каждый модуль — одна нить и одна
 // группа процессов, и только пока он в баре; убирается из бара или падает шелл — группа
 // получает SIGTERM целиком (вместе с тем, что скрипт запустил сам: см. LEADER).
 // i18n: inline pairs
@@ -135,7 +135,7 @@ fn spawn(id: String, stop: Arc<AtomicBool>, pid: Arc<AtomicU32>, tx: Sender<Msg>
     use std::os::unix::fs::PermissionsExt;
     let path = dir().join(&id[2..]);
     std::thread::spawn(move || {
-        let mut wait = 10u64;
+        let mut wait = 60u64;
         while !stop.load(Ordering::SeqCst) {
             // не исполняемый — значок ошибки в баре (запуск через sh сам бы не упал)
             let runnable = std::fs::metadata(&path).is_ok_and(|m| m.is_file() && m.permissions().mode() & 0o111 != 0);

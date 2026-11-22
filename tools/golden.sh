@@ -24,7 +24,7 @@ TMP="$(mktemp -d)"
 trap 'rm -rf "$TMP"' EXIT
 mkdir -p "$TMP/home" "$TMP/out"
 # an empty environment: user, host, locale and the check's own variables must not leak into a picture
-env -i HOME="$TMP/home" PATH="/usr/bin:/bin" LANG=C.UTF-8 NEMO_FROZEN_NOW=1795000000 "$BIN" shot --defaults -o "$TMP/out" >/dev/null 2>&1 || { echo "golden: the screenshot run failed" >&2; exit 2; }
+env -i HOME="$TMP/home" PATH="/usr/bin:/bin" LANG=C.UTF-8 NEMO_FROZEN_NOW=1795000000 NEMO_NO_KBD=1 "$BIN" shot --defaults -o "$TMP/out" >/dev/null 2>&1 || { echo "golden: the screenshot run failed" >&2; exit 2; }
 now="$TMP/now.txt"
 (cd "$TMP/out" && for f in *.png; do grep -qxF "$f" "$SKIP" 2>/dev/null || sha256sum "$f"; done) >"$now"
 if [[ ${1:-} == --update ]]; then

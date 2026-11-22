@@ -72,6 +72,9 @@ pub struct Widget {
     pub layout: String,
     /// стиль подложки этого виджета (widgetpanel::STYLES); пусто — общий
     pub panel: String,
+    /// положение в долях монитора (0..1; -1 — ещё не посчитано): при смене разрешения или масштаба виджет остаётся на «том же месте» экрана
+    pub fx: f32,
+    pub fy: f32,
 }
 
 impl Default for Widget {
@@ -94,6 +97,8 @@ impl Default for Widget {
             text: String::new(),
             layout: String::new(),
             panel: String::new(),
+            fx: -1.0,
+            fy: -1.0,
         }
     }
 }
@@ -273,6 +278,12 @@ pub struct Settings {
     pub bar_v: u32,
     /// бар отдельной плашкой: отступ от краёв экрана, рамка со всех сторон, тень
     pub bar_float: bool,
+    /// раздельный бар: три отдельные плашки (левая группа, середина, правая) с просветами между ними; остров — середина
+    pub bar_split: bool,
+    /// подсветка клавиатуры: keep — не трогать, idle — гаснет при простое, idle_battery — при простое на батарее (по умолчанию)
+    pub kbd_light: String,
+    /// через сколько секунд простоя гаснет подсветка
+    pub kbd_idle_secs: u32,
     /// ширина бара в процентах ширины монитора (100 — во всю ширину; меньше — по центру)
     pub bar_width_pc: i32,
     /// отступ плавающего бара от краёв экрана, px
@@ -725,6 +736,9 @@ impl Default for Settings {
             bar_task_gap: 4,
             bar_v: 1,
             bar_float: false,
+            bar_split: false,
+            kbd_light: "idle_battery".into(),
+            kbd_idle_secs: 20,
             bar_width_pc: 100,
             bar_outputs: vec![],
             bar_margin: 6,
@@ -963,6 +977,10 @@ impl Settings {
                 p.clear();
             }
         }
+        if !["keep", "idle", "idle_battery"].contains(&self.kbd_light.as_str()) {
+            self.kbd_light = "idle_battery".into();
+        }
+        self.kbd_idle_secs = self.kbd_idle_secs.clamp(5, 600);
         if !crate::widgetpanel::valid_style(&self.widget_panel) {
             self.widget_panel = "glass".into();
         }

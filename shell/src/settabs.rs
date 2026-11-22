@@ -158,11 +158,6 @@ pub(crate) fn tab_widgets(ui: &mut Ui, st: &State, b: R) {
     let t = ui.t;
     let s = &st.set;
     let y0 = title(ui, b.x, b.y, b.w, "виджеты рабочего стола");
-    // готовые скрипты — кнопкой справа от заголовка: справа откроется их список (внизу левой колонки
-    // его не находили). Нажатие ещё раз — назад к параметрам виджета
-    ui.button(R::new(b.right() - 170 - 6 - 110 - 6 - 110, b.y - 4, 110, 24), "подложки", "image", if st.widget_panels { Tone::Primary } else { Tone::Plain }, st.widget_panels, true, Act::SCycle("widget_panels"));
-    ui.button(R::new(b.right() - 170 - 6 - 110, b.y - 4, 110, 24), "раскладки", "leaf", if st.widget_layouts { Tone::Primary } else { Tone::Plain }, st.widget_layouts, true, Act::SCycle("widget_layouts"));
-    ui.button(R::new(b.right() - 170, b.y - 4, 170, 24), "готовые скрипты", "plus", if st.widget_scripts { Tone::Primary } else { Tone::Plain }, st.widget_scripts, true, Act::SCycle("widget_scripts"));
     // список слева
     let lw = 200;
     let mut y = y0;
@@ -192,6 +187,54 @@ pub(crate) fn tab_widgets(ui: &mut Ui, st: &State, b: R) {
     // параметры справа
     let px = b.x + lw + 20;
     let pw = b.right() - px;
+    // правая часть: четыре страницы кнопками в ряд (обзор, подложки, раскладки, скрипты); нажатие ещё раз — назад к параметрам виджета
+    let pages: [(&str, &str, bool, &str); 4] = [
+        ("обзор", "grid", st.widget_gallery, "widget_gallery"),
+        ("подложки", "image", st.widget_panels, "widget_panels"),
+        ("раскладки", "leaf", st.widget_layouts, "widget_layouts"),
+        ("скрипты", "plus", st.widget_scripts, "widget_scripts"),
+    ];
+    // два на два: в узкой правой части четыре кнопки в ряд обрезали подписи («Anordnungen», «disposiciones»)
+    let bw2 = (pw - 6) / 2;
+    for (i, (name, icon, on, key)) in pages.into_iter().enumerate() {
+        ui.button(R::new(px + (i as i32 % 2) * (bw2 + 6), y0 + (i as i32 / 2) * 30, bw2, 24), name, icon, if on { Tone::Primary } else { Tone::Plain }, on, true, Act::SCycle(key));
+    }
+    let y0 = y0 + 64;
+    if st.widget_gallery {
+        // обзор: каждый вид настоящим кодом рисования, в малом размере, на двухцветном фоне; щелчок добавляет
+        let mut y = y0;
+        y += ui.wrap(PX, R::new(px, y, pw, 40), "так выглядит каждый вид; нажми, чтобы добавить на стол", t.text_dim, 2) + 4;
+        widgetpanel::set_preview(true);
+        for k in crate::widgetkind::REGISTRY.iter() {
+            let (bw, bh) = k.sizes[0];
+            let cell = R::new(px, y, pw, bh + 40);
+            ui.cv.fill(cell, t.surface_hi);
+            ui.cv.fill(R::new(cell.x + cell.w / 2, cell.y, cell.w - cell.w / 2, cell.h), t.red.lerp(t.bg, 0.55));
+            let mut wv = crate::config::Widget::new(0, k.id);
+            wv.size = "s".into();
+            wv.frame = true;
+            wv.panel = s.widget_panel.clone();
+            let z0 = ui.zones.len();
+            ui.cv.push_clip(cell);
+            let (ox, oy) = (ui.cv.ox, ui.cv.oy);
+            ui.cv.ox += cell.x + 12;
+            ui.cv.oy += cell.y + 28;
+            (k.draw)(ui, st, &wv, R::new(0, 0, bw.min(cell.w - 24), bh), widgets::color(&t, "accent"));
+            ui.cv.ox = ox;
+            ui.cv.oy = oy;
+            ui.cv.pop_clip();
+            // зоны самого виджета (стрелки календаря, щелчок скрипта) в обзоре не нужны: щелчок по плитке — «добавить»
+            ui.zones.truncate(z0);
+            ui.zone(cell, Act::SWidgetAdd(k.id), Cur::Pointer);
+            if ui.hover(cell) {
+                ui.cv.outline(cell.inset(-1), t.red, 2);
+            }
+            ui.text_in(PX, R::new(cell.x + 12, cell.y + 4, (cell.w - 24).max(0), 18), k.name, t.text);
+            y += bh + 40 + 8;
+        }
+        widgetpanel::set_preview(false);
+        return;
+    }
     if st.widget_panels {
         // подложки: стили образцами (каждый нарисован тем же кодом, что и подложка на столе), непрозрачность, отделка и живой пример
         let mut y = y0;
@@ -455,6 +498,17 @@ pub(crate) fn tab_comfort(ui: &mut Ui, st: &State, b: R) {
     opt_btn(ui, R::new(lx, y, half, 26), "от батареи", prof_name(&s.profile_battery), Act::SCycle("prof_battery"));
     opt_btn(ui, R::new(rx, y, half, 26), "от сети", prof_name(&s.profile_ac), Act::SCycle("prof_ac"));
     y += 34;
+    // подсветка клавиатуры (kbdlight.rs): гаснет при простое, с первой клавишей возвращается; есть только у ноутбуков, где её можно менять
+    if crate::kbdlight::present() {
+        let mode = match s.kbd_light.as_str() {
+            "keep" => "не менять",
+            "idle" => "гаснет при простое",
+            _ => "при простое на батарее",
+        };
+        opt_btn(ui, R::new(lx, y, half, 26), "подсветка клавиатуры", mode, Act::SCycle("kbd_light"));
+        opt_btn(ui, R::new(rx, y, half, 26), "гаснет через, с", &s.kbd_idle_secs.to_string(), Act::SCycle("kbd_idle"));
+        y += 34;
+    }
     if !st.prof.present {
         ui.text_in(PX, R::new(lx, y, b.w, 20), "нужен power-profiles-daemon (или tuned-ppd)", ui.t.text_faint);
         y += 26;

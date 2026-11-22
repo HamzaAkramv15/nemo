@@ -154,6 +154,7 @@ impl App {
                         return true;
                     }
                     "bar_float" => s.bar_float = !s.bar_float,
+                    "bar_split" => s.bar_split = !s.bar_split,
                     "widget_contrast" => s.widget_contrast = !s.widget_contrast,
                     "blur_shell" => s.blur_shell = !s.blur_shell,
                     "blur_term" => s.blur_term = !s.blur_term,
@@ -402,8 +403,16 @@ impl App {
                 }
                 "open_setup" => self.welcome_open("modules"),
                 "open_welcome" => self.welcome_open("hello"),
+                "widget_gallery" => {
+                    self.st.widget_gallery = !self.st.widget_gallery;
+                    self.st.widget_panels = false;
+                    self.st.widget_layouts = false;
+                    self.st.widget_scripts = false;
+                    self.dirty(&SKind::Modal);
+                }
                 "widget_panels" => {
                     self.st.widget_panels = !self.st.widget_panels;
+                    self.st.widget_gallery = false;
                     self.st.widget_layouts = false;
                     self.st.widget_scripts = false;
                     self.dirty(&SKind::Modal);
@@ -412,12 +421,14 @@ impl App {
                     self.st.widget_layouts = !self.st.widget_layouts;
                     self.st.widget_scripts = false;
                     self.st.widget_panels = false;
+                    self.st.widget_gallery = false;
                     self.dirty(&SKind::Modal);
                 }
                 "widget_scripts" => {
                     self.st.widget_scripts = !self.st.widget_scripts;
                     self.st.widget_layouts = false;
                     self.st.widget_panels = false;
+                    self.st.widget_gallery = false;
                     self.dirty(&SKind::Modal);
                 }
                 "upd_page_desktop" | "upd_page_software" => {
@@ -515,6 +526,14 @@ impl App {
                 }
                 "widget_look" => {
                     s.widget_look = cycle(&[("plain", ""), ("reef", "")], &s.widget_look).into();
+                    self.settings_changed();
+                }
+                "kbd_light" => {
+                    s.kbd_light = cycle(&[("idle_battery", ""), ("idle", ""), ("keep", "")], &s.kbd_light).into();
+                    self.settings_changed();
+                }
+                "kbd_idle" => {
+                    s.kbd_idle_secs = crate::settings::step_in(&[10, 20, 30, 60, 120], s.kbd_idle_secs as i32) as u32;
                     self.settings_changed();
                 }
                 "personality" => {
@@ -735,6 +754,7 @@ impl App {
                 self.st.widget_scripts = false;
                 self.st.widget_layouts = false;
                 self.st.widget_panels = false;
+                self.st.widget_gallery = false;
             }
             Act::SWidgetAdd(k) => {
                 let id = s.next_widget_id();
@@ -751,6 +771,7 @@ impl App {
                 }
                 s.widgets.push(w);
                 self.st.sel_widget = id;
+                self.st.widget_gallery = false;
                 self.settings_changed();
             }
             Act::SStartup(i) => {
@@ -800,6 +821,8 @@ impl App {
                 if let Some(w) = self.st.set.widget_mut(id) {
                     w.x = -1;
                     w.y = -1;
+                    w.fx = -1.0;
+                    w.fy = -1.0;
                 }
                 self.settings_changed();
             }

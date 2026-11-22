@@ -282,6 +282,10 @@ impl App {
                     if let Some(w) = self.st.set.widget_mut(id) {
                         w.x = nx;
                         w.y = ny;
+                        if ow > 0 && oh > 0 {
+                            w.fx = nx as f32 / ow as f32;
+                            w.fy = ny as f32 / oh as f32;
+                        }
                     }
                     // двигаем только эту поверхность, без перерисовки и без записи настроек
                     self.move_surface(sid, nx, ny);

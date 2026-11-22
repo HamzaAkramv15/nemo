@@ -202,22 +202,25 @@ fn tab_bar_look(ui: &mut Ui, st: &State, b: R) {
     let edge = crate::widgets::name_of(crate::bar::EDGES, &s.bar_pos);
     opt_btn(ui, R::new(rx, y + 4, rw, 26), "край экрана", edge, Act::SCycle("bar_pos"));
     ui.toggle(R::new(rx, y + 38, rw, 40), "плавает", "отступ от краёв, тень", s.bar_float, Act::SBool("bar_float"));
+    ui.toggle(R::new(rx, y + 82, rw, 40), "раздельный", "три отдельные плашки", s.bar_split, Act::SBool("bar_split"));
     let len = if crate::bar::vert(s) { "высота, %" } else { "ширина, %" };
-    num_btn(ui, R::new(rx, y + 84, rw, 26), len, s.num("bar_width_pc"), "bar_width_pc");
-    num_btn(ui, R::new(rx, y + 116, rw, 26), "отступ от краёв", s.num("bar_margin"), "bar_margin");
+    num_btn(ui, R::new(rx, y + 128, rw, 26), len, s.num("bar_width_pc"), "bar_width_pc");
+    num_btn(ui, R::new(rx, y + 160, rw, 26), "отступ от краёв", s.num("bar_margin"), "bar_margin");
     let align = if s.bar_center_align != "after-left" { "по центру" } else if crate::bar::vert(s) { "под верхними" } else { "за левыми" };
-    opt_btn(ui, R::new(rx, y + 148, rw, 26), "модули середины", align, Act::SCycle("bar_center_align"));
+    opt_btn(ui, R::new(rx, y + 192, rw, 26), "модули середины", align, Act::SCycle("bar_center_align"));
     let shape = if crate::bar::strip(s) {
         if crate::bar::vert(s) { "столбец во всю высоту" } else { "полоса во всю ширину" }
+    } else if crate::bar::split(s) {
+        "три отдельные плашки"
     } else if s.bar_float {
         "плашка с отступом"
     } else {
         "плашка у края"
     };
-    ui.text_in(PX, R::new(rx + 4, y + 180, rw - 4, 20), shape, t.text_faint);
-    let mut bot = y + 200;
+    ui.text_in(PX, R::new(rx + 4, y + 224, rw - 4, 20), shape, t.text_faint);
+    let mut bot = y + 244;
     if crate::bar::vert(s) {
-        bot += ui.wrap(PX, R::new(rx + 4, y + 200, rw - 4, 40), "сбоку: левые модули сверху, правые снизу", t.text_faint, 2);
+        bot += ui.wrap(PX, R::new(rx + 4, y + 244, rw - 4, 40), "сбоку: левые модули сверху, правые снизу", t.text_faint, 2);
     }
     ui.wrap(PX, R::new(b.x + 4, y + mh + 4, mw - 8, 40), "щёлкни край на схеме — бар переедет туда", t.text_faint, 2);
     y = bot.max(y + mh + 24) + 10;

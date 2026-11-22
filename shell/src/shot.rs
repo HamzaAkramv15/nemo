@@ -21,6 +21,7 @@ const TARGETS: &[&str] = &[
     "bar",
     "bar:pill",
     "bar:float",
+    "bar:split",
     "bar:compact",
     "bar:sys",
     "bar:sys-graph",
@@ -52,6 +53,7 @@ const TARGETS: &[&str] = &[
     "settings:widgets-scripts",
     "settings:widgets-layouts",
     "settings:widgets-panels",
+    "settings:widgets-gallery",
     "settings:startup",
     "settings:search",
     "settings:comfort",
@@ -311,6 +313,7 @@ fn shoot(st: &mut State, res: &mut Res, target: &str, path: &Path) {
         let (set, media, wins) = (st.set.clone(), st.media.title.clone(), st.niri.wins.clone());
         let v = |xs: &[&str]| xs.iter().map(|s| s.to_string()).collect::<Vec<_>>();
         st.set.bar_float = true;
+        st.set.bar_split = arg == "split";
         st.set.bar_center_align = "center".into();
         if arg == "pill" {
             // как в issue: плашка 60 %, столы и длинный трек слева, часы ровно по центру
@@ -537,6 +540,10 @@ fn shoot(st: &mut State, res: &mut Res, target: &str, path: &Path) {
             if arg == "startup" {
                 crate::startup::mock();
             }
+            if arg == "widgets-gallery" {
+                st.stab = "widgets";
+                st.widget_gallery = true;
+            }
             if arg == "widgets-panels" {
                 st.stab = "widgets";
                 st.widget_panels = true;
@@ -759,7 +766,7 @@ fn shoot(st: &mut State, res: &mut Res, target: &str, path: &Path) {
                     "night"
                 }
                 "battery" => {
-                    st.sys.bat = Some(crate::sys::Bat { pct: 64, charging: false, plugged: false, mins: Some(215) });
+                    st.sys.bat = Some(crate::sys::Bat { watts: Some(11.8), health: Some(84), pct: 64, charging: false, plugged: false, mins: Some(215) });
                     "battery"
                 }
                 "profile" => {
@@ -823,6 +830,9 @@ fn shoot(st: &mut State, res: &mut Res, target: &str, path: &Path) {
             mock_weather(st, var != "none");
             if k == "bt" {
                 mock_bt(st);
+            }
+            if k == "battery" {
+                st.sys.bat = Some(crate::sys::Bat { pct: 64, charging: false, plugged: false, mins: Some(205), watts: Some(11.8), health: Some(84) });
             }
             if matches!(k, "vitals" | "sky") {
                 st.sys.cpu = 0.34;
@@ -1123,7 +1133,7 @@ fn mock_sys(s: &mut crate::sys::Sys) {
     }
     (s.cpu, s.mem, s.mem_used, s.mem_total, s.swap, s.temp, s.gpu_temp, s.disk) = (0.32, 0.41, 6.6, 16.0, 0.0, 48.0, 41.0, 0.37);
     s.iface = "wlan0".into();
-    s.bat = Some(crate::sys::Bat { pct: 73, charging: true, plugged: false, mins: Some(48) });
+    s.bat = Some(crate::sys::Bat { pct: 73, charging: true, plugged: false, mins: Some(48), watts: Some(38.0), health: Some(84) });
     s.ip = "192.0.2.10".into();
     (s.rx, s.tx) = (6.1e5, 1.2e5);
 }

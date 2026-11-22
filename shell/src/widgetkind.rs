@@ -81,6 +81,8 @@ pub const REGISTRY: &[Kind] = &[
     Kind { id: "script", name: "скрипт", sizes: [(220, 48), (300, 94), (400, 144)], needs: &[], card: false, in_wizard: false, opts: &[Opt::Script], draw: w::draw_script },
     Kind { id: "sky", name: "небо", sizes: [(300, 148), (380, 188), (480, 236)], needs: &[Seconds, Weather], card: true, in_wizard: true, opts: &[], draw: w::draw_sky },
     Kind { id: "vitals", name: "состояние", sizes: [(284, 108), (324, 152), (380, 196)], needs: &[Seconds], card: true, in_wizard: true, opts: &[], draw: w::draw_vitals },
+    Kind { id: "battery", name: "батарея", sizes: [(232, 106), (252, 134), (290, 176)], needs: &[Seconds], card: true, in_wizard: false, opts: &[], draw: w::draw_battery },
+    Kind { id: "quick", name: "быстрые", sizes: [(216, 80), (216, 136), (264, 160)], needs: &[], card: true, in_wizard: false, opts: &[], draw: w::draw_quick },
     Kind { id: "week", name: "неделя", sizes: [(340, 108), (424, 120), (540, 144)], needs: &[], card: true, in_wizard: true, opts: &[], draw: w::draw_week },
 ];
 

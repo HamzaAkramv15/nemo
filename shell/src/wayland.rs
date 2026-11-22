@@ -275,6 +275,15 @@ impl Dispatch<ext_idle_notifier_v1::ExtIdleNotifierV1, ()> for App {
 }
 impl Dispatch<ext_idle_notification_v1::ExtIdleNotificationV1, u8> for App {
     fn event(app: &mut Self, _: &ext_idle_notification_v1::ExtIdleNotificationV1, e: ext_idle_notification_v1::Event, kind: &u8, _: &Connection, _: &QueueHandle<Self>) {
+        // подсветка клавиатуры: гаснет при простое и возвращается с первым вводом; кофе её не держит
+        if *kind == 2 {
+            match e {
+                ext_idle_notification_v1::Event::Idled => app.kbd_idle(),
+                ext_idle_notification_v1::Event::Resumed => app.kbd_resume(),
+                _ => {}
+            }
+            return;
+        }
         if let ext_idle_notification_v1::Event::Idled = e {
             // кофе (caffeine.rs): простой не запирает и не гасит экран
             if app.st.caffeine.on {
