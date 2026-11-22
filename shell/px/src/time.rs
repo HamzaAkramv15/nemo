@@ -16,8 +16,23 @@ pub fn unix_now() -> u64 {
     std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|d| d.as_secs()).unwrap_or(0)
 }
 
+/// NEMO_FROZEN_NOW=<секунды с 1970-го> замораживает часы: картинки `shot` (tools/golden.sh) не зависят от дня и минуты, когда их сняли.
+/// Читается один раз; в обычной работе переменной нет и время настоящее
+fn frozen_now() -> Option<i64> {
+    static F: std::sync::OnceLock<Option<i64>> = std::sync::OnceLock::new();
+    *F.get_or_init(|| std::env::var("NEMO_FROZEN_NOW").ok().and_then(|v| v.trim().parse().ok()))
+}
+
+/// время работы системы в секундах (/proc/uptime); при замороженных часах — постоянное (3 ч 25 мин), чтобы картинки не зависели от машины
+pub fn uptime_secs() -> u64 {
+    if frozen_now().is_some() {
+        return 12_300;
+    }
+    std::fs::read_to_string("/proc/uptime").ok().and_then(|t| t.split_whitespace().next()?.parse::<f64>().ok()).unwrap_or(0.0) as u64
+}
+
 pub fn local_now() -> Tm {
-    let now = unsafe { libc::time(std::ptr::null_mut()) };
+    let now = frozen_now().unwrap_or_else(|| unsafe { libc::time(std::ptr::null_mut()) });
     local_tm(now)
 }
 pub fn local_tm(t: i64) -> Tm {

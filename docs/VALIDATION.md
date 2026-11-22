@@ -52,6 +52,19 @@ are given.
 | Pause and resume, cancel while paused | Unit-tested | a 200 MB copy stood still while paused and finished after resuming; cancel removed the half file | not tried by hand with the button |
 | Idle memory of an empty window | Tested here | `/proc` | 7.7 MB (was 15.1 MB) |
 
+## Battery and idle cost
+
+| Scenario | Status | How | Result |
+|---|---|---|---|
+| Idle cost of the shell (fixtures `minimal`, `realistic`) | Tested here | `tools/budget.sh`: a fresh shell in a nested niri, throwaway home, 35 s after start | 9.0 / 9.8 MB PSS, 5-8 wakeups/s, 0.1-0.4% CPU, 19 threads |
+| Idle cost of the live shell | Tested here (report only) | `tools/budget.sh --live` | 12.3 MB, ≈ 12 wakeups/s, 0.3% CPU with two script widgets on; varies with wallpaper and widgets |
+| Where the battery power goes | Tested here | RAPL package vs battery, 30 s legs, repeated; powertop 2.15 | package 3.7-5.2 W of 10.4-12.8 W at the battery |
+| Refresh rate 144 Hz vs 60 Hz | Tested here | paired legs on battery-minus-package | −0.59 W at 60 Hz (3 of 3 pairs); whole-battery comparison under a live browser was inconclusive |
+| Keyboard backlight on vs off | Tested here | interleaved A/B/C, three rounds | −1.5 W off (−2.0 W with powertop tunables, −18%) |
+| Powertop tunables | Tested here (runtime only, reverted) | same | −0.48 W |
+| Long run (8 h) and login-to-usable time | Not tested | | roadmap Phase 0/1 follow-up |
+| Suspend/resume and lid power | Not tested | would suspend the session | manual |
+
 ## Display, graphics and laptop
 
 | Scenario | Status | Reason |
@@ -84,7 +97,7 @@ are given.
 | 3 | P1 | After the rename, a config marked `// YAMI` was treated as the user's own, so fastfetch kept an old short config | fixed |
 | 4 | P1 | The rename damaged credit lines (the upstream was called "nemo") in the READMEs and in every language | fixed |
 | 5 | P2 | Break-glass install left no record and did not say whether the signature was bad or missing | fixed (log, wording, typed confirmation) |
-| 6 | P2 | The test suite writes into the real state folder (for example the update keys file) | open: tests should use a throwaway home |
+| 6 | P2 | The test suite writes into the real state folder (for example the update keys file) | fixed 2026-11-22: `tools/test.sh` runs the tests in a throwaway home and checks the real update-keys file did not change; the gate uses it |
 | 7 | P2 | The window title shows "Nemo 0.1.0" while the release is 3.2.0 | open: two numbering schemes |
 | 8 | P2 | No screen-reader support: the interface is drawn by hand and exposes nothing to assistive tools | open, large |
 | 9 | P2 | Arabic is about 40% translated and layouts are not mirrored | open |
@@ -94,3 +107,7 @@ are given.
 | 13 | note | Files has an editable path, filter and search already; an old audit note said they did not | corrected in `nemo-files/AUDIT.md` |
 | 14 | P2 | Settings had no place for health and no short description per tab; deep tabs mixed with everyday ones | fixed: five groups, descriptions, «essentials only», a status tab |
 | 15 | P2 | Files lacked batch rename, a type filter, archive contents, pause and a storage view | added with tests |
+| 16 | P2 | The idle budget measured the live desktop, so it failed or passed for reasons unrelated to the code (a bigger wallpaper, more widgets, a build running) | fixed 2026-11-22: `tools/budget.sh` measures a fresh shell in a nested niri with a throwaway home (fixtures `minimal` and `realistic`); `--live` reports the live shell without failing |
+| 17 | P3 | `tools/golden.sh --update` could record pictures from a stale binary | fixed 2026-11-22: `--update` rebuilds first; a comparison warns when the sources are newer than the binary |
+| 18 | P2 | On battery Nemo changes nothing by default (the two profile rules are empty); no visible power report | open: roadmap Phase 1 |
+| 19 | P1 | Battery draw (ASUS TUF FX507VV, 2026-11-22): the CPU package is ≈ 35% of the battery draw; the keyboard backlight alone is ≈ 1.5 W (≈ 14%), the 144 Hz panel ≈ 0.6 W, powertop's platform tunables ≈ 0.5 W (each measured as paired runs, reverted afterwards); the shell's own CPU use is not a main cause (0.3% CPU, 12 wakeups/s) | open: Nemo has no policy for any of them yet (roadmap Phase 1) |

@@ -85,7 +85,7 @@ fn icon_of(st: &State, k: &str, icon: &'static str) -> &'static str {
 
 /// время работы системы из /proc/uptime (читается при отрисовке панели — она открыта недолго)
 fn uptime() -> String {
-    let s = std::fs::read_to_string("/proc/uptime").ok().and_then(|t| t.split_whitespace().next()?.parse::<f64>().ok()).unwrap_or(0.0) as u64;
+    let s = nemo_px::time::uptime_secs();
     let (d, h, m) = (s / 86400, s / 3600 % 24, s / 60 % 60);
     if d > 0 {
         crate::tf!("работает {} д {} ч {} мин", "up {} d {} h {} min", "ligado há {} d {} h {} min", d, h, m)

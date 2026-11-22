@@ -80,9 +80,9 @@ tools/lint.sh && ok "clippy ratchet and cargo-deny" || bad "lint (tools/lint.sh)
 tools/budget.sh 8 && ok "size and idle budget" || bad "budget (tools/budget.sh)"
 
 step "unit tests"
-cargo test --release --locked --workspace --quiet --manifest-path "$ROOT/shell/Cargo.toml" >"$TMP/test.log" 2>&1 && ok "cargo test" || { tail -20 "$TMP/test.log"; bad "cargo test"; }
+"$ROOT/tools/test.sh" >"$TMP/test.log" 2>&1 && ok "cargo test" || { tail -20 "$TMP/test.log"; bad "cargo test"; }
 # a package manager's build (Nix, distro packages): the updater is off (docs/PACKAGING.md)
-cargo test --release --locked -p nemo-shell --features package-managed --quiet --manifest-path "$ROOT/shell/Cargo.toml" package_manager_owns_updates >"$TMP/managed.log" 2>&1 && ok "cargo test (package-managed)" || { tail -20 "$TMP/managed.log"; bad "cargo test --features package-managed"; }
+"$ROOT/tools/test.sh" --release --locked -p nemo-shell --features package-managed --quiet package_manager_owns_updates >"$TMP/managed.log" 2>&1 && ok "cargo test (package-managed)" || { tail -20 "$TMP/managed.log"; bad "cargo test --features package-managed"; }
 
 step "scripts"
 for f in "$ROOT"/install.sh "$ROOT"/installer/*.sh "$ROOT"/installer/lang/*.sh "$ROOT"/tools/*.sh "$ROOT"/packaging/*.sh; do

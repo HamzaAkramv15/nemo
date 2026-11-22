@@ -1,9 +1,23 @@
-# limits for tools/budget.sh; measured on 2026-11-19 (release build, one monitor, bar + dock + widgets):
-# nemo-shell 11.0 MB, nemo-agents 5.3 MB, idle PSS 13.5 MB, 6 context switches/s, 20 threads, ~0.3 % CPU
-# A limit is about 20-30 % above the measured value. Raise one only with a reason in the commit message.
+# limits for tools/budget.sh. A limit is about 25 % above the worst steady value measured. Raise one only with a reason in the commit message.
+#
+# Binary sizes (release build):
+# nemo-shell 12.0 MB, nemo-agents 5.3 MB
 size_nemo-shell 13312
 size_nemo-agents 6656
-pss_kb 18000
-wakeups_per_s 15
-cpu_percent 2
-threads 26
+#
+# Fixture shells: a fresh nemo-shell in a nested niri (1280x720 window), throwaway home, tools/nested-session.sh.
+# Measured 2026-11-22, wakeups of all threads. The shell pages its unused code out about half a minute after it starts (shed_code), so memory is
+# measured 35 s after the start: 9.0 MB (minimal) and 9.8 MB (realistic) then, against 13-17 MB in the first 12 s.
+#   minimal   (default settings)                     PSS 9.0 MB, 5-8 wakeups/s, 0.1-0.4 % CPU, 19 threads
+#   realistic (dock + 3 designed widgets + reef)     PSS 9.8 MB, 5-8 wakeups/s, 0.3-0.4 % CPU, 19 threads
+minimal_pss_kb 11500
+minimal_wakeups_per_s 12
+minimal_cpu_percent 1
+minimal_threads 24
+realistic_pss_kb 12500
+realistic_wakeups_per_s 12
+realistic_cpu_percent 1
+realistic_threads 24
+#
+# Not limits, kept for the record: the live desktop shell (tools/budget.sh --live, report only) measured 12.3 MB PSS, ~12 wakeups/s, 0.3 % CPU with
+# two script widgets on 2026-11-22; it varies with the user's wallpaper and widgets (17-20 MB with a large wallpaper and six widgets).

@@ -604,7 +604,7 @@ fn profile(ui: &mut Ui, st: &State, b: R) {
 fn sys(ui: &mut Ui, st: &State, b: R) {
     let t = ui.t;
     let s = &st.sys;
-    let up = std::fs::read_to_string("/proc/uptime").ok().and_then(|x| x.split_whitespace().next().and_then(|v| v.parse::<f64>().ok())).unwrap_or(0.0) as u64;
+    let up = nemo_px::time::uptime_secs();
     let mut y = head(ui, b, "cpu", "система", &crate::tf!("работает {} ч {} мин", "up {} h {} min", "em execução há {} h {} min", up / 3600, up / 60 % 60));
     let rows: [(&str, &str, String, &str); 4] = [
         ("cpu", "процессор", format!("{:.0}%", s.cpu * 100.0), "cpu"),

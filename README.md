@@ -529,6 +529,10 @@ log in, `~/.local/lib/nemo-niri/nemo-niri.sh off`.
 | Command | Does |
 |---|---|
 | `tools/check.sh` | build without warnings, i18n checks, the English and Russian docs in step (`nemo-dev check-docs`), script syntax, niri config, installer dry run (CI runs it too) |
+| `tools/test.sh [ARGS]` | `cargo test` in a throwaway home: no test can touch your real `~/.config/nemo` or `~/.local/state/nemo` |
+| `tools/budget.sh [SECONDS] [--live]` | binary sizes, then idle memory, wakeups, CPU and threads of a fresh shell in a nested niri (two fixtures, throwaway home), each against `tools/budget.txt`; `--live` reports your running shell without failing |
+| `tools/golden.sh [--update]` | every screenshot target against its recorded hash; `--update` rebuilds the release shell first so it never records stale pictures |
+| `tools/power-bench.sh [--seconds 60 --windows 5 --label NAME]`, `--compare A.json B.json` | battery draw and the processes behind it (no root); a difference inside the noise is reported as noise |
 | `tools/map.sh [TEXT]` | every source file with its one-line description |
 | `nemo-shell shot [TARGET…] --lang en [--transparent] -o DIR` | render panels to PNG without a compositor; fails on untranslated text |
 | `nemo-agents shot`, `nemo-files shot`, `nemo-view shot`, `nemo-play shot`, `nemo-shot shot` | the same for each module (the first-run setup is the shell's `welcome:STEP` targets) |
