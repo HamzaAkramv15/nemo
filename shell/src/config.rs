@@ -1610,3 +1610,37 @@ mod tests {
         }
     }
 }
+
+#[cfg(test)]
+mod schema_tests {
+    use super::*;
+
+    /// ключи, которые пишет шелл сам и которые не настройки пользователя (служебные)
+    const INTERNAL: &[&str] = &["widgets", "version"];
+
+    fn keys() -> Vec<String> {
+        let v: serde_json::Value = serde_json::from_str(&Settings::default().to_json()).unwrap();
+        v.as_object().unwrap().keys().filter(|k| !INTERNAL.contains(&k.as_str())).cloned().collect()
+    }
+
+    #[test]
+    fn the_defaults_survive_validation_unchanged() {
+        let d = Settings::default();
+        let mut s = d.clone();
+        s.sanitize();
+        assert_eq!(d.to_json(), s.to_json(), "sanitize() must not change a default");
+    }
+
+    #[test]
+    fn every_saved_setting_is_documented_in_both_languages() {
+        let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("..").join("docs");
+        let (en, ru) = (std::fs::read_to_string(root.join("CONFIG.md")).unwrap(), std::fs::read_to_string(root.join("CONFIG.ru.md")).unwrap());
+        // ключ можно описать вместе с семейством (`barLeft`/`barCenter`/`barRight`, `anim*`): достаточно его имени или общего начала в тексте
+        let known = |doc: &str, k: &str| doc.contains(&format!("`{k}`")) || doc.contains(k);
+        let missing: Vec<String> = keys().into_iter().filter(|k| !known(&en, k) || !known(&ru, k)).collect();
+        assert!(missing.len() <= ALLOWED_UNDOCUMENTED, "settings with no mention in docs/CONFIG.md and CONFIG.ru.md ({}): {missing:?}", missing.len());
+    }
+
+    /// сколько ключей пока без описания; число можно только уменьшать (новая настройка без документации ломает тест)
+    const ALLOWED_UNDOCUMENTED: usize = 0;
+}

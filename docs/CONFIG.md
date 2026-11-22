@@ -238,6 +238,8 @@ Settings → look → «pixel look» moves these keys, `iconPixel` and `cursor` 
 
 ### Windows, dock, screenshots, system
 
+`niriLook`, `niriKeys`, `niriRules`, `niriColors`, `niriScreens` (default `true`): which parts of the niri configuration Nemo writes into `nemo.kdl` (niri look, keys, window rules, colours and cursor, outputs). A part you switch off is left out, so your own `config.kdl` decides it. `barV` (internal): the version of the bar layout, used once to migrate old separators; leave it alone.
+
 | Key | Default | Meaning |
 |---|---|---|
 | `stacking` | `false` | «desk» mode: every window floats, the shell draws title bars |
