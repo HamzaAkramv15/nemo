@@ -763,4 +763,5 @@ const AR: &[(&str, &str)] = &[
     ("classic", "كلاسيكية"),
     ("gap between plates", "المسافة بين الألواح"),
     ("plate style", "نمط اللوحة"),
+    ("Record the screen (again to stop)", "تسجيل الشاشة (مرة أخرى للإيقاف)"),
 ];

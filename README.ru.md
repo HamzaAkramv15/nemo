@@ -382,7 +382,7 @@ install -Dm755 target/release/nemo-shell ~/.local/bin/nemo-shell
 | `Alt+Tab`, ``Alt+` `` | недавние окна, окна той же программы |
 | `Mod+1…9`, `Mod+Shift+1…9` | рабочий стол, перенести колонку туда |
 | `Mod+стрелки`, `Mod+HJKL` | фокус; с `Ctrl` — переместить |
-| `Print`, `Mod+Shift+S` | скриншот (оверлей); `Ctrl+Print` — монитор, `Alt+Print` — окно |
+| `Print`, `Mod+Shift+S` | скриншот (оверлей); `Ctrl+Print` — монитор, `Alt+Print` — окно, `Shift+Print` — начать или остановить запись экрана (нужен `wf-recorder`) |
 | `Mod+E` | nemo-files |
 | `Mod+Escape` | блокировка |
 | `Mod+Shift+E`, `Ctrl+Alt+Del` | меню питания |

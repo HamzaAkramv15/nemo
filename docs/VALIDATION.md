@@ -59,7 +59,7 @@ are given.
 | Every widget kind at small and large size | Unit-tested by pictures | 16 extra golden pictures (`tools/golden.sh`), pixel-identical across the registry and option-schema refactors | unchanged |
 | Option schema (panel, menu, click cycling) | Unit-tested | `widgetkind.rs` tests: options and order per kind, cycling and wrap | passes |
 | Layouts: parse, positions, save/load, backup round trip | Unit-tested | `layouts.rs` tests | passes |
-| Applying, restoring and saving a layout through the settings window | **Not tested by hand** | the actions are not driven by a test | manual: settings → widgets → layouts, apply Reef, then "put it back as it was" |
+| Applying, restoring and saving a layout through the settings window | Verified (tools/e2e.sh layouts) | the real shell in a nested niri: apply Reef, save, put it back; the e2e run found that saved layouts went to `~/.config/layouts` (fixed) | `tools/e2e.sh layouts` |
 | Cost of widgets | Tested here | nested fixtures 0 / 1 / 3 / 8 widgets | PSS 8.9 / 9.4 / 9.7 / 10.6 MB, anonymous memory flat at 3.1-3.2 MB, 4 wakeups/s in every case |
 | Layout on a different resolution or a second monitor | Not tested | fractions of the monitor are unit-tested; no second display | manual: apply a layout, change the scale in settings → screens |
 
@@ -68,7 +68,7 @@ are given.
 | Scenario | Status | How | Result |
 |---|---|---|---|
 | Widget panel styles (glass, frost, solid, pixel, outline, glow) and trims | Tested here by pictures | rendered offscreen and zoomed 3× on a bright and a dark background; `tools/widget-audit.sh` (39 cards) in the gate | clean corners, no stray pixels, no content outside cards |
-| Changing panel style or opacity while the desktop runs | **Not tested by hand** | the update path is light (widgets and the settings window only) but I have not dragged the slider on the live desktop | manual: settings → widgets → panels |
+| Changing panel style, trim, roundness, border, shadow or opacity while the desktop runs | Verified in a nested niri (tools/e2e.sh panels); not dragged by hand on the live desktop | clicks and slider values go through the shell's own path and the saved settings are checked | `tools/e2e.sh panels` |
 | Island pill and card follow the corner style | Tested here by pictures | `bar:island-*`, `notif:island*` | pixel chamfer in a notched theme |
 | Island closing and morphing animation | **Not seen in motion** | logic and pictures only; a frame-by-frame capture of the nested session is polluted by niri's own screenshot notifications | manual |
 | Split bar | Tested here by pictures | `bar:split` | three plates; hotplug, a real second monitor and a crowded bar are Not tested |
@@ -135,3 +135,7 @@ are given.
 | 17 | P3 | `tools/golden.sh --update` could record pictures from a stale binary | fixed 2026-11-22: `--update` rebuilds first; a comparison warns when the sources are newer than the binary |
 | 18 | P2 | On battery Nemo changes nothing by default (the two profile rules are empty); no visible power report | open: roadmap Phase 1 |
 | 19 | P1 | Battery draw (ASUS TUF FX507VV, 2026-11-22): the CPU package is ≈ 35% of the battery draw; the keyboard backlight alone is ≈ 1.5 W (≈ 14%), the 144 Hz panel ≈ 0.6 W, powertop's platform tunables ≈ 0.5 W (each measured as paired runs, reverted afterwards); the shell's own CPU use is not a main cause (0.3% CPU, 12 wakeups/s) | open: Nemo has no policy for any of them yet (roadmap Phase 1) |
+
+### End-to-end checks (tools/e2e.sh)
+
+Run against the real shell in a nested niri with a throwaway home (test input only with `NEMO_TEST_IPC=1`). Results of the first run: panels 7/7, shortcut tiles 9/9 (do-not-disturb flips and flips back, coffee writes its state file), layouts 10/10 after fixing the save folder, gallery 1/1, split bar 5/5, island 6/6 after fixing the closing redraw (the pill stayed at full width until it vanished). Not covered: the keyboard backlight (needs the real LED), fractional placement after a resolution change, a live colour picture of the bar on the real desktop.

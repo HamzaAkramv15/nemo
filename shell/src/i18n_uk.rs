@@ -1674,4 +1674,5 @@ const UK: &[(&str, &str)] = &[
     ("classic", "класична"),
     ("gap between plates", "проміжок між плашками"),
     ("plate style", "стиль плашки"),
+    ("Record the screen (again to stop)", "запис екрана (ще раз — стоп)"),
 ];

@@ -282,6 +282,7 @@ pub const BINDS: &[Bind] = &[
     b("shot", "shots", "Print", NR, r#"spawn "nemo-shell" "msg" "screenshot";"#, "скриншот", "Screenshot", true),
     b("shot-2", "shots", "Mod+Shift+S", NR, r#"spawn "nemo-shell" "msg" "screenshot";"#, "скриншот (второе)", "Screenshot (second)", false),
     b("shot-screen", "shots", "Ctrl+Print", NR, r#"spawn "nemo-shell" "msg" "screenshot" "screen";"#, "скриншот монитора", "Screenshot: monitor", true),
+    b("shot-record", "shots", "Shift+Print", NR, r#"spawn "nemo-shell" "msg" "screenshot" "record";"#, "запись экрана (повторно — стоп)", "Record the screen (again to stop)", true),
     b("shot-window", "shots", "Alt+Print", NR, r#"spawn "nemo-shell" "msg" "screenshot" "window";"#, "скриншот окна", "Screenshot: window", true),
 
     b("vol-up", "media", "XF86AudioRaiseVolume", LK, r#"spawn-sh "wpctl set-volume -l 1.5 @DEFAULT_AUDIO_SINK@ 5%+";"#, "громче", "Volume up", false),

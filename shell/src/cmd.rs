@@ -187,7 +187,7 @@ pub fn msg_ok(cmd: &str) -> bool {
         "settings" => w.next().is_none_or(|t| crate::settings::find(t).is_some()) && one(&mut w),
         "welcome" => w.next().is_none_or(crate::welcome::has_step) && one(&mut w),
         "popup" => w.next().is_some_and(|k| crate::popups::KINDS.contains(&k)) && one(&mut w),
-        "screenshot" => w.next().is_none_or(|m| matches!(m, "area" | "window" | "screen")) && w.next().is_none_or(|d| d.parse::<u32>().is_ok()) && one(&mut w),
+        "screenshot" => w.next().is_none_or(|m| matches!(m, "area" | "window" | "screen" | "record")) && w.next().is_none_or(|d| d.parse::<u32>().is_ok()) && one(&mut w),
         "curtain" => w.next().is_none_or(|a| matches!(a, "on" | "off" | "toggle")) && one(&mut w),
         "media" => w.next().is_some_and(|a| matches!(a, "play-pause" | "play" | "pause" | "stop" | "next" | "previous" | "player")) && one(&mut w),
         // путь к картинке (с пробелами) или пусто — пиксельные из палитры

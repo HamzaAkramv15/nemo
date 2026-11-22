@@ -102,7 +102,7 @@ pub fn split(s: &Settings) -> bool {
 }
 
 /// плашка бара (плавающего, раздельного, уже экрана): выбранный стиль подложки или классический вид темы
-fn plate(ui: &mut Ui, st: &State, r: R) {
+pub(crate) fn plate(ui: &mut Ui, st: &State, r: R) {
     let t = ui.t;
     if crate::widgetpanel::valid_style(&st.set.bar_panel) {
         crate::widgetpanel::paint_opts(ui, st, &st.set.bar_panel, 0.0, crate::widgetpanel::Opts::bar(&st.set), r);

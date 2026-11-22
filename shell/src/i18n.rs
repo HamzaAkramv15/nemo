@@ -1314,4 +1314,5 @@ const PAIRS: &[(&str, &str)] = &[
     ("классическая", "classic"),
     ("просвет между плашками", "gap between plates"),
     ("стиль плашки", "plate style"),
+    ("запись экрана (повторно — стоп)", "Record the screen (again to stop)"),
 ];

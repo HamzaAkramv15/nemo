@@ -131,7 +131,9 @@ pub fn draw(ui: &mut Ui, st: &State, w: i32, bar_h: i32, span: (i32, i32)) {
         return;
     }
     let t = ui.t;
-    let ph = bar_h - 10;
+    // у плавающего и раздельного бара таблетка — такая же плашка, как соседние: той же высоты и стиля (раньше была ниже и капсулой)
+    let plated = st.set.bar_float || st.set.bar_split;
+    let ph = if plated { bar_h } else { bar_h - 10 };
     let py = (bar_h - ph) / 2;
     match pick(st) {
         Pick::Nothing => {}
@@ -164,7 +166,11 @@ pub fn draw(ui: &mut Ui, st: &State, w: i32, bar_h: i32, span: (i32, i32)) {
             }
             let r = R::new(cx - cur / 2, py, cur, ph);
             let edge = if n.critical { t.ember } else { t.red };
-            pill(ui, r, ph / 2, t.surface, edge);
+            if plated && !n.critical {
+                crate::bar::plate(ui, st, r);
+            } else {
+                pill(ui, r, ph / 2, t.surface, edge);
+            }
             // содержимое — в полном размере, раскрывается из середины
             ui.cv.push_clip(r);
             let x = cx - full / 2 + 18;
@@ -213,7 +219,11 @@ pub fn draw(ui: &mut Ui, st: &State, w: i32, bar_h: i32, span: (i32, i32)) {
             let (px, full) = span_pill(pill_width(inner, w), span, w);
             let cx = px + full / 2;
             let r = R::new(cx - full / 2, py, full, ph);
-            pill(ui, r, ph / 2, t.surface, t.border);
+            if plated {
+                crate::bar::plate(ui, st, r);
+            } else {
+                pill(ui, r, ph / 2, t.surface, t.border);
+            }
             let x = cx - full / 2 + 18;
             ui.cv.icon(icon, x, py + (ph - 14) / 2, 2, t.red);
             let mut x2 = x + 22;

@@ -1674,4 +1674,5 @@ const FR: &[(&str, &str)] = &[
     ("classic", "classique"),
     ("gap between plates", "écart entre plaques"),
     ("plate style", "style de plaque"),
+    ("Record the screen (again to stop)", "enregistrer l'écran (encore pour arrêter)"),
 ];

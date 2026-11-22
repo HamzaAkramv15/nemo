@@ -375,7 +375,7 @@ program has stopped running (its start-up, a closed settings window) goes back t
 | `Alt+Tab`, ``Alt+` `` | recent windows, windows of the same app |
 | `Mod+1…9`, `Mod+Shift+1…9` | focus workspace, move column there |
 | `Mod+arrows`, `Mod+HJKL` | focus; with `Ctrl` move |
-| `Print`, `Mod+Shift+S` | screenshot overlay; `Ctrl+Print` monitor, `Alt+Print` window |
+| `Print`, `Mod+Shift+S` | screenshot overlay; `Ctrl+Print` monitor, `Alt+Print` window, `Shift+Print` start or stop screen recording (needs `wf-recorder`) |
 | `Mod+E` | nemo-files |
 | `Mod+Escape` | lock |
 | `Mod+Shift+E`, `Ctrl+Alt+Del` | power menu |
