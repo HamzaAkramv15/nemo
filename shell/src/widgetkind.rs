@@ -23,6 +23,32 @@ pub enum Need {
 /// рисует виджет в прямоугольнике r (весь холст без поля под тень) цветом c; подложку рисует сам вид
 pub type DrawFn = fn(&mut Ui, &State, &Widget, R, C);
 
+/// список значений выбора: (значение, имя — русская строка)
+pub type Values = &'static [(&'static str, &'static str)];
+
+/// настройка вида: из этих описаний собраны панель в настройках, меню по правой кнопке и переключение щелчком; новая настройка — строка здесь
+#[derive(Clone, Copy)]
+pub enum Opt {
+    /// выбор из списка; key — поле виджета (`source`, `style`, `anim`, `size`, `color`)
+    Choice { key: &'static str, label: &'static str, icon: &'static str, values: Values },
+    /// включено / выключено; key — `frame`, `label`, `seconds`, `date`
+    Toggle { key: &'static str, label: &'static str },
+    /// файл скрипта из ~/.config/nemo/scripts (имя не переводится)
+    Script,
+}
+
+const SOURCE: Opt = Opt::Choice { key: "source", label: "источник", icon: "chart", values: w::SOURCES };
+const STYLE: Opt = Opt::Choice { key: "style", label: "вид графика", icon: "grid", values: w::STYLES };
+const EQUALIZER: Opt = Opt::Choice { key: "style", label: "эквалайзер", icon: "music", values: w::STYLES };
+const ANIM: Opt = Opt::Choice { key: "anim", label: "анимация", icon: "eye", values: w::ANIMS };
+const LABEL: Opt = Opt::Toggle { key: "label", label: "подпись" };
+const SECONDS: Opt = Opt::Toggle { key: "seconds", label: "секунды" };
+const DATE: Opt = Opt::Toggle { key: "date", label: "дата" };
+/// у всех видов
+pub const SIZE: Opt = Opt::Choice { key: "size", label: "размер", icon: "max", values: w::SIZES };
+pub const COLOR: Opt = Opt::Choice { key: "color", label: "цвет", icon: "image", values: w::COLORS };
+pub const FRAME: Opt = Opt::Toggle { key: "frame", label: "подложка" };
+
 pub struct Kind {
     pub id: &'static str,
     /// имя вида — русская строка, переводится при показе
@@ -34,23 +60,25 @@ pub struct Kind {
     pub card: bool,
     /// в списке мастера первой настройки (скрипту там нечего показать)
     pub in_wizard: bool,
+    /// настройки вида, кроме общих (размер, цвет, подложка)
+    pub opts: &'static [Opt],
     pub draw: DrawFn,
 }
 
 use Need::*;
 
 pub const REGISTRY: &[Kind] = &[
-    Kind { id: "clock", name: "часы", sizes: [(260, 100), (360, 128), (540, 190)], needs: &[Seconds], card: false, in_wizard: true, draw: w::draw_clock },
-    Kind { id: "graph", name: "график", sizes: [(220, 96), (300, 124), (440, 180)], needs: &[Seconds], card: false, in_wizard: true, draw: w::draw_graph },
-    Kind { id: "net", name: "сеть", sizes: [(220, 96), (300, 124), (440, 180)], needs: &[Seconds], card: false, in_wizard: true, draw: w::draw_net },
-    Kind { id: "media", name: "музыка", sizes: [(320, 112), (400, 136), (500, 170)], needs: &[Media], card: false, in_wizard: true, draw: w::draw_media },
-    Kind { id: "cal", name: "календарь", sizes: [(236, 220), (280, 252), (350, 316)], needs: &[], card: false, in_wizard: true, draw: w::draw_cal },
-    Kind { id: "weather", name: "погода", sizes: [(230, 96), (300, 150), (390, 176)], needs: &[Weather], card: false, in_wizard: true, draw: w::draw_weather },
-    Kind { id: "bt", name: "bluetooth", sizes: [(230, 76), (300, 120), (380, 164)], needs: &[], card: false, in_wizard: true, draw: w::draw_bt },
-    Kind { id: "script", name: "скрипт", sizes: [(220, 64), (300, 110), (400, 160)], needs: &[], card: false, in_wizard: false, draw: w::draw_script },
-    Kind { id: "sky", name: "небо", sizes: [(300, 164), (380, 204), (480, 252)], needs: &[Seconds, Weather], card: true, in_wizard: true, draw: w::draw_sky },
-    Kind { id: "vitals", name: "состояние", sizes: [(284, 124), (324, 168), (380, 212)], needs: &[Seconds], card: true, in_wizard: true, draw: w::draw_vitals },
-    Kind { id: "week", name: "неделя", sizes: [(340, 116), (424, 132), (540, 156)], needs: &[], card: true, in_wizard: true, draw: w::draw_week },
+    Kind { id: "clock", name: "часы", sizes: [(260, 100), (360, 128), (540, 190)], needs: &[Seconds], card: false, in_wizard: true, opts: &[SECONDS, DATE], draw: w::draw_clock },
+    Kind { id: "graph", name: "график", sizes: [(220, 96), (300, 124), (440, 180)], needs: &[Seconds], card: false, in_wizard: true, opts: &[SOURCE, STYLE, ANIM, LABEL], draw: w::draw_graph },
+    Kind { id: "net", name: "сеть", sizes: [(220, 96), (300, 124), (440, 180)], needs: &[Seconds], card: false, in_wizard: true, opts: &[STYLE, ANIM, LABEL], draw: w::draw_net },
+    Kind { id: "media", name: "музыка", sizes: [(320, 112), (400, 136), (500, 170)], needs: &[Media], card: false, in_wizard: true, opts: &[EQUALIZER, LABEL], draw: w::draw_media },
+    Kind { id: "cal", name: "календарь", sizes: [(236, 220), (280, 252), (350, 316)], needs: &[], card: false, in_wizard: true, opts: &[], draw: w::draw_cal },
+    Kind { id: "weather", name: "погода", sizes: [(230, 96), (300, 150), (390, 176)], needs: &[Weather], card: false, in_wizard: true, opts: &[], draw: w::draw_weather },
+    Kind { id: "bt", name: "bluetooth", sizes: [(230, 76), (300, 120), (380, 164)], needs: &[], card: false, in_wizard: true, opts: &[], draw: w::draw_bt },
+    Kind { id: "script", name: "скрипт", sizes: [(220, 64), (300, 110), (400, 160)], needs: &[], card: false, in_wizard: false, opts: &[Opt::Script], draw: w::draw_script },
+    Kind { id: "sky", name: "небо", sizes: [(300, 164), (380, 204), (480, 252)], needs: &[Seconds, Weather], card: true, in_wizard: true, opts: &[], draw: w::draw_sky },
+    Kind { id: "vitals", name: "состояние", sizes: [(284, 124), (324, 168), (380, 212)], needs: &[Seconds], card: true, in_wizard: true, opts: &[], draw: w::draw_vitals },
+    Kind { id: "week", name: "неделя", sizes: [(340, 116), (424, 132), (540, 156)], needs: &[], card: true, in_wizard: true, opts: &[], draw: w::draw_week },
 ];
 
 /// размеры неизвестного вида (виджет из чужого конфига): как раньше
@@ -89,6 +117,60 @@ pub fn canvas(kind: &str, size: &str) -> (i32, i32) {
         _ => 1,
     }];
     (w + 4, h + 4)
+}
+
+/// настройки виджета в порядке показа: выборы вида, затем размер и цвет, затем переключатели (подложка первой)
+pub fn options(kind: &str) -> (Vec<Opt>, Vec<Opt>) {
+    let own = get(kind).map_or(&[][..], |k| k.opts);
+    let mut choices: Vec<Opt> = own.iter().copied().filter(|o| !matches!(o, Opt::Toggle { .. })).collect();
+    choices.extend([SIZE, COLOR]);
+    let mut toggles = vec![FRAME];
+    toggles.extend(own.iter().copied().filter(|o| matches!(o, Opt::Toggle { .. })));
+    (choices, toggles)
+}
+
+/// значение переключателя по ключу
+pub fn flag(w: &Widget, key: &str) -> bool {
+    match key {
+        "frame" => w.frame,
+        "label" => w.label,
+        "seconds" => w.seconds,
+        "date" => w.date,
+        "on" => w.on,
+        _ => false,
+    }
+}
+
+/// значение выбора по ключу
+pub fn value<'a>(w: &'a Widget, key: &str) -> &'a str {
+    match key {
+        "source" => &w.source,
+        "style" => &w.style,
+        "anim" => &w.anim,
+        "size" => &w.size,
+        "color" => &w.color,
+        _ => "",
+    }
+}
+
+/// следующее значение по щелчку: для выбора — следующий в списке по кругу, для скрипта — следующий файл, для переключателя — пусто
+/// (`widgets::set_opt` сама переворачивает флаг)
+pub fn next_value(w: &Widget, key: &str) -> String {
+    if key == "source" && w.kind == "script" {
+        let v = crate::plugins::scripts();
+        return v.iter().position(|n| *n == w.source).map(|i| v[(i + 1) % v.len()].clone()).or_else(|| v.first().cloned()).unwrap_or_default();
+    }
+    let (choices, _) = options(&w.kind);
+    for o in choices {
+        if let Opt::Choice { key: k, values, .. } = o {
+            if k == key {
+                let cur = value(w, key);
+                let i = values.iter().position(|v| v.0 == cur).unwrap_or(values.len() - 1);
+                return values[(i + 1) % values.len()].0.to_string();
+            }
+        }
+    }
+    String::new()
 }
 
 /// умолчания нового виджета вида `kind`
@@ -132,6 +214,36 @@ mod tests {
         assert!(!needs("cal", Need::Seconds) && !needs("week", Need::Seconds));
         assert!(needs("weather", Need::Weather) && needs("sky", Need::Weather) && !needs("clock", Need::Weather));
         assert!(needs("media", Need::Media) && !needs("sky", Need::Media));
+    }
+
+    #[test]
+    fn options_come_from_the_schema_in_the_old_order() {
+        let keys = |kind: &str| -> (Vec<&'static str>, Vec<&'static str>) {
+            let (c, t) = options(kind);
+            let name = |o: &Opt| match o {
+                Opt::Choice { key, .. } | Opt::Toggle { key, .. } => *key,
+                Opt::Script => "script",
+            };
+            (c.iter().map(name).collect(), t.iter().map(name).collect())
+        };
+        assert_eq!(keys("graph"), (vec!["source", "style", "anim", "size", "color"], vec!["frame", "label"]));
+        assert_eq!(keys("net"), (vec!["style", "anim", "size", "color"], vec!["frame", "label"]));
+        assert_eq!(keys("media"), (vec!["style", "size", "color"], vec!["frame", "label"]));
+        assert_eq!(keys("clock"), (vec!["size", "color"], vec!["frame", "seconds", "date"]));
+        assert_eq!(keys("script"), (vec!["script", "size", "color"], vec!["frame"]));
+        assert_eq!(keys("cal"), (vec!["size", "color"], vec!["frame"]));
+    }
+
+    #[test]
+    fn a_click_cycles_to_the_next_value_and_wraps() {
+        let mut g = Widget::new(1, "graph");
+        g.style = "bars".into();
+        assert_eq!(next_value(&g, "style"), "line");
+        g.style = "dots".into();
+        assert_eq!(next_value(&g, "style"), "bars", "wraps around");
+        g.size = "l".into();
+        assert_eq!(next_value(&g, "size"), "s");
+        assert_eq!(next_value(&g, "frame"), "", "a toggle has no value to pick");
     }
 
     #[test]

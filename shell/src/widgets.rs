@@ -56,44 +56,33 @@ pub fn set_opt(w: &mut Widget, key: &str, val: &str) {
     }
 }
 
-/// меню виджета: всё, что у него настраивается
+/// меню виджета: всё, что у него настраивается, из той же схемы, что и панель в настройках (widgetkind.rs)
 pub fn widget_menu(w: &Widget) -> Vec<MItem> {
+    use crate::widgetkind::{flag, options, value, Opt};
     let id = w.id;
-    let pick = |key: &'static str, list: &[(&'static str, &'static str)], cur: &str| -> Vec<MItem> {
-        list.iter().map(|(v, n)| MItem::new(n, "", MAct::Widget(id, key, v.to_string())).check(*v == cur)).collect()
-    };
+    let (choices, toggles) = options(&w.kind);
     let mut items = vec![];
-    match w.kind.as_str() {
-        "graph" => {
-            items.push(MItem::sub(&crate::tf!("источник: {}", "source: {}", "origem: {}", crate::i18n::tr(name_of(SOURCES, &w.source))), "chart", pick("source", SOURCES, &w.source)));
-            items.push(MItem::sub(&crate::tf!("вид: {}", "style: {}", "estilo: {}", crate::i18n::tr(name_of(STYLES, &w.style))), "grid", pick("style", STYLES, &w.style)));
-            items.push(MItem::sub(&crate::tf!("анимация: {}", "animation: {}", "animação: {}", crate::i18n::tr(name_of(ANIMS, &w.anim))), "eye", pick("anim", ANIMS, &w.anim)));
-        }
-        "net" => {
-            items.push(MItem::sub(&crate::tf!("вид: {}", "style: {}", "estilo: {}", crate::i18n::tr(name_of(STYLES, &w.style))), "grid", pick("style", STYLES, &w.style)));
-            items.push(MItem::sub(&crate::tf!("анимация: {}", "animation: {}", "animação: {}", crate::i18n::tr(name_of(ANIMS, &w.anim))), "eye", pick("anim", ANIMS, &w.anim)));
-        }
-        "media" => {
-            items.push(MItem::sub(&crate::tf!("эквалайзер: {}", "equalizer: {}", "equalizador: {}", crate::i18n::tr(name_of(STYLES, &w.style))), "music", pick("style", STYLES, &w.style)));
-        }
-        "script" => {
-            // скрипты — те же, что модули бара: ~/.config/nemo/scripts
-            let names: Vec<MItem> = crate::plugins::scripts().into_iter().map(|n| MItem::new(&n, "", MAct::Widget(id, "source", n.clone())).check(n == w.source)).collect();
-            if !names.is_empty() {
-                items.push(MItem::sub(&crate::tf!("скрипт: {}", "script: {}", "script: {}", if w.source.is_empty() { "—" } else { &w.source }), "term", names));
+    for o in choices {
+        match o {
+            Opt::Choice { key, label, icon, values } => {
+                let cur = value(w, key);
+                let list: Vec<MItem> = values.iter().map(|(v, n)| MItem::new(n, "", MAct::Widget(id, key, v.to_string())).check(*v == cur)).collect();
+                items.push(MItem::sub(&format!("{}: {}", crate::i18n::tr(label), crate::i18n::tr(name_of(values, cur))), icon, list));
             }
+            Opt::Script => {
+                // скрипты — те же, что модули бара: ~/.config/nemo/scripts
+                let names: Vec<MItem> = crate::plugins::scripts().into_iter().map(|n| MItem::new(&n, "", MAct::Widget(id, "source", n.clone())).check(n == w.source)).collect();
+                if !names.is_empty() {
+                    items.push(MItem::sub(&crate::tf!("скрипт: {}", "script: {}", "script: {}", if w.source.is_empty() { "—" } else { &w.source }), "term", names));
+                }
+            }
+            Opt::Toggle { .. } => {}
         }
-        "clock" => {
-            items.push(MItem::new("секунды", "", MAct::Widget(id, "seconds", String::new())).check(w.seconds));
-            items.push(MItem::new("дата", "", MAct::Widget(id, "date", String::new())).check(w.date));
-        }
-        _ => {}
     }
-    items.push(MItem::sub(&crate::tf!("размер: {}", "size: {}", "tamanho: {}", crate::i18n::tr(name_of(SIZES, &w.size))), "max", pick("size", SIZES, &w.size)));
-    items.push(MItem::sub(&crate::tf!("цвет: {}", "color: {}", "cor: {}", crate::i18n::tr(name_of(COLORS, &w.color))), "image", pick("color", COLORS, &w.color)));
-    items.push(MItem::new("подложка", "", MAct::Widget(id, "frame", String::new())).check(w.frame));
-    if matches!(w.kind.as_str(), "graph" | "net" | "media") {
-        items.push(MItem::new("подпись", "", MAct::Widget(id, "label", String::new())).check(w.label));
+    for o in toggles {
+        if let Opt::Toggle { key, label } = o {
+            items.push(MItem::new(label, "", MAct::Widget(id, key, String::new())).check(flag(w, key)));
+        }
     }
     items.push(MItem::sep());
     items.push(MItem::new("спрятать", "eye", MAct::Widget(id, "on", String::new())));

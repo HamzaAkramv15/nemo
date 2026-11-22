@@ -6,7 +6,7 @@ use crate::config::Widget;
 use crate::settings::cycle;
 use crate::theme::{parse_hex, PRESETS};
 use crate::ui::Act;
-use crate::widgets::{self, ANIMS, COLORS, SIZES, SOURCES, STYLES};
+use crate::widgets;
 
 impl App {
     /// клики внутри настроек; true — обработано
@@ -761,18 +761,7 @@ impl App {
             }
             Act::SWidgetOpt(id, key) => {
                 if let Some(w) = s.widget_mut(*id) {
-                    let v = match *key {
-                        "source" if w.kind == "script" => {
-                            let v = crate::plugins::scripts();
-                            v.iter().position(|n| *n == w.source).map(|i| v[(i + 1) % v.len()].clone()).or_else(|| v.first().cloned()).unwrap_or_default()
-                        }
-                        "source" => cycle(SOURCES, &w.source).to_string(),
-                        "style" => cycle(STYLES, &w.style).to_string(),
-                        "anim" => cycle(ANIMS, &w.anim).to_string(),
-                        "size" => cycle(SIZES, &w.size).to_string(),
-                        "color" => cycle(COLORS, &w.color).to_string(),
-                        _ => String::new(),
-                    };
+                    let v = crate::widgetkind::next_value(w, key);
                     widgets::set_opt(w, key, &v);
                 }
                 self.settings_changed();

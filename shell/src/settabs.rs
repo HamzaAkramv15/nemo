@@ -8,7 +8,7 @@ use crate::gfx::{BoxStyle, C, R};
 use crate::settings::{num_btn, opt_btn, title};
 use crate::theme::{parse_hex, PRESETS, WHITE};
 use crate::ui::{Act, Cur, Tone, Ui};
-use crate::widgets::{self, name_of, ANIMS, COLORS, SIZES, SOURCES, STYLES};
+use crate::widgets::{self, name_of, SOURCES};
 
 pub(crate) fn tab_color(ui: &mut Ui, st: &State, b: R) {
     let t = ui.t;
@@ -219,38 +219,29 @@ pub(crate) fn tab_widgets(ui: &mut Ui, st: &State, b: R) {
         opt_btn(ui, R::new(px, *y, pw, 26), label, val, Act::SWidgetOpt(id, key));
         *y += 30;
     };
-    match w.kind.as_str() {
-        "graph" => {
-            row(ui, &mut y, "источник", name_of(SOURCES, &w.source), "source");
-            row(ui, &mut y, "вид графика", name_of(STYLES, &w.style), "style");
-            row(ui, &mut y, "анимация", name_of(ANIMS, &w.anim), "anim");
-        }
-        "net" => {
-            row(ui, &mut y, "вид графика", name_of(STYLES, &w.style), "style");
-            row(ui, &mut y, "анимация", name_of(ANIMS, &w.anim), "anim");
-        }
-        "media" => row(ui, &mut y, "эквалайзер", name_of(STYLES, &w.style), "style"),
-        "script" => {
-            // имя файла — как есть, не переводится
-            opt_btn(ui, R::new(px, y, pw, 26), "скрипт", if w.source.is_empty() { "—" } else { &w.source }, Act::SWidgetOpt(id, "source"));
-            y += 30;
-            if crate::plugins::scripts().is_empty() {
-                ui.wrap(crate::font::PX, R::new(px, y, pw, 40), "положи исполняемый скрипт в ~/.config/nemo/scripts (как модуль бара)", t.text_faint, 2);
-                y += 40;
+    // настройки вида — из схемы (widgetkind.rs): выборы, затем размер и цвет, затем переключатели в одну строку (подложка первой)
+    let (choices, toggles) = crate::widgetkind::options(&w.kind);
+    for o in &choices {
+        match *o {
+            crate::widgetkind::Opt::Choice { key, label, values, .. } => row(ui, &mut y, label, name_of(values, crate::widgetkind::value(w, key)), key),
+            crate::widgetkind::Opt::Script => {
+                // имя файла — как есть, не переводится
+                opt_btn(ui, R::new(px, y, pw, 26), "скрипт", if w.source.is_empty() { "—" } else { &w.source }, Act::SWidgetOpt(id, "source"));
+                y += 30;
+                if crate::plugins::scripts().is_empty() {
+                    ui.wrap(crate::font::PX, R::new(px, y, pw, 40), "положи исполняемый скрипт в ~/.config/nemo/scripts (как модуль бара)", t.text_faint, 2);
+                    y += 40;
+                }
             }
+            crate::widgetkind::Opt::Toggle { .. } => {}
         }
-        _ => {}
     }
-    row(ui, &mut y, "размер", name_of(SIZES, &w.size), "size");
-    row(ui, &mut y, "цвет", name_of(COLORS, &w.color), "color");
     y += 4;
-    ui.toggle(R::new(px, y, if w.kind == "clock" { pw / 3 } else { pw / 2 }, 26), "подложка", "", w.frame, Act::SWidgetOpt(id, "frame"));
-    if matches!(w.kind.as_str(), "graph" | "net" | "media") {
-        ui.toggle(R::new(px + pw / 2, y, pw / 2, 26), "подпись", "", w.label, Act::SWidgetOpt(id, "label"));
-    }
-    if w.kind == "clock" {
-        ui.toggle(R::new(px + pw / 3, y, pw / 3, 26), "секунды", "", w.seconds, Act::SWidgetOpt(id, "seconds"));
-        ui.toggle(R::new(px + pw * 2 / 3, y, pw / 3, 26), "дата", "", w.date, Act::SWidgetOpt(id, "date"));
+    let tw = pw / toggles.len().max(2) as i32;
+    for (i, o) in toggles.iter().enumerate() {
+        if let crate::widgetkind::Opt::Toggle { key, label } = *o {
+            ui.toggle(R::new(px + i as i32 * tw, y, tw, 26), label, "", crate::widgetkind::flag(w, key), Act::SWidgetOpt(id, key));
+        }
     }
     y += 40;
     // живое превью графика
