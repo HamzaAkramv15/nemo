@@ -63,6 +63,19 @@ are given.
 | Cost of widgets | Tested here | nested fixtures 0 / 1 / 3 / 8 widgets | PSS 8.9 / 9.4 / 9.7 / 10.6 MB, anonymous memory flat at 3.1-3.2 MB, 4 wakeups/s in every case |
 | Layout on a different resolution or a second monitor | Not tested | fractions of the monitor are unit-tested; no second display | manual: apply a layout, change the scale in settings → screens |
 
+## Panels, bar and island
+
+| Scenario | Status | How | Result |
+|---|---|---|---|
+| Widget panel styles (glass, frost, solid, pixel, outline, glow) and trims | Tested here by pictures | rendered offscreen and zoomed 3× on a bright and a dark background; `tools/widget-audit.sh` (39 cards) in the gate | clean corners, no stray pixels, no content outside cards |
+| Changing panel style or opacity while the desktop runs | **Not tested by hand** | the update path is light (widgets and the settings window only) but I have not dragged the slider on the live desktop | manual: settings → widgets → panels |
+| Island pill and card follow the corner style | Tested here by pictures | `bar:island-*`, `notif:island*` | pixel chamfer in a notched theme |
+| Island closing and morphing animation | **Not seen in motion** | logic and pictures only; a frame-by-frame capture of the nested session is polluted by niri's own screenshot notifications | manual |
+| Split bar | Tested here by pictures | `bar:split` | three plates; hotplug, a real second monitor and a crowded bar are Not tested |
+| Widget gallery and the battery and shortcuts widgets | Tested here by pictures | `settings:widgets-gallery`, `widget:battery-*`, `widget:quick-*` | the shortcuts tiles are not clicked by test |
+| Fractional widget placement after a resolution change | Not tested | needs a second resolution; the fractions are unit-tested through layouts | manual: change the scale in settings → screens |
+| Keyboard backlight goes out when idle and comes back | **Not tested live**: the laptop was on its charger (policy default is battery only); the decision table is unit-tested | measured saving: about 1.5 W (paired runs) | manual: unplug, wait 20 s, press a key |
+
 ## Battery and idle cost
 
 | Scenario | Status | How | Result |
