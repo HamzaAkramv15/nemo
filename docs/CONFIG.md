@@ -12,6 +12,7 @@ of the file is kept), unknown keys are ignored: `nemo-shell config check` lists 
 | `~/.config/nemo/files.json` | nemo-files | yes (read at start) |
 | `~/.config/nemo/style.json`, `style.<module>.json` | the look of every module (the shell writes it from settings → look) | yes |
 | `~/.config/nemo/scripts/` | **you**: bar modules and widgets from scripts | yes |
+| `~/.config/nemo/layouts/` | **you**: widget layouts (`*.json`), saved by settings → widgets → layouts → save the current one | yes |
 | `~/.config/nemo/themes/`, `templates/` | **you**: saved themes, recolouring templates | yes |
 | `~/.config/niri/config.kdl` | **you**: Nemo only adds one include line at its top (`nemo niri connect`), what you write below it wins | yes |
 | `~/.config/nemo/niri/nemo.kdl` | the shell: what that line brings, the parts below that are on in settings → system → niri | no, rewritten |
@@ -403,6 +404,11 @@ can read and change, and the few that take a setting (`disk`, `utc`, `gitdir`) s
 ### Widgets
 
 `widgetContrast` (default `true`): widgets without a frame follow the wallpaper under them: on a light
+
+Widget layouts: settings → desktop → widgets → **layouts** places several widgets at once (four ship with Nemo: Aurora, Reef, Minimal, Focus; yours come from `~/.config/nemo/layouts/*.json`, and a file with the name of a shipped one replaces it).
+Applying one switches your other widgets off instead of deleting them and remembers the whole set and the panel look first; **put it back as it was** restores them. A layout file:
+`{"name": "…", "about": "…", "about_ru": "…", "look": "plain|reef", "panel": "glass|solid|outline", "widgets": [{"kind": "sky", "size": "m", "fx": 0.70, "fy": 0.06, "frame": true}]}`;
+`fx`, `fy` are the position as fractions of the monitor (so a layout fits any resolution), and a widget may also carry `source`, `style`, `anim`, `color`, `frame`, `label`, `seconds`, `date`. Widgets placed by a layout carry its id in `layout` and are replaced when another layout is applied.
 
 `widgetPanel` (default `"glass"`): the panel behind framed widgets: `glass` (the theme's glass), `solid` or `outline` (almost clear, with a light edge). `widgetAlpha` (default `0`, from the theme; 0.15 to 1): how opaque that panel is.
 

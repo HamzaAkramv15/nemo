@@ -1276,4 +1276,8 @@ const PAIRS: &[(&str, &str)] = &[
     ("контур", "outline"),
     ("стекло", "glass"),
     ("прозрачность подложки", "widget panel opacity"),
+    ("раскладки", "layouts"),
+    ("сохранить текущую", "save the current one"),
+    ("вернуть как было", "put it back as it was"),
+    ("раскладка расставляет несколько виджетов сразу; прежние выключаются, их можно вернуть", "a layout places several widgets at once; the old ones are switched off and can be brought back"),
 ];

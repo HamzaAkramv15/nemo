@@ -68,6 +68,8 @@ pub struct Widget {
     pub seconds: bool,
     pub date: bool,
     pub text: String,
+    /// id раскладки (layouts.rs), из которой виджет пришёл; пусто — поставлен вручную. Новая раскладка заменяет виджеты прежней
+    pub layout: String,
 }
 
 impl Default for Widget {
@@ -88,6 +90,7 @@ impl Default for Widget {
             seconds: true,
             date: true,
             text: String::new(),
+            layout: String::new(),
         }
     }
 }

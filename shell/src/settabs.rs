@@ -159,6 +159,7 @@ pub(crate) fn tab_widgets(ui: &mut Ui, st: &State, b: R) {
     let y0 = title(ui, b.x, b.y, b.w, "виджеты рабочего стола");
     // готовые скрипты — кнопкой справа от заголовка: справа откроется их список (внизу левой колонки
     // его не находили). Нажатие ещё раз — назад к параметрам виджета
+    ui.button(R::new(b.right() - 210 - 6 - 130, b.y - 4, 130, 24), "раскладки", "leaf", if st.widget_layouts { Tone::Primary } else { Tone::Plain }, st.widget_layouts, true, Act::SCycle("widget_layouts"));
     ui.button(R::new(b.right() - 210, b.y - 4, 210, 24), "готовые скрипты", "plus", if st.widget_scripts { Tone::Primary } else { Tone::Plain }, st.widget_scripts, true, Act::SCycle("widget_scripts"));
     // список слева
     let lw = 200;
@@ -189,6 +190,31 @@ pub(crate) fn tab_widgets(ui: &mut Ui, st: &State, b: R) {
     // параметры справа
     let px = b.x + lw + 20;
     let pw = b.right() - px;
+    if st.widget_layouts {
+        // раскладки: готовые и свои; нажатие применяет (прежнее запоминается), подсказка — про ту, над которой мышь
+        let layouts = crate::layouts::all();
+        let mut y = y0;
+        y += ui.wrap(PX, R::new(px, y, pw, 40), "раскладка расставляет несколько виджетов сразу; прежние выключаются, их можно вернуть", t.text_dim, 2) + 6;
+        let cw = (pw - 6) / 2;
+        let mut hint = String::new();
+        for (i, l) in layouts.iter().enumerate() {
+            let r = R::new(px + (i as i32 % 2) * (cw + 6), y + (i as i32 / 2) * 30, cw, 26);
+            let on = st.layout_note.as_deref() == Some(l.id.as_str());
+            ui.button(r, &l.name, if l.user { "plus" } else { "leaf" }, if on { Tone::Primary } else { Tone::Plain }, on, true, Act::SLayout(i));
+            if ui.hover(r) || (on && hint.is_empty()) {
+                hint = l.about_text().to_string();
+            }
+        }
+        y += (layouts.len() as i32 + 1) / 2 * 30 + 4;
+        if !hint.is_empty() {
+            ui.wrap(PX, R::new(px, y, pw, 54), &hint, t.text_faint, 3);
+        }
+        y += 60;
+        let hw = (pw - 6) / 2;
+        ui.button(R::new(px, y, hw, 26), "сохранить текущую", "plus", Tone::Plain, false, true, Act::SLayoutSave);
+        ui.button(R::new(px + hw + 6, y, hw, 26), "вернуть как было", "reboot", Tone::Plain, false, widgets::layout_backup_exists(), Act::SLayoutRestore);
+        return;
+    }
     if st.widget_scripts {
         let have = crate::plugins::scripts();
         let mut y = y0;
@@ -276,9 +302,7 @@ pub(crate) fn tab_widgets(ui: &mut Ui, st: &State, b: R) {
     y += 50;
     let look = if s.widget_look == "reef" { "рифовый" } else { "обычный" };
     opt_btn(ui, R::new(px, y, pw, 26), "вид подложек", look, Act::SCycle("widget_look"));
-    y += 32;
-    ui.button(R::new(px, y, pw, 28), "рифовая раскладка", "leaf", Tone::Plain, false, true, Act::SWidgetReef);
-    ui.text_in(PX, R::new(px, y + 32, pw, 18), "вокруг рыбки; прежние выключаются", t.text_faint);
+
 }
 
 /// пиксельность одним ползунком: 0 — гладко, 1 — мягче, 2 — только nemo, 3 — всё пиксельное (по умолчанию)

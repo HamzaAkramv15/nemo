@@ -97,8 +97,12 @@ pub enum Act {
     STheme(usize),
     SThemeDel(usize),
     SWidgetAdd(&'static str),
-    /// рифовая раскладка виджетов вокруг обоев по умолчанию
-    SWidgetReef,
+    /// применить раскладку виджетов номер N из `layouts::all()`
+    SLayout(usize),
+    /// сохранить текущие виджеты как свою раскладку
+    SLayoutSave,
+    /// вернуть виджеты и вид, как были до последней раскладки
+    SLayoutRestore,
     /// готовый скрипт виджетом: кладёт его в папку скриптов (если нет) и добавляет виджет «скрипт» с ним
     SWidgetAddScript(&'static str),
     /// запись автозапуска по номеру в списке startup::entries

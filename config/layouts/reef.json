@@ -1,0 +1,13 @@
+{
+  "name": "Reef",
+  "about": "Clock and calendar in the light water, two graphs below, the fish left alone. Made for the reef wallpaper.",
+  "about_ru": "Часы и календарь в светлой воде, два графика ниже, рыбку никто не закрывает. Для рифовых обоев.",
+  "look": "reef",
+  "panel": "glass",
+  "widgets": [
+    {"kind": "clock", "size": "m", "fx": 0.43, "fy": 0.07, "frame": true, "date": true},
+    {"kind": "cal", "size": "s", "fx": 0.79, "fy": 0.08, "frame": true},
+    {"kind": "graph", "size": "s", "fx": 0.50, "fy": 0.62, "source": "cpu", "style": "wave", "frame": true},
+    {"kind": "graph", "size": "s", "fx": 0.70, "fy": 0.62, "source": "ram", "style": "line", "frame": true}
+  ]
+}

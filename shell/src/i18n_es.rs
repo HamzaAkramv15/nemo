@@ -1636,4 +1636,8 @@ const ES: &[(&str, &str)] = &[
     ("outline", "contorno"),
     ("glass", "cristal"),
     ("widget panel opacity", "opacidad del panel del widget"),
+    ("layouts", "disposiciones"),
+    ("save the current one", "guardar la actual"),
+    ("put it back as it was", "dejar como estaba"),
+    ("a layout places several widgets at once; the old ones are switched off and can be brought back", "una disposición coloca varios widgets a la vez; los anteriores se apagan y se pueden recuperar"),
 ];

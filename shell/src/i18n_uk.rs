@@ -1636,4 +1636,8 @@ const UK: &[(&str, &str)] = &[
     ("outline", "контур"),
     ("glass", "скло"),
     ("widget panel opacity", "прозорість підкладки віджета"),
+    ("layouts", "розкладки"),
+    ("save the current one", "зберегти поточну"),
+    ("put it back as it was", "повернути як було"),
+    ("a layout places several widgets at once; the old ones are switched off and can be brought back", "розкладка ставить кілька віджетів одразу; старі вимикаються, їх можна повернути"),
 ];

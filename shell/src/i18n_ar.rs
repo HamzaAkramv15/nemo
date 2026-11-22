@@ -725,4 +725,8 @@ const AR: &[(&str, &str)] = &[
     ("outline", "حدود"),
     ("glass", "زجاج"),
     ("widget panel opacity", "عتامة لوحة الودجة"),
+    ("layouts", "التخطيطات"),
+    ("save the current one", "حفظ الحالي"),
+    ("put it back as it was", "إرجاع كما كان"),
+    ("a layout places several widgets at once; the old ones are switched off and can be brought back", "يضع التخطيط عدة ودجات دفعة واحدة؛ تُعطَّل القديمة ويمكن استرجاعها"),
 ];

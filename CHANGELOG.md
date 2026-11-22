@@ -9,6 +9,9 @@ has its Russian line in CHANGELOG.ru.md: `tools/check.sh` checks that.
 
 ## Unreleased
 
+- Widgets, foundation: a **registry of kinds** (one table: name, sizes, needs, defaults, draw function) and **one option schema per kind** that generates the settings panel, the right-click menu and the click cycling (they were three hard-coded copies; adding a kind used to touch about ten files). The widget pictures are pixel-identical; the right-click menu now uses the same labels as the panel.
+- Widgets, **layouts**: settings → widgets → layouts places a whole set at once: **Aurora, Reef, Minimal, Focus** ship with Nemo; "save the current one" stores yours in `~/.config/nemo/layouts`; applying one keeps your old widgets (switched off) and "put it back as it was" restores them. Positions are fractions of the monitor, so a layout fits any resolution.
+
 - Gate: `tools/test.sh` runs the tests in a throwaway home (they used to write into your real state folder); `tools/budget.sh` measures a fresh shell in a nested niri with a throwaway home (two fixtures) instead of whatever your live desktop is doing, and `--live` reports the live shell without failing; `tools/golden.sh --update` rebuilds first. New `tools/power-bench.sh` measures battery draw and its causes without root.
 
 - Default wallpaper: the reef (pixel ruins under water) with the new fish as its one fish, shipped in `config/wallpapers` and installed to `~/.local/share/nemo/wallpapers`. A fresh install uses it; an existing choice, including the palette's pixel wallpaper, stays.

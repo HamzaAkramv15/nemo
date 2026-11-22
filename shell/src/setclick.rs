@@ -403,8 +403,14 @@ impl App {
                 }
                 "open_setup" => self.welcome_open("modules"),
                 "open_welcome" => self.welcome_open("hello"),
+                "widget_layouts" => {
+                    self.st.widget_layouts = !self.st.widget_layouts;
+                    self.st.widget_scripts = false;
+                    self.dirty(&SKind::Modal);
+                }
                 "widget_scripts" => {
                     self.st.widget_scripts = !self.st.widget_scripts;
+                    self.st.widget_layouts = false;
                     self.dirty(&SKind::Modal);
                 }
                 "upd_page_desktop" | "upd_page_software" => {
@@ -720,6 +726,7 @@ impl App {
             Act::SWidgetSel(id) => {
                 self.st.sel_widget = *id;
                 self.st.widget_scripts = false;
+                self.st.widget_layouts = false;
             }
             Act::SWidgetAdd(k) => {
                 let id = s.next_widget_id();
@@ -742,7 +749,9 @@ impl App {
                 crate::startup::toggle(*i);
                 self.dirty(&SKind::Modal);
             }
-            Act::SWidgetReef => self.widget_reef_layout(),
+            Act::SLayout(i) => self.apply_layout(*i),
+            Act::SLayoutSave => self.save_layout(),
+            Act::SLayoutRestore => self.restore_layout(),
             Act::SWidgetAddScript(name) => {
                 // готовый скрипт в папку (свой файл с этим именем остаётся как есть)
                 let _ = crate::scriptlib::add(name);

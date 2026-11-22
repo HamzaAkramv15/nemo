@@ -1413,4 +1413,8 @@ const PT_BR: &[(&str, &str)] = &[
     ("outline", "contorno"),
     ("glass", "vidro"),
     ("widget panel opacity", "opacidade do painel do widget"),
+    ("layouts", "layouts"),
+    ("save the current one", "salvar a atual"),
+    ("put it back as it was", "voltar como estava"),
+    ("a layout places several widgets at once; the old ones are switched off and can be brought back", "um layout posiciona vários widgets de uma vez; os antigos são desligados e podem voltar"),
 ];

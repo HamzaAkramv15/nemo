@@ -1636,4 +1636,8 @@ const DE: &[(&str, &str)] = &[
     ("outline", "Kontur"),
     ("glass", "Glas"),
     ("widget panel opacity", "Deckkraft des Widget-Felds"),
+    ("layouts", "Anordnungen"),
+    ("save the current one", "aktuelle speichern"),
+    ("put it back as it was", "zurückholen"),
+    ("a layout places several widgets at once; the old ones are switched off and can be brought back", "eine Anordnung setzt mehrere Widgets auf einmal; die alten gehen aus und kommen zurück"),
 ];

@@ -1008,6 +1008,11 @@ impl State {
     }
 }
 
+/// есть ли что возвращать после раскладки
+pub fn layout_backup_exists() -> bool {
+    crate::config::state_dir().join("widgets-before-layout.json").exists()
+}
+
 impl App {
     /// какие виджеты без подложки стоят на светлых обоях: замер по готовой картинке обоев под
     /// каждым (после новых обоев, перестановки, смены настроек). Порог с запасом в обе стороны,
@@ -1105,48 +1110,74 @@ impl App {
         (bl, (ow - br - ww + SHADOW).max(bl), top, (oh - bb - wh + SHADOW).max(top))
     }
 
-    /// рифовая раскладка: часы, календарь и два графика вокруг рыбки обоев по умолчанию (она на 66% ширины, 46% высоты,
-    /// место вокруг неё остаётся свободным). Прежние виджеты не удаляются, а выключаются; прошлая рифовая раскладка
-    /// (виджеты с пометкой text = "reef") заменяется новой
-    pub fn widget_reef_layout(&mut self) {
+    /// файл, где лежит набор виджетов и вид до последней раскладки
+    fn layout_backup_path() -> std::path::PathBuf {
+        crate::config::state_dir().join("widgets-before-layout.json")
+    }
+
+    /// применить раскладку номер `i`: прежний набор и вид запоминаются, виджеты прежней раскладки заменяются, остальные выключаются (не удаляются)
+    pub fn apply_layout(&mut self, i: usize) {
+        let Some(l) = crate::layouts::all().into_iter().nth(i) else { return };
         let out = self.focus_out();
         if out.is_empty() {
             return;
         }
         let (ow, oh) = self.output_size(&out);
-        let at = |fx: f32, fy: f32| ((ow as f32 * fx) as i32, (oh as f32 * fy) as i32);
         let s = &mut self.st.set;
-        s.widgets.retain(|w| w.text != "reef");
+        let backup = serde_json::json!({"widgets": s.widgets, "look": s.widget_look, "panel": s.widget_panel, "alpha": s.widget_alpha});
+        let _ = std::fs::write(Self::layout_backup_path(), serde_json::to_string_pretty(&backup).unwrap_or_default());
+        s.widgets.retain(|w| w.layout.is_empty());
         for w in s.widgets.iter_mut() {
             w.on = false;
         }
-        // (вид, источник, стиль, размер, x, y в долях монитора)
-        let parts: [(&str, &str, &str, &str, f32, f32); 4] = [
-            ("clock", "", "bars", "m", 0.43, 0.07),
-            ("cal", "", "bars", "s", 0.79, 0.08),
-            ("graph", "cpu", "wave", "s", 0.50, 0.62),
-            ("graph", "ram", "line", "s", 0.70, 0.62),
-        ];
-        for (kind, source, style, size, fx, fy) in parts {
-            let id = s.next_widget_id();
-            let mut w = Widget::new(id, kind);
-            let (x, y) = at(fx, fy);
-            w.x = x;
-            w.y = y;
-            w.frame = true;
-            w.size = size.into();
-            w.date = true;
-            w.seconds = false;
-            w.text = "reef".into();
-            if !source.is_empty() {
-                w.source = source.into();
-                w.style = style.into();
-            }
-            s.widgets.push(w);
-        }
-        s.widget_look = "reef".into();
-        self.st.sel_widget = s.widgets.last().map_or(0, |w| w.id);
+        let first = s.next_widget_id();
+        let new = crate::layouts::build(&l, ow, oh, first);
+        self.st.sel_widget = new.first().map_or(0, |w| w.id);
+        s.widgets.extend(new);
+        s.widget_look = l.look.clone();
+        s.widget_panel = l.panel.clone();
+        self.st.layout_note = Some(l.id.clone());
         self.settings_changed();
+    }
+
+    /// вернуть набор и вид, как были до последней раскладки
+    pub fn restore_layout(&mut self) {
+        let path = Self::layout_backup_path();
+        let Some(v) = std::fs::read_to_string(&path).ok().and_then(|t| serde_json::from_str::<serde_json::Value>(&t).ok()) else { return };
+        let s = &mut self.st.set;
+        if let Some(ws) = v.get("widgets").and_then(|w| serde_json::from_value::<Vec<Widget>>(w.clone()).ok()) {
+            s.widgets = ws;
+        }
+        if let Some(x) = v.get("look").and_then(|x| x.as_str()) {
+            s.widget_look = x.into();
+        }
+        if let Some(x) = v.get("panel").and_then(|x| x.as_str()) {
+            s.widget_panel = x.into();
+        }
+        if let Some(x) = v.get("alpha").and_then(|x| x.as_f64()) {
+            s.widget_alpha = x as f32;
+        }
+        let _ = std::fs::remove_file(path);
+        self.st.layout_note = None;
+        self.st.sel_widget = self.st.set.widgets.first().map_or(0, |w| w.id);
+        self.settings_changed();
+    }
+
+    /// сохранить включённые виджеты как свою раскладку «My layout N» в ~/.config/nemo/layouts
+    pub fn save_layout(&mut self) {
+        let out = self.focus_out();
+        if out.is_empty() {
+            return;
+        }
+        let (ow, oh) = self.output_size(&out);
+        let dir = crate::layouts::user_dir();
+        let _ = std::fs::create_dir_all(&dir);
+        let n = (1..1000).find(|n| !dir.join(format!("my-layout-{n}.json")).exists()).unwrap_or(1000);
+        let json = crate::layouts::snapshot_json(&format!("My layout {n}"), &self.st.set, ow, oh);
+        if std::fs::write(dir.join(format!("my-layout-{n}.json")), json).is_ok() {
+            crate::layouts::invalidate();
+        }
+        self.dirty(&SKind::Modal);
     }
 
     pub fn set_editing(&mut self, on: bool) {

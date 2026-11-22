@@ -259,8 +259,12 @@ pub struct State {
     pub disp: crate::displays::Disp,
     pub bar_ed: crate::settings::BarEd,
     pub sel_widget: u32,
+    /// id раскладки, применённой последней (подсказка в настройках виджетов)
+    pub layout_note: Option<String>,
     /// вкладка «виджеты»: справа список готовых скриптов вместо параметров виджета
     pub widget_scripts: bool,
+    /// справа в настройках виджетов — раскладки, а не параметры виджета
+    pub widget_layouts: bool,
     pub editing: bool,
     /// к какой линии креста (по x, по y) прилип виджет, который тащат: она горит на сетке
     pub snap_cross: (bool, bool),
@@ -530,7 +534,9 @@ impl State {
             disp: Default::default(),
             bar_ed: Default::default(),
             sel_widget: 0,
+            layout_note: None,
             widget_scripts: false,
+            widget_layouts: false,
             editing: false,
             snap_cross: (false, false),
             notifs: notif::Notifs::default(),

@@ -1,0 +1,12 @@
+{
+  "name": "Aurora",
+  "about": "Time and weather in the sky, the week on the left, system gauges on the snow. Made for a night landscape.",
+  "about_ru": "Время и погода в небе, неделя слева, шкалы системы на снегу. Для ночного пейзажа.",
+  "look": "plain",
+  "panel": "glass",
+  "widgets": [
+    {"kind": "sky", "size": "m", "fx": 0.70, "fy": 0.06},
+    {"kind": "week", "size": "m", "fx": 0.04, "fy": 0.06},
+    {"kind": "vitals", "size": "m", "fx": 0.78, "fy": 0.74}
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "name": "Minimal",
+  "about": "One big clock with the date and no panel behind it.",
+  "about_ru": "Одни большие часы с датой, без подложки.",
+  "look": "plain",
+  "panel": "glass",
+  "widgets": [
+    {"kind": "clock", "size": "l", "fx": 0.04, "fy": 0.06, "frame": false, "date": true}
+  ]
+}
