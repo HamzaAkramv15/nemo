@@ -107,7 +107,7 @@ impl App {
                 self.dirty(&SKind::Popup);
             }
             let lt = local_now();
-            let sec_needed = self.st.set.clock_seconds || self.st.set.widgets.iter().any(|w| w.on && (matches!(w.kind.as_str(), "clock" | "graph" | "net" | "sky" | "vitals")));
+            let sec_needed = self.st.set.clock_seconds || crate::widgetkind::any_needs(&self.st.set.widgets, crate::widgetkind::Need::Seconds);
             if sec_needed || lt.min != self.last_min {
                 self.last_min = lt.min;
                 self.dirty_where(|k| matches!(k, SKind::Bar | SKind::Widget(_) | SKind::Popup));

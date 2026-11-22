@@ -8,7 +8,7 @@ use crate::gfx::{BoxStyle, C, R};
 use crate::settings::{num_btn, opt_btn, title};
 use crate::theme::{parse_hex, PRESETS, WHITE};
 use crate::ui::{Act, Cur, Tone, Ui};
-use crate::widgets::{self, name_of, ANIMS, COLORS, KINDS, SIZES, SOURCES, STYLES};
+use crate::widgets::{self, name_of, ANIMS, COLORS, SIZES, SOURCES, STYLES};
 
 pub(crate) fn tab_color(ui: &mut Ui, st: &State, b: R) {
     let t = ui.t;
@@ -176,13 +176,13 @@ pub(crate) fn tab_widgets(ui: &mut Ui, st: &State, b: R) {
         } else {
             String::new()
         };
-        ui.text_in(PX, R::new(r.x + 22, r.y, r.w - 26, r.h), &format!("{}{}", crate::i18n::tr(name_of(KINDS, &w.kind)), extra), if sel { t.text_hi } else if w.on { t.text } else { t.text_faint });
+        ui.text_in(PX, R::new(r.x + 22, r.y, r.w - 26, r.h), &format!("{}{}", crate::i18n::tr(crate::widgetkind::name(&w.kind)), extra), if sel { t.text_hi } else if w.on { t.text } else { t.text_faint });
         y += 30;
     }
     y += 8;
     ui.text_in(PX, R::new(b.x, y, lw, 20), "добавить:", t.text_dim);
     y += 22;
-    for (i, (k, n)) in KINDS.iter().enumerate() {
+    for (i, (k, n)) in crate::widgetkind::kinds().enumerate() {
         let r = R::new(b.x + (i as i32 % 2) * (lw / 2 + 2), y + (i as i32 / 2) * 28, lw / 2 - 2, 24);
         ui.button(r, n, "", Tone::Plain, false, true, Act::SWidgetAdd(k));
     }

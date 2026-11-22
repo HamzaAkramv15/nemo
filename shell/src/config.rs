@@ -95,14 +95,7 @@ impl Default for Widget {
 impl Widget {
     pub fn new(id: u32, kind: &str) -> Widget {
         let mut w = Widget { id, kind: kind.into(), ..Default::default() };
-        if kind == "clock" {
-            w.frame = false;
-        }
-        // свои карточки: подложка — часть вида
-        if matches!(kind, "sky" | "vitals" | "week") {
-            w.frame = true;
-            w.date = true;
-        }
+        crate::widgetkind::apply_defaults(&mut w);
         w
     }
 }
@@ -1151,12 +1144,12 @@ impl Settings {
 
     /// плеер виден и без всплывашки звука: модуль `media` в баре или виджет музыки
     pub fn media_placed(&self) -> bool {
-        self.on_bar("media") || self.widgets.iter().any(|w| w.on && w.kind == "media")
+        self.on_bar("media") || crate::widgetkind::any_needs(&self.widgets, crate::widgetkind::Need::Media)
     }
 
     /// эквалайзер рисуется вне всплывашек: в модуле `media` (если не выключен) или в виджете музыки
     pub fn viz_placed(&self) -> bool {
-        (self.on_bar("media") && self.media_viz != "off") || self.widgets.iter().any(|w| w.on && w.kind == "media")
+        (self.on_bar("media") && self.media_viz != "off") || crate::widgetkind::any_needs(&self.widgets, crate::widgetkind::Need::Media)
     }
 
     /// модули стороны бара: 0 — слева, 1 — по центру, 2 — справа

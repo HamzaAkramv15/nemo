@@ -218,7 +218,7 @@ impl App {
     /// погода нужна: модуль в баре или виджет на столе
     pub fn weather_wanted(&self) -> bool {
         let s = &self.st.set;
-        s.on_bar("weather") || s.widgets.iter().any(|w| w.on && matches!(w.kind.as_str(), "weather" | "sky"))
+        s.on_bar("weather") || crate::widgetkind::any_needs(&s.widgets, crate::widgetkind::Need::Weather)
     }
 
     /// из tick: пора спросить — одна нить на запрос

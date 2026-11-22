@@ -541,7 +541,7 @@ fn shoot(st: &mut State, res: &mut Res, target: &str, path: &Path) {
             if arg == "widgets" {
                 // все виды и источники в списке, чтобы --lang en видел каждую подпись
                 let mut ws = vec![];
-                for (i, (k, _)) in crate::widgets::KINDS.iter().enumerate() {
+                for (i, (k, _)) in crate::widgetkind::kinds().enumerate() {
                     ws.push(crate::config::Widget::new(i as u32 + 1, k));
                 }
                 for (i, (src, _)) in crate::widgets::SOURCES.iter().enumerate() {

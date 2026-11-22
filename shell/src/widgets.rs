@@ -16,7 +16,6 @@ use smithay_client_toolkit::seat::keyboard::{KeyEvent, Keysym};
 use smithay_client_toolkit::shell::wlr_layer::{Anchor, KeyboardInteractivity, Layer};
 use smithay_client_toolkit::shell::WaylandSurface;
 
-pub const KINDS: &[(&str, &str)] = &[("clock", "часы"), ("graph", "график"), ("net", "сеть"), ("media", "музыка"), ("cal", "календарь"), ("weather", "погода"), ("bt", "bluetooth"), ("script", "скрипт"), ("sky", "небо"), ("vitals", "состояние"), ("week", "неделя")];
 pub const SOURCES: &[(&str, &str)] = &[("cpu", "процессор"), ("ram", "память"), ("temp", "температура"), ("gpu", "видеокарта")];
 pub const STYLES: &[(&str, &str)] = &[("bars", "столбики"), ("line", "линия"), ("blocks", "клетки"), ("wave", "волна"), ("dots", "точки")];
 pub const ANIMS: &[(&str, &str)] = &[("scroll", "бегущий"), ("rise", "рост"), ("flicker", "мерцание"), ("none", "без анимации")];
@@ -38,26 +37,7 @@ pub fn color(t: &Theme, c: &str) -> C {
 }
 
 pub fn size_of(w: &Widget) -> (i32, i32) {
-    let k = match w.size.as_str() {
-        "s" => 0,
-        "l" => 2,
-        _ => 1,
-    };
-    let (a, b, c) = match w.kind.as_str() {
-        "clock" => ((260, 100), (360, 128), (540, 190)),
-        "graph" | "net" => ((220, 96), (300, 124), (440, 180)),
-        "media" => ((320, 112), (400, 136), (500, 170)),
-        "cal" => ((236, 220), (280, 252), (350, 316)),
-        "weather" => ((230, 96), (300, 150), (390, 176)),
-        "sky" => ((300, 164), (380, 204), (480, 252)),
-        "vitals" => ((284, 124), (324, 168), (380, 212)),
-        "week" => ((340, 116), (424, 132), (540, 156)),
-        "bt" => ((230, 76), (300, 120), (380, 164)),
-        "script" => ((220, 64), (300, 110), (400, 160)),
-        _ => ((200, 100), (300, 140), (400, 200)),
-    };
-    let (w, h) = [a, b, c][k];
-    (w + 4, h + 4)
+    crate::widgetkind::canvas(&w.kind, &w.size)
 }
 
 pub fn set_opt(w: &mut Widget, key: &str, val: &str) {
@@ -421,7 +401,7 @@ fn card(ui: &mut Ui, st: &State, w: &Widget, r: R, c: C) {
 }
 
 /// небо: время крупно, под ним дата, ниже черта и погода одной строкой — всё, что смотрят утром, в одном месте
-fn sky(ui: &mut Ui, st: &State, w: &Widget, r: R, c: C) {
+fn sky_body(ui: &mut Ui, st: &State, w: &Widget, r: R, c: C) {
     let t = ui.t;
     let tm = local_now();
     let big = match w.size.as_str() {
@@ -457,7 +437,7 @@ fn sky(ui: &mut Ui, st: &State, w: &Widget, r: R, c: C) {
 
 /// состояние: тонкие шкалы из клеток — процессор, память, температура, диск; сколько строк — по размеру. Цвет шкалы
 /// зеленеет на «норме» и желтеет от 80%, но число всегда рядом, так что цвет не единственный признак
-fn vitals(ui: &mut Ui, st: &State, w: &Widget, r: R, c: C) {
+fn vitals_body(ui: &mut Ui, st: &State, w: &Widget, r: R, c: C) {
     let t = ui.t;
     let sy = &st.sys;
     let rows: [(&str, f32, String); 4] = [
@@ -491,7 +471,7 @@ fn vitals(ui: &mut Ui, st: &State, w: &Widget, r: R, c: C) {
 
 /// неделя: семь дней подряд, сегодня — акцентной плиткой; сверху месяц и номер недели. Читается одним взглядом, в отличие от
 /// месячной сетки, и занимает вдвое меньше места
-fn week(ui: &mut Ui, st: &State, r: R, c: C) {
+fn week_body(ui: &mut Ui, st: &State, r: R, c: C) {
     let t = ui.t;
     let now = local_now();
     let today = days_from_civil(now.year, now.mon, now.day);
@@ -583,124 +563,154 @@ pub fn draw(ui: &mut Ui, st: &State, id: u32, sw: i32, sh: i32) {
     ui.cv.text_shade = None;
 }
 
+// ── виды: каждый рисует себя одной функцией одной сигнатуры (реестр: widgetkind.rs) ──
+
+pub(crate) fn draw_clock(ui: &mut Ui, st: &State, w: &Widget, r: R, c: C) {
+    let t = ui.t;
+    panel(ui, st, w, r);
+    let tm = local_now();
+    let big = match w.size.as_str() {
+        "s" => 48,
+        "l" => 96,
+        _ => 64,
+    };
+    let face = font::px(big);
+    let pad = if w.frame { 14 } else { 4 };
+    let mut x = pad;
+    let y = pad;
+    x += ui.text(face, x, y, &crate::clock::hour_text(&tm), t.text);
+    let colon = if w.seconds && tm.sec % 2 == 1 { t.dim } else { c };
+    x += ui.text(face, x, y, ":", colon);
+    x += ui.text(face, x, y, &format!("{:02}", tm.min), t.text);
+    // AM/PM — мелко у верхнего края цифр, как рядом с часами на телефоне
+    if let Some(p) = crate::clock::ampm(&tm) {
+        ui.text(PX, x + 6, y + 6, p, t.text_dim);
+    }
+    let mut yy = y + ui.f.line(face) + 6;
+    if w.date {
+        let s = nemo_px::i18n::long_date(crate::i18n::tr(RU_DAY_FULL[tm.wday as usize]), tm.day as u32, (tm.mon - 1) as usize, crate::i18n::tr(RU_MON[(tm.mon - 1) as usize]));
+        ui.text(PX, pad, yy, &s, t.text_dim);
+        yy += 24;
+    }
+    if w.seconds {
+        // секунды: 12 клеток по 5 секунд
+        let cw = ((r.w - 2 * pad) / 12 - 2).clamp(6, 22);
+        for i in 0..12 {
+            let on = i < (tm.sec / 5) as i32 + 1;
+            ui.cv.fill(R::new(pad + i * (cw + 2), yy, cw, 4), if on { c } else { t.border.fade(0.7) });
+        }
+    }
+}
+
+pub(crate) fn draw_graph(ui: &mut Ui, st: &State, w: &Widget, r: R, c: C) {
+    let t = ui.t;
+    let phase = st.sys_phase();
+    panel(ui, st, w, r);
+    let (ser, full) = st.sys.series(&w.source);
+    let data: Vec<f32> = ser.tail(160).iter().map(|v| v / full).collect();
+    let (label, val) = match w.source.as_str() {
+        "ram" => ("память", crate::tf!("{:.0}%  {:.1}/{:.0} ГБ", "{:.0}%  {:.1}/{:.0} GB", "{:.0}%  {:.1}/{:.0} GB", st.sys.mem * 100.0, st.sys.mem_used, st.sys.mem_total)),
+        "temp" => ("температура", format!("{:.0}°C", st.sys.temp)),
+        "gpu" if st.sys.gpu_sleep => ("видеокарта", "сон".into()),
+        "gpu" => ("видеокарта", format!("{:.0}°C  {:.0}%", st.sys.gpu_temp, st.sys.gpu_load * 100.0)),
+        _ => ("процессор", format!("{:.0}%", st.sys.cpu * 100.0)),
+    };
+    let pad = if w.frame { 10 } else { 2 };
+    let mut gy = pad;
+    if w.label {
+        ui.cv.icon(match w.source.as_str() {
+            "ram" => "ram",
+            "temp" | "gpu" => "temp",
+            _ => "cpu",
+        }, pad, pad + 1, 2, c);
+        ui.text_in(PX, R::new(pad + 20, pad, r.w / 2, 18), label, t.text_dim);
+        ui.text_right(PX, R::new(pad, pad, r.w - 2 * pad, 18), &val, t.text);
+        gy += 24;
+    }
+    graph(ui, R::new(pad, gy, r.w - 2 * pad, r.h - gy - pad), &data, &w.style, &w.anim, phase, c, None);
+    if w.anim != "none" {
+        ui.anim = false;
+    }
+}
+
+pub(crate) fn draw_net(ui: &mut Ui, st: &State, w: &Widget, r: R, c: C) {
+    let t = ui.t;
+    let phase = st.sys_phase();
+    panel(ui, st, w, r);
+    let full = st.sys.h_rx.max().max(st.sys.h_tx.max()).max(64.0 * 1024.0);
+    let rx: Vec<f32> = st.sys.h_rx.tail(160).iter().map(|v| v / full).collect();
+    let tx: Vec<f32> = st.sys.h_tx.tail(160).iter().map(|v| v / full).collect();
+    let pad = if w.frame { 10 } else { 2 };
+    let mut gy = pad;
+    if w.label {
+        ui.cv.icon("net", pad, pad + 1, 2, c);
+        let s = crate::tf!("↓{}/с", "↓{}/s", "↓{}/s", crate::sys::rate(st.sys.rx));
+        let s2 = crate::tf!("↑{}/с", "↑{}/s", "↑{}/s", crate::sys::rate(st.sys.tx));
+        let w1 = ui.text_in(PX, R::new(pad + 20, pad, 120, 18), &s, c);
+        ui.text_in(PX, R::new(pad + 32 + w1, pad, 120, 18), &s2, t.text_dim);
+        ui.text_right(PX, R::new(pad, pad, r.w - 2 * pad, 18), &st.sys.iface, t.text_faint);
+        gy += 24;
+    }
+    graph(ui, R::new(pad, gy, r.w - 2 * pad, r.h - gy - pad), &rx, &w.style, &w.anim, phase, c, Some((&tx, t.text_dim)));
+}
+
+pub(crate) fn draw_media(ui: &mut Ui, st: &State, w: &Widget, r: R, c: C) {
+    panel(ui, st, w, r);
+    media_card(ui, st, R::new(10, 10, r.w - 20, r.h - 20), &w.style, c, w.label, true);
+}
+
+pub(crate) fn draw_cal(ui: &mut Ui, st: &State, w: &Widget, r: R, c: C) {
+    panel(ui, st, w, r);
+    let pad = if w.frame { 12 } else { 2 };
+    calendar(ui, st, R::new(pad, pad, r.w - 2 * pad, r.h - 2 * pad), 0, c, false);
+}
+
+pub(crate) fn draw_weather(ui: &mut Ui, st: &State, w: &Widget, r: R, c: C) {
+    panel(ui, st, w, r);
+    let pad = if w.frame { 12 } else { 4 };
+    weather(ui, st, w, R::new(pad, pad, r.w - 2 * pad, r.h - 2 * pad), c);
+}
+
+pub(crate) fn draw_bt(ui: &mut Ui, st: &State, w: &Widget, r: R, c: C) {
+    panel(ui, st, w, r);
+    let pad = if w.frame { 12 } else { 4 };
+    bt(ui, st, w, R::new(pad, pad, r.w - 2 * pad, r.h - 2 * pad), c);
+}
+
+pub(crate) fn draw_script(ui: &mut Ui, st: &State, w: &Widget, r: R, c: C) {
+    panel(ui, st, w, r);
+    let pad = if w.frame { 12 } else { 4 };
+    script(ui, st, w, R::new(pad, pad, r.w - 2 * pad, r.h - 2 * pad), c);
+}
+
+pub(crate) fn draw_sky(ui: &mut Ui, st: &State, w: &Widget, r: R, c: C) {
+    card(ui, st, w, r, c);
+    let pad = 18;
+    let inner = R::new(pad, pad - 2, r.w - 2 * pad, r.h - 2 * pad + 2);
+    sky_body(ui, st, w, inner, c);
+}
+
+pub(crate) fn draw_vitals(ui: &mut Ui, st: &State, w: &Widget, r: R, c: C) {
+    card(ui, st, w, r, c);
+    let pad = 18;
+    let inner = R::new(pad, pad - 2, r.w - 2 * pad, r.h - 2 * pad + 2);
+    vitals_body(ui, st, w, inner, c);
+}
+
+pub(crate) fn draw_week(ui: &mut Ui, st: &State, w: &Widget, r: R, c: C) {
+    card(ui, st, w, r, c);
+    let pad = 18;
+    let inner = R::new(pad, pad - 2, r.w - 2 * pad, r.h - 2 * pad + 2);
+    week_body(ui, st, inner, c);
+}
+
 fn draw_widget(ui: &mut Ui, st: &State, w: &Widget, sw: i32, sh: i32) {
     let id = w.id;
     let t = ui.t;
     let r = R::new(0, 0, sw - 4, sh - 4);
     let c = color(&t, &w.color);
-    let phase = st.sys_phase();
-    match w.kind.as_str() {
-        "clock" => {
-            panel(ui, st, w, r);
-            let tm = local_now();
-            let big = match w.size.as_str() {
-                "s" => 48,
-                "l" => 96,
-                _ => 64,
-            };
-            let face = font::px(big);
-            let pad = if w.frame { 14 } else { 4 };
-            let mut x = pad;
-            let y = pad;
-            x += ui.text(face, x, y, &crate::clock::hour_text(&tm), t.text);
-            let colon = if w.seconds && tm.sec % 2 == 1 { t.dim } else { c };
-            x += ui.text(face, x, y, ":", colon);
-            x += ui.text(face, x, y, &format!("{:02}", tm.min), t.text);
-            // AM/PM — мелко у верхнего края цифр, как рядом с часами на телефоне
-            if let Some(p) = crate::clock::ampm(&tm) {
-                ui.text(PX, x + 6, y + 6, p, t.text_dim);
-            }
-            let mut yy = y + ui.f.line(face) + 6;
-            if w.date {
-                let s = nemo_px::i18n::long_date(crate::i18n::tr(RU_DAY_FULL[tm.wday as usize]), tm.day as u32, (tm.mon - 1) as usize, crate::i18n::tr(RU_MON[(tm.mon - 1) as usize]));
-                ui.text(PX, pad, yy, &s, t.text_dim);
-                yy += 24;
-            }
-            if w.seconds {
-                // секунды: 12 клеток по 5 секунд
-                let cw = ((r.w - 2 * pad) / 12 - 2).clamp(6, 22);
-                for i in 0..12 {
-                    let on = i < (tm.sec / 5) as i32 + 1;
-                    ui.cv.fill(R::new(pad + i * (cw + 2), yy, cw, 4), if on { c } else { t.border.fade(0.7) });
-                }
-            }
-        }
-        "sky" | "vitals" | "week" => {
-            card(ui, st, w, r, c);
-            let pad = 18;
-            let inner = R::new(pad, pad - 2, r.w - 2 * pad, r.h - 2 * pad + 2);
-            match w.kind.as_str() {
-                "sky" => sky(ui, st, w, inner, c),
-                "vitals" => vitals(ui, st, w, inner, c),
-                _ => week(ui, st, inner, c),
-            }
-        }
-        "graph" => {
-            panel(ui, st, w, r);
-            let (ser, full) = st.sys.series(&w.source);
-            let data: Vec<f32> = ser.tail(160).iter().map(|v| v / full).collect();
-            let (label, val) = match w.source.as_str() {
-                "ram" => ("память", crate::tf!("{:.0}%  {:.1}/{:.0} ГБ", "{:.0}%  {:.1}/{:.0} GB", "{:.0}%  {:.1}/{:.0} GB", st.sys.mem * 100.0, st.sys.mem_used, st.sys.mem_total)),
-                "temp" => ("температура", format!("{:.0}°C", st.sys.temp)),
-                "gpu" if st.sys.gpu_sleep => ("видеокарта", "сон".into()),
-                "gpu" => ("видеокарта", format!("{:.0}°C  {:.0}%", st.sys.gpu_temp, st.sys.gpu_load * 100.0)),
-                _ => ("процессор", format!("{:.0}%", st.sys.cpu * 100.0)),
-            };
-            let pad = if w.frame { 10 } else { 2 };
-            let mut gy = pad;
-            if w.label {
-                ui.cv.icon(match w.source.as_str() {
-                    "ram" => "ram",
-                    "temp" | "gpu" => "temp",
-                    _ => "cpu",
-                }, pad, pad + 1, 2, c);
-                ui.text_in(PX, R::new(pad + 20, pad, r.w / 2, 18), label, t.text_dim);
-                ui.text_right(PX, R::new(pad, pad, r.w - 2 * pad, 18), &val, t.text);
-                gy += 24;
-            }
-            graph(ui, R::new(pad, gy, r.w - 2 * pad, r.h - gy - pad), &data, &w.style, &w.anim, phase, c, None);
-            if w.anim != "none" {
-                ui.anim = false;
-            }
-        }
-        "net" => {
-            panel(ui, st, w, r);
-            let full = st.sys.h_rx.max().max(st.sys.h_tx.max()).max(64.0 * 1024.0);
-            let rx: Vec<f32> = st.sys.h_rx.tail(160).iter().map(|v| v / full).collect();
-            let tx: Vec<f32> = st.sys.h_tx.tail(160).iter().map(|v| v / full).collect();
-            let pad = if w.frame { 10 } else { 2 };
-            let mut gy = pad;
-            if w.label {
-                ui.cv.icon("net", pad, pad + 1, 2, c);
-                let s = crate::tf!("↓{}/с", "↓{}/s", "↓{}/s", crate::sys::rate(st.sys.rx));
-                let s2 = crate::tf!("↑{}/с", "↑{}/s", "↑{}/s", crate::sys::rate(st.sys.tx));
-                let w1 = ui.text_in(PX, R::new(pad + 20, pad, 120, 18), &s, c);
-                ui.text_in(PX, R::new(pad + 32 + w1, pad, 120, 18), &s2, t.text_dim);
-                ui.text_right(PX, R::new(pad, pad, r.w - 2 * pad, 18), &st.sys.iface, t.text_faint);
-                gy += 24;
-            }
-            graph(ui, R::new(pad, gy, r.w - 2 * pad, r.h - gy - pad), &rx, &w.style, &w.anim, phase, c, Some((&tx, t.text_dim)));
-        }
-        "media" => {
-            panel(ui, st, w, r);
-            media_card(ui, st, R::new(10, 10, r.w - 20, r.h - 20), &w.style, c, w.label, true);
-        }
-        "cal" => {
-            panel(ui, st, w, r);
-            let pad = if w.frame { 12 } else { 2 };
-            calendar(ui, st, R::new(pad, pad, r.w - 2 * pad, r.h - 2 * pad), 0, c, false);
-        }
-        "weather" | "script" | "bt" => {
-            panel(ui, st, w, r);
-            let pad = if w.frame { 12 } else { 4 };
-            let f = match w.kind.as_str() {
-                "weather" => weather,
-                "bt" => bt,
-                _ => script,
-            };
-            f(ui, st, w, R::new(pad, pad, r.w - 2 * pad, r.h - 2 * pad), c);
-        }
-        _ => {}
+    if let Some(k) = crate::widgetkind::get(&w.kind) {
+        (k.draw)(ui, st, w, r, c);
     }
 
     // режим расстановки: рамка, весь виджет — ручка; ПКМ — настройки
@@ -709,7 +719,7 @@ fn draw_widget(ui: &mut Ui, st: &State, w: &Widget, sw: i32, sh: i32) {
         ui.cv.outline(r, t.red, 2);
         let tag = R::new(r.x + 2, r.y + 2, 120, 22);
         ui.cv.fill(tag, t.red);
-        ui.text_in(PX, R::new(tag.x + 6, tag.y, tag.w, tag.h), name_of(KINDS, &w.kind), t.on_accent);
+        ui.text_in(PX, R::new(tag.x + 6, tag.y, tag.w, tag.h), crate::widgetkind::name(&w.kind), t.on_accent);
         ui.zone(r, Act::WDrag(id), Cur::Grab);
         ui.button(R::new(r.right() - 28, r.y + 4, 24, 22), "", "gear", Tone::Primary, false, true, Act::WMenu(id));
     }
@@ -1179,7 +1189,7 @@ impl App {
         let (x, y) = self.surfs.values().find(|s| s.kind == SKind::Widget(id)).map(|s| s.margin).unwrap_or((100, 100));
         let (ww, _) = size_of(&w);
         let out = self.focus_out();
-        let title = crate::tf!("виджет: {}", "widget: {}", "widget: {}", crate::i18n::tr(name_of(KINDS, &w.kind)));
+        let title = crate::tf!("виджет: {}", "widget: {}", "widget: {}", crate::i18n::tr(crate::widgetkind::name(&w.kind)));
         self.open_menu(MenuState::new(&out, x + ww - 30, y + 30, &title, widget_menu(&w)));
     }
 

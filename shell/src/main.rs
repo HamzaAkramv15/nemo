@@ -72,6 +72,7 @@ mod plugins;
 mod recolor;
 mod recolor_apps;
 mod diagtab;
+mod widgetkind;
 mod distro_logo;
 mod recolor_art;
 mod recolor_data;

@@ -9,7 +9,6 @@ use crate::settings::{num_btn, opt_btn, title};
 use crate::theme::PRESETS;
 use crate::ui::{Act, Cur, Tone, Ui};
 use crate::welcome::Welcome;
-use crate::widgets::KINDS;
 use nemo_px::style::Style;
 
 /// карточка выбора: сверху миниатюра, снизу имя и пояснение; выбранная — в рамке акцента
@@ -380,9 +379,9 @@ pub fn windows(ui: &mut Ui, st: &State, b: R) {
 pub fn widgets(ui: &mut Ui, st: &State, b: R) {
     let s = &st.set;
     let cw = (b.w - 24) / 3;
-    let shown: Vec<&(&str, &str)> = KINDS.iter().filter(|k| k.0 != "script").collect();
+    let shown: Vec<(&str, &str)> = crate::widgetkind::REGISTRY.iter().filter(|k| k.in_wizard).map(|k| (k.id, k.name)).collect();
     for (i, k) in shown.into_iter().enumerate() {
-        let (id, name) = *k;
+        let (id, name) = k;
         let w = s.widgets.iter().find(|w| w.kind == id);
         let act = match w {
             Some(w) => Act::SWidgetDel(w.id),
