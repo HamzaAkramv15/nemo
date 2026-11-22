@@ -4,7 +4,7 @@
 # polkit agent: nemo-agents is left off its PATH). It needs a running Wayland session; without one `nested_available` fails.
 #
 #   nested_available               returns 0 when a nested session can be started
-#   nested_start FIXTURE           FIXTURE: minimal (default settings) | realistic (dock, 3 designed widgets, the shipped reef wallpaper)
+#   nested_start FIXTURE           FIXTURE: minimal (default settings) | realistic (dock, 3 designed widgets, the shipped reef wallpaper) | bare (no widgets) | many (eight widgets)
 #                                  sets NESTED_DIR NESTED_NIRI_PID NESTED_SHELL_PID
 #   nested_stop                    stops it and removes the folder
 # The nested output is niri's default window (1280x720), not the real 1920x1080: compare fixtures with fixtures, never with the live shell.
@@ -40,6 +40,15 @@ nested_fixture_settings() {
   {"id":2,"kind":"week","on":true,"x":40,"y":60,"size":"m","frame":true,"date":true},
   {"id":3,"kind":"vitals","on":true,"x":900,"y":420,"size":"m","frame":true,"date":true}]}
 JSON
+      ;;
+    # for measuring what widgets cost: no widgets at all, and eight of them (not part of the default budget)
+    bare) echo '{"widgets":[]}' ;;
+    many)
+      python3 - <<'PY'
+import json
+kinds = ["sky", "week", "vitals", "clock", "cal", "graph", "net", "weather"]
+print(json.dumps({"widgets": [{"id": i + 1, "kind": k, "on": True, "x": 20 + (i % 4) * 300, "y": 40 + (i // 4) * 260, "size": "m", "frame": True, "date": True} for i, k in enumerate(kinds)]}))
+PY
       ;;
     *) echo "nested_fixture_settings: unknown fixture $1" >&2; return 1 ;;
   esac
