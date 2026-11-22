@@ -47,6 +47,9 @@ const DATE: Opt = Opt::Toggle { key: "date", label: "дата" };
 /// у всех видов
 pub const SIZE: Opt = Opt::Choice { key: "size", label: "размер", icon: "max", values: w::SIZES };
 pub const COLOR: Opt = Opt::Choice { key: "color", label: "цвет", icon: "image", values: w::COLORS };
+/// стиль подложки виджета: пустое значение — общий из настроек
+const PANEL_VALUES: Values = &[("", "как у всех"), ("glass", "стекло"), ("frost", "иней"), ("solid", "плотная"), ("pixel", "пиксельный"), ("outline", "контур"), ("glow", "свечение")];
+pub const PANEL: Opt = Opt::Choice { key: "panel", label: "стиль подложки", icon: "image", values: PANEL_VALUES };
 pub const FRAME: Opt = Opt::Toggle { key: "frame", label: "подложка" };
 
 pub struct Kind {
@@ -124,7 +127,7 @@ pub fn canvas(kind: &str, size: &str) -> (i32, i32) {
 pub fn options(kind: &str) -> (Vec<Opt>, Vec<Opt>) {
     let own = get(kind).map_or(&[][..], |k| k.opts);
     let mut choices: Vec<Opt> = own.iter().copied().filter(|o| !matches!(o, Opt::Toggle { .. })).collect();
-    choices.extend([SIZE, COLOR]);
+    choices.extend([SIZE, COLOR, PANEL]);
     let mut toggles = vec![FRAME];
     toggles.extend(own.iter().copied().filter(|o| matches!(o, Opt::Toggle { .. })));
     (choices, toggles)
@@ -150,6 +153,7 @@ pub fn value<'a>(w: &'a Widget, key: &str) -> &'a str {
         "anim" => &w.anim,
         "size" => &w.size,
         "color" => &w.color,
+        "panel" => &w.panel,
         _ => "",
     }
 }
@@ -228,12 +232,12 @@ mod tests {
             };
             (c.iter().map(name).collect(), t.iter().map(name).collect())
         };
-        assert_eq!(keys("graph"), (vec!["source", "style", "anim", "size", "color"], vec!["frame", "label"]));
-        assert_eq!(keys("net"), (vec!["style", "anim", "size", "color"], vec!["frame", "label"]));
-        assert_eq!(keys("media"), (vec!["style", "size", "color"], vec!["frame", "label"]));
-        assert_eq!(keys("clock"), (vec!["size", "color"], vec!["frame", "seconds", "date"]));
-        assert_eq!(keys("script"), (vec!["script", "size", "color"], vec!["frame"]));
-        assert_eq!(keys("cal"), (vec!["size", "color"], vec!["frame"]));
+        assert_eq!(keys("graph"), (vec!["source", "style", "anim", "size", "color", "panel"], vec!["frame", "label"]));
+        assert_eq!(keys("net"), (vec!["style", "anim", "size", "color", "panel"], vec!["frame", "label"]));
+        assert_eq!(keys("media"), (vec!["style", "size", "color", "panel"], vec!["frame", "label"]));
+        assert_eq!(keys("clock"), (vec!["size", "color", "panel"], vec!["frame", "seconds", "date"]));
+        assert_eq!(keys("script"), (vec!["script", "size", "color", "panel"], vec!["frame"]));
+        assert_eq!(keys("cal"), (vec!["size", "color", "panel"], vec!["frame"]));
     }
 
     #[test]

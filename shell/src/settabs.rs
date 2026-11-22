@@ -8,6 +8,7 @@ use crate::gfx::{BoxStyle, C, R};
 use crate::settings::{num_btn, opt_btn, title};
 use crate::theme::{parse_hex, PRESETS, WHITE};
 use crate::ui::{Act, Cur, Tone, Ui};
+use crate::widgetpanel;
 use crate::widgets::{self, name_of, SOURCES};
 
 pub(crate) fn tab_color(ui: &mut Ui, st: &State, b: R) {
@@ -159,8 +160,9 @@ pub(crate) fn tab_widgets(ui: &mut Ui, st: &State, b: R) {
     let y0 = title(ui, b.x, b.y, b.w, "виджеты рабочего стола");
     // готовые скрипты — кнопкой справа от заголовка: справа откроется их список (внизу левой колонки
     // его не находили). Нажатие ещё раз — назад к параметрам виджета
-    ui.button(R::new(b.right() - 210 - 6 - 130, b.y - 4, 130, 24), "раскладки", "leaf", if st.widget_layouts { Tone::Primary } else { Tone::Plain }, st.widget_layouts, true, Act::SCycle("widget_layouts"));
-    ui.button(R::new(b.right() - 210, b.y - 4, 210, 24), "готовые скрипты", "plus", if st.widget_scripts { Tone::Primary } else { Tone::Plain }, st.widget_scripts, true, Act::SCycle("widget_scripts"));
+    ui.button(R::new(b.right() - 170 - 6 - 110 - 6 - 110, b.y - 4, 110, 24), "подложки", "image", if st.widget_panels { Tone::Primary } else { Tone::Plain }, st.widget_panels, true, Act::SCycle("widget_panels"));
+    ui.button(R::new(b.right() - 170 - 6 - 110, b.y - 4, 110, 24), "раскладки", "leaf", if st.widget_layouts { Tone::Primary } else { Tone::Plain }, st.widget_layouts, true, Act::SCycle("widget_layouts"));
+    ui.button(R::new(b.right() - 170, b.y - 4, 170, 24), "готовые скрипты", "plus", if st.widget_scripts { Tone::Primary } else { Tone::Plain }, st.widget_scripts, true, Act::SCycle("widget_scripts"));
     // список слева
     let lw = 200;
     let mut y = y0;
@@ -190,6 +192,46 @@ pub(crate) fn tab_widgets(ui: &mut Ui, st: &State, b: R) {
     // параметры справа
     let px = b.x + lw + 20;
     let pw = b.right() - px;
+    if st.widget_panels {
+        // подложки: стили образцами (каждый нарисован тем же кодом, что и подложка на столе), непрозрачность, отделка и живой пример
+        let mut y = y0;
+        y += ui.wrap(PX, R::new(px, y, pw, 56), "подложка у каждого виджета своя по желанию: общий стиль здесь, свой — в параметрах виджета", t.text_dim, 3) + 4;
+        let cols = 3;
+        let gap = 8;
+        let sw = (pw - (cols - 1) * gap) / cols;
+        let sh = 72;
+        for (i, (id, name)) in widgetpanel::STYLES.iter().enumerate() {
+            let r = R::new(px + (i as i32 % cols) * (sw + gap), y + (i as i32 / cols) * (sh + 22), sw, sh);
+            widgetpanel::swatch(ui, st, id, s.widget_alpha, &s.widget_look, r);
+            let on = s.widget_panel == *id;
+            if on {
+                ui.cv.outline(r.inset(-2), t.red, 2);
+            }
+            ui.zone(r, Act::SPanelStyle(id), Cur::Pointer);
+            ui.text_center(PX, R::new(r.x, r.bottom() + 3, r.w, 16), name, if on { t.text_hi } else { t.text_dim });
+        }
+        y += 2 * (sh + 22) + 6;
+        let alpha = if s.widget_alpha == 0.0 { crate::i18n::tr("по стилю").to_string() } else { format!("{:.0}%", s.widget_alpha * 100.0) };
+        let frac = if s.widget_alpha == 0.0 { 0.0 } else { (s.widget_alpha - 0.2) / 0.8 };
+        ui.slider(R::new(px, y, pw, 40), "прозрачность подложки", frac, &alpha, 20, Act::SSlider("widget_alpha", 0.0, 1.0, 20));
+        y += 50;
+        y = title(ui, px, y, pw, "отделка");
+        let lw = (pw - 3 * 6) / 4;
+        for (i, (id, name)) in widgetpanel::LOOKS.iter().enumerate() {
+            let on = s.widget_look == *id;
+            ui.button(R::new(px + i as i32 * (lw + 6), y, lw, 26), name, "", if on { Tone::Primary } else { Tone::Plain }, on, true, Act::SPanelLook(id));
+        }
+        y += 38;
+        // живой пример: крупно, со словами, чтобы читаемость видна сразу
+        let ex = R::new(px, y, pw, 96);
+        ui.cv.fill(ex, t.surface_hi);
+        ui.cv.fill(R::new(ex.x + ex.w / 2, ex.y, ex.w - ex.w / 2, ex.h), t.red.lerp(t.bg, 0.55));
+        let card = R::new(ex.x + 16, ex.y + 14, ex.w - 32, ex.h - 28);
+        widgetpanel::paint_preview(ui, st, &s.widget_panel, s.widget_alpha, &s.widget_look, card);
+        ui.text_in(crate::font::px(32), R::new(card.x + 16, card.y + 6, card.w - 32, 40), "10:09", t.text);
+        ui.text_in(PX, R::new(card.x + 16, card.y + 46, card.w - 32, 18), "Sunday, 22 November", t.text_dim); // i18n-ok
+        return;
+    }
     if st.widget_layouts {
         // раскладки: готовые и свои; нажатие применяет (прежнее запоминается), подсказка — про ту, над которой мышь
         let layouts = crate::layouts::all();
@@ -287,22 +329,6 @@ pub(crate) fn tab_widgets(ui: &mut Ui, st: &State, b: R) {
     // для всех виджетов без подложки: читаемы на любых обоях
     y = title(ui, px, y, pw, "без подложки");
     ui.toggle(R::new(px, y, pw, 40), "в тон обоям", "на светлом — тёмный текст с тенью", s.widget_contrast, Act::SBool("widget_contrast"));
-    y += 52;
-    // рифовый вид: подложки с линией воды и пузырьками, и раскладка вокруг рыбки на обоях по умолчанию
-    y = title(ui, px, y, pw, "подложка виджетов");
-    let kind = match s.widget_panel.as_str() {
-        "solid" => "плотная",
-        "outline" => "контур",
-        _ => "стекло",
-    };
-    opt_btn(ui, R::new(px, y, pw, 26), "стиль подложки", kind, Act::SCycle("widget_panel"));
-    y += 32;
-    let alpha = if s.widget_alpha == 0.0 { crate::i18n::tr("по теме").to_string() } else { format!("{:.0}%", s.widget_alpha * 100.0) };
-    ui.slider(R::new(px, y, pw, 40), "прозрачность подложки", s.widget_alpha, &alpha, 20, Act::SSlider("widget_alpha", 0.0, 1.0, 20));
-    y += 50;
-    let look = if s.widget_look == "reef" { "рифовый" } else { "обычный" };
-    opt_btn(ui, R::new(px, y, pw, 26), "вид подложек", look, Act::SCycle("widget_look"));
-
 }
 
 /// пиксельность одним ползунком: 0 — гладко, 1 — мягче, 2 — только nemo, 3 — всё пиксельное (по умолчанию)

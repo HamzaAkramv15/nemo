@@ -74,6 +74,7 @@ pub fn set_opt(w: &mut Widget, key: &str, val: &str) {
         "anim" => w.anim = val.into(),
         "size" => w.size = val.into(),
         "color" => w.color = val.into(),
+        "panel" => w.panel = val.into(),
         "frame" => w.frame = !w.frame,
         "label" => w.label = !w.label,
         "seconds" => w.seconds = !w.seconds,
@@ -378,50 +379,19 @@ pub fn viz(ui: &mut Ui, r: R, bands: &[f32], style: &str, c: C, idle: bool) {
     }
 }
 
+/// подложка виджета и отделка (widgetpanel.rs): стиль свой или общий, непрозрачность и вид — общие
 fn panel(ui: &mut Ui, st: &State, w: &Widget, r: R) {
+    let style = crate::widgetpanel::style_of(w, st).to_string();
     if w.frame {
-        panel_box(ui, st, r);
+        crate::widgetpanel::paint(ui, st, &style, st.set.widget_alpha, r);
     }
-    // рифовые пузырьки остаются и без подложки
-    if st.set.widget_look == "reef" {
-        reef_trim(ui, r, w.frame);
-    }
+    // отделка остаётся и без подложки (пузырьки всплывают из пустого места)
+    crate::widgetpanel::decorate(ui, st, &st.set.widget_look, &style, r, w.frame);
 }
 
-/// подложка по настройкам: стекло темы / плотная / почти прозрачная с рамкой; непрозрачность — ползунок (0 — как у стекла)
-fn panel_box(ui: &mut Ui, st: &State, r: R) {
-    let t = ui.t;
-    let a = st.set.widget_alpha;
-    // рамка светлее обычной: почти чёрная линия вокруг тёмного стекла на яркой картинке выглядит дырой
-    let edge = t.border.lerp(t.text_hi, 0.16);
-    let (fill, line) = match st.set.widget_panel.as_str() {
-        "solid" => (t.panel.alpha(if a > 0.0 { a } else { 1.0 }), edge),
-        "outline" => (t.bg.alpha(if a > 0.0 { a } else { 0.14 }), t.border.lerp(t.text_hi, 0.35)),
-        _ => (if a > 0.0 { t.bg.alpha(a) } else { t.glass_bg() }, edge),
-    };
-    ui.cv.pxbox(r, &BoxStyle::new(fill, line).shadow(if st.set.widget_panel == "outline" { 0 } else { 4 }));
-    // строки развёртки — на подложке, под содержимым: поверх цифр они их режут
-    if st.set.scanlines {
-        ui.cv.scanlines_in(r, if ui.t.light { 0.06 } else { 0.22 });
-    }
-}
-
-/// карточка своих виджетов (небо, состояние, неделя): стеклянная подложка, тонкая светлая кромка сверху и короткая
-/// акцентная черта в левом верхнем углу — один и тот же вид у всех трёх, чтобы читались как один набор
-fn card(ui: &mut Ui, st: &State, w: &Widget, r: R, c: C) {
-    let t = ui.t;
-    if !w.frame {
-        if st.set.widget_look == "reef" {
-            reef_trim(ui, r, false);
-        }
-        return;
-    }
-    panel_box(ui, st, r);
-    ui.cv.fill(R::new(r.x + 2, r.y + 1, r.w - 4, 1), t.text_hi.alpha(0.16));
-    ui.cv.fill(R::new(r.x + 18, r.y, 28, 3), c);
-    if st.set.widget_look == "reef" {
-        reef_trim(ui, r, true);
-    }
+/// карточка своих виджетов (небо, состояние, неделя): та же подложка и отделка, что у всех; метку в углу даёт отделка «метка»
+fn card(ui: &mut Ui, st: &State, w: &Widget, r: R, _c: C) {
+    panel(ui, st, w, r);
 }
 
 /// небо: время крупно, под ним дата, ниже черта и погода одной строкой — всё, что смотрят утром, в одном месте
@@ -526,26 +496,6 @@ fn week_body(ui: &mut Ui, st: &State, r: R, c: C, w_small: bool) {
     }
 }
 
-/// рифовая отделка: у подложки — гладкая линия воды сверху (две сплошные черты разной яркости, без разрывов) и три пузырька
-/// в нижнем правом углу; без подложки остаются только пузырьки. Всё в целых пикселях и в цветах темы
-fn reef_trim(ui: &mut Ui, r: R, framed: bool) {
-    let t = ui.t;
-    if framed {
-        ui.cv.fill(R::new(r.x + 10, r.y + 5, r.w - 20, 1), t.text_hi.alpha(0.22));
-    }
-    // пузырьки всплывают над правым верхним углом, в запасе под всплытие (RISE) над карточкой: они не лежат на содержимом
-    let ring = |ui: &mut Ui, x: i32, y: i32, n: i32, c: C| {
-        ui.cv.fill(R::new(x + 1, y, n - 2, 1), c);
-        ui.cv.fill(R::new(x + 1, y + n - 1, n - 2, 1), c);
-        ui.cv.fill(R::new(x, y + 1, 1, n - 2), c);
-        ui.cv.fill(R::new(x + n - 1, y + 1, 1, n - 2), c);
-    };
-    let c = readable(t.red, t.bg, 4.5).alpha(0.85);
-    let (bx, by) = (r.right() - 26, r.y - 8);
-    ring(ui, bx, by, 6, c);
-    ring(ui, bx + 8, by - 6, 5, c.alpha(0.65));
-    ring(ui, bx + 15, by - 2, 4, c.alpha(0.5));
-}
 
 /// средняя яркость обоев (0..1) под прямоугольником r монитора ow×oh. Картинка обоев ложится на
 /// монитор «как обложка» (wall::cover) — тем же пересчётом; берётся сетка ~48×24 точек
@@ -1158,6 +1108,20 @@ impl App {
         let (bt, br, bb, bl) = self.bar_reserve(out);
         let top = (bt - RISE).max(0);
         (bl - MARGIN, (ow - br - ww + MARGIN).max(bl - MARGIN), top, (oh - bb - wh + MARGIN).max(top))
+    }
+
+    /// изменилось только то, что касается виджетов (подложка, отделка, параметры): перестроить виджеты и перерисовать их и окно настроек,
+    /// не гоняя весь разбор настроек. Запись на диск — не чаще раза в четверть секунды (ползунок шлёт десятки изменений в секунду)
+    pub fn widgets_changed(&mut self) {
+        self.sync_widgets();
+        self.dirty_where(|k| matches!(k, SKind::Widget(_) | SKind::Modal));
+        thread_local! {
+            static LAST: std::cell::Cell<Option<std::time::Instant>> = const { std::cell::Cell::new(None) };
+        }
+        if LAST.with(|l| l.get()).is_none_or(|t| t.elapsed().as_millis() > 250) {
+            LAST.with(|l| l.set(Some(std::time::Instant::now())));
+            self.save_now();
+        }
     }
 
     /// файл, где лежит набор виджетов и вид до последней раскладки

@@ -51,6 +51,7 @@ const TARGETS: &[&str] = &[
     "settings:widgets",
     "settings:widgets-scripts",
     "settings:widgets-layouts",
+    "settings:widgets-panels",
     "settings:startup",
     "settings:search",
     "settings:comfort",
@@ -535,6 +536,10 @@ fn shoot(st: &mut State, res: &mut Res, target: &str, path: &Path) {
             }
             if arg == "startup" {
                 crate::startup::mock();
+            }
+            if arg == "widgets-panels" {
+                st.stab = "widgets";
+                st.widget_panels = true;
             }
             if arg == "widgets-layouts" {
                 st.stab = "widgets";

@@ -74,6 +74,7 @@ mod recolor_apps;
 mod diagtab;
 mod widgetkind;
 mod layouts;
+mod widgetpanel;
 mod distro_logo;
 mod recolor_art;
 mod recolor_data;

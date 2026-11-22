@@ -200,7 +200,7 @@ impl App {
                 if let Some(w) = self.st.set.widget_mut(id) {
                     crate::widgets::set_opt(w, key, &val);
                 }
-                self.settings_changed();
+                self.widgets_changed();
             }
             MAct::Dock(id, op) => self.dock_op(id, op),
             MAct::WidgetDel(id) => {

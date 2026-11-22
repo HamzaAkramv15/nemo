@@ -265,6 +265,8 @@ pub struct State {
     pub widget_scripts: bool,
     /// справа в настройках виджетов — раскладки, а не параметры виджета
     pub widget_layouts: bool,
+    /// справа в настройках виджетов — стили подложек и отделка
+    pub widget_panels: bool,
     pub editing: bool,
     /// к какой линии креста (по x, по y) прилип виджет, который тащат: она горит на сетке
     pub snap_cross: (bool, bool),
@@ -537,6 +539,7 @@ impl State {
             layout_note: None,
             widget_scripts: false,
             widget_layouts: false,
+            widget_panels: false,
             editing: false,
             snap_cross: (false, false),
             notifs: notif::Notifs::default(),

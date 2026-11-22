@@ -2,8 +2,8 @@
   "name": "Focus",
   "about": "One quiet card in the corner: time, date and weather.",
   "about_ru": "Одна тихая карточка в углу: время, дата и погода.",
-  "look": "plain",
-  "panel": "glass",
+  "look": "accent",
+  "panel": "pixel",
   "widgets": [
     {"kind": "sky", "size": "s", "fx": 0.78, "fy": 0.06}
   ]

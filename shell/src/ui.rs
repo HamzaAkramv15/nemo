@@ -97,6 +97,10 @@ pub enum Act {
     STheme(usize),
     SThemeDel(usize),
     SWidgetAdd(&'static str),
+    /// стиль подложек виджетов (widgetpanel::STYLES)
+    SPanelStyle(&'static str),
+    /// отделка виджетов (widgetpanel::LOOKS)
+    SPanelLook(&'static str),
     /// применить раскладку виджетов номер N из `layouts::all()`
     SLayout(usize),
     /// сохранить текущие виджеты как свою раскладку

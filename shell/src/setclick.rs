@@ -402,14 +402,22 @@ impl App {
                 }
                 "open_setup" => self.welcome_open("modules"),
                 "open_welcome" => self.welcome_open("hello"),
+                "widget_panels" => {
+                    self.st.widget_panels = !self.st.widget_panels;
+                    self.st.widget_layouts = false;
+                    self.st.widget_scripts = false;
+                    self.dirty(&SKind::Modal);
+                }
                 "widget_layouts" => {
                     self.st.widget_layouts = !self.st.widget_layouts;
                     self.st.widget_scripts = false;
+                    self.st.widget_panels = false;
                     self.dirty(&SKind::Modal);
                 }
                 "widget_scripts" => {
                     self.st.widget_scripts = !self.st.widget_scripts;
                     self.st.widget_layouts = false;
+                    self.st.widget_panels = false;
                     self.dirty(&SKind::Modal);
                 }
                 "upd_page_desktop" | "upd_page_software" => {
@@ -726,6 +734,7 @@ impl App {
                 self.st.sel_widget = *id;
                 self.st.widget_scripts = false;
                 self.st.widget_layouts = false;
+                self.st.widget_panels = false;
             }
             Act::SWidgetAdd(k) => {
                 let id = s.next_widget_id();
@@ -747,6 +756,14 @@ impl App {
             Act::SStartup(i) => {
                 crate::startup::toggle(*i);
                 self.dirty(&SKind::Modal);
+            }
+            Act::SPanelStyle(v) => {
+                s.widget_panel = v.to_string();
+                self.widgets_changed();
+            }
+            Act::SPanelLook(v) => {
+                s.widget_look = v.to_string();
+                self.widgets_changed();
             }
             Act::SLayout(i) => self.apply_layout(*i),
             Act::SLayoutSave => self.save_layout(),
@@ -772,7 +789,7 @@ impl App {
                     let v = crate::widgetkind::next_value(w, key);
                     widgets::set_opt(w, key, &v);
                 }
-                self.settings_changed();
+                self.widgets_changed();
             }
             Act::SEdit => {
                 self.close_all();

@@ -70,6 +70,8 @@ pub struct Widget {
     pub text: String,
     /// id раскладки (layouts.rs), из которой виджет пришёл; пусто — поставлен вручную. Новая раскладка заменяет виджеты прежней
     pub layout: String,
+    /// стиль подложки этого виджета (widgetpanel::STYLES); пусто — общий
+    pub panel: String,
 }
 
 impl Default for Widget {
@@ -91,6 +93,7 @@ impl Default for Widget {
             date: true,
             text: String::new(),
             layout: String::new(),
+            panel: String::new(),
         }
     }
 }
@@ -397,9 +400,9 @@ pub struct Settings {
     pub widget_contrast: bool,
     /// вид подложек виджетов: plain — как есть, reef — рифовый (линия воды сверху, пузырьки в углу), под обои по умолчанию
     pub widget_look: String,
-    /// подложка виджетов: glass — стекло темы, solid — плотная, outline — почти прозрачная с рамкой
+    /// стиль подложек виджетов (widgetpanel::STYLES): glass, frost, solid, pixel, outline, glow
     pub widget_panel: String,
-    /// непрозрачность подложки 0.15…1.0; 0 — как у стекла темы
+    /// непрозрачность подложки 0.2…1.0; 0 — как задумано стилем
     pub widget_alpha: f32,
 
     /// клавиши: id из keys::BINDS → сочетание ("" — выключено); чего нет — по умолчанию
@@ -960,13 +963,13 @@ impl Settings {
                 p.clear();
             }
         }
-        if !["glass", "solid", "outline"].contains(&self.widget_panel.as_str()) {
+        if !crate::widgetpanel::valid_style(&self.widget_panel) {
             self.widget_panel = "glass".into();
         }
         if self.widget_alpha != 0.0 {
-            self.widget_alpha = self.widget_alpha.clamp(0.15, 1.0);
+            self.widget_alpha = self.widget_alpha.clamp(0.2, 1.0);
         }
-        if !["plain", "reef"].contains(&self.widget_look.as_str()) {
+        if !crate::widgetpanel::valid_look(&self.widget_look) {
             self.widget_look = "plain".into();
         }
         if !["off", "quiet", "playful"].contains(&self.personality.as_str()) {

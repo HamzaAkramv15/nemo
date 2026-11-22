@@ -20,9 +20,9 @@ pub struct Layout {
     pub name: String,
     pub about: String,
     pub about_ru: String,
-    /// plain | reef
+    /// отделка (widgetpanel::LOOKS)
     pub look: String,
-    /// glass | solid | outline
+    /// стиль подложек (widgetpanel::STYLES)
     pub panel: String,
     /// виджеты как JSON-объекты: поля `Widget` и положение в долях монитора fx, fy
     pub widgets: Vec<serde_json::Value>,
@@ -54,12 +54,8 @@ pub fn parse(id: &str, text: &str, user: bool) -> Option<Layout> {
         name: if name.is_empty() { id.to_string() } else { name },
         about: s("about"),
         about_ru: s("about_ru"),
-        look: if s("look") == "reef" { "reef".into() } else { "plain".into() },
-        panel: match s("panel").as_str() {
-            "solid" => "solid".into(),
-            "outline" => "outline".into(),
-            _ => "glass".into(),
-        },
+        look: if crate::widgetpanel::valid_look(&s("look")) { s("look") } else { "plain".into() },
+        panel: if crate::widgetpanel::valid_style(&s("panel")) { s("panel") } else { "glass".into() },
         widgets,
         user,
     })
