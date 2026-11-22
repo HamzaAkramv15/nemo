@@ -52,6 +52,17 @@ are given.
 | Pause and resume, cancel while paused | Unit-tested | a 200 MB copy stood still while paused and finished after resuming; cancel removed the half file | not tried by hand with the button |
 | Idle memory of an empty window | Tested here | `/proc` | 7.7 MB (was 15.1 MB) |
 
+## Widgets
+
+| Scenario | Status | How | Result |
+|---|---|---|---|
+| Every widget kind at small and large size | Unit-tested by pictures | 16 extra golden pictures (`tools/golden.sh`), pixel-identical across the registry and option-schema refactors | unchanged |
+| Option schema (panel, menu, click cycling) | Unit-tested | `widgetkind.rs` tests: options and order per kind, cycling and wrap | passes |
+| Layouts: parse, positions, save/load, backup round trip | Unit-tested | `layouts.rs` tests | passes |
+| Applying, restoring and saving a layout through the settings window | **Not tested by hand** | the actions are not driven by a test | manual: settings → widgets → layouts, apply Reef, then "put it back as it was" |
+| Cost of widgets | Tested here | nested fixtures 0 / 1 / 3 / 8 widgets | PSS 8.9 / 9.4 / 9.7 / 10.6 MB, anonymous memory flat at 3.1-3.2 MB, 4 wakeups/s in every case |
+| Layout on a different resolution or a second monitor | Not tested | fractions of the monitor are unit-tested; no second display | manual: apply a layout, change the scale in settings → screens |
+
 ## Battery and idle cost
 
 | Scenario | Status | How | Result |
