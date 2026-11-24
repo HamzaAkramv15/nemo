@@ -1372,4 +1372,13 @@ const PAIRS: &[(&str, &str)] = &[
     ("то же правило, без вопросов; пароль спросит окно Nemo", "the same rule, no questions; the Nemo window asks for the password"),
     ("раз в день: ставится то, что безопасно", "once a day: what is safe gets installed"),
     ("таймер выключен", "timer is off"),
+    ("таймер (кнопка с часами в оверлее)", "timer (the clock button in the overlay)"),
+    ("выкл. через, мин (0 — без срока)", "off after, min (0: none)"),
+    ("для батареи: чаще всего 80%", "for the battery: usually 80%"),
+    ("их уведомления сразу идут в историю (средняя кнопка по карточке — заглушить)", "their notifications go straight to history (middle-click a card to mute)"),
+    ("без подписи", "unsigned"),
+    ("выкл. через, мин (0=нет)", "off after, min (0=none)"),
+    ("при простое", "when idle"),
+    ("только на батарее", "on battery only"),
+    ("шрифт программ — во вкладке «шрифты», масштаб экрана — в «экраны»", "app font is in “fonts”, screen scale in “screens”"),
 ];

@@ -299,6 +299,11 @@ impl Fonts {
         None
     }
 
+    /// есть ли знак хоть в одном из шрифтов цепочки (иначе на его месте пустота)
+    pub fn has_glyph(&mut self, face: Face, ch: char) -> bool {
+        ch.is_whitespace() || ch.is_control() || self.pick(face, ch).is_some()
+    }
+
     pub fn advance(&mut self, face: Face, ch: char) -> i32 {
         if let Some(a) = self.adv_cache.get(&(face, ch)) {
             return *a;

@@ -499,10 +499,10 @@ pub(crate) fn tab_power(ui: &mut Ui, st: &State, b: R) {
     if crate::kbdlight::present() {
         let mode = match s.kbd_light.as_str() {
             "keep" => "не менять",
-            "idle" => "гаснет при простое",
-            _ => "при простое на батарее",
+            "idle" => "при простое",
+            _ => "только на батарее",
         };
-        opt_btn(ui, R::new(lx, y, half, 26), "подсветка клавиатуры", mode, Act::SCycle("kbd_light"));
+        opt_btn(ui, R::new(lx, y, half, 26), "клавиатура", mode, Act::SCycle("kbd_light"));
         opt_btn(ui, R::new(rx, y, half, 26), "гаснет через, с", &s.kbd_idle_secs.to_string(), Act::SCycle("kbd_idle"));
         y += 34;
     }
@@ -513,7 +513,7 @@ pub(crate) fn tab_power(ui: &mut Ui, st: &State, b: R) {
     // регуляторы железа, которые есть у этой машины (hw.rs): сейчас — предел заряда батареи; после выбора pkexec спросит пароль
     for c in crate::hw::controls() {
         opt_btn(ui, R::new(lx, y, half, 26), c.label, &format!("{}%", c.value), Act::HwCycle(c.provider, c.id));
-        ui.text_in(PX, R::new(rx, y + 4, half, 20), "продлевает жизнь батареи: чаще всего 80%", ui.t.text_faint);
+        ui.text_in(PX, R::new(rx, y + 4, half, 20), "для батареи: чаще всего 80%", ui.t.text_faint);
         y += 34;
     }
     y += 6;
@@ -527,7 +527,7 @@ pub(crate) fn tab_comfort(ui: &mut Ui, st: &State, b: R) {
     // кофе: не давать засыпать и гасить экран; правая кнопка на чашке в баре листает те же сроки
     let mut y = title(ui, b.x, b.y, b.w, "кофе: не засыпать");
     ui.toggle(R::new(lx, y, half, 40), "кофе", if st.caffeine.on { "вкл" } else { "выкл" }, st.caffeine.on, Act::CaffeineToggle);
-    num_btn(ui, R::new(rx, y + 6, half, 26), "кофе: выкл. через, мин (0 — без срока)", s.num("caffeine_minutes"), "caffeine_minutes");
+    num_btn(ui, R::new(rx, y + 6, half, 26), "выкл. через, мин (0=нет)", s.num("caffeine_minutes"), "caffeine_minutes");
     y += 46;
     let qw = (b.w - 4 * 6) / 5;
     for (k, (label, key)) in [("30 мин", "caffeine_30"), ("1 ч", "caffeine_60"), ("2 ч", "caffeine_120"), ("4 ч", "caffeine_240"), ("без срока", "caffeine_inf")].into_iter().enumerate() {
@@ -537,6 +537,7 @@ pub(crate) fn tab_comfort(ui: &mut Ui, st: &State, b: R) {
     ui.toggle(R::new(lx, y, b.w, 26), "кофе само", "пока окно на весь экран (видео, доклад)", s.caffeine_auto, Act::SBool("caffeine_auto"));
     y += 38;
     // не беспокоить: то же, что в уведомлениях и в игровом режиме
+    y += 8;
     ui.toggle(R::new(lx, y, half, 26), "не беспокоить", "", s.dnd, Act::SBool("dnd"));
     y += 38;
     // ночной свет: wlsunset; по координатам — от заката до восхода, иначе по часам
@@ -691,7 +692,7 @@ pub(crate) fn tab_notif(ui: &mut Ui, st: &State, b: R) {
     ui.field(R::new(b.x, y, b.w - 130, 30), &st.muted_field, "программы через запятую: steam, discord", mf, false, Act::SField("notif_muted"));
     ui.button(R::new(b.right() - 120, y + 2, 120, 26), "применить", "check", Tone::Primary, false, true, Act::SCycle("muted_apply"));
     y += 38;
-    ui.text_in(PX, R::new(b.x, y, b.w, 20), "их уведомления не всплывают, а сразу идут в историю (средняя кнопка по карточке — заглушить программу)", ui.t.text_faint);
+    ui.text_in(PX, R::new(b.x, y, b.w, 20), "их уведомления сразу идут в историю (средняя кнопка по карточке — заглушить)", ui.t.text_faint);
     y += 34;
     y = title(ui, b.x, y, b.w, "остров");
     ui.toggle(R::new(b.x, y, b.w, 40), "остров", "уведомления и громкость вверху по центру, пилюлей под баром", s.island, Act::SBool("island"));
@@ -847,7 +848,7 @@ pub(crate) fn tab_shots(ui: &mut Ui, st: &State, b: R) {
     ui.toggle(R::new(b.x + half + 20, y, half, 40), "уведомление", "с миниатюрой и кнопками", c.notify, Act::SBool("shot_notify"));
     y += 50;
     let d = crate::tf!("{} с", "{} s", "{} s", c.delay);
-    opt_btn(ui, R::new(b.x, y, b.w, 26), "таймер (кнопка ◷ в оверлее)", &d, Act::SCycle("shot_delay"));
+    opt_btn(ui, R::new(b.x, y, b.w, 26), "таймер (кнопка с часами в оверлее)", &d, Act::SCycle("shot_delay"));
     y += 32;
     let conf = if c.confirm == "instant" { "сразу, как отпустил мышь" } else { "пробелом или enter" };
     opt_btn(ui, R::new(b.x, y, b.w, 26), "снимок", conf, Act::SCycle("shot_confirm"));
@@ -942,7 +943,7 @@ pub(crate) fn tab_access(ui: &mut Ui, st: &State, b: R) {
     ui.toggle(R::new(b.x, y, half, 40), "высокая контрастность", "контраст ≥ 7:1, без прозрачности", s.high_contrast, Act::SBool("high_contrast"));
     ui.toggle(R::new(b.x + half + 20, y, half, 40), "меньше движения", "без анимаций", s.reduce_motion, Act::SBool("reduce_motion"));
     y += 52;
-    ui.text_in(PX, R::new(b.x, y, b.w, 20), "размер шрифта программ — во вкладке «шрифты»; размер экрана — «экраны» (масштаб)", t.text_faint);
+    ui.text_in(PX, R::new(b.x, y, b.w, 20), "шрифт программ — во вкладке «шрифты», масштаб экрана — в «экраны»", t.text_faint);
     y += 34;
     y = title(ui, b.x, y, b.w, "клавиатура");
     for (k, v) in [("tab / shift+tab", "по элементам окна"), ("enter · пробел", "нажать выбранное"), ("← →", "ползунок меньше · больше"), ("ctrl+z", "отменить последнее изменение настроек"), ("esc", "закрыть окно или выйти из поля")] {

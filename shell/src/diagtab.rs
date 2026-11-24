@@ -121,16 +121,16 @@ pub(crate) fn tab_diag(ui: &mut Ui, st: &State, b: R) {
         "off" => "выключена: подпись не проверяется",
         _ => "по ключам: проверяю, когда ключи есть",
     };
-    ui.text_in(PX, R::new(b.x, y, 120, 22), "подпись выпусков", t.text_faint);
-    ui.text_in(PX, R::new(b.x + 130, y, b.w - 130, 22), policy, if st.set.update_verify == "off" { t.warn } else { t.text });
+    ui.text_in(PX, R::new(b.x, y, 150, 22), "проверка подписей", t.text_faint);
+    ui.text_in(PX, R::new(b.x + 160, y, b.w - 160, 22), policy, if st.set.update_verify == "off" { t.warn } else { t.text });
     y += 24;
-    ui.text_in(PX, R::new(b.x, y, 120, 22), "установки вопреки подписи", t.text_faint);
+    ui.text_in(PX, R::new(b.x, y, 150, 22), "без подписи", t.text_faint);
     let (txt, col) = if d.overrides == 0 {
         (crate::i18n::tr("не было").to_string(), t.text)
     } else {
         (crate::tf!("{}; последнее: {}", "{}; the last: {}", "{}; a última: {}", d.overrides, d.last_override), t.warn)
     };
-    ui.text_in(PX, R::new(b.x + 130, y, b.w - 130, 22), &txt, col);
+    ui.text_in(PX, R::new(b.x + 160, y, b.w - 160, 22), &txt, col);
     y += 34;
     ui.button(R::new(b.x, y, half, 28), "обновить сведения", "reboot", Tone::Plain, false, true, Act::SCycle("diag_refresh"));
     ui.button(R::new(b.x + half + 12, y, half, 28), "создать отчёт для issue", "save", Tone::Primary, false, true, Act::SCycle("diag_report"));

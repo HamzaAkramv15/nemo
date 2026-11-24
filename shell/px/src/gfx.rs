@@ -152,6 +152,8 @@ pub struct Laid {
 static LAYER: std::sync::atomic::AtomicU32 = std::sync::atomic::AtomicU32::new(0);
 static WATCH: std::sync::atomic::AtomicBool = std::sync::atomic::AtomicBool::new(false);
 static LAID: std::sync::Mutex<Vec<Laid>> = std::sync::Mutex::new(Vec::new());
+/// знаки без глифа в надписях, нарисованных под наблюдением: (знак, надпись) — на их месте была бы пустота
+static NOGLYPH: std::sync::Mutex<Vec<(char, String)>> = std::sync::Mutex::new(Vec::new());
 
 /// начать (или бросить) запись текстов; в обычной работе выключено и стоит один atomic load
 pub fn watch_text(on: bool) {
@@ -172,8 +174,8 @@ pub fn text_layer() {
 /// числу строк, вылезла за свой клип, налезла на другую надпись того же слоя (тень той же строки — не наложение)
 pub fn fit_report() -> Vec<String> {
     let laid = take_text();
+    let mut out: Vec<String> = NOGLYPH.lock().map(|mut m| std::mem::take(&mut *m)).unwrap_or_default().into_iter().map(|(c, s)| format!("no glyph «{c}» (U+{:04X}) in «{s}»", c as u32)).collect();
     let vis: Vec<(R, &Laid)> = laid.iter().map(|l| (l.r.inter(&l.clip), l)).filter(|(r, _)| r.w > 0 && r.h > 0).collect();
-    let mut out = vec![];
     for (_, l) in &vis {
         if l.cut && (l.s.contains("~/") || l.s.starts_with('/')) {
             // длинный путь и должен сокращаться многоточием
@@ -979,6 +981,22 @@ impl<'a> Canvas<'a> {
             self.glyphs(fonts, face, x + d, y + d, s, sh);
         }
         let w = self.glyphs(fonts, face, x, y, s, c);
+        if WATCH.load(std::sync::atomic::Ordering::Relaxed) {
+            // знак без глифа (или с пустым) — пустота на экране: в отчёт `shot --fit`
+            // невидимые по замыслу знаки (соединитель эмодзи, селекторы начертания, нулевая ширина, метки направления) глифа не имеют
+            // эмодзи и арабское письмо берут системные шрифты: в проверочной среде их нет, и это не ошибка надписи
+            let system_font = |c: &char| matches!(*c as u32, 0x0600..=0x06FF | 0x0750..=0x077F | 0xFB50..=0xFDFF | 0xFE70..=0xFEFF | 0x1F000..=0x1FAFF | 0x2600..=0x27BF);
+            let invisible = |c: &char| system_font(c) || matches!(*c as u32, 0x200B..=0x200F | 0x202A..=0x202E | 0x2060..=0x2064 | 0xFE00..=0xFE0F | 0xE0100..=0xE01EF);
+            for ch in s.chars().filter(|c| !c.is_whitespace() && !c.is_control() && !invisible(c)) {
+                if !fonts.glyph(face, ch).is_some_and(|g| g.w > 0) {
+                    if let Ok(mut m) = NOGLYPH.lock() {
+                        if !m.iter().any(|(c, _)| *c == ch) {
+                            m.push((ch, s.chars().take(40).collect()));
+                        }
+                    }
+                }
+            }
+        }
         if WATCH.load(std::sync::atomic::Ordering::Relaxed) && w > 0 {
             let r = R::new(x + self.ox, y + self.oy, w, fonts.line(face));
             if let Ok(mut l) = LAID.lock() {

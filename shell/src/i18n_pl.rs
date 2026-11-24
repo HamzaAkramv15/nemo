@@ -1732,4 +1732,13 @@ const PL: &[(&str, &str)] = &[
     ("the same rule, no questions; the Nemo window asks for the password", "ta sama reguła, bez pytań; hasło poda się w oknie Nemo"),
     ("once a day: what is safe gets installed", "raz dziennie: instaluje się to, co bezpieczne"),
     ("timer is off", "timer wyłączony"),
+    ("timer (the clock button in the overlay)", "timer (przycisk zegara w nakładce)"),
+    ("off after, min (0: none)", "wył. po, min (0: bez limitu)"),
+    ("for the battery: usually 80%", "dla baterii: zwykle 80%"),
+    ("their notifications go straight to history (middle-click a card to mute)", "ich powiadomienia trafiają od razu do historii (środkowy przycisk na karcie wycisza)"),
+    ("unsigned", "bez podpisu"),
+    ("off after, min (0=none)", "wył. po, min (0=nigdy)"),
+    ("when idle", "przy bezczynności"),
+    ("on battery only", "tylko na baterii"),
+    ("app font is in “fonts”, screen scale in “screens”", "czcionka programów w „czcionki”, skala ekranu w „ekrany”"),
 ];

@@ -45,6 +45,10 @@ pub fn controls_in(root: &Path) -> Vec<Control> {
 }
 
 pub fn controls() -> Vec<Control> {
+    // картинки для сравнения (кадр времени заморожен) не зависят от батареи этой машины: образец с пределом 80 %
+    if std::env::var_os("NEMO_FROZEN_NOW").is_some() {
+        return vec![Control { provider: "battery", id: "charge_limit", label: "предел заряда", value: "80".into(), choices: CHARGE_CHOICES }];
+    }
     controls_in(Path::new("/sys/class/power_supply"))
 }
 

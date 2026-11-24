@@ -57,6 +57,7 @@ const TARGETS: &[&str] = &[
     "settings:startup",
     "settings:search",
     "settings:comfort",
+    "settings:power",
     "settings:updates-software",
     "settings:region",
     "settings:look",
@@ -540,9 +541,15 @@ fn shoot(st: &mut State, res: &mut Res, target: &str, path: &Path) {
                 st.sys_upd.fam = Some((crate::sysupd::Family::Fedora, "Fedora Linux 45".to_string()));
                 st.sys_upd.found = Some(crate::sysupd::Found { total: 383, safe: Some(357), held: vec![("the base of the system".into(), 9), ("graphics drivers".into(), 8), ("boot and kernel".into(), 7), ("our own session".into(), 1), ("major version 0 -> 1".into(), 1)], err: String::new() });
             }
+            // поиск виден только на своей картинке: иначе он тянется в каждую следующую (state общий на весь прогон) и вместо вкладки рисуются результаты
             if arg == "search" {
                 st.search_field.set("caff");
                 st.field_focus = Some("set_search");
+            } else {
+                st.search_field.set("");
+                if st.field_focus == Some("set_search") {
+                    st.field_focus = None;
+                }
             }
             if arg == "startup" {
                 crate::startup::mock();

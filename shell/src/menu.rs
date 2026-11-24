@@ -132,7 +132,7 @@ pub fn draw(ui: &mut Ui, st: &State, w: i32, h: i32) {
         let c = if !it.enabled { t.text_faint } else if hov { t.text_hi } else { t.text };
         ui.text_in(PX, R::new(r.x + 28, r.y, r.w - 46, r.h), &it.label, c);
         if !it.children.is_empty() {
-            ui.text_right(PX, R::new(r.x, r.y, r.w - 6, r.h), "▸", t.text_dim);
+            ui.cv.icon("right", r.right() - 16, r.cy() - 3, 1, t.text_dim);
         }
         if it.enabled {
             ui.zone(r, if i == 0 && m.stack.len() > 1 { Act::MenuBack } else { Act::Menu(i) }, Cur::Pointer);

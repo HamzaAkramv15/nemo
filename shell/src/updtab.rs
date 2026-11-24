@@ -296,8 +296,11 @@ fn desktop_tab(ui: &mut Ui, st: &State, b: R) {
         room -= bw + 8;
         if !i.sig_ok(&s.update_verify) {
             let label = if u.confirm_force { "точно? ещё раз" } else { "ставить всё равно" };
-            ui.button(R::new(b.right() - bw * 2 - 8, y - 2, bw, 24), label, "down", if u.confirm_force { Tone::Primary } else { Tone::Plain }, false, u.busy.is_none(), Act::SCycle("update_force"));
-            room -= bw + 8;
+            // ширина по надписи: переводы разной длины («ставить всё равно», «install anyway», «trotzdem installieren»)
+            let lt = (ui.tr)(label).to_string();
+            let fw = (ui.w(px, &lt) + 44).max(bw);
+            ui.button(R::new(b.right() - bw - 8 - fw, y - 2, fw, 24), label, "down", if u.confirm_force { Tone::Primary } else { Tone::Plain }, false, u.busy.is_none(), Act::SCycle("update_force"));
+            room -= fw + 8;
         }
     }
     let shown = ui.f.elide(px, &line, room.max(60));
