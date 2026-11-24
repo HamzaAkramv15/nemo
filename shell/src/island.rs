@@ -80,6 +80,8 @@ pub fn pick(st: &State) -> Pick<'_> {
 thread_local! {
     /// последняя нарисованная таблетка: какое уведомление, с какой ширины оно начало раскрываться, какой ширины сейчас и когда
     static LAST: std::cell::Cell<Option<(u32, i32, i32, std::time::Instant)>> = const { std::cell::Cell::new(None) };
+    /// самая узкая таблетка за время ухода (для проверки, что она сжимается, а не пропадает): -1 — уход не шёл
+    static LEAVE_MIN: std::cell::Cell<i32> = const { std::cell::Cell::new(-1) };
 }
 
 /// с какой ширины раскрывается таблетка уведомления `id`: если секунду назад на баре была таблетка другого уведомления — с её ширины
@@ -92,12 +94,18 @@ fn pill_start(id: u32, full: i32) -> i32 {
     }
 }
 
+/// ширина уходящей таблетки: от полной к 45 % по мере ухода gone (0..1), всё быстрее к концу
+pub fn leave_width(full: i32, gone: f32) -> i32 {
+    let k = 1.0 - gone.clamp(0.0, 1.0) * gone.clamp(0.0, 1.0);
+    (full as f32 * (0.45 + 0.55 * k)).round() as i32
+}
+
 /// для сквозной проверки (testdrive.rs): какое уведомление на таблетке, с какой ширины она начала раскрываться, какая сейчас и сколько мс прошло с последней отрисовки
 pub fn debug_state(st: &State) -> String {
     let shown = shows(st) as u8;
     match LAST.with(|l| l.get()) {
-        Some((id, start, cur, at)) => format!("{id} {start} {cur} {} {shown}", at.elapsed().as_millis()),
-        None => format!("none 0 0 0 {shown}"),
+        Some((id, start, cur, at)) => format!("{id} {start} {cur} {} {shown} {}", at.elapsed().as_millis(), LEAVE_MIN.with(|m| m.get())),
+        None => format!("none 0 0 0 {shown} -1"),
     }
 }
 
@@ -154,12 +162,12 @@ pub fn draw(ui: &mut Ui, st: &State, w: i32, bar_h: i32, span: (i32, i32)) {
             // раскрытие: с ширины прежней таблетки (или 45%) до полной; уход: сжатие и угасание
             let start = pill_start(n.id, full);
             let cur = if gone > 0.0 {
-                let k = 1.0 - gone * gone;
-                (full as f32 * (0.45 + 0.55 * k)).round() as i32
+                leave_width(full, gone)
             } else {
                 (start as f32 + (full - start) as f32 * e).round() as i32
             };
             pill_remember(n.id, start, cur);
+            LEAVE_MIN.with(|m| m.set(if gone > 0.0 { if m.get() < 0 { cur } else { m.get().min(cur) } } else { -1 }));
             let prev_opacity = ui.cv.opacity;
             if gone > 0.0 {
                 ui.cv.opacity = prev_opacity * (1.0 - gone * gone);
@@ -238,6 +246,15 @@ pub fn draw(ui: &mut Ui, st: &State, w: i32, bar_h: i32, span: (i32, i32)) {
 
 #[cfg(test)]
 mod tests {
+    #[test]
+    fn a_leaving_pill_shrinks_steadily_to_45_percent() {
+        let w: Vec<i32> = (0..=10).map(|i| super::leave_width(300, i as f32 / 10.0)).collect();
+        assert_eq!(w[0], 300);
+        assert_eq!(*w.last().unwrap(), 135);
+        assert!(w.windows(2).all(|p| p[1] <= p[0]), "never grows: {w:?}");
+        assert!(w[5] < w[1], "and visibly shrinks in the middle");
+    }
+
     #[test]
     fn the_pill_stays_inside_the_free_part_of_a_crowded_bar() {
         assert_eq!(super::span_pill(300, (0, 1920), 1920), (810, 300), "empty bar: centred");

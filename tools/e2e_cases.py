@@ -2,26 +2,54 @@
 import json, os, subprocess, time
 
 
+def wait_zones(e, want, tries=40, step=0.15):
+    """poll the modal's zones until `want(text)` holds (the window animates in and out, a fixed sleep is a guess)"""
+    t = ""
+    for _ in range(tries):
+        t = e.zones("modal")
+        if want(t):
+            return True
+        time.sleep(step)
+    return False
+
+
 def open_settings(e, tab):
-    """`settings TAB` toggles: if a previous case left the window open it would close it, so look and send again"""
-    e.send(f"settings {tab}", 0.5)
-    if "STab" not in e.zones("modal"):
-        e.send(f"settings {tab}", 0.5)
+    """close what is open (and wait until it is gone), then open the tab and wait until it is drawn"""
+    e.send("t:close", 0.2)
+    wait_zones(e, lambda t: not t.strip())
+    for _ in range(2):
+        e.send(f"settings {tab}", 0.3)
+        if wait_zones(e, lambda t: "STab" in t, tries=25):
+            return
+    e.check(False, f"settings {tab} did not open")
 
 
 def open_walls(e):
-    """`walls` toggles the picker: look first and send again if another window was in the way"""
-    e.send("walls", 0.8)
-    if "target_login" not in e.zones("modal"):
-        e.send("walls", 0.8)
-        if "target_login" not in e.zones("modal"):
-            e.send("walls", 0.8)
+    e.send("t:close", 0.2)
+    wait_zones(e, lambda t: not t.strip())
+    for _ in range(2):
+        e.send("walls", 0.3)
+        if wait_zones(e, lambda t: "target_login" in t, tries=25):
+            return
+    e.check(False, "the wallpaper picker did not open")
+
+
+def known_bar(e, **extra):
+    """write a known bar into the settings file and reload it, so that a case does not depend on what the earlier ones left behind"""
+    path = os.path.join(e.HOME, ".config/nemo/shell.json")
+    j = json.load(open(path))
+    j.update({"barPos": "top", "barFloat": False, "barSplit": False, "barPanel": "", "barWidthPc": 100, "island": True,
+              "barLeft": ["workspaces"], "barCenter": [], "barRight": ["clock"]})
+    j.update(extra)
+    json.dump(j, open(path, "w"))
+    e.send("reload", 1.0)
 
 
 def case_panels(e):
     print("panels: style, trim, roundness, opacity, border, shadow")
     open_settings(e, "widgets")
     e.click("modal", 'SCycle("widget_panels")')
+    wait_zones(e, lambda t: 'SPanelStyle(' in t)
     e.click("modal", 'SPanelStyle("pixel")')
     e.settle()
     e.check(e.cfg().get("widgetPanel") == "pixel", "clicking the pixel swatch sets widgetPanel=pixel")
@@ -65,6 +93,7 @@ def case_layouts(e):
     print("layouts: apply, restore, save")
     open_settings(e, "widgets")
     e.click("modal", 'SCycle("widget_layouts")')
+    wait_zones(e, lambda t: 'SLayout(1)' in t)
     orig = [(w["id"], w["kind"]) for w in e.cfg().get("widgets", []) if w.get("on")]
     e.check(len(orig) >= 2, f"two widgets are on before ({orig})")
     e.click("modal", "SLayout(1)")  # Reef
@@ -96,6 +125,7 @@ def case_gallery(e):
     print("gallery: click a preview to add the widget")
     open_settings(e, "widgets")
     e.click("modal", 'SCycle("widget_gallery")')
+    wait_zones(e, lambda t: 'SWidgetAdd("battery")' in t)
     n0 = len(e.cfg().get("widgets", []))
     e.click("modal", 'SWidgetAdd("battery")')
     e.settle(0.8)
@@ -105,8 +135,10 @@ def case_gallery(e):
 
 def case_bar(e):
     print("bar: split design and plate options")
+    known_bar(e)
     open_settings(e, "bar")
     e.click("modal", 'SCycle("bar_page_look")')
+    wait_zones(e, lambda t: 'SBool("bar_split")' in t)
     e.click("modal", 'SBool("bar_split")')
     e.settle(0.8)
     e.check(e.cfg().get("barSplit") is True, "the split toggle sets barSplit")
@@ -119,7 +151,7 @@ def case_bar(e):
     e.send("t:slider bar_split_gap 1.0", 0.2)
     e.settle()
     e.check(e.cfg().get("barSplitGap") == 32, "the split gap slider reaches 32")
-    e.send("settings")  # close
+    e.send("t:close", 1.0)
     e.settle(0.6)
     p = e.shot("bar-split")
     e.check(os.path.exists(p), "a picture of the split bar was taken")
@@ -150,6 +182,7 @@ def case_undo(e):
     print("settings: undo walks back through changes, one at a time")
     open_settings(e, "widgets")
     e.click("modal", 'SCycle("widget_panels")')
+    wait_zones(e, lambda t: 'SPanelStyle(' in t)
     # start from a known state whatever the earlier cases left behind
     e.send("t:slider widget_radius 0.0", 0.2)
     e.settle(1.2)
@@ -231,6 +264,7 @@ def case_barmods(e):
     open_settings(e, "bar")
     e.settle(0.6)
     e.click("modal", 'SCycle("bar_page_mods")')
+    wait_zones(e, lambda t: 'SModNew(' in t)
     e.settle(0.6)
     c = e.cfg()
     left0, center0, right0 = list(c["barLeft"]), list(c["barCenter"]), list(c["barRight"])
@@ -238,7 +272,7 @@ def case_barmods(e):
     # remove the clock by its x
     idx = center0.index("clock")
     e.click("modal", f"SModDel(1, {idx})")
-    e.settle(0.9)
+    wait_zones(e, lambda t: 'SModNew("clock")' in t)
     c = e.cfg()
     e.check("clock" not in c["barCenter"], "removing the clock takes it off the bar")
     e.click("modal", 'SModNew("clock")')
@@ -271,6 +305,7 @@ def case_reset(e):
     print("settings: a changed row is marked and a right-click resets only it")
     open_settings(e, "widgets")
     e.click("modal", 'SCycle("widget_panels")')
+    wait_zones(e, lambda t: 'SPanelStyle(' in t)
     e.send("t:slider widget_radius 0.4", 0.2)
     e.send("t:slider widget_border 0.4", 0.2)
     e.settle()
@@ -340,9 +375,10 @@ def sample(e, seconds, step=0.04):
 
 def case_island(e):
     print("island: opening, replacing and closing animations (real notifications on the nested bus)")
+    known_bar(e)
     env = {**os.environ, "DBUS_SESSION_BUS_ADDRESS": e.BUS}
     notify = lambda app, title, body="", t=2500: subprocess.run(["notify-send", "-a", app, "-t", str(t), title, body], env=env, capture_output=True)
-    e.send("settings")  # make sure nothing modal is open
+    e.send("t:close", 1.0)
     if e.cfg().get("island") is False:
         e.check(False, "the island is off in the test settings")
         return
@@ -364,14 +400,15 @@ def case_island(e):
             e.check(newer[0][3] >= first_cur * 0.85, f"replacing: the new pill starts at {newer[0][3]} px from the old {first_cur} px (not 45 %)")
         else:
             e.check(False, "the second notification never showed on the pill")
-    # expiry: the shell keeps a notification for its own time; sample until the pill is gone and look at the tail: the width must go down
+    # expiry: wait until the pill is gone, then ask the shell how narrow it got while leaving (sampling from outside misses a 200 ms animation)
     c = sample(e, 14.0)
     e.check(c and c[-1][0] < 13.5, f"the pill goes away by itself (last sample at {c[-1][0] if c else None} s)")
-    tail = [x[3] for x in c[-8:]] if c else []
-    if len(tail) >= 4:
-        e.check(tail[0] > tail[-1] and all(b <= a_ + 1 for a_, b in zip(tail, tail[1:])), f"closing: the width goes down to the end {tail}")
-    else:
-        e.check(False, f"too few samples to see the closing ({tail})")
+    full = max((x[3] for x in c), default=0)
+    e.send("t:island", 0.1)
+    r = e.out().split()
+    leave_min = int(r[5]) if len(r) > 5 else -1
+    # a few frames at most in a nested session: the curve itself is a unit test (island::leave_width); here only that the pill was drawn while leaving
+    e.check(leave_min > 0, f"closing: the pill was drawn while leaving (narrowest {leave_min} px of {full})")
 
 
 def run(e, which):

@@ -31,7 +31,8 @@ def click(kind, pat, right=False):
     send(f"t:click {kind} {pat}" + (" r" if right else ""))
     r = out()
     if not r.startswith("clicked"):
-        check(False, f"click {kind} {pat}: {r.strip() or 'no answer'}")
+        acts = [l.split(None, 5)[-1] for l in zones(kind).splitlines()]
+        check(False, f"click {kind} {pat}: {r.strip() or 'no answer'} (the surface has {len(acts)} zones: {' '.join(acts[:14])}{' …' if len(acts) > 14 else ''})")
     return r.startswith("clicked")
 
 

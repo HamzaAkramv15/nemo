@@ -562,15 +562,21 @@ impl Settings {
                 out.push(c);
             }
         }
-        let cur = serde_json::to_value(self).ok()?;
-        cur.get(&out).is_some().then_some(out)
+        defaults_json().contains_key(&out).then_some(out)
+    }
+
+    /// все настройки, что отличаются от заводских: одним проходом (окно настроек зовёт это раз за кадр, а не на каждую строку)
+    pub fn modified_set(&self) -> std::collections::HashSet<String> {
+        let d = defaults_json();
+        match serde_json::to_value(self) {
+            Ok(serde_json::Value::Object(cur)) => cur.into_iter().filter(|(k, v)| d.get(k) != Some(v)).map(|(k, _)| k).collect(),
+            _ => Default::default(),
+        }
     }
 
     /// эта настройка отличается от заводской
     pub fn modified(&self, key: &str) -> bool {
-        let Some(k) = self.json_key(key) else { return false };
-        let defaults = serde_json::to_value(Settings::default()).unwrap_or_default();
-        serde_json::to_value(self).ok().is_some_and(|cur| cur.get(&k) != defaults.get(&k))
+        self.json_key(key).is_some_and(|k| self.modified_set().contains(&k))
     }
 
     /// вернуть одну настройку к заводской (правый щелчок по строке); false — такой нет или она и так заводская
@@ -610,6 +616,15 @@ impl Settings {
         }
         n
     }
+}
+
+/// заводские значения всех настроек одним объектом, посчитанные один раз на процесс
+fn defaults_json() -> &'static serde_json::Map<String, serde_json::Value> {
+    static D: std::sync::OnceLock<serde_json::Map<String, serde_json::Value>> = std::sync::OnceLock::new();
+    D.get_or_init(|| match serde_json::to_value(Settings::default()) {
+        Ok(serde_json::Value::Object(m)) => m,
+        _ => Default::default(),
+    })
 }
 
 /// проходы и смещение размытия niri по силе 1–8: слабее — мягкая дымка, сильнее — матовое стекло

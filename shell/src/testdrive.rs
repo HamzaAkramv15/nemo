@@ -4,6 +4,7 @@
 //   zones KIND            — записать зоны поверхности (x y w h Act) в $XDG_RUNTIME_DIR/nemo-test-out.txt
 //   click KIND ТЕКСТ [r]  — нажать (r — правой кнопкой) первую сверху зону, чей Act содержит ТЕКСТ
 //   slider КЛЮЧ ЗНАЧЕНИЕ  — выставить ползунок настроек так, как это делает перетаскивание
+//   close                 — закрыть все окна, панели и меню (чистое начало случая)
 //   bardrag SIDE:INDEX|new:ID TOSIDE TOINDEX — перетащить фишку модуля бара (вкладка бар → модули)
 //   nav next|prev|activate|left|right — обход с клавиатуры в окне настроек; пишет выбранный узел
 //   tree                  — дерево доступности окна настроек
@@ -59,6 +60,7 @@ impl App {
                     }
                 }
             }
+            Some("close") => self.close_all(),
             Some("bardrag") => {
                 // bardrag SIDE INDEX|new:ID  TOSIDE TOINDEX — как перетаскивание фишки в окне настроек (bartab.rs): места берутся из рядов последнего кадра
                 let (Some(from), Some(ts), Some(ti)) = (it.next(), it.next().and_then(|v| v.parse::<usize>().ok()), it.next().and_then(|v| v.parse::<usize>().ok())) else { return };

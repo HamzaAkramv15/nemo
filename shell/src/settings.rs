@@ -293,7 +293,8 @@ pub fn draw(ui: &mut Ui, st: &State, w: i32, h: i32) {
         crate::setindex::draw_results(ui, st, R::new(body.x, body.y - off, body.w, body.h));
     }
     // отмеченные строки: настройка не заводская — точка слева; правый щелчок по строке возвращает её (setclick.rs)
-    let marks: Vec<R> = ui.zones[z0..].iter().filter(|z| z.act.setting_key().is_some_and(|k| st.set.modified(k))).map(|z| z.r).collect();
+    let changed = st.set.modified_set();
+    let marks: Vec<R> = ui.zones[z0..].iter().filter(|z| z.act.setting_key().and_then(|k| st.set.json_key(k)).is_some_and(|k| changed.contains(&k))).map(|z| z.r).collect();
     for r in marks {
         ui.cv.fill(R::new(r.x - 4, r.y + 3, 3, r.h.min(16) - 6), t.red);
     }
