@@ -9,6 +9,14 @@
   nemo-fedora-update --hold NAME ...   hold more packages back for this run (shell patterns: 'python3*')
   nemo-fedora-update --held     list the rules that hold packages back
   nemo-fedora-update --json     the check as one line of JSON (for the settings page): safe, held, total, held_by
+  nemo-fedora-update --when-safe        install what is safe NOW, and the held ones too when the moment is safe for them:
+                                       on AC power, no game running, no other package manager, enough free disk, a snapshot to roll
+                                       back to, and the package has been out for 3 days (--min-age-days N). Asks nothing; for a timer.
+                                       Major version jumps and our own session (niri, pipewire, NetworkManager…) are never taken by it.
+  nemo-fedora-update --when-safe --no-snapshot-ok   do not require the snapshot (the held ones then cannot be rolled back that way)
+  nemo-fedora-update --when-safe --dry-run     only say what it would do, and why not when it would not (add --json for one line)
+  nemo-fedora-update --when-safe --notify      also tell the desktop what happened (notify-send)
+  nemo-fedora-update --timer on|off|status     a user timer that runs --when-safe --notify once a day (off by default)
 
 What is held back, and why (a held package is not skipped for good: update it yourself when you can reboot):
   boot and kernel      kernel*, kmod-*, akmod-*, grub2*, shim*, dracut*, linux-firmware*, microcode_ctl
@@ -35,6 +43,12 @@ HOLD = [
     ("our own session", ["niri*", "xdg-desktop-portal*", "pipewire*", "wireplumber*", "pulseaudio*", "NetworkManager*", "bluez*", "greetd*"]),
 ]
 LOG = os.path.expanduser("~/.local/state/nemo/fedora-update.log")
+# when each upgrade was built (unix time), filled by upgrades(): the age rule of --when-safe
+BUILT = {}
+# what --when-safe may take from the held groups; a major version jump and our own session are never in it
+AUTO_HELD = ("boot and kernel", "graphics drivers", "the base of the system")
+MIN_AGE_DAYS = 3
+MIN_FREE_GB = 4
 
 
 def out(cmd, check=False):
@@ -66,18 +80,30 @@ def major(v):
 
 def upgrades():
     """(name, new version, arch, repo) for everything dnf would upgrade"""
-    raw = out(["dnf", "repoquery", "--upgrades", "--refresh", "--qf", "%{name}|%{version}|%{arch}|%{repoid}\n"])
+    raw = out(["dnf", "repoquery", "--upgrades", "--refresh", "--qf", "%{name}|%{version}|%{arch}|%{repoid}|%{buildtime}\n"])
     rows = []
     for line in raw.splitlines():
         p = line.split("|")
-        if len(p) == 4 and p[0] and not line.startswith((" ", "Updating", "Repositories")):
-            rows.append(tuple(p))
+        if len(p) == 5 and p[0] and not line.startswith((" ", "Updating", "Repositories")):
+            rows.append(tuple(p[:4]))
+            BUILT[p[0]] = parse_time(p[4])
     return rows
 
 
 def installed_version(name):
     v = out(["rpm", "-q", "--qf", "%{VERSION}\n", name]).split()
     return v[0] if v else ""
+
+
+def parse_time(v):
+    """dnf prints the build time as epoch seconds, or a date; 0 when unknown (unknown age counts as too young)"""
+    v = v.strip()
+    if v.isdigit():
+        return int(v)
+    try:
+        return int(time.mktime(time.strptime(v[:19], "%Y-%m-%d %H:%M:%S")))
+    except ValueError:
+        return 0
 
 
 def classify(rows, extra):
@@ -118,6 +144,164 @@ def snapshot():
     return False
 
 
+# ── --when-safe: is this a safe moment, and which held updates have settled ─────────────────────────────────────────────────────────
+
+def readings():
+    """what the machine says right now; every field is plain data so that the decision below can be tested"""
+    ps = "/sys/class/power_supply"
+    ac, bat = None, []
+    try:
+        for d in sorted(os.listdir(ps)):
+            kind = open(f"{ps}/{d}/type").read().strip()
+            if kind == "Mains":
+                ac = (ac or False) or open(f"{ps}/{d}/online").read().strip() == "1"
+            elif kind == "Battery":
+                bat.append(int(open(f"{ps}/{d}/capacity").read().strip()))
+    except (OSError, ValueError):
+        pass
+    gm = subprocess.run(["gamemoded", "-s"], capture_output=True, text=True) if shutil.which("gamemoded") else None
+    busy = lambda *names: any(subprocess.run(["pgrep", "-x", n], capture_output=True).returncode == 0 for n in names)
+    steam_game = subprocess.run(["pgrep", "-f", "SteamLaunch"], capture_output=True).returncode == 0
+    return {
+        "on_battery": bool(bat) and not ac,
+        "battery": min(bat) if bat else None,
+        "game": bool(gm and "is active" in gm.stdout) or steam_game,
+        "pm_running": busy("dnf", "dnf5", "rpm", "yum"),
+        "free_gb": shutil.disk_usage("/").free / 2**30,
+        "snapshot": bool(shutil.which("snapper")) and out(["findmnt", "-no", "FSTYPE", "/"]).strip() == "btrfs",
+    }
+
+
+def blockers(r):
+    """why this is not a safe moment for the held updates; empty means it is"""
+    why = []
+    if r["on_battery"]:
+        why.append(f"on battery ({r['battery']}%): plug in the charger")
+    if r["game"]:
+        why.append("a game is running")
+    if r["pm_running"]:
+        why.append("another package manager is running")
+    if r["free_gb"] < MIN_FREE_GB:
+        why.append(f"only {r['free_gb']:.1f} GB free: need {MIN_FREE_GB}")
+    if not r["snapshot"]:
+        why.append("no snapshot to roll back to (snapper on a btrfs root)")
+    return why
+
+
+def settled(name, now, min_age_days):
+    """built long enough ago that a bad update would have been pulled by now"""
+    t = BUILT.get(name, 0)
+    return t > 0 and now - t >= min_age_days * 86400
+
+
+def plan(safe, held, r, now, min_age_days=MIN_AGE_DAYS):
+    """(install, postponed, why_not): the safe set always; held packages only from AUTO_HELD, on a safe moment, once they have settled"""
+    install = dict(safe)
+    postponed = {}
+    why = blockers(r)
+    for name, v in held.items():
+        group = v[2]
+        if group not in AUTO_HELD:
+            postponed[name] = (group, "needs you: " + ("log out afterwards" if group == "our own session" else "a major version jump"))
+        elif why:
+            postponed[name] = (group, "; ".join(why))
+        elif not settled(name, now, min_age_days):
+            postponed[name] = (group, f"out for less than {min_age_days} days")
+        else:
+            install[name] = v
+    return install, postponed, why
+
+
+def priv():
+    """sudo asks in the terminal; with no terminal (a timer) pkexec asks through the desktop's password window"""
+    return ["sudo"] if sys.stdin.isatty() else ["pkexec"]
+
+
+def notify(title, body):
+    if shutil.which("notify-send"):
+        subprocess.run(["notify-send", "-a", "nemo", "-i", "system-software-update", title, body])
+
+
+TIMER_DIR = os.path.expanduser("~/.config/systemd/user")
+UNIT = "nemo-safe-update"
+
+
+def timer(arg):
+    svc, tmr = f"{TIMER_DIR}/{UNIT}.service", f"{TIMER_DIR}/{UNIT}.timer"
+    if arg == "status":
+        print("on" if os.path.exists(tmr) else "off")
+        return 0
+    if arg == "off":
+        subprocess.run(["systemctl", "--user", "disable", "--now", f"{UNIT}.timer"], capture_output=True)
+        for f in (svc, tmr):
+            if os.path.exists(f):
+                os.remove(f)
+        subprocess.run(["systemctl", "--user", "daemon-reload"], capture_output=True)
+        print("the timer is off")
+        return 0
+    if arg != "on":
+        print("nemo-fedora-update --timer on|off|status")
+        return 2
+    exe = os.path.realpath(sys.argv[0])
+    os.makedirs(TIMER_DIR, exist_ok=True)
+    open(svc, "w").write(f"[Unit]\nDescription=Nemo: install updates when the moment is safe\n\n[Service]\nType=oneshot\nExecStart={exe} --when-safe --notify\n")
+    open(tmr, "w").write(f"[Unit]\nDescription=Nemo: safe updates, once a day\n\n[Timer]\nOnCalendar=daily\nRandomizedDelaySec=2h\nPersistent=true\n\n[Install]\nWantedBy=timers.target\n")
+    subprocess.run(["systemctl", "--user", "daemon-reload"], capture_output=True)
+    r = subprocess.run(["systemctl", "--user", "enable", "--now", f"{UNIT}.timer"], capture_output=True, text=True)
+    print("the timer is on: once a day it installs what is safe" if r.returncode == 0 else f"could not start the timer: {r.stderr.strip()}")
+    return r.returncode
+
+
+def when_safe(argv, extra):
+    import json
+    dry = "--dry-run" in argv
+    min_age = MIN_AGE_DAYS
+    if "--min-age-days" in argv:
+        try:
+            min_age = int(argv[argv.index("--min-age-days") + 1])
+        except (IndexError, ValueError):
+            pass
+    rows = upgrades()
+    safe, held = classify(rows, extra)
+    r = readings()
+    # you may accept that the held ones cannot be rolled back by a snapshot (dnf history undo is what is left)
+    if "--no-snapshot-ok" in argv:
+        r["snapshot"] = True
+    install, postponed, why = plan(safe, held, r, int(time.time()), min_age)
+    result = {"install": sorted(install), "postponed": {n: p[1] for n, p in sorted(postponed.items())}, "moment_safe": not why, "blockers": why}
+    if "--json" in argv:
+        print(json.dumps(result))
+    else:
+        print(f"{len(safe)} safe updates, {len(held)} held: this run would install {len(install)}, postpone {len(postponed)}.")
+        for w in why:
+            print(f"  not a safe moment for the held ones: {w}")
+        by = {}
+        for n, (g, reason) in postponed.items():
+            by.setdefault(reason, []).append(n)
+        for reason, names in sorted(by.items()):
+            print(f"  postponed ({len(names)}): {', '.join(sorted(names)[:6])}{' …' if len(names) > 6 else ''}: {reason}")
+    if dry or not install:
+        if not install and "--json" not in argv:
+            print("nothing to install now.")
+        log(f"when-safe: dry={dry} install={len(install)} postponed={len(postponed)} blockers={why}")
+        return 0 if install or not rows else 3
+    exclude = [p for _, pats in HOLD for p in pats if not any(fnmatch.fnmatch(n, p) for n in install)] + extra
+    held_taken = [n for n in install if n in held]
+    if held_taken and shutil.which("snapper"):
+        subprocess.run(priv() + ["snapper", "create", "--description", "nemo: before held updates", "--cleanup-algorithm", "number"])
+    cmd = priv() + ["dnf", "upgrade", "--assumeyes", "--exclude=" + ",".join(exclude)] + sorted(install)
+    log(f"when-safe apply: {len(install)} packages, {len(held_taken)} of them were held")
+    rc = subprocess.run(cmd).returncode
+    log(f"when-safe apply: dnf exited {rc}")
+    if "--notify" in argv:
+        if rc == 0:
+            tail = f", {len(held_taken)} of them were held back until now" if held_taken else ""
+            notify("Updates installed", f"{len(install)} packages{tail}. " + ("A reboot is advised." if held_taken else ""))
+        else:
+            notify("Updates did not install", "dnf stopped without finishing; nothing is half-installed. Run nemo-fedora-update --when-safe in a terminal.")
+    return rc
+
+
 def main(argv):
     if "-h" in argv or "--help" in argv:
         print(__doc__)
@@ -130,9 +314,14 @@ def main(argv):
     if not is_fedora():
         print("nemo-fedora-update works on Fedora (and systems built on it) with dnf; this is not one.")
         return 2
+    if "--timer" in argv:
+        i = argv.index("--timer")
+        return timer(argv[i + 1] if i + 1 < len(argv) else "")
     extra = []
     if "--hold" in argv:
         extra = [a for a in argv[argv.index("--hold") + 1:] if not a.startswith("--")]
+    if "--when-safe" in argv:
+        return when_safe(argv, extra)
     as_json = "--json" in argv
     if not as_json:
         print("asking the repositories what is new…")

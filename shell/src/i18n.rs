@@ -1364,4 +1364,12 @@ const PAIRS: &[(&str, &str)] = &[
     ("красная точка в баре, пока идёт запись; щелчок останавливает", "a red dot in the bar while recording; click to stop"),
     ("батарея и профили питания, блокировка, сон, подсветка клавиатуры", "battery and power profiles, lock, sleep, keyboard backlight"),
     ("устройства", "devices"),
+    ("раздельный бар плавает всегда", "a split bar always floats"),
+    ("только у бара сверху или снизу", "only for a top or bottom bar"),
+    ("ставить удержанное, когда безопасно", "install held ones when it is safe"),
+    ("питание, игра, место, снимок, возраст пакета", "power, game, space, snapshot, age of the package"),
+    ("проверять раз в день и ставить само", "check once a day and install by itself"),
+    ("то же правило, без вопросов; пароль спросит окно Nemo", "the same rule, no questions; the Nemo window asks for the password"),
+    ("раз в день: ставится то, что безопасно", "once a day: what is safe gets installed"),
+    ("таймер выключен", "timer is off"),
 ];

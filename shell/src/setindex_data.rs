@@ -11,6 +11,8 @@ pub const INDEX: &[Entry] = &[
     Entry { tab: "comfort", label: "кофе само", kw: "caffeine auto automatic fullscreen video presentation keep awake while watching" },
     Entry { tab: "region", label: "номера недель", kw: "week numbers iso calendar number of the week" },
     Entry { tab: "notif", label: "остров", kw: "island dynamic island notch pill notifications osd top centre center bar" },
+    Entry { tab: "updates", label: "проверять раз в день и ставить само", kw: "safe updates timer automatic install daily when safe fedora held kernel nvidia" },
+    Entry { tab: "updates", label: "ставить удержанное, когда безопасно", kw: "install held back updates when safe kernel driver snapshot battery game" },
     Entry { tab: "updates", label: "обновления системы", kw: "system updates distro distribution packages dnf pacman apt zypper upgrade fedora arch debian ubuntu safe held back kernel" },
     Entry { tab: "updates", label: "дистрибутив", kw: "distro distribution os fedora arch debian ubuntu opensuse" },
     Entry { tab: "updates", label: "обновить в терминале", kw: "update upgrade packages terminal sudo dnf" },

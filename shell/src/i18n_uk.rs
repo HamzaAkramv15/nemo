@@ -1724,4 +1724,12 @@ const UK: &[(&str, &str)] = &[
     ("a red dot in the bar while recording; click to stop", "червона крапка в барі під час запису; клік зупиняє"),
     ("battery and power profiles, lock, sleep, keyboard backlight", "батарея й профілі живлення, блокування, сон, підсвітка клавіатури"),
     ("devices", "пристрої"),
+    ("a split bar always floats", "розділений бар завжди плаває"),
+    ("only for a top or bottom bar", "лише для бару вгорі або внизу"),
+    ("install held ones when it is safe", "ставити утримане, коли безпечно"),
+    ("power, game, space, snapshot, age of the package", "живлення, гра, місце, знімок, вік пакета"),
+    ("check once a day and install by itself", "перевіряти раз на день і ставити саме"),
+    ("the same rule, no questions; the Nemo window asks for the password", "те саме правило, без питань; пароль питає вікно Nemo"),
+    ("once a day: what is safe gets installed", "раз на день: ставиться те, що безпечно"),
+    ("timer is off", "таймер вимкнено"),
 ];

@@ -94,6 +94,8 @@ if command -v shellcheck >/dev/null; then
   shellcheck -S error -x "$ROOT"/install.sh "$ROOT"/installer/*.sh "$ROOT"/installer/lang/*.sh "$ROOT"/tools/*.sh "$ROOT"/packaging/*.sh || bad "shellcheck"
 fi
 ok "scripts parsed"
+# the update helper's decisions (nemo-fedora-update --when-safe): pure logic, no dnf, no root
+python3 -B "$ROOT/tools/test_fedora_update.py" >"$TMP/fedora-update.log" 2>&1 && ok "update helper: when is it safe" || { tail -20 "$TMP/fedora-update.log"; bad "tools/test_fedora_update.py"; }
 
 # checks of a local checkout that are not part of the repository
 if [[ -x $ROOT/tools/check.local.sh ]]; then

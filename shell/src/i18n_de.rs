@@ -1724,4 +1724,12 @@ const DE: &[(&str, &str)] = &[
     ("a red dot in the bar while recording; click to stop", "roter Punkt in der Leiste bei Aufnahme; Klick stoppt"),
     ("battery and power profiles, lock, sleep, keyboard backlight", "Akku und Energieprofile, Sperre, Ruhezustand, Tastaturbeleuchtung"),
     ("devices", "Geräte"),
+    ("a split bar always floats", "eine geteilte Leiste schwebt immer"),
+    ("only for a top or bottom bar", "nur bei einer Leiste oben oder unten"),
+    ("install held ones when it is safe", "Zurückgehaltenes installieren, wenn es sicher ist"),
+    ("power, game, space, snapshot, age of the package", "Strom, Spiel, Platz, Snapshot, Alter des Pakets"),
+    ("check once a day and install by itself", "einmal täglich prüfen und selbst installieren"),
+    ("the same rule, no questions; the Nemo window asks for the password", "dieselbe Regel, ohne Fragen; das Nemo-Fenster fragt das Passwort"),
+    ("once a day: what is safe gets installed", "einmal täglich: was sicher ist, wird installiert"),
+    ("timer is off", "Timer ist aus"),
 ];

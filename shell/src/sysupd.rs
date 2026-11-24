@@ -158,6 +158,11 @@ pub fn start(st: &mut State, tx: Sender<Msg>, force: bool) {
     });
 }
 
+/// включён ли суточный таймер «ставить, когда безопасно» (его юнит лежит в пользовательском systemd)
+pub fn safe_timer_on() -> bool {
+    nemo_px::paths::config_dir().join("systemd/user/nemo-safe-update.timer").exists()
+}
+
 /// что произойдёт по кнопке «обновить»: шаги для семейства (на языке интерфейса)
 pub fn steps(family: Family) -> Vec<String> {
     let mut v = vec![crate::tf!("откроется терминал: каждый шаг у тебя на глазах", "a terminal opens: you see every step", "um terminal abre: você vê cada passo")];
@@ -232,6 +237,15 @@ pub fn tab(ui: &mut Ui, st: &State, b: R) {
             y += 6;
             ui.text_in(PX, R::new(b.x, y, b.w, 20), "их ставишь сам, когда можно перезагрузиться: nemo-fedora-update --held", t.text_faint);
             y += 28;
+            // умный путь: сам проверяет, безопасен ли сейчас момент (питание, игра, место, снимок, возраст пакета), и ставит то, что прошло
+            if fam == Family::Fedora && f.safe.is_some() {
+                ui.button(R::new(b.x, y, 300, 28), "ставить удержанное, когда безопасно", "check", Tone::Primary, false, !s.checking, Act::SCycle("sysupd_run_safe"));
+                ui.text_in(PX, R::new(b.x + 312, y + 4, b.w - 312, 20), "питание, игра, место, снимок, возраст пакета", t.text_faint);
+                y += 36;
+                let on = safe_timer_on();
+                ui.toggle(R::new(b.x, y, b.w, 40), "проверять раз в день и ставить само", "то же правило, без вопросов; пароль спросит окно Nemo", on, Act::SCycle("safe_timer"));
+                y += 50;
+            }
             // уверен — можно всё сразу: снимок перед этим всё равно делается, терминал переспросит
             if fam == Family::Fedora && f.safe.is_some() {
                 ui.button(R::new(b.x, y, 300, 28), "ставить и удержанное тоже", "down", Tone::Plain, false, !s.checking, Act::SCycle("sysupd_run_all"));

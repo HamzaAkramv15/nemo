@@ -478,6 +478,19 @@ impl App {
                     App::spawn(&[nemo_px::paths::self_exe().to_string_lossy().to_string(), "report".into(), "-o".into(), file.to_string_lossy().to_string()]);
                     self.toast_note("состояние", &crate::tf!("отчёт: {}", "report: {}", "relatório: {}", nemo_px::paths::pretty(&file)));
                 }
+                "sysupd_run_safe" => {
+                    // решает сам скрипт: что поставит, что отложит и почему; терминал остаётся открытым, пока читаешь итог
+                    let line = "nemo-fedora-update --when-safe; printf '\\n[Enter]'; read _".to_string();
+                    App::spawn(&crate::launcher::in_term(vec!["sh".into(), "-c".into(), line]));
+                    self.st.sys_upd.found = None;
+                }
+                "safe_timer" => {
+                    // таймер — юнит systemd пользователя; включает и выключает сам скрипт, шелл только смотрит, есть ли файл
+                    let arg = if crate::sysupd::safe_timer_on() { "off" } else { "on" };
+                    App::spawn(&["nemo-fedora-update".to_string(), "--timer".to_string(), arg.to_string()]);
+                    self.toast_note("обновления", if arg == "on" { "раз в день: ставится то, что безопасно" } else { "таймер выключен" });
+                    self.dirty(&SKind::Modal);
+                }
                 "sysupd_run_all" => {
                     // всё, включая удержанное (ядро, драйверы, основа): человек уверен; терминал переспросит, снимок делается
                     let line = "nemo-fedora-update --apply --include-held; printf '\\n[Enter]'; read _".to_string();
@@ -778,9 +791,9 @@ impl App {
                 // клик (не перетаскивание): в привычное место
                 let m = m.to_string();
                 let m = &m;
-                if m == "tasks" {
+                if m == "clock" {
                     s.bar_center.push(m.clone());
-                } else if matches!(m.as_str(), "launcher" | "workspaces" | "mode") {
+                } else if matches!(m.as_str(), "tasks" | "launcher" | "workspaces" | "mode") {
                     s.bar_left.push(m.clone());
                 } else {
                     // справа — перед настройками и питанием

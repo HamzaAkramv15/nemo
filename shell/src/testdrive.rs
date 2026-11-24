@@ -4,12 +4,15 @@
 //   zones KIND            — записать зоны поверхности (x y w h Act) в $XDG_RUNTIME_DIR/nemo-test-out.txt
 //   click KIND ТЕКСТ [r]  — нажать (r — правой кнопкой) первую сверху зону, чей Act содержит ТЕКСТ
 //   slider КЛЮЧ ЗНАЧЕНИЕ  — выставить ползунок настроек так, как это делает перетаскивание
+//   bardrag SIDE:INDEX|new:ID TOSIDE TOINDEX — перетащить фишку модуля бара (вкладка бар → модули)
 //   nav next|prev|activate|left|right — обход с клавиатуры в окне настроек; пишет выбранный узел
 //   tree                  — дерево доступности окна настроек
 //   island                — id уведомления на таблетке, начальная и текущая ширина, мс с последней отрисовки, показана ли таблетка сейчас (1/0)
 // KIND: modal | bar | popup | dock | menu | widget:ID. Нажатие идёт тем же путём, что и мышь (`on_click`), с центром зоны.
 
 use crate::app::{App, SKind};
+use crate::gfx::R;
+use crate::ui::Act;
 
 fn kind_of(k: &str) -> Option<SKind> {
     Some(match k {
@@ -55,6 +58,28 @@ impl App {
                         let _ = std::fs::write(&out, format!("no zone matches {pat}\n"));
                     }
                 }
+            }
+            Some("bardrag") => {
+                // bardrag SIDE INDEX|new:ID  TOSIDE TOINDEX — как перетаскивание фишки в окне настроек (bartab.rs): места берутся из рядов последнего кадра
+                let (Some(from), Some(ts), Some(ti)) = (it.next(), it.next().and_then(|v| v.parse::<usize>().ok()), it.next().and_then(|v| v.parse::<usize>().ok())) else { return };
+                let rects = self.st.bar_ed.rects.borrow().clone();
+                let areas = self.st.bar_ed.areas.get();
+                // точка назначения: правее середины i-й фишки ряда, а пустой ряд — левый край ряда
+                let (x, y) = match rects.iter().filter(|r| r.0 == ts).nth(ti.saturating_sub(1)).filter(|_| ti > 0) {
+                    Some((_, _, r)) => (r.right() + 4, r.cy()),
+                    None => (areas[ts].x + 10, areas[ts].y + 12),
+                };
+                let act = match from.strip_prefix("new:") {
+                    Some(id) => Act::SModNew(id.to_string()),
+                    None => {
+                        let Some((si, i)) = from.split_once(':').and_then(|(a, b)| Some((a.parse().ok()?, b.parse().ok()?))) else { return };
+                        Act::SModDrag(si, i)
+                    }
+                };
+                let zone = R::new(x - 20, y - 10, 40, 20);
+                self.bar_drag(&act, zone, (x as f64, y as f64), x as f64, y as f64);
+                self.bar_drag(&act, zone, (x as f64, y as f64), x as f64 + 1.0, y as f64);
+                self.bar_drop();
             }
             Some("nav") => {
                 use crate::a11y::Nav;

@@ -1766,4 +1766,12 @@ const AR: &[(&str, &str)] = &[
     ("a red dot in the bar while recording; click to stop", "نقطة حمراء في الشريط أثناء التسجيل؛ انقر للإيقاف"),
     ("battery and power profiles, lock, sleep, keyboard backlight", "البطارية وأوضاع الطاقة والقفل والسكون وإضاءة لوحة المفاتيح"),
     ("devices", "الأجهزة"),
+    ("a split bar always floats", "الشريط المنفصل عائم دائمًا"),
+    ("only for a top or bottom bar", "فقط للشريط في الأعلى أو الأسفل"),
+    ("install held ones when it is safe", "ثبّت المؤجَّل عندما يكون ذلك آمنًا"),
+    ("power, game, space, snapshot, age of the package", "الطاقة واللعبة والمساحة واللقطة وعمر الحزمة"),
+    ("check once a day and install by itself", "تحقق مرة في اليوم وثبّت تلقائيًا"),
+    ("the same rule, no questions; the Nemo window asks for the password", "القاعدة نفسها بلا أسئلة؛ نافذة Nemo تطلب كلمة المرور"),
+    ("once a day: what is safe gets installed", "مرة في اليوم: يُثبَّت ما هو آمن"),
+    ("timer is off", "المؤقّت متوقف"),
 ];

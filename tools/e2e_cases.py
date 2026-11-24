@@ -220,6 +220,53 @@ def case_keyboard(e):
         e.check(bool(changed), f"the right arrow moved the slider one step (changed: {sorted(changed)})")
 
 
+def case_barmods(e):
+    print("bar modules: remove, add by click, add by drag, reorder by drag")
+    # the fixture has a tiny bar for the island tests: put the chosen default setup in place and reload
+    path = os.path.join(e.HOME, ".config/nemo/shell.json")
+    j = json.load(open(path))
+    j.update({"barLeft": ["launcher", "sep", "workspaces", "sep", "mode", "tasks"], "barCenter": ["clock"], "barRight": ["sep", "net", "bt", "kb", "vol", "bat", "profile", "caffeine", "sep", "power"]})
+    json.dump(j, open(path, "w"))
+    e.send("reload", 1.0)
+    open_settings(e, "bar")
+    e.settle(0.6)
+    e.click("modal", 'SCycle("bar_page_mods")')
+    e.settle(0.6)
+    c = e.cfg()
+    left0, center0, right0 = list(c["barLeft"]), list(c["barCenter"]), list(c["barRight"])
+    e.check("clock" in center0 and "tasks" in left0, f"the default bar is the chosen setup (left {left0}, center {center0})")
+    # remove the clock by its x
+    idx = center0.index("clock")
+    e.click("modal", f"SModDel(1, {idx})")
+    e.settle(0.9)
+    c = e.cfg()
+    e.check("clock" not in c["barCenter"], "removing the clock takes it off the bar")
+    e.click("modal", 'SModNew("clock")')
+    e.settle(0.9)
+    c = e.cfg()
+    e.check("clock" in c["barCenter"], f"clicking add puts the clock back in the middle (center {c['barCenter']})")
+    # drag the weather module from the add list into the left group, after the first chip
+    e.send("t:bardrag new:weather 0 1", 0.6)
+    e.settle(0.9)
+    c = e.cfg()
+    e.check(len(c["barLeft"]) == len(left0) + 1 and "weather" in c["barLeft"], f"dragging a new module into the left group inserts it (left {c['barLeft']})")
+    i = c["barLeft"].index("weather")
+    # drag it to the right group start: it must leave the left group exactly once
+    e.send(f"t:bardrag 0:{i} 2 0", 0.6)
+    e.settle(0.9)
+    c = e.cfg()
+    e.check("weather" not in c["barLeft"] and c["barRight"].count("weather") == 1, f"moving it to the right group moves it, not copies it (left {c['barLeft']}, right {c['barRight']})")
+    e.check(len(c["barLeft"]) == len(left0), "the left group is back to its length")
+    # reorder inside a group: move the first chip to the end of the same group
+    first = c["barRight"][0]
+    n = len(c["barRight"])
+    e.send(f"t:bardrag 2:0 2 {n}", 0.6)
+    e.settle(0.9)
+    c2 = e.cfg()
+    e.check(sorted(c2["barRight"]) == sorted(c["barRight"]), "reordering inside a group keeps every module")
+    e.check(c2["barRight"][-1] == first, f"the first chip went to the end (right {c2['barRight']})")
+
+
 def case_reset(e):
     print("settings: a changed row is marked and a right-click resets only it")
     open_settings(e, "widgets")
@@ -328,7 +375,7 @@ def case_island(e):
 
 
 def run(e, which):
-    cases = {"panels": case_panels, "tiles": case_tiles, "layouts": case_layouts, "gallery": case_gallery, "bar": case_bar, "island": case_island, "wallpapers": case_wallpapers, "reset": case_reset, "undo": case_undo, "keyboard": case_keyboard, "record": case_record}
+    cases = {"panels": case_panels, "tiles": case_tiles, "layouts": case_layouts, "gallery": case_gallery, "bar": case_bar, "island": case_island, "wallpapers": case_wallpapers, "reset": case_reset, "undo": case_undo, "keyboard": case_keyboard, "barmods": case_barmods, "record": case_record}
     e.HOME = e.HOME
     names = list(cases) if which == ["all"] else which
     for n in names:
