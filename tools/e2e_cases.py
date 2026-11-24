@@ -141,6 +141,11 @@ def case_undo(e):
     print("settings: undo walks back through changes, one at a time")
     open_settings(e, "widgets")
     e.click("modal", 'SCycle("widget_panels")')
+    # start from a known state whatever the earlier cases left behind
+    e.send("t:slider widget_radius 0.0", 0.2)
+    e.settle(1.2)
+    e.send("t:slider widget_border 0.0", 0.2)
+    e.settle(1.2)
     e.send("t:slider widget_radius 0.4", 0.2)
     e.settle(1.5)
     e.send("t:slider widget_border 0.4", 0.2)
