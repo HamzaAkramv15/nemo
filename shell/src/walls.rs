@@ -49,8 +49,19 @@ impl Drop for Worker {
     }
 }
 
+/// кому достанется выбранная картинка
+#[derive(Default, Clone, Copy, PartialEq, Eq, Debug)]
+pub enum Target {
+    #[default]
+    Desktop,
+    Login,
+    Both,
+}
+
 #[derive(Default)]
 pub struct Walls {
+    /// для: стол, вход или оба (переживает повторное открытие выбора)
+    pub target: Target,
     /// номер открытия: ответы прошлого открытия выбрасываются
     pub gen: u64,
     pub dir: PathBuf,
@@ -181,6 +192,18 @@ pub fn draw(ui: &mut Ui, st: &State, w: i32, h: i32) {
     ui.frame(fr, false);
     ui.header(R::new(1, 1, fr.w - 2, 30), "image", "обои", "");
     ui.ghost(R::new(fr.right() - 28, 5, 24, 22), "close", Act::WallsBack);
+    // кому: столу, экрану входа или обоим — выбор ниже ляжет туда
+    let chips = [("стол", "target_desktop", Target::Desktop), ("логин", "target_login", Target::Login), ("оба", "target_both", Target::Both)];
+    // ширина — по надписи: переводы разной длины (escritorio, connexion, les deux)
+    let ws: Vec<i32> = chips.iter().map(|c| { let l = (ui.tr)(c.0).to_string(); ui.w(PX, &l) + 22 }).collect();
+    let mut tx = fr.right() - 28 - ws.iter().sum::<i32>() - 4 * 3 - 6;
+    let lab = (ui.tr)("применять к:").to_string();
+    let lw = ui.w(PX, &lab);
+    ui.text_in(PX, R::new(tx - lw - 8, 6, lw + 4, 20), &lab, t.text_faint);
+    for ((label, act, me), w) in chips.into_iter().zip(ws) {
+        ui.button(R::new(tx, 5, w, 22), label, "", Tone::Plain, wl.target == me, true, Act::SWall(act));
+        tx += w + 4;
+    }
     // папка — как есть (путь не переводится), кнопки справа
     let (b1, b2) = (126, 156);
     let bx = fr.right() - GX - b1 - b2 - 8;
@@ -199,7 +222,11 @@ pub fn draw(ui: &mut Ui, st: &State, w: i32, h: i32) {
     let mut hovered = None;
     for i in window(wl.top, wl.tiles.len(), 0) {
         let Some(r) = tile_rect(i, wl.top) else { continue };
-        let on = !skwd && if i == 0 { own.is_none() } else { own.as_deref() == Some(wl.tiles[i].as_path()) };
+        let on = if wl.target == Target::Login {
+            if i == 0 { st.set.greet_wall == "pixel" } else { st.set.greet_wall == "image" && crate::login::own_file(&st.set).as_deref() == Some(wl.tiles[i].as_path()) }
+        } else {
+            !skwd && if i == 0 { own.is_none() } else { own.as_deref() == Some(wl.tiles[i].as_path()) }
+        };
         let hov = ui.hover(r);
         if hov {
             hovered = Some(i);
@@ -290,7 +317,7 @@ impl App {
             }
         }
         let gen = self.st.walls.gen + 1;
-        self.st.walls = Walls { gen, back, pick: crate::proc::have("nemo-files"), ..Default::default() };
+        self.st.walls = Walls { gen, back, target: self.st.walls.target, pick: crate::proc::have("nemo-files"), ..Default::default() };
         let (wd, cur, tx) = (self.st.set.wall_dir.clone(), crate::wall::own(&self.st.set), self.tx.clone());
         let _ = std::thread::Builder::new().name("walls-list".into()).spawn(move || {
             let d = dir(&wd, cur.as_deref());
@@ -398,10 +425,23 @@ impl App {
 
     /// поставить обои отсюда (пусто — пиксельные): выбор здесь главнее skwd-wall
     fn walls_set(&mut self, p: &str) {
-        if self.st.skwd_drives() {
-            self.st.set.wall_skwd = false;
+        let target = self.st.walls.target;
+        if target != Target::Login {
+            if self.st.skwd_drives() {
+                self.st.set.wall_skwd = false;
+            }
+            self.set_wall(p);
         }
-        self.set_wall(p);
+        if target != Target::Desktop {
+            // экран входа: пиксельные из палитры (клетка 0) или своя картинка
+            if p.is_empty() {
+                self.st.set.greet_wall = "pixel".into();
+            } else {
+                self.st.set.greet_wall = "image".into();
+                self.st.set.greet_wall_file = nemo_px::paths::expand(p).to_string_lossy().to_string();
+            }
+            self.settings_changed();
+        }
     }
 
     /// клетка выбрана: пиксельные (0) или картинка

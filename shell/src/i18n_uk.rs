@@ -1675,4 +1675,12 @@ const UK: &[(&str, &str)] = &[
     ("gap between plates", "проміжок між плашками"),
     ("plate style", "стиль плашки"),
     ("Record the screen (again to stop)", "запис екрана (ще раз — стоп)"),
+    ("apply to:", "застосувати до:"),
+    ("both", "обидва"),
+    ("not chosen", "не обрано"),
+    ("choose the login picture", "обрати картинку входу"),
+    ("login", "логін"),
+    ("setting reset", "налаштування скинуто"),
+    ("right-click a row to restore its factory value", "правий клік по рядку повертає заводське значення"),
+    ("login screen wallpaper…", "шпалери екрана входу…"),
 ];

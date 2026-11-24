@@ -42,6 +42,16 @@ impl App {
             self.close_menu();
             return;
         }
+        // правый щелчок по строке настроек, которая не заводская, возвращает её (в окне остаётся точка у строк, что отличаются)
+        if button == 0x111 && kind == Some(SKind::Modal) && self.st.modal == Some(Modal::Settings) {
+            if let Some(k) = a.setting_key() {
+                if self.st.set.reset_key(k) {
+                    self.settings_changed();
+                    self.toast_note("настройка возвращена", "правый щелчок по строке возвращает её заводское значение");
+                    return;
+                }
+            }
+        }
         if self.settings_click(&a) {
             return;
         }

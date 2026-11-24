@@ -1675,4 +1675,12 @@ const DE: &[(&str, &str)] = &[
     ("gap between plates", "Abstand zwischen Feldern"),
     ("plate style", "Feldstil"),
     ("Record the screen (again to stop)", "Bildschirm aufnehmen (erneut: stopp)"),
+    ("apply to:", "anwenden auf:"),
+    ("both", "beide"),
+    ("not chosen", "nicht gewählt"),
+    ("choose the login picture", "Anmeldebild wählen"),
+    ("login", "Login"),
+    ("setting reset", "Einstellung zurückgesetzt"),
+    ("right-click a row to restore its factory value", "Rechtsklick auf die Zeile stellt den Werkswert wieder her"),
+    ("login screen wallpaper…", "Hintergrund der Anmeldung…"),
 ];

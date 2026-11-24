@@ -2,9 +2,16 @@
 import json, os, subprocess, time
 
 
+def open_settings(e, tab):
+    """`settings TAB` toggles: if a previous case left the window open it would close it, so look and send again"""
+    e.send(f"settings {tab}", 0.5)
+    if "STab" not in e.zones("modal"):
+        e.send(f"settings {tab}", 0.5)
+
+
 def case_panels(e):
     print("panels: style, trim, roundness, opacity, border, shadow")
-    e.send("settings widgets")
+    open_settings(e, "widgets")
     e.click("modal", 'SCycle("widget_panels")')
     e.click("modal", 'SPanelStyle("pixel")')
     e.settle()
@@ -20,6 +27,8 @@ def case_panels(e):
     e.send("t:slider widget_radius 0.0", 0.2)
     e.settle()
     e.check(e.cfg().get("widgetRadius") == -1, "far-left roundness means -1 (as the style intends)")
+    e.niri("action", "toggle-hotkey-overlay")
+    e.settle(0.5)
     e.shot("panels-pixel-reef")
 
 
@@ -45,7 +54,7 @@ def case_tiles(e):
 
 def case_layouts(e):
     print("layouts: apply, restore, save")
-    e.send("settings widgets")
+    open_settings(e, "widgets")
     e.click("modal", 'SCycle("widget_layouts")')
     orig = [(w["id"], w["kind"]) for w in e.cfg().get("widgets", []) if w.get("on")]
     e.check(len(orig) >= 2, f"two widgets are on before ({orig})")
@@ -76,7 +85,7 @@ def case_layouts(e):
 
 def case_gallery(e):
     print("gallery: click a preview to add the widget")
-    e.send("settings widgets")
+    open_settings(e, "widgets")
     e.click("modal", 'SCycle("widget_gallery")')
     n0 = len(e.cfg().get("widgets", []))
     e.click("modal", 'SWidgetAdd("battery")')
@@ -87,7 +96,7 @@ def case_gallery(e):
 
 def case_bar(e):
     print("bar: split design and plate options")
-    e.send("settings bar")
+    open_settings(e, "bar")
     e.click("modal", 'SCycle("bar_page_look")')
     e.click("modal", 'SBool("bar_split")')
     e.settle(0.8)
@@ -105,6 +114,58 @@ def case_bar(e):
     e.settle(0.6)
     p = e.shot("bar-split")
     e.check(os.path.exists(p), "a picture of the split bar was taken")
+
+
+def case_reset(e):
+    print("settings: a changed row is marked and a right-click resets only it")
+    open_settings(e, "widgets")
+    e.click("modal", 'SCycle("widget_panels")')
+    e.send("t:slider widget_radius 0.4", 0.2)
+    e.send("t:slider widget_border 0.4", 0.2)
+    e.settle()
+    c = e.cfg()
+    e.check(c.get("widgetRadius") == 9 and c.get("widgetBorder") == 1, "two rows are changed")
+    e.click("modal", 'SSlider("widget_radius"', right=True)
+    e.settle(0.8)
+    c = e.cfg()
+    e.check(c.get("widgetRadius") == -1, f"right-click on the roundness row restores it (got {c.get('widgetRadius')})")
+    e.check(c.get("widgetBorder") == 1, "the border row stays as it was")
+
+
+def case_wallpapers(e):
+    print("wallpapers: different pictures for the desktop and the login screen")
+    from PIL import Image
+    pics = os.path.join(e.HOME, "Pictures")
+    os.makedirs(pics, exist_ok=True)
+    for n, col in (("a-red.png", (200, 40, 40)), ("b-blue.png", (40, 60, 200))):
+        Image.new("RGB", (640, 360), col).save(os.path.join(pics, n))
+    e.send("walls")
+    e.settle(1.2)
+    z = e.zones("modal")
+    e.check("WallPick(1)" in z and "WallPick(2)" in z, "the picker lists both pictures: " + " ".join(l.split(None, 5)[-1] for l in z.splitlines() if "Wall" in l))
+    e.click("modal", 'SWall("target_login")')
+    e.click("modal", "WallPick(2)")  # b-blue -> the login screen only
+    e.settle(1.0)
+    c = e.cfg()
+    e.check(c.get("greetWall") == "image" and str(c.get("greetWallFile", "")).endswith("b-blue.png"), f"target login: greetWall={c.get('greetWall')} file={c.get('greetWallFile')}")
+    e.check(not str(c.get("wallpaper", "")).endswith("b-blue.png"), "the desktop picture did not change")
+    e.send("walls")
+    e.settle(1.0)
+    e.click("modal", 'SWall("target_desktop")')
+    e.click("modal", "WallPick(1)")  # a-red -> the desktop only
+    e.settle(1.0)
+    c = e.cfg()
+    e.check(str(c.get("wallpaper", "")).endswith("a-red.png"), f"target desktop: wallpaper={c.get('wallpaper')}")
+    e.check(str(c.get("greetWallFile", "")).endswith("b-blue.png"), "the login picture stayed blue")
+    e.send("walls")
+    e.settle(1.0)
+    e.click("modal", 'SWall("target_both")')
+    e.click("modal", "WallPick(2)")
+    e.settle(1.0)
+    c = e.cfg()
+    e.check(str(c.get("wallpaper", "")).endswith("b-blue.png") and str(c.get("greetWallFile", "")).endswith("b-blue.png"), "target both: both are blue")
+    lw = os.path.join(os.environ.get("E2E_LOGIN_DIR", ""), "wall.png")
+    e.shot("wallpapers")
 
 
 def island_state(e):
@@ -163,7 +224,7 @@ def case_island(e):
 
 
 def run(e, which):
-    cases = {"panels": case_panels, "tiles": case_tiles, "layouts": case_layouts, "gallery": case_gallery, "bar": case_bar, "island": case_island}
+    cases = {"panels": case_panels, "tiles": case_tiles, "layouts": case_layouts, "gallery": case_gallery, "bar": case_bar, "island": case_island, "wallpapers": case_wallpapers, "reset": case_reset}
     e.HOME = e.HOME
     names = list(cases) if which == ["all"] else which
     for n in names:

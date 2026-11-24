@@ -1675,4 +1675,12 @@ const ES: &[(&str, &str)] = &[
     ("gap between plates", "espacio entre placas"),
     ("plate style", "estilo de placa"),
     ("Record the screen (again to stop)", "grabar la pantalla (otra vez para parar)"),
+    ("apply to:", "aplicar a:"),
+    ("both", "ambos"),
+    ("not chosen", "sin elegir"),
+    ("choose the login picture", "elegir la imagen de inicio"),
+    ("login", "inicio"),
+    ("setting reset", "ajuste restablecido"),
+    ("right-click a row to restore its factory value", "clic derecho en la fila: valor de fábrica"),
+    ("login screen wallpaper…", "fondo de la pantalla de inicio…"),
 ];

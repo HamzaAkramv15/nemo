@@ -209,6 +209,14 @@ pub enum Act {
 }
 
 impl Act {
+    /// ключ настройки, которую строка меняет (для отметки «не заводская» и сброса правым щелчком)
+    pub fn setting_key(&self) -> Option<&'static str> {
+        match self {
+            Act::SBool(k) | Act::SCycle(k) | Act::SSlider(k, ..) | Act::SPlace(k, _) => Some(k),
+            _ => None,
+        }
+    }
+
     pub fn is_drag(&self) -> bool {
         matches!(self, Act::SSlider(..) | Act::VolSlider | Act::CtlVol | Act::CtlBright | Act::MicSlider | Act::AppVol(_) | Act::MediaSeek | Act::TDrag(_) | Act::TSize(_) | Act::MDrag | Act::WDrag(_) | Act::DispDrag(_) | Act::SModDrag(..) | Act::SModNew(_))
     }

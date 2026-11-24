@@ -1452,4 +1452,12 @@ const PT_BR: &[(&str, &str)] = &[
     ("gap between plates", "espaço entre placas"),
     ("plate style", "estilo da placa"),
     ("Record the screen (again to stop)", "gravar a tela (de novo para parar)"),
+    ("apply to:", "aplicar a:"),
+    ("both", "ambos"),
+    ("not chosen", "não escolhida"),
+    ("choose the login picture", "escolher a imagem do login"),
+    ("login", "login"),
+    ("setting reset", "configuração restaurada"),
+    ("right-click a row to restore its factory value", "clique direito na linha restaura o valor de fábrica"),
+    ("login screen wallpaper…", "papel de parede do login…"),
 ];

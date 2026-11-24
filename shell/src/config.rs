@@ -308,6 +308,8 @@ pub struct Settings {
     pub greet_users: String,
     /// обои экрана входа: "desktop" — как на столе, "pixel" — пиксельные из палитры, "plain" — цвет темы
     pub greet_wall: String,
+    /// своя картинка экрана входа (greetWall = "image"): путь; пусто или файла нет — как на столе
+    pub greet_wall_file: String,
     /// плотность вуали над обоями экрана входа (0.2–0.9)
     pub greet_dim: f32,
     pub greet_clock: bool,
@@ -526,7 +528,7 @@ pub fn page_keys(tab: &str) -> &'static [&'static str] {
         "anim" => &["animations", "animSpeed", "animClose", "reveal", "revealGrain", "anims"],
         "wall" => &["wallDir", "wallFit", "wallPixel", "wallTone", "wallDim", "wallKanji"],
         "bar" => &["bar*", "taskWidth", "cpuStyle", "tempStyle", "trayMode", "trayPixel", "batHideFull", "privacyMic", "privacyCam", "privacyScreen", "mediaViz", "mediaView", "controlTiles"],
-        "widgets" => &["widgets", "widgetContrast", "widgetLook", "widgetPanel", "widgetAlpha"],
+        "widgets" => &["widgets", "widgetContrast", "widgetLook", "widgetPanel", "widgetAlpha", "widgetRadius", "widgetBorder", "widgetShadow"],
         "dock" => &["dock*"],
         "windows" => &["stacking", "titlebars", "floatMedia", "floatPip", "floatApps", "floatW", "floatH", "winGap", "winLeft", "winRight", "winTop", "winBottom", "winRadius", "winBorder", "castHide"],
         "notif" => &["dnd", "notifTimeout", "notifMax", "notifHistory", "notifPos", "osdPos", "osdBright", "notifOffset", "osdOffset", "notifImages", "island", "notifMuted"],
@@ -541,6 +543,51 @@ pub fn page_keys(tab: &str) -> &'static [&'static str] {
 
 impl Settings {
     /// вернуть ключи страницы к значениям по умолчанию; сколько ключей изменилось
+    /// настройка по ключу из Act (snake_case) → имя в shell.json (camelCase), если такая есть
+    pub fn json_key(&self, key: &str) -> Option<String> {
+        let mut out = String::new();
+        let mut up = false;
+        for c in key.chars() {
+            if c == '_' {
+                up = true;
+            } else if up {
+                out.extend(c.to_uppercase());
+                up = false;
+            } else {
+                out.push(c);
+            }
+        }
+        let cur = serde_json::to_value(self).ok()?;
+        cur.get(&out).is_some().then_some(out)
+    }
+
+    /// эта настройка отличается от заводской
+    pub fn modified(&self, key: &str) -> bool {
+        let Some(k) = self.json_key(key) else { return false };
+        let defaults = serde_json::to_value(Settings::default()).unwrap_or_default();
+        serde_json::to_value(self).ok().is_some_and(|cur| cur.get(&k) != defaults.get(&k))
+    }
+
+    /// вернуть одну настройку к заводской (правый щелчок по строке); false — такой нет или она и так заводская
+    pub fn reset_key(&mut self, key: &str) -> bool {
+        if !self.modified(key) {
+            return false;
+        }
+        let Some(k) = self.json_key(key) else { return false };
+        let defaults = serde_json::to_value(Settings::default()).unwrap_or_default();
+        let mut cur = serde_json::to_value(&*self).unwrap_or_default();
+        if let (Some(c), Some(d)) = (cur.as_object_mut(), defaults.get(&k)) {
+            c.insert(k, d.clone());
+        }
+        match serde_json::from_value::<Settings>(cur) {
+            Ok(s) => {
+                *self = s;
+                true
+            }
+            Err(_) => false,
+        }
+    }
+
     pub fn reset_page(&mut self, tab: &str) -> usize {
         let defaults = serde_json::to_value(Settings::default()).unwrap_or_default();
         let mut cur = serde_json::to_value(&*self).unwrap_or_default();
@@ -760,6 +807,7 @@ impl Default for Settings {
             bar_pos: "top".into(),
             greet_users: "list".into(),
             greet_wall: "desktop".into(),
+            greet_wall_file: String::new(),
             greet_dim: 0.55,
             greet_clock: true,
             greet_hour: String::new(),
@@ -1639,6 +1687,21 @@ mod schema_tests {
         let known = |doc: &str, k: &str| doc.contains(&format!("`{k}`")) || doc.contains(k);
         let missing: Vec<String> = keys().into_iter().filter(|k| !known(&en, k) || !known(&ru, k)).collect();
         assert!(missing.len() <= ALLOWED_UNDOCUMENTED, "settings with no mention in docs/CONFIG.md and CONFIG.ru.md ({}): {missing:?}", missing.len());
+    }
+
+    #[test]
+    fn one_setting_can_be_marked_and_reset_without_touching_the_rest() {
+        let mut s = Settings::default();
+        assert!(!s.modified("widget_radius"));
+        s.widget_radius = 7;
+        s.widget_border = 2;
+        assert!(s.modified("widget_radius"));
+        assert!(s.reset_key("widget_radius"));
+        assert_eq!(s.widget_radius, -1);
+        assert_eq!(s.widget_border, 2, "the other setting stays");
+        assert!(!s.reset_key("widget_radius"), "already the default: nothing to do");
+        assert!(!s.reset_key("no_such_setting"));
+        assert_eq!(s.json_key("bar_split_gap").as_deref(), Some("barSplitGap"));
     }
 
     /// сколько ключей пока без описания; число можно только уменьшать (новая настройка без документации ломает тест)

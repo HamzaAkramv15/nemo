@@ -53,6 +53,12 @@ def check(ok, what):
         fails.append(what)
 
 
+def niri(*a):
+    sock = [f for f in os.listdir(RUN) if f.startswith("niri.") and f.endswith(".sock")]
+    if sock:
+        subprocess.run(["niri", "msg", *a], env={**os.environ, "NIRI_SOCKET": os.path.join(RUN, sock[0])}, capture_output=True)
+
+
 def shot(name):
     p = os.path.join(OUT, name + ".png")
     subprocess.run(["grim", p], env={**os.environ, "WAYLAND_DISPLAY": os.path.join(RUN, WL)}, capture_output=True)

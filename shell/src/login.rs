@@ -110,10 +110,17 @@ fn key_file() -> PathBuf {
 /// чем рисовать фон экрана входа: desktop — как на столе, pixel — пиксельные из палитры, plain — цвет темы
 pub fn wall_mode(s: &Settings) -> &'static str {
     match s.greet_wall.as_str() {
+        "image" if own_file(s).is_some() => "image",
         "pixel" => "pixel",
         "plain" => "plain",
         _ => "desktop",
     }
+}
+
+/// своя картинка экрана входа, если она есть на диске
+pub fn own_file(s: &Settings) -> Option<PathBuf> {
+    let p = s.greet_wall_file.trim();
+    (!p.is_empty()).then(|| nemo_px::paths::expand(p)).filter(|p| p.is_file())
 }
 
 /// экрану входа нужны эти обои: он есть, а картинку с таким ключом (wall::Job::key: всё, от чего
@@ -137,10 +144,10 @@ pub fn wall(img: &Img, key: &str) {
 
 /// обои экрана входа не как на столе (из нити): Some(job) — пиксельные из палитры, None — никаких
 /// (фон темы под вуалью; экран входа не держит картинку вовсе)
-pub fn wall_other(job: Option<crate::wall::Job>) {
+pub fn wall_other(job: Option<crate::wall::Job>, tag: &str) {
     match job {
         Some(j) => {
-            let key = format!("pixel|{}", j.key());
+            let key = format!("{tag}|{}", j.key());
             if wanted(&key) {
                 if let (Some(img), _) = crate::wall::prepare(&j) {
                     wall(&img, &key);
@@ -221,7 +228,7 @@ pub fn toggle(s: &mut Settings, k: &str) -> bool {
     true
 }
 
-const WALLS: &[(&str, &str)] = &[("desktop", "как на столе"), ("pixel", "пиксельные из палитры"), ("plain", "цвет темы")];
+const WALLS: &[(&str, &str)] = &[("desktop", "как на столе"), ("image", "своя картинка"), ("pixel", "пиксельные из палитры"), ("plain", "цвет темы")];
 
 /// settings → система → экран входа
 pub fn tab(ui: &mut Ui, st: &State, b: R) {
@@ -259,10 +266,19 @@ pub fn tab(ui: &mut Ui, st: &State, b: R) {
         y += 8;
     }
     y = title(ui, b.x, y, b.w, "вид: палитра, язык и мониторы — как у шелла");
-    let wall = WALLS.iter().find(|w| w.0 == wall_mode(s)).map(|w| w.1).unwrap_or(WALLS[0].1);
+    let raw = if matches!(s.greet_wall.as_str(), "image" | "pixel" | "plain") { s.greet_wall.as_str() } else { "desktop" };
+    let wall = WALLS.iter().find(|w| w.0 == raw).map(|w| w.1).unwrap_or(WALLS[0].1);
     opt_btn(ui, R::new(lx, y + 7, half, 26), "картинка", wall, Act::SCycle("greet_wall"));
     ui.slider(R::new(rx, y, half, 40), "вуаль над обоями", (s.greet_dim - 0.2) / 0.7, &format!("{}%", (s.greet_dim * 100.0).round()), 14, Act::SSlider("greet_dim", 0.2, 0.9, 14));
     y += 48;
+    if s.greet_wall == "image" {
+        // своя картинка входа: имя файла и выбор в той же сетке, что обои стола (для: вход)
+        let name = if s.greet_wall_file.trim().is_empty() { crate::i18n::tr("не выбрана").to_string() } else { nemo_px::paths::pretty(std::path::Path::new(s.greet_wall_file.trim())) };
+        let ok = own_file(s).is_some();
+        ui.text_in(PX, R::new(lx, y + 4, half, 20), &name, if ok { t.text_dim } else { t.warn });
+        ui.button(R::new(rx, y, half, 28), "выбрать картинку входа", "image", Tone::Plain, false, true, Act::SWall("pick_login"));
+        y += 36;
+    }
     ui.toggle(R::new(lx, y, half, 40), "часы и дата", "большие, как на блокировке", s.greet_clock, Act::SBool("greet_clock"));
     ui.toggle(R::new(rx, y, half, 40), "имя машины", "в левом верхнем углу", s.greet_host, Act::SBool("greet_host"));
     y += 52;
@@ -297,7 +313,10 @@ impl App {
     pub fn login_cycle(&mut self, k: &str) -> bool {
         let s = &mut self.st.set;
         match k {
-            "greet_wall" => s.greet_wall = crate::settings::cycle(WALLS, wall_mode(s)).into(),
+            "greet_wall" => {
+                    let raw = if matches!(s.greet_wall.as_str(), "image" | "pixel" | "plain") { s.greet_wall.clone() } else { "desktop".into() };
+                    s.greet_wall = crate::settings::cycle(WALLS, &raw).into();
+                }
             "greet_hour" => s.greet_hour = match s.greet_hour.as_str() { "" => "12", "12" => "24", _ => "" }.into(),
             "greet_users" => s.greet_users = if s.greet_users == "name" { "list" } else { "name" }.into(),
             "login_sync" => {
@@ -406,8 +425,9 @@ fn sync() -> i32 {
                 wall(&img, &key);
             }
         }
-        "pixel" => wall_other(Some(crate::wall::Job::new(&set, &t, w, h, None))),
-        _ => wall_other(None),
+        "pixel" => wall_other(Some(crate::wall::Job::new(&set, &t, w, h, None)), "pixel"),
+        "image" => wall_other(Some(crate::wall::Job::new(&set, &t, w, h, own_file(&set))), "image"),
+        _ => wall_other(None, "plain"),
     }
     println!("{}", dir().display());
     0

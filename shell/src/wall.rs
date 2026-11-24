@@ -449,6 +449,9 @@ pub fn tab(ui: &mut Ui, st: &State, b: R) {
     ui.button(R::new(rx, ry, rw, 28), "выбрать картинку…", "folder", Tone::Primary, false, true, Act::SWall("pick"));
     ry += 34;
     ui.button(R::new(rx, ry, rw, 28), "пиксельные из палитры", "image", Tone::Plain, false, own(s).is_some(), Act::SWall("reset"));
+    // отдельная картинка экрана входа: та же сетка, выбор уходит ему
+    ry += 34;
+    ui.button(R::new(rx, ry, rw, 28), "обои экрана входа…", "lock", Tone::Plain, false, true, Act::SWall("pick_login"));
     y = pv.bottom() + 10;
     let focused = st.field_focus == Some("wall");
     ui.field(R::new(b.x, y, b.w - 130, 30), &st.wall_field, "или путь к файлу или папке", focused, false, Act::SField("wall"));
@@ -529,14 +532,18 @@ impl App {
         let key = job.key();
         // и обои экрана входа: сменили их вид — пересчитать, даже если стол прежний
         let lmode = crate::login::wall_mode(&self.st.set);
-        let full = format!("{key}|{lmode}");
+        let full = format!("{key}|{lmode}|{}", self.st.set.greet_wall_file);
         if full == self.wall_key {
             return;
         }
         self.wall_key = full;
         self.wall_job += 1;
         let (n, tx) = (self.wall_job, self.tx.clone());
-        let ljob = (lmode == "pixel").then(|| Job::new(&self.st.set, &self.st.t, w, h, None));
+        let ljob = match lmode {
+            "pixel" => Some(Job::new(&self.st.set, &self.st.t, w, h, None)),
+            "image" => Some(Job::new(&self.st.set, &self.st.t, w, h, crate::login::own_file(&self.st.set))),
+            _ => None,
+        };
         std::thread::spawn(move || {
             let (img, accent) = prepare(&job);
             // экрану входа — та же картинка (или своя: greetWall); PNG пишется уже после отправки
@@ -546,7 +553,7 @@ impl App {
             if let Some(i) = login {
                 crate::login::wall(&i, &key);
             } else if lmode != "desktop" {
-                crate::login::wall_other(ljob);
+                crate::login::wall_other(ljob, lmode);
             }
         });
     }
@@ -629,6 +636,21 @@ impl App {
             // сетка картинок папки обоев (walls.rs); другой файл и папка — оттуда через nemo-files
             "pick" => {
                 self.walls_open(true);
+                return true;
+            }
+            // обои экрана входа: та же сетка, но выбор уходит ему (walls.rs: «для: вход»)
+            "pick_login" => {
+                self.walls_open(true);
+                self.st.walls.target = crate::walls::Target::Login;
+                return true;
+            }
+            "target_desktop" | "target_login" | "target_both" => {
+                self.st.walls.target = match *k {
+                    "target_login" => crate::walls::Target::Login,
+                    "target_both" => crate::walls::Target::Both,
+                    _ => crate::walls::Target::Desktop,
+                };
+                self.dirty_all();
                 return true;
             }
             // из панели управления: выбор обоев сам по себе, без возврата в настройки

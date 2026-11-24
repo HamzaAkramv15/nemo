@@ -9,6 +9,9 @@ has its Russian line in CHANGELOG.ru.md: `tools/check.sh` checks that.
 
 ## Unreleased
 
+- The screenshot overlay (`Print`) has a **record** button next to the modes: it records the selected area or the whole monitor, and becomes **stop** while a recording runs.
+- **A different wallpaper for the login screen**: the wallpaper picker has "apply to: desktop / login / both", settings → wallpaper has "login screen wallpaper…", and the login page has an own-picture mode (`greetWall: "image"`, `greetWallFile`).
+- Settings remember what you changed: a row that differs from the factory value gets a small accent mark, and a right-click on it restores that one value (the "reset page" button still resets the whole page). Schema tests keep every setting documented and its default valid.
 - Shape controls for every panel: **roundness, border and shadow** sliders (far left = as the style intends) for widgets, and a **plate style, roundness, border and gap between plates** for the floating and split bar, using the same six styles as widgets. Fixed: glass plates showed a tinted square in every rounded corner (the blur used a bevel count as a pixel radius); the pixel style now rounds with stairs like a circle; bar separators and the launcher grid were invisible on a plate; your own layouts were saved to `~/.config/layouts` instead of `~/.config/nemo/layouts`; the island pill hung at full width until it vanished instead of shrinking away.
 - Screen recording in nemo-shot: `nemo-shot record [screen|area] [--audio]` (and `Shift+Print`) starts, the same call stops; the video goes to `~/Videos`. Needs `wf-recorder` (and `slurp` for an area).
 - New end-to-end checks, `tools/e2e.sh`: clicks through the real settings pages, shortcut tiles, layouts, gallery, bar and island in a nested niri and checks what the shell wrote (test input exists only with `NEMO_TEST_IPC=1`, set by the nested session).

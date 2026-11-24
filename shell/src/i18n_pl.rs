@@ -1675,4 +1675,12 @@ const PL: &[(&str, &str)] = &[
     ("gap between plates", "odstęp między płytkami"),
     ("plate style", "styl płytki"),
     ("Record the screen (again to stop)", "nagrywanie ekranu (ponownie: stop)"),
+    ("apply to:", "zastosuj do:"),
+    ("both", "oba"),
+    ("not chosen", "nie wybrano"),
+    ("choose the login picture", "wybierz obraz logowania"),
+    ("login", "logowanie"),
+    ("setting reset", "ustawienie przywrócone"),
+    ("right-click a row to restore its factory value", "prawy klik na wierszu przywraca wartość fabryczną"),
+    ("login screen wallpaper…", "tapeta ekranu logowania…"),
 ];

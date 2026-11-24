@@ -282,7 +282,8 @@ monitors to `/var/lib/nemo-greet/look`; the login screen reads them at its next 
 
 | Key | Default | Meaning |
 |---|---|---|
-| `greetWall` | `"desktop"` | its wallpaper: `desktop` the same picture as the desktop, `pixel` the palette's pixel wallpaper, `plain` none (the theme colour) |
+| `greetWall` | `"desktop"` | its wallpaper: `desktop` the same picture as the desktop, `pixel` the palette's pixel wallpaper, `image` its own picture (`greetWallFile`), `plain` none (the theme colour) |
+| `greetWallFile` | `""` | the picture for `greetWall: "image"`; choose it in settings → wallpaper → "login screen wallpaper…" (or "apply to: login" in the picker). A missing file falls back to the desktop picture |
 | `greetDim` | `0.55` | the veil over the wallpaper (0.2–0.9) |
 | `greetClock`, `greetHost` | `true` | the big clock and date; the machine name in the corner |
 | `greetUsers` | `"list"` | `list`: the users to pick from with arrows (and «another user»); `name`: no list, the name is typed |

@@ -1675,4 +1675,12 @@ const FR: &[(&str, &str)] = &[
     ("gap between plates", "écart entre plaques"),
     ("plate style", "style de plaque"),
     ("Record the screen (again to stop)", "enregistrer l'écran (encore pour arrêter)"),
+    ("apply to:", "appliquer à :"),
+    ("both", "les deux"),
+    ("not chosen", "non choisie"),
+    ("choose the login picture", "choisir l'image de connexion"),
+    ("login", "connexion"),
+    ("setting reset", "réglage rétabli"),
+    ("right-click a row to restore its factory value", "clic droit sur la ligne : valeur d'usine"),
+    ("login screen wallpaper…", "fond de l'écran de connexion…"),
 ];

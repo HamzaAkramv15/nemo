@@ -764,4 +764,12 @@ const AR: &[(&str, &str)] = &[
     ("gap between plates", "المسافة بين الألواح"),
     ("plate style", "نمط اللوحة"),
     ("Record the screen (again to stop)", "تسجيل الشاشة (مرة أخرى للإيقاف)"),
+    ("apply to:", "تطبيق على:"),
+    ("both", "كلاهما"),
+    ("not chosen", "غير مختارة"),
+    ("choose the login picture", "اختيار صورة الدخول"),
+    ("login", "الدخول"),
+    ("setting reset", "تمت إعادة الإعداد"),
+    ("right-click a row to restore its factory value", "انقر بزر الفأرة الأيمن على الصف لاستعادة قيمته الأصلية"),
+    ("login screen wallpaper…", "خلفية شاشة الدخول…"),
 ];

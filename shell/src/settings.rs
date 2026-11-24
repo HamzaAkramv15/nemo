@@ -271,10 +271,16 @@ pub fn draw(ui: &mut Ui, st: &State, w: i32, h: i32) {
     }
     ui.cv.push_clip(R::new(body.x - 4, body.y - 4, body.w + 8, body.h + 8));
     ui.cv.reach = i32::MIN;
+    let z0 = ui.zones.len();
     if st.search_field.text.trim().is_empty() {
         (tb.draw)(ui, st, R::new(body.x, body.y - off, body.w, body.h));
     } else {
         crate::setindex::draw_results(ui, st, R::new(body.x, body.y - off, body.w, body.h));
+    }
+    // отмеченные строки: настройка не заводская — точка слева; правый щелчок по строке возвращает её (setclick.rs)
+    let marks: Vec<R> = ui.zones[z0..].iter().filter(|z| z.act.setting_key().is_some_and(|k| st.set.modified(k))).map(|z| z.r).collect();
+    for r in marks {
+        ui.cv.fill(R::new(r.x - 4, r.y + 3, 3, r.h.min(16) - 6), t.red);
     }
     let full = if tb.own_scroll { body.h } else { ui.cv.reach.saturating_add(off + 12 - body.y).max(body.h) };
     st.sscroll_h.set(full);

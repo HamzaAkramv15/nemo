@@ -1315,4 +1315,12 @@ const PAIRS: &[(&str, &str)] = &[
     ("просвет между плашками", "gap between plates"),
     ("стиль плашки", "plate style"),
     ("запись экрана (повторно — стоп)", "Record the screen (again to stop)"),
+    ("применять к:", "apply to:"),
+    ("оба", "both"),
+    ("не выбрана", "not chosen"),
+    ("выбрать картинку входа", "choose the login picture"),
+    ("логин", "login"),
+    ("настройка возвращена", "setting reset"),
+    ("правый щелчок по строке возвращает её заводское значение", "right-click a row to restore its factory value"),
+    ("обои экрана входа…", "login screen wallpaper…"),
 ];
