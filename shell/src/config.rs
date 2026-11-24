@@ -397,6 +397,9 @@ pub struct Settings {
     pub cursor_size: i32,
     /// UI-шрифт программ (GTK, Qt, kitty, браузер), px по сетке Tiny5: 0 — по экрану, 16 | 24 | 32
     pub font_size: i32,
+    /// доступность: высокая контрастность (текст ≥ 7:1, рамки заметны, подложки непрозрачные) и «меньше движения» (без анимаций)
+    pub high_contrast: bool,
+    pub reduce_motion: bool,
     // шрифты (вкладка «шрифты»): семейства fontconfig, "" — по умолчанию
     /// шелл: "" — Tiny5 (пиксельный)
     pub font_shell: String,
@@ -525,6 +528,7 @@ pub fn page_keys(tab: &str) -> &'static [&'static str] {
         "color" => &["palette", "accent", "tint", "light", "glass", "lift", "inner", "dim", "wallAccent", "wallScheme", "wallSkwd", "wallSkwdColors", "themeGtk4", "themeApps", "templatesOff"],
         "look" => &["preset", "corners", "radius", "shadow", "blurShell", "blurTerm", "blurStrength", "blurXray", "lite", "scanlines", "iconPixel", "iconTint", "iconStyle", "iconTheme", "cursor", "cursorSize"],
         "fonts" => &["fontShell", "fontFiles", "fontView", "fontUi", "fontPt", "fontSize", "fontMono", "browserMenus", "browserFont", "terminalFish", "fetchFull"],
+        "access" => &["highContrast", "reduceMotion"],
         "anim" => &["animations", "animSpeed", "animClose", "reveal", "revealGrain", "anims"],
         "wall" => &["wallDir", "wallFit", "wallPixel", "wallTone", "wallDim", "wallKanji"],
         "bar" => &["bar*", "taskWidth", "cpuStyle", "tempStyle", "trayMode", "trayPixel", "batHideFull", "privacyMic", "privacyCam", "privacyScreen", "mediaViz", "mediaView", "controlTiles"],
@@ -614,48 +618,7 @@ pub fn blur_params(strength: i32) -> (i32, i32) {
     T[(strength.clamp(1, 8) - 1) as usize]
 }
 
-fn group(m: &str) -> i32 {
-    match m {
-        "launcher" => 0,
-        "workspaces" => 1,
-        "mode" => 2,
-        "tray" => 3,
-        "net" | "netspeed" | "bt" | "kb" | "cpu" | "ram" | "temp" | "bat" | "profile" | "night" | "caffeine" | "privacy" => 4,
-        "vol" | "media" => 5,
-        "clock" | "notif" | "settings" | "power" => 6,
-        _ => 7,
-    }
-}
 
-pub const ALL_MODULES: &[(&str, &str)] = &[
-    ("launcher", "меню программ"),
-    ("workspaces", "столы"),
-    ("mode", "стол / лента"),
-    ("tasks", "окна"),
-    ("media", "музыка"),
-    ("tray", "трей"),
-    ("net", "сеть"),
-    ("netspeed", "скорость сети"),
-    ("bt", "bluetooth"),
-    ("kb", "раскладка"),
-    ("cpu", "процессор"),
-    ("ram", "память"),
-    ("temp", "температура"),
-    ("gpu", "видеокарта"),
-    ("disk", "диск"),
-    ("weather", "погода"),
-    ("vol", "звук"),
-    ("bat", "батарея"),
-    ("profile", "профиль питания"),
-    ("night", "ночной свет"),
-    ("caffeine", "кофе"),
-    ("privacy", "приватность"),
-    ("clock", "часы"),
-    ("notif", "уведомления"),
-    ("settings", "настройки"),
-    ("power", "питание"),
-    ("sep", "разделитель"),
-];
 
 /// виды всплывашки музыки (#13): обложка с эквалайзером, обложка и текст, текст, коротко
 /// чужие программы в цветах палитры (themeApps): id, имя, что пишется. Шелл, экран входа, рамки niri и
@@ -858,6 +821,8 @@ impl Default for Settings {
             cursor: "nemo".into(),
             cursor_size: 24,
             font_size: 0,
+            high_contrast: false,
+            reduce_motion: false,
             font_shell: "sans".into(),
             font_files: "sans".into(),
             font_view: "sans".into(),
@@ -1272,7 +1237,7 @@ impl Settings {
         for l in [&mut self.bar_left, &mut self.bar_right] {
             let mut out: Vec<String> = vec![];
             for m in l.drain(..) {
-                if out.last().map(|p| group(p) != group(&m)).unwrap_or(false) {
+                if out.last().map(|p| crate::barmods::group(p) != crate::barmods::group(&m)).unwrap_or(false) {
                     out.push("sep".into());
                 }
                 out.push(m);
@@ -1332,9 +1297,9 @@ impl Settings {
     /// то, что шелл отдаёт всем модулям (~/.config/nemo/style.json); те же ключи читает nemo_px::look.
     /// Необязательное выкладывается, только когда задано: иначе решает пресет
     pub fn style_value(&self) -> serde_json::Value {
-        const KEYS: [&str; 21] = [
+        const KEYS: [&str; 23] = [
             "preset", "palette", "accent", "tint", "glass", "lift", "inner", "light", "lang", "reveal", "revealGrain", "animations", "animSpeed", "lite", "iconTheme", "blurShell", "iconPixel", "iconTint",
-            "fontShell", "fontFiles", "fontView",
+            "fontShell", "fontFiles", "fontView", "highContrast", "reduceMotion",
         ];
         let all = serde_json::to_value(self).unwrap_or_default();
         let mut o = serde_json::Map::new();
@@ -1470,9 +1435,14 @@ impl Settings {
         l.push(String::new());
     }
 
+    /// тема так, как её видят все программы Nemo (тот же разбор style.json, что и у модулей): с высокой контрастностью, если она включена
+    pub fn theme(&self) -> crate::theme::Theme {
+        nemo_px::look::Look::from_json(&self.style_value(), Some(self.light)).theme
+    }
+
     /// анимации на деле: выключены и сами, и в лёгком режиме
     pub fn anim(&self) -> bool {
-        self.animations && !self.lite
+        self.animations && !self.lite && !self.reduce_motion
     }
     /// размытие под панелями шелла и под терминалами на деле (лёгкий режим их снимает)
     /// рисовать обычные (векторные) значки: выбрано прямо или стиль нейтральный

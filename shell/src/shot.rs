@@ -61,6 +61,8 @@ const TARGETS: &[&str] = &[
     "settings:region",
     "settings:look",
     "settings:anim",
+    "settings:access",
+    "settings:access-hc",
     "settings:look-sets",
     "settings:wall",
     "settings:system",
@@ -448,7 +450,12 @@ fn shoot(st: &mut State, res: &mut Res, target: &str, path: &Path) {
         }
         "settings" => {
             st.modal = Some(Modal::Settings);
-            st.stab = crate::settings::find(arg).map(|t| t.id).unwrap_or("color");
+            st.stab = crate::settings::find(if arg.starts_with("access") { "access" } else { arg }).map(|t| t.id).unwrap_or("color");
+            // высокая контрастность: тема считается заново, как после переключателя
+            if arg == "access-hc" {
+                st.set.high_contrast = true;
+                st.t = st.set.theme();
+            }
             if arg == "diag" {
                 // образец: не процессы этой машины
                 st.diag = Some(crate::diagtab::Diag {

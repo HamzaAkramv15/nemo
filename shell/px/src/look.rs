@@ -137,6 +137,10 @@ impl Look {
         if let Some(c) = v.get("colors").and_then(|x| x.as_object()) {
             theme.override_colors(c);
         }
+        // доступность: высокая контрастность поверх любой палитры (theme.rs: high_contrast), «меньше движения» гасит анимации
+        if b("highContrast", false) {
+            theme = theme.high_contrast();
+        }
         let lite = b("lite", false);
         let font = s("font");
         Look {
@@ -144,7 +148,7 @@ impl Look {
             style,
             lang: s("lang"),
             // лёгкий режим шелла (слабая или виртуальная машина) выключает анимации и здесь
-            animations: b("animations", true) && !lite,
+            animations: b("animations", true) && !lite && !b("reduceMotion", false),
             anim_speed: f("animSpeed", 1.0),
             icon_theme: s("iconTheme"),
             blur: b("blur", b("blurShell", !plain)) && !lite,

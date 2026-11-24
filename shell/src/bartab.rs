@@ -2,7 +2,6 @@
 // рядами и из списка «добавить» (встроенные модули и скрипты бара), отступы и вид разделителей.
 
 use crate::app::{App, SKind, State};
-use crate::config::ALL_MODULES;
 use crate::font::PX;
 use crate::gfx::{BoxStyle, R};
 use crate::settings::*;
@@ -47,7 +46,7 @@ pub(crate) fn mod_name(m: &str) -> &str {
     if let Some(n) = m.strip_prefix("x:") {
         return n;
     }
-    ALL_MODULES.iter().find(|x| x.0 == m).map(|x| x.1).unwrap_or(m)
+    crate::barmods::name(m)
 }
 
 pub(crate) fn chip_w(ui: &mut Ui, m: &str) -> i32 {
@@ -171,7 +170,9 @@ pub(crate) fn tab_bar(ui: &mut Ui, st: &State, b: R) {
     let all: Vec<&String> = s.bar_left.iter().chain(&s.bar_center).chain(&s.bar_right).collect();
     // и модули-скрипты из ~/.config/nemo/scripts
     let plugs = crate::plugins::available();
-    let free: Vec<&str> = ALL_MODULES.iter().map(|m| m.0).chain(plugs.iter().map(|p| p.as_str())).filter(|id| *id == "sep" || !all.iter().any(|m| m == id)).collect();
+    let mut free: Vec<&str> = crate::barmods::ids().collect();
+    free.extend(plugs.iter().map(|p| p.as_str()));
+    let free: Vec<&str> = free.into_iter().filter(|id| *id == "sep" || !all.iter().any(|m| m == id)).collect();
     let ws: Vec<i32> = free.iter().map(|m| chip_w(ui, m)).collect();
     let rs = flow(&ws, R::new(b.x - 4, y - 4, b.w + 8, 0));
     for (r, id) in rs.iter().zip(&free) {

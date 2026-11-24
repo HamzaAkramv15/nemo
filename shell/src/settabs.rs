@@ -914,3 +914,31 @@ pub(crate) fn tab_about(ui: &mut Ui, st: &State, b: R) {
     ui.button(R::new(b.x, y, bw, 30), "первая настройка заново", "about", Tone::Plain, false, true, Act::SCycle("open_welcome"));
     ui.button(R::new(b.x + bw + 12, y, bw, 30), "модули: поставить или убрать", "gear", Tone::Primary, false, true, Act::SCycle("open_setup"));
 }
+
+/// доступность: контраст, движение, клавиатура и экранный диктор
+pub(crate) fn tab_access(ui: &mut Ui, st: &State, b: R) {
+    let s = &st.set;
+    let t = ui.t;
+    let half = (b.w - 20) / 2;
+    let mut y = title(ui, b.x, b.y, b.w, "зрение");
+    ui.toggle(R::new(b.x, y, half, 40), "высокая контрастность", "контраст ≥ 7:1, без прозрачности", s.high_contrast, Act::SBool("high_contrast"));
+    ui.toggle(R::new(b.x + half + 20, y, half, 40), "меньше движения", "без анимаций", s.reduce_motion, Act::SBool("reduce_motion"));
+    y += 52;
+    ui.text_in(PX, R::new(b.x, y, b.w, 20), "размер шрифта программ — во вкладке «шрифты»; размер экрана — «экраны» (масштаб)", t.text_faint);
+    y += 34;
+    y = title(ui, b.x, y, b.w, "клавиатура");
+    for (k, v) in [("tab / shift+tab", "по элементам окна"), ("enter · пробел", "нажать выбранное"), ("← →", "ползунок меньше · больше"), ("ctrl+z", "отменить последнее изменение настроек"), ("esc", "закрыть окно или выйти из поля")] {
+        ui.text_in(PX, R::new(b.x, y, 170, 20), k, t.red);
+        ui.text_in(PX, R::new(b.x + 180, y, b.w - 180, 20), v, t.text_dim);
+        y += 22;
+    }
+    y += 12;
+    y = title(ui, b.x, y, b.w, "экранный диктор");
+    let (line, ok) = if crate::a11y::compiled() {
+        ("включён: окна шелла видны экранному диктору (AT-SPI)", true)
+    } else {
+        ("этот шелл собран без поддержки экранного диктора", false)
+    };
+    ui.text_in(PX, R::new(b.x, y, b.w, 20), line, if ok { t.ok } else { t.warn });
+    let _ = y;
+}

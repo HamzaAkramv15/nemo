@@ -14,8 +14,13 @@ name = "nemo-shell"
 path = "src/main.rs"
 
 [features]
+# Accessibility (screen reader over AT-SPI) is part of a complete desktop: on by default; it costs disk (about 2 MB of code, paged out), nothing at idle
+# (the adapter is created only when a screen reader switches accessibility on and the settings window opens)
+default = ["a11y"]
 # Package managers own upgrades; disable the CLI/GUI updater and scheduled checks.
 package-managed = []
+# Screen-reader support: the accessibility tree of the shell windows over AT-SPI (src/a11y.rs).
+a11y = ["dep:accesskit", "dep:accesskit_unix"]
 
 [dependencies]
 # the drawing library lives here (px/); the modules take it by the tag px-vX.Y.Z of this repository
@@ -32,6 +37,9 @@ zbus = { version = "5", default-features = false, features = ["blocking-api", "a
 # blocking 1.7 keeps idle pool threads forever, each waking twice a second (zbus closes sockets
 # and reads peer credentials there); 1.6 lets them exit after 500 ms idle
 blocking = "=1.6.2"
+# экранный диктор: дерево доступности окон шелла через AT-SPI (a11y.rs); за флагом `a11y`, чтобы размер и зависимости были видны отдельно
+accesskit = { version = "0.21", optional = true }
+accesskit_unix = { version = "0.17", optional = true, default-features = false, features = ["async-io"] }
 libc = "0.2"
 
 [workspace]

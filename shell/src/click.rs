@@ -227,6 +227,12 @@ impl App {
                 self.open_settings_tab("bt");
             }
             Act::RecordStop => crate::recording::stop(),
+            Act::SettingsUndo => {
+                if self.settings_undo() {
+                    self.toast_note("изменение отменено", "вернулось то, что было до последнего изменения");
+                }
+                self.dirty(&SKind::Modal);
+            }
             Act::HwCycle(provider, id) => {
                 if let Some(c) = crate::hw::controls().into_iter().find(|c| c.provider == provider && c.id == id) {
                     let next = crate::hw::next_choice(&c);

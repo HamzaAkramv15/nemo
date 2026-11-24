@@ -171,6 +171,7 @@ impl App {
             Msg::PrepareSleep => self.prepare_sleep(),
             Msg::Pam(ok) => self.on_pam(ok),
             Msg::Prof(p) => self.on_prof(p),
+            Msg::A11y(i, click) => self.a11y_request(i, click),
             Msg::Hw(r) => {
                 if let Err(e) = r {
                     self.toast_note("железо", &e);

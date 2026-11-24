@@ -17,6 +17,7 @@ impl App {
         let s = &mut self.st.set;
         match a {
             Act::STab(id) => {
+                self.st.a11y_focus = None;
                 self.st.stab = id;
                 self.st.search_field.set("");
                 self.st.field_focus = None;
@@ -116,6 +117,8 @@ impl App {
             Act::SBool(k) => {
                 match *k {
                     "animations" => s.animations = !s.animations,
+                    "high_contrast" => s.high_contrast = !s.high_contrast,
+                    "reduce_motion" => s.reduce_motion = !s.reduce_motion,
                     "lite" => s.lite = !s.lite,
                     "anim_close" => s.anim_close = !s.anim_close,
                     "scanlines" => s.scanlines = !s.scanlines,
@@ -736,7 +739,7 @@ impl App {
                     // на диске должно быть то, что сейчас в настройках
                     let j = self.st.set.to_json();
                     let _ = crate::config::write_atomic(&crate::config::settings_path(), &j);
-                    self.set_saved = j;
+                    self.remember_saved(j);
                     // настройки — слой над окнами: редактор открылся бы под ними (#8)
                     self.close_modal();
                     App::spawn(&["xdg-open".into(), crate::config::settings_path().display().to_string()]);

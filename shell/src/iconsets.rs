@@ -423,7 +423,7 @@ impl App {
         self.settings_changed();
         let j = self.st.set.to_json();
         let _ = crate::config::write_atomic(&crate::config::settings_path(), &j);
-        self.set_saved = j;
+        self.remember_saved(j);
         std::thread::spawn(|| {
             crate::proc::recolor_run(&["--icons".as_ref()]);
         });

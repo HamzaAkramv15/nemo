@@ -416,7 +416,7 @@ fn sync() -> i32 {
             Some((o.get("width")?.as_i64()? as i32, o.get("height")?.as_i64()? as i32))
         })
         .unwrap_or((1920, 1080));
-    let t = nemo_px::theme::Theme::new(set.accent_rgb(), set.tint, set.glass, set.lift, set.inner, set.light).apply();
+    let t = set.theme().apply();
     match wall_mode(&set) {
         "desktop" => {
             let job = crate::wall::Job::new(&set, &t, w, h, crate::wall::own(&set));

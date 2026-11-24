@@ -9,6 +9,10 @@ has its Russian line in CHANGELOG.ru.md: `tools/check.sh` checks that.
 
 ## Unreleased
 
+- **Accessibility, first part**: settings → accessibility with **high contrast** (text 10:1 / 7:1 / 4.5:1, borders 3:1, opaque panels; a contrast table is a unit test over every palette, dark and light) and **less motion**; **Tab / Shift+Tab / Enter / arrows** walk the settings window with a focus ring; the shell windows are exposed to screen readers over AT-SPI through AccessKit (checked with the AT-SPI client library: the "settings" window, its buttons, tabs, check boxes and sliders, and a click from the reader toggles the setting). The adapter exists only after a screen reader switches accessibility on; idle memory, wakeups and threads did not change. The binary grew by about 1.7 MB (`a11y` feature, on by default).
+- **Undo for settings**: every change is snapshotted; "undo" in the settings header and Ctrl+Z walk back one change at a time.
+- **Charge limit control** in settings → comfort (60-100 %) through a small hardware-provider interface; shown only when the laptop has the control; asks for your password through the Nemo polkit window.
+- **Recording**: a red dot in the bar while a recording runs (click to stop), it stops when the screen locks, and the sound can be off, the microphone or what is playing.
 - The screenshot overlay (`Print`) has a **record** button next to the modes: it records the selected area or the whole monitor, and becomes **stop** while a recording runs.
 - **A different wallpaper for the login screen**: the wallpaper picker has "apply to: desktop / login / both", settings → wallpaper has "login screen wallpaper…", and the login page has an own-picture mode (`greetWall: "image"`, `greetWallFile`).
 - Settings remember what you changed: a row that differs from the factory value gets a small accent mark, and a right-click on it restores that one value (the "reset page" button still resets the whole page). Schema tests keep every setting documented and its default valid.

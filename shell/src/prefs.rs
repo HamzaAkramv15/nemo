@@ -65,13 +65,41 @@ impl App {
         self.dirty_all();
     }
 
+    /// настройки записаны: запомнить их как «на диске», а прежнее состояние — в историю отмены (кроме самой отмены); одинаковые подряд не копим
+    pub(crate) fn remember_saved(&mut self, j: String) {
+        if j == self.set_saved {
+            return;
+        }
+        if !self.set_undoing && self.st.set_history.last() != Some(&self.set_saved) {
+            self.st.set_history.push(self.set_saved.clone());
+            if self.st.set_history.len() > 40 {
+                self.st.set_history.remove(0);
+            }
+        }
+        self.set_undoing = false;
+        self.set_saved = j;
+    }
+
     /// записать настройки сейчас (перед перезапуском), даже посреди перетаскивания
     pub fn save_now(&mut self) {
         let j = self.st.set.to_json();
         if j != self.set_saved {
             let _ = config::write_atomic(&config::settings_path(), &j);
-            self.set_saved = j;
+            self.remember_saved(j);
         }
+    }
+
+    /// отменить последнее изменение настроек: вернуть снимок, что лежит в истории
+    pub fn settings_undo(&mut self) -> bool {
+        // сначала дописываем то, что ещё не сохранено, чтобы не потерять его из истории
+        self.save_settings_if_changed();
+        let Some(j) = self.st.set_history.pop() else { return false };
+        let Ok(mut s) = serde_json::from_str::<Settings>(&j) else { return false };
+        s.sanitize();
+        self.st.set = s;
+        self.set_undoing = true;
+        self.settings_changed();
+        true
     }
 
     pub(crate) fn save_settings_if_changed(&mut self) {
@@ -82,7 +110,7 @@ impl App {
         let j = self.st.set.to_json();
         if j != self.set_saved {
             let _ = config::write_atomic(&config::settings_path(), &j);
-            self.set_saved = j;
+            self.remember_saved(j);
             self.set_mtime = std::fs::metadata(config::settings_path()).and_then(|m| m.modified()).ok();
         }
     }
@@ -208,7 +236,7 @@ impl App {
         // настройки должны быть на диске до запуска скрипта
         let j = self.st.set.to_json();
         let _ = config::write_atomic(&config::settings_path(), &j);
-        self.set_saved = j;
+        self.remember_saved(j);
         std::thread::spawn(|| {
             crate::proc::recolor_run(&["--cursor".as_ref()]);
         });
@@ -218,7 +246,7 @@ impl App {
     pub fn apply_fonts(&mut self) {
         let j = self.st.set.to_json();
         let _ = config::write_atomic(&config::settings_path(), &j);
-        self.set_saved = j;
+        self.remember_saved(j);
         std::thread::spawn(|| {
             crate::proc::recolor_run(&["--fonts".as_ref()]);
         });

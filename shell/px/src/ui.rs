@@ -168,6 +168,26 @@ impl<'a, 'b, A: Action> Ui<'a, 'b, A> {
         let r = R::new(r.x + self.cv.ox, r.y + self.cv.oy, r.w, r.h);
         self.ptr.map(|(x, y)| r.contains(x, y)).unwrap_or(false)
     }
+    /// для дерева доступности (a11y.rs): элемент с этой рамкой; ничего не стоит, пока запись выключена
+    fn note(&self, role: crate::a11y::Role, name: &str, value: &str, r: R, checked: bool, selected: bool, enabled: bool, fraction: f32) {
+        if !crate::a11y::enabled() {
+            return;
+        }
+        let abs = R::new(r.x + self.cv.ox, r.y + self.cv.oy, r.w, r.h);
+        let vis = abs.inter(&self.cv.clip_rect());
+        crate::a11y::push(crate::a11y::Node {
+            role,
+            name: (self.tr)(name).to_string(),
+            value: value.to_string(),
+            rect: abs,
+            checked,
+            selected,
+            enabled,
+            fraction,
+            visible: vis.w > 0 && vis.h > 0,
+        });
+    }
+
     /// зона щелчка; её часть за обрезкой холста не ловит ничего: строка, прокрученная под шапку
     /// списка, не перехватывает щелчки шапки
     pub fn zone(&mut self, r: R, act: A, cur: Cur) {
@@ -226,6 +246,8 @@ impl<'a, 'b, A: Action> Ui<'a, 'b, A> {
     /// жёсткая тень; при нажатии вдавливается на пиксель
     #[allow(clippy::too_many_arguments)]
     pub fn button(&mut self, r: R, text: &str, icon: &str, tone: Tone, selected: bool, enabled: bool, act: A) -> bool {
+        // у значка без подписи имя — название значка (диктор скажет хоть что-то)
+        self.note(crate::a11y::Role::Button, if text.is_empty() { icon } else { text }, "", r, false, selected, enabled, 0.0);
         let t = self.t;
         let hov = enabled && self.hover(r);
         let down = hov && self.down;
@@ -298,6 +320,7 @@ impl<'a, 'b, A: Action> Ui<'a, 'b, A> {
 
     /// пиксельный флажок: квадрат с «лампочкой» внутри и подпись
     pub fn toggle(&mut self, r: R, text: &str, hint: &str, on: bool, act: A) {
+        self.note(crate::a11y::Role::Toggle, text, hint, r, on, false, true, 0.0);
         let t = self.t;
         let hov = self.hover(r);
         let b = R::new(r.x, r.y + 4, 16, 16);
@@ -315,6 +338,7 @@ impl<'a, 'b, A: Action> Ui<'a, 'b, A> {
     /// ползунок из клеток: подпись, значение справа, шкала под ними
     #[allow(clippy::too_many_arguments)]
     pub fn slider(&mut self, r: R, text: &str, v: f32, vtext: &str, segments: i32, act: A) {
+        self.note(crate::a11y::Role::Slider, text, vtext, R::new(r.x, r.y, r.w, 40.min(r.h.max(40))), false, false, true, v);
         let t = self.t;
         self.text_in(font::PX, R::new(r.x, r.y, r.w - 80, 20), text, t.text);
         self.text_right(font::PX, R::new(r.x, r.y, r.w, 20), vtext, t.red);
@@ -326,6 +350,7 @@ impl<'a, 'b, A: Action> Ui<'a, 'b, A> {
 
     /// поле ввода: тёмное, рамка, при фокусе — акцент, курсор-уголь
     pub fn field(&mut self, r: R, f: &Field, placeholder: &str, focused: bool, masked: bool, act: A) {
+        self.note(crate::a11y::Role::TextInput, placeholder, if masked { "" } else { &f.text }, r, false, focused, true, 0.0);
         let t = self.t;
         self.cv.pxbox(r, &BoxStyle::new(t.code_bg, if focused { t.red } else { t.border }));
         let inner = R::new(r.x + 10, r.y, r.w - 20, r.h);
@@ -360,6 +385,7 @@ impl<'a, 'b, A: Action> Ui<'a, 'b, A> {
 
     /// шапка панели: квадрат-маркер, заголовок, справа — кнопки
     pub fn header(&mut self, r: R, icon: &str, title: &str, sub: &str) {
+        self.note(crate::a11y::Role::Heading, title, sub, r, false, false, true, 0.0);
         let t = self.t;
         self.cv.header(&t, r);
         let mut x = r.x + 10;

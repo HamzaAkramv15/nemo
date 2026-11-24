@@ -7,7 +7,9 @@
 
 pub use nemo_px::{font, gfx, icons, theme};
 
+mod a11y;
 mod agents;
+mod barmods;
 mod hw;
 mod recording;
 mod animtab;

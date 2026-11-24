@@ -469,7 +469,7 @@ impl App {
     fn welcome_save(&mut self) {
         let j = self.st.set.to_json();
         let _ = crate::config::write_atomic(&crate::config::settings_path(), &j);
-        self.set_saved = j;
+        self.remember_saved(j);
     }
 
     /// крестик, Esc, щелчок мимо: сначала спросить
@@ -613,7 +613,7 @@ impl App {
         // установщик читает настройки с диска (что перекрашивать, язык): сначала они
         let j = self.st.set.to_json();
         let _ = crate::config::write_atomic(&crate::config::settings_path(), &j);
-        self.set_saved = j;
+        self.remember_saved(j);
         crate::wizinst::start(list, self.st.set.lang.clone(), pass, self.tx.clone());
     }
 

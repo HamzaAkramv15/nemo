@@ -14,7 +14,7 @@ use crate::settabs::{tab_about, tab_color, tab_comfort, tab_region, tab_dock, ta
 use smithay_client_toolkit::seat::keyboard::{KeyEvent, Keysym};
 
 pub const SIZE: (i32, i32) = (800, 600);
-const SIDE_W: i32 = 168;
+pub(crate) const SIDE_W: i32 = 168;
 const ROW_H: i32 = 26;
 const HEAD_H: i32 = 22;
 /// шаг колеса, пикселей
@@ -44,6 +44,7 @@ pub const GROUPS: &[(&str, &[Tab])] = &[
             tab("wall", "обои", "image", "обои картинка фон папка миниатюры skwd skwd-wall видео wallpaper background image folder thumbnails picker video papel parede imagem fundo pasta miniaturas seletor vídeo", crate::wall::tab), // i18n-ok
             tab("fonts", "шрифты", "text", "шрифт размер терминал fastfetch браузер fonts size terminal browser fonte fontes tamanho terminal navegador", crate::fonttab::tab), // i18n-ok
             tab("look", "вид", "eye", "пиксельность пиксели лёгкий режим слабый тормозит виртуалка эффекты развёртка размытие значки иконки курсор pixel pixelation lite slow lag vm animation effects reveal scanlines blur icons cursor visual aparência pixels pixelização leve lento animação efeitos desfoque ícones cursor", tab_look), // i18n-ok
+            tab("access", "доступность", "eye", "доступность контраст высокая контрастность движение анимации экранный диктор клавиатура фокус размер текста accessibility contrast high contrast motion reduce motion screen reader keyboard focus text size acessibilidade contraste movimento teclado foco", crate::settabs::tab_access), // i18n-ok
             tab("anim", "анимации", "slides", "анимации появление закрытие скорость длительность узор дизеринг развёртка шум диагональ блоки плавно сразу движение animations reveal open close speed duration pattern dither fade motion animações abrir fechar velocidade duração padrão movimento", crate::animtab::tab), // i18n-ok
         ],
     ),
@@ -96,6 +97,7 @@ pub fn desc(id: &str) -> &'static str {
         "fonts" => "шрифты шелла, терминала и браузера",
         "look" => "вид деталей: пиксельность, углы, размытие, значки, лёгкий режим",
         "anim" => "как окна и панели появляются и исчезают",
+        "access" => "контраст, меньше движения, работа с клавиатуры и экранным диктором",
         "bar" => "что показывает полоса сверху: модули, форма, часы",
         "dock" => "док с программами: край, размер, прятать, числа на значках",
         "widgets" => "виджеты на рабочем столе: добавить, переставить, настроить",
@@ -130,7 +132,7 @@ pub fn find(id: &str) -> Option<&'static Tab> {
 }
 
 /// где рисовать содержимое (видимая часть) — общее для рисования и колеса
-fn body_rect(w: i32, h: i32, sw: i32) -> R {
+pub(crate) fn body_rect(w: i32, h: i32, sw: i32) -> R {
     let fr = R::new(0, 0, w - 6, h - 6);
     R::new(1 + sw + 20, 56, fr.right() - sw - 1 - 48, fr.h - 72)
 }
@@ -203,6 +205,12 @@ pub fn draw(ui: &mut Ui, st: &State, w: i32, h: i32) {
     // за заголовок окно двигается (крестик зарегистрирован позже — он сверху)
     ui.zone(R::new(1, 1, fr.w - 2, 30), Act::MDrag, Cur::Default);
     ui.ghost(R::new(fr.right() - 28, 5, 24, 22), "close", Act::CloseModal);
+    // «отменить»: последнее изменение настроек (снимки в памяти, Ctrl+Z); слева от «сбросить страницу»
+    let undo_w = if st.set_history.is_empty() { 0 } else { ui.w(PX, "отменить") + 40 };
+    if undo_w > 0 {
+        let page = if crate::config::page_keys(st.stab).is_empty() { 0 } else { 190 };
+        ui.button(R::new(fr.right() - 34 - undo_w - page - 8, 5, undo_w, 22), "отменить", "reboot", Tone::Ghost, false, true, Act::SettingsUndo);
+    }
     // «сбросить страницу»: у страниц с ключами настроек; первый щелчок спрашивает, второй (пять секунд) сбрасывает
     if !crate::config::page_keys(st.stab).is_empty() {
         let armed = st.reset_armed.is_some_and(|(tab, at)| tab == st.stab && at.elapsed().as_secs() < 5);
@@ -281,6 +289,14 @@ pub fn draw(ui: &mut Ui, st: &State, w: i32, h: i32) {
     let marks: Vec<R> = ui.zones[z0..].iter().filter(|z| z.act.setting_key().is_some_and(|k| st.set.modified(k))).map(|z| z.r).collect();
     for r in marks {
         ui.cv.fill(R::new(r.x - 4, r.y + 3, 3, r.h.min(16) - 6), t.red);
+    }
+    // кольцо фокуса обхода клавишей Tab (a11y.rs): рамка выбранного элемента, на обоих окнах — видно при любой палитре
+    st.a11y_ring.set(None);
+    if let Some(n) = st.a11y_focus.and_then(|i| st.a11y_nodes.borrow().get(i).cloned()) {
+        let r = R::new(n.rect.x - ui.cv.ox - 3, n.rect.y - ui.cv.oy - 3, n.rect.w + 6, n.rect.h + 6);
+        ui.cv.outline(r, t.text_hi, 2);
+        ui.cv.outline(r.inset(2), t.bg, 1);
+        st.a11y_ring.set(Some(n.rect));
     }
     let full = if tb.own_scroll { body.h } else { ui.cv.reach.saturating_add(off + 12 - body.y).max(body.h) };
     st.sscroll_h.set(full);
@@ -387,6 +403,15 @@ impl App {
 
     pub fn settings_key(&mut self, e: &KeyEvent) {
         if self.keys_key(e) {
+            return;
+        }
+        // Tab, Enter, стрелки: обход окна с клавиатуры (a11y.rs); в поле ввода Tab не нужен — там своё
+        if self.st.field_focus.is_none() && self.a11y_key(e) {
+            return;
+        }
+        // Ctrl+Z вне полей ввода: отменить последнее изменение
+        if self.st.field_focus.is_none() && self.mods.ctrl && matches!(e.keysym, Keysym::z | Keysym::Z) {
+            self.settings_click(&Act::SettingsUndo);
             return;
         }
         if let Some(f) = self.st.field_focus {

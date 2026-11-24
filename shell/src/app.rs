@@ -151,6 +151,8 @@ pub enum Msg {
     SysUpd(crate::sysupd::Found),
     /// итог записи регулятора железа (hw.rs): Err — текст для уведомления
     Hw(Result<(), String>),
+    /// просьба экранного диктора (a11y.rs): узел и нажать ли его (иначе — только фокус)
+    A11y(usize, bool),
     Niri(serde_json::Value),
     /// logind: система засыпает (sleep.rs)
     PrepareSleep,
@@ -301,6 +303,13 @@ pub struct State {
     pub mic: Vec<String>,
     /// идёт запись экрана (recording.rs): красная точка в баре
     pub recording: bool,
+    /// дерево доступности последней отрисовки окна настроек (nemo_px::a11y) и выбранный клавишей Tab узел; кольцо фокуса рисует settings.rs
+    pub a11y_nodes: std::cell::RefCell<Vec<nemo_px::a11y::Node>>,
+    pub a11y_focus: Option<usize>,
+    /// где кольцо фокуса нарисовано в этом кадре: расходится с рамкой узла (прокрутка) — нужен ещё кадр
+    pub a11y_ring: std::cell::Cell<Option<nemo_px::gfx::R>>,
+    /// снимки настроек до каждого изменения, последний — перед самым свежим (отмена в окне настроек, Ctrl+Z); в памяти, до 40
+    pub set_history: Vec<String>,
     /// доля яркости экрана (ноутбук; None — подсветки нет или ещё не менялась)
     pub bright: Option<f32>,
     pub camera: Vec<String>,
@@ -485,6 +494,13 @@ pub struct App {
     pub res: Res,
     pub st: State,
     pub set_saved: String,
+    /// мост к экранному диктору (a11y.rs, feature `a11y`) и по чему видно, что дерево уже отдано
+    #[cfg(feature = "a11y")]
+    pub a11y: Option<crate::a11y::bridge::Bridge>,
+    #[cfg(feature = "a11y")]
+    pub(crate) a11y_stamp: Option<(usize, Option<usize>, &'static str)>,
+    /// следующая запись настроек — это сама отмена: её состояние в историю не кладём
+    pub(crate) set_undoing: bool,
     /// настройки на момент последней сверки с файлом: пока они те же, JSON не собирается
     /// (flush идёт на каждом проходе цикла — при эквалайзере 30 раз в секунду)
     pub(crate) set_seen: Settings,
@@ -523,7 +539,7 @@ impl State {
     pub fn new(set: Settings, niri: Niri) -> State {
         let _ = nemo_px::look::Look::from_json(&set.style_value(), Some(set.light));
         State {
-            t: Theme::new(set.accent_rgb(), set.tint, set.glass, set.lift, set.inner, set.light).apply(),
+            t: set.theme().apply(),
             niri,
             sys: Sys::new(),
             apps: icons::load_apps(),
@@ -566,6 +582,10 @@ impl State {
             curtain: None,
             mic: vec![],
             recording: false,
+            a11y_nodes: std::cell::RefCell::new(Vec::new()),
+            a11y_focus: None,
+            a11y_ring: std::cell::Cell::new(None),
+            set_history: Vec::new(),
             bright: None,
             camera: vec![],
             cast_asked: vec![],
@@ -707,7 +727,7 @@ pub fn run() {
     nemo_px::gfx::set_vector_icons(set.vector_icons());
     let iset = icon_set(&set.icon_theme);
     let mut icons = Icons::new(&iset);
-    icons.set_style(Theme::new(set.accent_rgb(), set.tint, set.glass, set.lift, set.inner, set.light).icon_ramp(), set.icon_pixel, set.icon_tint);
+    icons.set_style(set.theme().icon_ramp(), set.icon_pixel, set.icon_tint);
     let set_saved = set.to_json();
     let set_font = set.font_family();
 
@@ -760,6 +780,11 @@ pub fn run() {
         res: Res { fonts: Fonts::with(&set_font), icons, font: set_font, iset },
         st,
         set_saved,
+        #[cfg(feature = "a11y")]
+        a11y: None,
+        #[cfg(feature = "a11y")]
+        a11y_stamp: None,
+        set_undoing: false,
         set_seen: Settings::default(),
         set_mtime: std::fs::metadata(config::settings_path()).and_then(|m| m.modified()).ok(),
         last_sample: Instant::now(),

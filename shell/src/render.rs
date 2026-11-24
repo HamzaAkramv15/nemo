@@ -37,6 +37,7 @@ impl App {
             }
         }
         self.save_settings_if_changed();
+        self.a11y_sync();
         let _ = self.conn.flush();
     }
 
@@ -137,7 +138,18 @@ impl App {
                 SKind::Modal => match st.modal {
                     Some(Modal::Launcher) => crate::launcher::draw(&mut ui, st, w, h),
                     Some(Modal::Power) => crate::power::draw(&mut ui, st, w, h),
-                    Some(Modal::Settings) => crate::settings::draw(&mut ui, st, w, h),
+                    Some(Modal::Settings) => {
+                        // окно настроек записывает своё дерево доступности: для Tab, кольца фокуса и экранного диктора
+                        nemo_px::a11y::enable(true);
+                        crate::settings::draw(&mut ui, st, w, h);
+                        nemo_px::a11y::enable(false);
+                        *st.a11y_nodes.borrow_mut() = nemo_px::a11y::take();
+                        // кольцо нарисовано по рамке прошлого кадра: рамка сдвинулась (прокрутка) — ещё кадр
+                        let now = st.a11y_focus.and_then(|i| st.a11y_nodes.borrow().get(i).map(|n| n.rect));
+                        if now != st.a11y_ring.get() {
+                            ui.anim = true;
+                        }
+                    }
                     Some(Modal::Reply) => crate::reply::draw(&mut ui, st, w, h),
                     Some(Modal::Walls) => crate::walls::draw(&mut ui, st, w, h),
                     Some(Modal::Cheat) => crate::cheat::draw(&mut ui, st, w, h),

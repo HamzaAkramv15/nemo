@@ -4,6 +4,8 @@
 //   zones KIND            — записать зоны поверхности (x y w h Act) в $XDG_RUNTIME_DIR/nemo-test-out.txt
 //   click KIND ТЕКСТ [r]  — нажать (r — правой кнопкой) первую сверху зону, чей Act содержит ТЕКСТ
 //   slider КЛЮЧ ЗНАЧЕНИЕ  — выставить ползунок настроек так, как это делает перетаскивание
+//   nav next|prev|activate|left|right — обход с клавиатуры в окне настроек; пишет выбранный узел
+//   tree                  — дерево доступности окна настроек
 //   island                — id уведомления на таблетке, начальная и текущая ширина, мс с последней отрисовки, показана ли таблетка сейчас (1/0)
 // KIND: modal | bar | popup | dock | menu | widget:ID. Нажатие идёт тем же путём, что и мышь (`on_click`), с центром зоны.
 
@@ -53,6 +55,24 @@ impl App {
                         let _ = std::fs::write(&out, format!("no zone matches {pat}\n"));
                     }
                 }
+            }
+            Some("nav") => {
+                use crate::a11y::Nav;
+                let nav = match it.next() {
+                    Some("next") => Nav::Next,
+                    Some("prev") => Nav::Prev,
+                    Some("activate") => Nav::Activate,
+                    Some("left") => Nav::Left,
+                    Some("right") => Nav::Right,
+                    _ => return,
+                };
+                self.a11y_nav(nav);
+                let _ = std::fs::write(out, format!("{}\n", self.a11y_focus_name().unwrap_or_else(|| "none".into())));
+            }
+            Some("tree") => {
+                let nodes = self.st.a11y_nodes.borrow();
+                let s: String = nodes.iter().map(|n| format!("{:?} | {} | {} | {},{} {}x{} | checked={} selected={}\n", n.role, n.name, n.value, n.rect.x, n.rect.y, n.rect.w, n.rect.h, n.checked, n.selected)).collect();
+                let _ = std::fs::write(out, s);
             }
             Some("island") => {
                 let _ = std::fs::write(out, format!("{}\n", crate::island::debug_state(&self.st)));

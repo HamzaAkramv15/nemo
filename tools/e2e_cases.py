@@ -137,6 +137,75 @@ def case_record(e):
     p.kill()
 
 
+def case_undo(e):
+    print("settings: undo walks back through changes, one at a time")
+    open_settings(e, "widgets")
+    e.click("modal", 'SCycle("widget_panels")')
+    e.send("t:slider widget_radius 0.4", 0.2)
+    e.settle(1.5)
+    e.send("t:slider widget_border 0.4", 0.2)
+    e.settle(1.5)
+    c = e.cfg()
+    e.check(c.get("widgetRadius") == 9 and c.get("widgetBorder") == 1, "two changes were made")
+    e.click("modal", "SettingsUndo")
+    e.settle(1.2)
+    c = e.cfg()
+    e.check(c.get("widgetBorder") == -1 and c.get("widgetRadius") == 9, f"first undo takes back only the last change (radius {c.get('widgetRadius')}, border {c.get('widgetBorder')})")
+    e.click("modal", "SettingsUndo")
+    e.settle(1.2)
+    c = e.cfg()
+    e.check(c.get("widgetRadius") == -1, f"second undo takes back the one before (radius {c.get('widgetRadius')})")
+
+
+def nav(e, what):
+    e.send(f"t:nav {what}", 0.25)
+    return e.out().strip()
+
+
+def case_keyboard(e):
+    print("keyboard: Tab walks the settings window, Enter presses, arrows move a slider")
+    open_settings(e, "access")
+    e.settle(0.8)
+    e.send("t:tree", 0.3)
+    tree = e.out()
+    e.check("Toggle | high contrast" in tree, "the tree names the high contrast toggle")
+    e.check("Heading | settings" in tree, "the tree has the window heading")
+    seen = []
+    for _ in range(40):
+        f = nav(e, "next")
+        seen.append(f)
+        if "high contrast" in f:
+            break
+    e.check(any("high contrast" in f for f in seen), f"Tab reaches the high contrast toggle (visited {len(seen)} nodes)")
+    e.check(len(set(seen)) == len(seen), "Tab visits each element once on the way")
+    before = e.cfg().get("highContrast", False)
+    nav(e, "activate")
+    e.settle(1.0)
+    e.check(e.cfg().get("highContrast", False) != before, "Enter flips the focused toggle")
+    nav(e, "activate")
+    e.settle(1.0)
+    e.check(e.cfg().get("highContrast", False) == before, "Enter again flips it back")
+    f = nav(e, "prev")
+    e.check(f != "none" and f != seen[-1], f"Shift+Tab moves back ({f})")
+    # slider: on the animations page walk to the speed slider and press right
+    e.click("modal", 'STab("anim")')
+    e.settle(0.8)
+    before = e.cfg()
+    got = None
+    for _ in range(80):
+        f = nav(e, "next")
+        if f.startswith("Slider"):
+            got = f
+            break
+    e.check(got is not None, f"Tab reaches a slider ({got})")
+    if got:
+        nav(e, "right")
+        e.settle(1.2)
+        after = e.cfg()
+        changed = {k for k in set(before) | set(after) if before.get(k) != after.get(k)}
+        e.check(bool(changed), f"the right arrow moved the slider one step (changed: {sorted(changed)})")
+
+
 def case_reset(e):
     print("settings: a changed row is marked and a right-click resets only it")
     open_settings(e, "widgets")
@@ -245,7 +314,7 @@ def case_island(e):
 
 
 def run(e, which):
-    cases = {"panels": case_panels, "tiles": case_tiles, "layouts": case_layouts, "gallery": case_gallery, "bar": case_bar, "island": case_island, "wallpapers": case_wallpapers, "reset": case_reset, "record": case_record}
+    cases = {"panels": case_panels, "tiles": case_tiles, "layouts": case_layouts, "gallery": case_gallery, "bar": case_bar, "island": case_island, "wallpapers": case_wallpapers, "reset": case_reset, "undo": case_undo, "keyboard": case_keyboard, "record": case_record}
     e.HOME = e.HOME
     names = list(cases) if which == ["all"] else which
     for n in names:

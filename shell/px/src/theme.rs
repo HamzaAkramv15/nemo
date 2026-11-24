@@ -99,6 +99,38 @@ pub fn scale_v(c: C, k: f32) -> C {
     from_hsv(h, s, v)
 }
 
+/// относительная яркость по WCAG 2.x
+fn luminance(c: C) -> f32 {
+    let (r, g, b) = c.rgbf();
+    let f = |v: f32| if v <= 0.03928 { v / 12.92 } else { ((v + 0.055) / 1.055).powf(2.4) };
+    0.2126 * f(r) + 0.7152 * f(g) + 0.0722 * f(b)
+}
+
+/// коэффициент контраста двух цветов по WCAG: от 1 (одинаковые) до 21 (чёрный на белом)
+pub fn contrast(a: C, b: C) -> f32 {
+    let (la, lb) = (luminance(a), luminance(b));
+    (la.max(lb) + 0.05) / (la.min(lb) + 0.05)
+}
+
+/// сдвинуть `fg` к `toward` ровно до контраста `ratio` с самым трудным из фонов (двоичный поиск); уже хватает — без изменений
+fn lift_to(fg: C, bgs: &[C], ratio: f32, toward: C) -> C {
+    let worst = |c: C| bgs.iter().map(|b| contrast(c.alpha(1.0), b.alpha(1.0))).fold(f32::MAX, f32::min);
+    let fg = fg.alpha(1.0);
+    if worst(fg) >= ratio {
+        return fg;
+    }
+    let (mut lo, mut hi) = (0.0f32, 1.0f32);
+    for _ in 0..16 {
+        let mid = (lo + hi) / 2.0;
+        if worst(fg.lerp(toward, mid)) >= ratio {
+            hi = mid;
+        } else {
+            lo = mid;
+        }
+    }
+    fg.lerp(toward, hi)
+}
+
 pub fn lightness(c: C) -> f32 {
     let (r, g, b) = c.rgbf();
     (r.max(g).max(b) + r.min(g).min(b)) / 2.0
@@ -234,6 +266,33 @@ impl Theme {
         *self
     }
 
+    /// высокая контрастность: текст и значки читаются на любой подложке (WCAG: основной ≥ 10:1, второй ≥ 7:1, слабый ≥ 4.5:1, акцент и
+    /// статусы ≥ 4.5:1), рамки заметны, подложки непрозрачные, матовости нет. Цвета двигаются к белому (тёмная тема) или чёрному (светлая)
+    /// ровно настолько, насколько нужно: вид палитры остаётся узнаваемым
+    pub fn high_contrast(mut self) -> Theme {
+        let toward = if self.light { C::hex(0x000000) } else { WHITE };
+        let opaque = |c: C| c.alpha(1.0);
+        self.glass = 1.0;
+        self.surface = opaque(self.surface);
+        self.surface_hi = opaque(self.surface_hi);
+        self.code_bg = opaque(self.code_bg);
+        let bgs = [self.bg, self.panel, self.surface, self.surface_hi, self.code_bg];
+        self.text = lift_to(self.text, &bgs, 10.0, toward);
+        self.text_dim = lift_to(self.text_dim, &bgs, 7.0, toward);
+        self.text_faint = lift_to(self.text_faint, &bgs, 4.5, toward);
+        self.text_hi = lift_to(self.text_hi, &bgs, 12.0, toward);
+        self.red = lift_to(self.red, &bgs, 4.5, toward);
+        self.ember = lift_to(self.ember, &bgs, 4.5, toward);
+        self.ok = lift_to(self.ok, &bgs, 4.5, toward);
+        self.warn = lift_to(self.warn, &bgs, 4.5, toward);
+        // рамки и линии — граница элемента должна быть видна (≥ 3:1, как требует WCAG для компонентов интерфейса)
+        self.border = lift_to(self.border, &bgs, 3.0, toward);
+        self.dim = lift_to(self.dim, &bgs, 3.0, toward);
+        // текст на акценте: белый или чёрный — что контрастнее
+        self.on_accent = if contrast(WHITE, self.red) >= contrast(C::hex(0x000000), self.red) { WHITE } else { C::hex(0x000000) };
+        self
+    }
+
     /// фон панелей с матовостью
     pub fn glass_bg(&self) -> C {
         self.bg.alpha(self.glass)
@@ -277,5 +336,47 @@ impl Theme {
         let mut body: Vec<String> = pairs.iter().map(|(k, c)| format!("  \"{k}\": \"{}\"", c.hex_str())).collect();
         body.push(format!("  \"mode\": \"{}\"", if self.light { "light" } else { "dark" }));
         format!("{{\n{}\n}}\n", body.join(",\n"))
+    }
+}
+
+#[cfg(test)]
+mod contrast_tests {
+    use super::*;
+
+    fn worst(fg: C, t: &Theme) -> f32 {
+        [t.bg, t.panel, t.surface, t.surface_hi, t.code_bg].iter().map(|b| contrast(fg.alpha(1.0), b.alpha(1.0))).fold(f32::MAX, f32::min)
+    }
+
+    #[test]
+    fn contrast_matches_the_wcag_reference_values() {
+        assert!((contrast(C::hex(0x000000), WHITE) - 21.0).abs() < 0.01);
+        assert!((contrast(WHITE, WHITE) - 1.0).abs() < 0.001);
+        // #767676 на белом — известный порог 4.5:1 (чуть выше)
+        assert!((contrast(C::hex(0x767676), WHITE) - 4.54).abs() < 0.05);
+    }
+
+    #[test]
+    fn high_contrast_meets_the_table_for_every_palette_dark_and_light() {
+        for light in [false, true] {
+            for p in PRESETS {
+                let t = Theme::new(p.accent, 1.0, 0.55, 0.0, 1.0, light).high_contrast();
+                let who = format!("{} {}", p.id, if light { "light" } else { "dark" });
+                for (name, c, need) in [("text", t.text, 10.0), ("text_dim", t.text_dim, 7.0), ("text_faint", t.text_faint, 4.5), ("accent", t.red, 4.5), ("ember", t.ember, 4.5), ("ok", t.ok, 4.5), ("warn", t.warn, 4.5), ("border", t.border, 3.0)] {
+                    let got = worst(c, &t);
+                    assert!(got >= need - 0.05, "{who}: {name} has {got:.2}:1, needs {need}:1");
+                }
+                assert!(contrast(t.on_accent, t.red) >= 4.5, "{who}: text on the accent");
+                assert_eq!(t.surface.a(), 255, "{who}: surfaces are opaque");
+            }
+        }
+    }
+
+    #[test]
+    fn colours_that_already_pass_are_left_alone() {
+        let t = Theme::new(0xa78bfa, 1.0, 0.55, 0.0, 1.0, false);
+        let hc = t.high_contrast();
+        assert!(worst(hc.text, &hc) >= 10.0);
+        let again = hc.high_contrast();
+        assert_eq!(again.text.0, hc.text.0, "applying it twice changes nothing");
     }
 }
