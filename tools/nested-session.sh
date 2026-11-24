@@ -66,6 +66,8 @@ nested_start() {
   chmod 700 "$t/run"
   # only the shell on the PATH: it must not find nemo-agents (polkit agent, automount) or a second launcher to start
   ln -s "$NESTED_ROOT/shell/target/release/nemo-shell" "$t/bin/nemo-shell"
+  # NESTED_EXTRA_BINS="nemo-shot ...": programs a test needs and that are safe in a nested session (tools/e2e.sh record)
+  for b in ${NESTED_EXTRA_BINS:-}; do p="$(command -v "$b")" && ln -s "$p" "$t/bin/$b"; done
   nested_fixture_settings "$fixture" >"$t/home/.config/nemo/shell.json" || return 1
   cp "$NESTED_ROOT/config/wallpapers/nemo-reef.png" "$t/home/.local/share/nemo/wallpapers/" 2>/dev/null
   printf 'spawn-at-startup "nemo-shell"\n' >"$t/niri.kdl"

@@ -128,14 +128,6 @@ pub fn policy_target(want: &str, in_game: bool, now: &Prof) -> Option<String> {
     Some(want.to_string())
 }
 
-/// предел заряда батареи, % (sysfs charge_control_end_threshold); None — ноутбук его не отдаёт
-pub fn charge_limit() -> Option<u32> {
-    let rd = std::fs::read_dir("/sys/class/power_supply").ok()?;
-    rd.flatten().filter(|e| e.file_name().to_string_lossy().starts_with("BAT")).find_map(|e| {
-        std::fs::read_to_string(e.path().join("charge_control_end_threshold")).ok()?.trim().parse().ok()
-    })
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;

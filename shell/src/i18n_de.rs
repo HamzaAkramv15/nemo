@@ -1683,4 +1683,12 @@ const DE: &[(&str, &str)] = &[
     ("setting reset", "Einstellung zurückgesetzt"),
     ("right-click a row to restore its factory value", "Rechtsklick auf die Zeile stellt den Werkswert wieder her"),
     ("login screen wallpaper…", "Hintergrund der Anmeldung…"),
+    ("screen recording", "Bildschirmaufnahme"),
+    ("recording sound", "Aufnahmeton"),
+    ("no sound", "ohne Ton"),
+    ("system sound", "Systemton"),
+    ("charge limit", "Ladegrenze"),
+    ("hardware", "Hardware"),
+    ("could not write the charge limit", "Ladegrenze konnte nicht geschrieben werden"),
+    ("makes the battery last longer: usually 80%", "schont den Akku: meist 80 %"),
 ];

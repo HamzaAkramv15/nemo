@@ -16,6 +16,8 @@ pub struct ShotCfg {
     pub delay: u32,
     pub confirm: String,
     pub prefix: String,
+    /// звук записи экрана: "off", "mic" (микрофон по умолчанию) или "system" (то, что играет)
+    pub record_audio: String,
     /// когда файл прочитан: nemo-shot правит его и сам (кнопка таймера), шелл перечитывает перед правкой
     #[serde(skip)]
     mtime: Option<std::time::SystemTime>,
@@ -23,7 +25,7 @@ pub struct ShotCfg {
 
 impl Default for ShotCfg {
     fn default() -> ShotCfg {
-        ShotCfg { dir: String::new(), copy: true, save: true, loupe: true, notify: true, delay: 3, confirm: "space".into(), prefix: "nemo".into(), mtime: None }
+        ShotCfg { dir: String::new(), copy: true, save: true, loupe: true, notify: true, delay: 3, confirm: "space".into(), prefix: "nemo".into(), record_audio: "off".into(), mtime: None }
     }
 }
 
@@ -55,6 +57,7 @@ impl ShotCfg {
             delay: old.get("shotDelay").and_then(Value::as_u64).map_or(d.delay, |v| v as u32),
             confirm: if old.get("shotConfirm").and_then(Value::as_str) == Some("instant") { "instant".into() } else { d.confirm.clone() },
             prefix: d.prefix,
+            record_audio: d.record_audio,
             mtime: None,
         };
         c.save();

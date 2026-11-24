@@ -1323,4 +1323,12 @@ const PAIRS: &[(&str, &str)] = &[
     ("настройка возвращена", "setting reset"),
     ("правый щелчок по строке возвращает её заводское значение", "right-click a row to restore its factory value"),
     ("обои экрана входа…", "login screen wallpaper…"),
+    ("запись экрана", "screen recording"),
+    ("звук записи", "recording sound"),
+    ("без звука", "no sound"),
+    ("звук системы", "system sound"),
+    ("предел заряда", "charge limit"),
+    ("железо", "hardware"),
+    ("не удалось записать предел заряда", "could not write the charge limit"),
+    ("продлевает жизнь батареи: чаще всего 80%", "makes the battery last longer: usually 80%"),
 ];

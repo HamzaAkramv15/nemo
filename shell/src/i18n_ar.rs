@@ -772,4 +772,12 @@ const AR: &[(&str, &str)] = &[
     ("setting reset", "تمت إعادة الإعداد"),
     ("right-click a row to restore its factory value", "انقر بزر الفأرة الأيمن على الصف لاستعادة قيمته الأصلية"),
     ("login screen wallpaper…", "خلفية شاشة الدخول…"),
+    ("screen recording", "تسجيل الشاشة"),
+    ("recording sound", "صوت التسجيل"),
+    ("no sound", "بلا صوت"),
+    ("system sound", "صوت النظام"),
+    ("charge limit", "حد الشحن"),
+    ("hardware", "العتاد"),
+    ("could not write the charge limit", "تعذّرت كتابة حد الشحن"),
+    ("makes the battery last longer: usually 80%", "يطيل عمر البطارية: غالبًا 80%"),
 ];

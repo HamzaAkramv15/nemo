@@ -136,6 +136,7 @@ pub fn text(st: &State, key: &str) -> Option<Vec<String>> {
             }
             (!v.is_empty()).then_some(v)
         }
+        "record" => Some(vec![crate::tf!("идёт запись экрана · щёлкни, чтобы остановить", "recording the screen · click to stop", "gravando a tela · clique para parar")]),
         _ => None,
     }
 }

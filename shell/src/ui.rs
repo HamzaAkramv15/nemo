@@ -55,6 +55,10 @@ pub enum Act {
     SSideScroll,
     SPreset(usize),
     SBool(&'static str),
+    /// красная точка записи экрана в баре: остановить запись
+    RecordStop,
+    /// регулятор железа (hw.rs): провайдер и элемент — следующее значение по кругу
+    HwCycle(&'static str, &'static str),
     /// настройки → цвет → программы: красить ли эту программу (config::THEME_APPS)
     SThemeApp(&'static str),
     /// свой шаблон, изменённый руками, — перезаписать (#27)

@@ -1460,4 +1460,12 @@ const PT_BR: &[(&str, &str)] = &[
     ("setting reset", "configuração restaurada"),
     ("right-click a row to restore its factory value", "clique direito na linha restaura o valor de fábrica"),
     ("login screen wallpaper…", "papel de parede do login…"),
+    ("screen recording", "gravação de tela"),
+    ("recording sound", "som da gravação"),
+    ("no sound", "sem som"),
+    ("system sound", "som do sistema"),
+    ("charge limit", "limite de carga"),
+    ("hardware", "hardware"),
+    ("could not write the charge limit", "não foi possível gravar o limite de carga"),
+    ("makes the battery last longer: usually 80%", "prolonga a vida da bateria: geralmente 80%"),
 ];

@@ -149,6 +149,8 @@ pub struct LockSurf {
 pub enum Msg {
     /// итог проверки обновлений дистрибутива (sysupd.rs)
     SysUpd(crate::sysupd::Found),
+    /// итог записи регулятора железа (hw.rs): Err — текст для уведомления
+    Hw(Result<(), String>),
     Niri(serde_json::Value),
     /// logind: система засыпает (sleep.rs)
     PrepareSleep,
@@ -297,6 +299,8 @@ pub struct State {
     /// индикатор приватности (privacy.rs): кто пишет микрофон, кто держит камеру, у каких потоков
     /// PipeWire уже спрошено, кто смотрит
     pub mic: Vec<String>,
+    /// идёт запись экрана (recording.rs): красная точка в баре
+    pub recording: bool,
     /// доля яркости экрана (ноутбук; None — подсветки нет или ещё не менялась)
     pub bright: Option<f32>,
     pub camera: Vec<String>,
@@ -561,6 +565,7 @@ impl State {
             full_said: false,
             curtain: None,
             mic: vec![],
+            recording: false,
             bright: None,
             camera: vec![],
             cast_asked: vec![],

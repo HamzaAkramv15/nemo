@@ -171,6 +171,12 @@ impl App {
             Msg::PrepareSleep => self.prepare_sleep(),
             Msg::Pam(ok) => self.on_pam(ok),
             Msg::Prof(p) => self.on_prof(p),
+            Msg::Hw(r) => {
+                if let Err(e) = r {
+                    self.toast_note("железо", &e);
+                }
+                self.dirty(&SKind::Modal);
+            }
             Msg::SysUpd(f) => {
                 self.st.sys_upd.found = Some(f);
                 self.st.sys_upd.checking = false;

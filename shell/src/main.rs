@@ -8,6 +8,8 @@
 pub use nemo_px::{font, gfx, icons, theme};
 
 mod agents;
+mod hw;
+mod recording;
 mod animtab;
 mod app;
 mod profile;

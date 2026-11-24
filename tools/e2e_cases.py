@@ -116,6 +116,27 @@ def case_bar(e):
     e.check(os.path.exists(p), "a picture of the split bar was taken")
 
 
+def case_record(e):
+    print("recording: the bar shows a dot while a recording runs and the dot stops it")
+    run = e.RUN
+    p = subprocess.Popen(["sleep", "300"])
+    pidf = os.path.join(run, "nemo-record.pid")
+    open(pidf, "w").write(f"{p.pid} /tmp/e2e-fake.mp4")
+    e.settle(2.5)
+    z = e.zones("bar")
+    e.check("RecordStop" in z, "a running recording puts the red dot in the bar")
+    e.click("bar", "RecordStop")
+    e.settle(3.0)
+    e.check(p.poll() is not None, "clicking the dot stops the recording process")
+    e.settle(2.5)
+    e.check("RecordStop" not in e.zones("bar"), "the dot is gone after the recording ended")
+    try:
+        os.remove(pidf)
+    except OSError:
+        pass
+    p.kill()
+
+
 def case_reset(e):
     print("settings: a changed row is marked and a right-click resets only it")
     open_settings(e, "widgets")
@@ -224,7 +245,7 @@ def case_island(e):
 
 
 def run(e, which):
-    cases = {"panels": case_panels, "tiles": case_tiles, "layouts": case_layouts, "gallery": case_gallery, "bar": case_bar, "island": case_island, "wallpapers": case_wallpapers, "reset": case_reset}
+    cases = {"panels": case_panels, "tiles": case_tiles, "layouts": case_layouts, "gallery": case_gallery, "bar": case_bar, "island": case_island, "wallpapers": case_wallpapers, "reset": case_reset, "record": case_record}
     e.HOME = e.HOME
     names = list(cases) if which == ["all"] else which
     for n in names:

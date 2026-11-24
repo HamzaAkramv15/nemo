@@ -482,6 +482,7 @@ printf '{"text":"%s","icon":"temp","color":"accent","click":"xdg-open https://wt
 | `delay` | `3` | таймер, секунды |
 | `confirm` | `space` | `space`: выделить, потом пробел или Enter; `instant`: снимок, как только отпущена мышь (область, окно), а снимок экрана — сразу, без оверлея |
 | `prefix` | `nemo` | начало имени файла |
+| `recordAudio` | `off` | звук записи экрана: `off`, `mic` (микрофон по умолчанию), `system` (то, что играет) |
 
 ## nemo-agents
 

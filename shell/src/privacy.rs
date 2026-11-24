@@ -23,19 +23,31 @@ pub fn lit(st: &State) -> (bool, bool, bool) {
 pub fn bar(ui: &mut Ui, st: &State, x: i32, h: i32, measure: bool) -> i32 {
     let (m, c, s) = lit(st);
     let icons: Vec<&str> = [(m, "mic"), (c, "camera"), (s, "screen")].into_iter().filter(|p| p.0).map(|p| p.1).collect();
-    if icons.is_empty() {
+    let rec = st.recording;
+    if icons.is_empty() && !rec {
         return 0;
     }
-    let w = icons.len() as i32 * 18 - 4;
+    let n = icons.len() as i32 + rec as i32;
+    let w = n * 18 - 4;
     if !measure {
         let t = ui.t;
-        let r = R::new(x - 2, 0, w + 4, h - 1);
-        let c = if ui.hover(r) { t.text_hi } else { t.warn };
-        for (i, ic) in icons.iter().enumerate() {
-            ui.cv.icon(ic, x + i as i32 * 18, h / 2 - 7, 2, c);
+        let ir = R::new(x - 2, 0, icons.len() as i32 * 18, h - 1);
+        if !icons.is_empty() {
+            let c = if ui.hover(ir) { t.text_hi } else { t.warn };
+            for (i, ic) in icons.iter().enumerate() {
+                ui.cv.icon(ic, x + i as i32 * 18, h / 2 - 7, 2, c);
+            }
+            ui.zone(ir, Act::Popup("privacy"), Cur::Pointer);
+            ui.tip(ir, "privacy");
         }
-        ui.zone(r, Act::Popup("privacy"), Cur::Pointer);
-        ui.tip(r, "privacy");
+        if rec {
+            // красная точка записи: щелчок останавливает её (рисуем сами: значка «запись» в наборе 7×7 нет)
+            let rr = R::new(x + icons.len() as i32 * 18 - 2, 0, 18, h - 1);
+            let c = if ui.hover(rr) { t.text_hi } else { t.ember };
+            ui.cv.fill(R::new(rr.x + 3, h / 2 - 5, 10, 10), c);
+            ui.zone(rr, Act::RecordStop, Cur::Pointer);
+            ui.tip(rr, "record");
+        }
     }
     w
 }
@@ -44,19 +56,30 @@ pub fn bar(ui: &mut Ui, st: &State, x: i32, h: i32, measure: bool) -> i32 {
 pub fn vbar(ui: &mut Ui, st: &State, x: i32, w: i32, y: i32, measure: bool) -> i32 {
     let (m, c, s) = lit(st);
     let icons: Vec<&str> = [(m, "mic"), (c, "camera"), (s, "screen")].into_iter().filter(|p| p.0).map(|p| p.1).collect();
-    if icons.is_empty() {
+    let rec = st.recording;
+    if icons.is_empty() && !rec {
         return 0;
     }
-    let h = icons.len() as i32 * 18 - 4;
+    let h = (icons.len() as i32 + rec as i32) * 18 - 4;
     if !measure {
         let t = ui.t;
-        let r = R::new(x, y - 2, w, h + 4);
-        let c = if ui.hover(r) { t.text_hi } else { t.warn };
-        for (i, ic) in icons.iter().enumerate() {
-            ui.cv.icon(ic, x + w / 2 - 7, y + i as i32 * 18, 2, c);
+        if !icons.is_empty() {
+            let r = R::new(x, y - 2, w, icons.len() as i32 * 18 + 2);
+            let c = if ui.hover(r) { t.text_hi } else { t.warn };
+            for (i, ic) in icons.iter().enumerate() {
+                ui.cv.icon(ic, x + w / 2 - 7, y + i as i32 * 18, 2, c);
+            }
+            ui.zone(r, Act::Popup("privacy"), Cur::Pointer);
+            ui.tip(r, "privacy");
         }
-        ui.zone(r, Act::Popup("privacy"), Cur::Pointer);
-        ui.tip(r, "privacy");
+        if rec {
+            let ry = y + icons.len() as i32 * 18;
+            let rr = R::new(x, ry - 2, w, 20);
+            let c = if ui.hover(rr) { t.text_hi } else { t.ember };
+            ui.cv.fill(R::new(x + w / 2 - 5, ry + 2, 10, 10), c);
+            ui.zone(rr, Act::RecordStop, Cur::Pointer);
+            ui.tip(rr, "record");
+        }
     }
     h
 }

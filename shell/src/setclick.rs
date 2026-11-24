@@ -305,6 +305,18 @@ impl App {
                     self.settings_changed();
                     self.renew_notif(SKind::Osd);
                 }
+                "record_audio" => {
+                    self.st.shot_cfg.fresh();
+                    let c = &mut self.st.shot_cfg;
+                    c.record_audio = match c.record_audio.as_str() {
+                        "off" => "mic",
+                        "mic" => "system",
+                        _ => "off",
+                    }
+                    .into();
+                    c.save();
+                    self.dirty(&SKind::Modal);
+                }
                 "shot_confirm" => {
                     self.st.shot_cfg.fresh();
                     let c = &mut self.st.shot_cfg;

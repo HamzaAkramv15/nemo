@@ -116,7 +116,18 @@ pub fn draw(ui: &mut Ui, st: &State, out: &str, w: i32, h: i32) {
         return draw_v(ui, st, out, h);
     }
     let t = ui.t;
-    let set = &st.set;
+    // идёт запись экрана, а модуля «privacy» в баре нет: красная точка всё равно нужна (она там же, где значки приватности)
+    let eff;
+    let set = if st.recording && ![&st.set.bar_left, &st.set.bar_center, &st.set.bar_right].iter().any(|l| l.iter().any(|m| m == "privacy")) {
+        eff = {
+            let mut c = st.set.clone();
+            c.bar_right.insert(0, "privacy".into());
+            c
+        };
+        &eff
+    } else {
+        &st.set
+    };
     // пустое место бара (модули — поверх): ПКМ — панель управления. У раздельного бара зоны — у самих плашек: между ними мышь проходит насквозь
     if !split(set) {
         ui.zone(R::new(0, 0, w, H), Act::BarBg, Cur::Default);
@@ -725,7 +736,18 @@ fn vx(st: &State) -> i32 {
 /// боковой бар высотой h: фон, три группы модулей сверху вниз
 fn draw_v(ui: &mut Ui, st: &State, out: &str, h: i32) {
     let t = ui.t;
-    let set = &st.set;
+    // идёт запись экрана, а модуля «privacy» в баре нет: красная точка всё равно нужна (она там же, где значки приватности)
+    let eff;
+    let set = if st.recording && ![&st.set.bar_left, &st.set.bar_center, &st.set.bar_right].iter().any(|l| l.iter().any(|m| m == "privacy")) {
+        eff = {
+            let mut c = st.set.clone();
+            c.bar_right.insert(0, "privacy".into());
+            c
+        };
+        &eff
+    } else {
+        &st.set
+    };
     ui.zone(R::new(0, 0, H, h), Act::BarBg, Cur::Default);
     let h = if strip(set) {
         ui.cv.blur_rect(R::new(0, 0, H, h), 0);

@@ -43,6 +43,12 @@ impl App {
     pub(crate) fn tick(&mut self) {
         reap_inherited();
         self.caffeine_tick();
+        // запись экрана началась или кончилась (nemo-shot record): точка в баре
+        let rec = crate::recording::running().is_some();
+        if rec != self.st.recording {
+            self.st.recording = rec;
+            self.dirty(&SKind::Bar);
+        }
         let now = Instant::now();
         // служба с окнами паролей, показом экрана и дисками упала — поднять заново (ей никто больше не следит)
         if now.duration_since(self.agents_seen) >= Duration::from_secs(20) {

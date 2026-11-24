@@ -1683,4 +1683,12 @@ const UK: &[(&str, &str)] = &[
     ("setting reset", "налаштування скинуто"),
     ("right-click a row to restore its factory value", "правий клік по рядку повертає заводське значення"),
     ("login screen wallpaper…", "шпалери екрана входу…"),
+    ("screen recording", "запис екрана"),
+    ("recording sound", "звук запису"),
+    ("no sound", "без звуку"),
+    ("system sound", "звук системи"),
+    ("charge limit", "межа заряду"),
+    ("hardware", "залізо"),
+    ("could not write the charge limit", "не вдалося записати межу заряду"),
+    ("makes the battery last longer: usually 80%", "подовжує життя батареї: зазвичай 80%"),
 ];

@@ -478,6 +478,7 @@ passes extra mpv options. The look (palette, language, font) is the viewer's (`f
 | `delay` | `3` | timer, seconds |
 | `confirm` | `space` | `space`: select, then Space or Enter takes the shot; `instant`: the shot is taken as soon as the mouse is released (area, window), and a full-screen shot at once, without the overlay |
 | `prefix` | `nemo` | the start of the file name |
+| `recordAudio` | `off` | sound of screen recordings: `off`, `mic` (default microphone), `system` (what is playing) |
 
 ## nemo-agents
 

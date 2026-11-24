@@ -226,6 +226,18 @@ impl App {
                 self.close_popup();
                 self.open_settings_tab("bt");
             }
+            Act::RecordStop => crate::recording::stop(),
+            Act::HwCycle(provider, id) => {
+                if let Some(c) = crate::hw::controls().into_iter().find(|c| c.provider == provider && c.id == id) {
+                    let next = crate::hw::next_choice(&c);
+                    let tx = self.tx.clone();
+                    // pkexec ждёт пароль: не в потоке интерфейса
+                    std::thread::spawn(move || {
+                        let r = crate::hw::set_charge_limit(std::path::Path::new("/sys/class/power_supply"), next);
+                        let _ = tx.send(crate::app::Msg::Hw(r));
+                    });
+                }
+            }
             Act::Dnd => {
                 self.st.set.dnd = !self.st.set.dnd;
                 self.settings_changed();

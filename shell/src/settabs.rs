@@ -522,9 +522,11 @@ pub(crate) fn tab_comfort(ui: &mut Ui, st: &State, b: R) {
         ui.text_in(PX, R::new(lx, y, b.w, 20), "нужен power-profiles-daemon (или tuned-ppd)", ui.t.text_faint);
         y += 26;
     }
-    if let Some(l) = crate::profile::charge_limit() {
-        ui.text_in(PX, R::new(lx, y, b.w, 20), &crate::tf!("предел заряда: {}%", "charge limit: {}%", "limite de carga: {}%", l), ui.t.text_faint);
-        y += 26;
+    // регуляторы железа, которые есть у этой машины (hw.rs): сейчас — предел заряда батареи; после выбора pkexec спросит пароль
+    for c in crate::hw::controls() {
+        opt_btn(ui, R::new(lx, y, half, 26), c.label, &format!("{}%", c.value), Act::HwCycle(c.provider, c.id));
+        ui.text_in(PX, R::new(rx, y + 4, half, 20), "продлевает жизнь батареи: чаще всего 80%", ui.t.text_faint);
+        y += 34;
     }
     y += 6;
     // не беспокоить: то же, что в уведомлениях и в игровом режиме
@@ -842,6 +844,15 @@ pub(crate) fn tab_shots(ui: &mut Ui, st: &State, b: R) {
     y += 32;
     let conf = if c.confirm == "instant" { "сразу, как отпустил мышь" } else { "пробелом или enter" };
     opt_btn(ui, R::new(b.x, y, b.w, 26), "снимок", conf, Act::SCycle("shot_confirm"));
+    y += 40;
+    // запись экрана (nemo-shot record, Shift+Print): звук
+    y = title(ui, b.x, y, b.w, "запись экрана");
+    let audio = match c.record_audio.as_str() {
+        "mic" => "микрофон",
+        "system" => "звук системы",
+        _ => "без звука",
+    };
+    opt_btn(ui, R::new(b.x, y, b.w, 26), "звук записи", audio, Act::SCycle("record_audio"));
     y += 40;
     // шторка: зрители трансляции видят её, ты — экран (curtain.rs)
     y = title(ui, b.x, y, b.w, "скрыть экран в трансляции");
