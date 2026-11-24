@@ -711,6 +711,25 @@ impl App {
                     self.st.field_focus = None;
                     self.settings_changed();
                 }
+                "rec_dir_apply" => {
+                    let p = self.st.rec_field.text.trim().to_string();
+                    self.st.shot_cfg.fresh();
+                    self.st.shot_cfg.record_dir = p;
+                    self.st.shot_cfg.save();
+                    self.st.field_focus = None;
+                    self.dirty(&SKind::Modal);
+                }
+                "record_fps" => {
+                    self.st.shot_cfg.fresh();
+                    let c = &mut self.st.shot_cfg;
+                    c.record_fps = match c.record_fps {
+                        0 => 30,
+                        30 => 60,
+                        _ => 0,
+                    };
+                    c.save();
+                    self.dirty(&SKind::Modal);
+                }
                 "shot_dir_apply" => {
                     let p = self.st.shot_field.text.trim().to_string();
                     self.st.shot_cfg.fresh();
@@ -881,6 +900,10 @@ impl App {
                 if *k == "game_apps" && self.st.game_field.text.is_empty() {
                     let p = self.st.set.game_apps.clone();
                     self.st.game_field.set(&p);
+                }
+                if *k == "rec_dir" && self.st.rec_field.text.is_empty() {
+                    let p = self.st.shot_cfg.record_dir.clone();
+                    self.st.rec_field.set(&p);
                 }
                 if *k == "shot_dir" && self.st.shot_field.text.is_empty() {
                     let p = self.st.shot_cfg.dir.clone();

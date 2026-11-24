@@ -9,6 +9,15 @@ def open_settings(e, tab):
         e.send(f"settings {tab}", 0.5)
 
 
+def open_walls(e):
+    """`walls` toggles the picker: look first and send again if another window was in the way"""
+    e.send("walls", 0.8)
+    if "target_login" not in e.zones("modal"):
+        e.send("walls", 0.8)
+        if "target_login" not in e.zones("modal"):
+            e.send("walls", 0.8)
+
+
 def case_panels(e):
     print("panels: style, trim, roundness, opacity, border, shadow")
     open_settings(e, "widgets")
@@ -193,7 +202,7 @@ def case_keyboard(e):
     f = nav(e, "prev")
     e.check(f != "none" and f != seen[-1], f"Shift+Tab moves back ({f})")
     # slider: on the animations page walk to the speed slider and press right
-    e.click("modal", 'STab("anim")')
+    open_settings(e, "anim")
     e.settle(0.8)
     before = e.cfg()
     got = None
@@ -234,8 +243,8 @@ def case_wallpapers(e):
     os.makedirs(pics, exist_ok=True)
     for n, col in (("a-red.png", (200, 40, 40)), ("b-blue.png", (40, 60, 200))):
         Image.new("RGB", (640, 360), col).save(os.path.join(pics, n))
-    e.send("walls")
-    e.settle(1.2)
+    open_walls(e)
+    e.settle(1.0)
     z = e.zones("modal")
     e.check("WallPick(1)" in z and "WallPick(2)" in z, "the picker lists both pictures: " + " ".join(l.split(None, 5)[-1] for l in z.splitlines() if "Wall" in l))
     e.click("modal", 'SWall("target_login")')
@@ -244,7 +253,7 @@ def case_wallpapers(e):
     c = e.cfg()
     e.check(c.get("greetWall") == "image" and str(c.get("greetWallFile", "")).endswith("b-blue.png"), f"target login: greetWall={c.get('greetWall')} file={c.get('greetWallFile')}")
     e.check(not str(c.get("wallpaper", "")).endswith("b-blue.png"), "the desktop picture did not change")
-    e.send("walls")
+    open_walls(e)
     e.settle(1.0)
     e.click("modal", 'SWall("target_desktop")')
     e.click("modal", "WallPick(1)")  # a-red -> the desktop only
@@ -252,7 +261,7 @@ def case_wallpapers(e):
     c = e.cfg()
     e.check(str(c.get("wallpaper", "")).endswith("a-red.png"), f"target desktop: wallpaper={c.get('wallpaper')}")
     e.check(str(c.get("greetWallFile", "")).endswith("b-blue.png"), "the login picture stayed blue")
-    e.send("walls")
+    open_walls(e)
     e.settle(1.0)
     e.click("modal", 'SWall("target_both")')
     e.click("modal", "WallPick(2)")

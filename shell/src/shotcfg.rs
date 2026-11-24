@@ -18,6 +18,10 @@ pub struct ShotCfg {
     pub prefix: String,
     /// звук записи экрана: "off", "mic" (микрофон по умолчанию) или "system" (то, что играет)
     pub record_audio: String,
+    /// папка видео записи экрана; пусто — «Видео»
+    pub record_dir: String,
+    /// кадров в секунду записи: 0 — как у экрана, иначе 30 или 60
+    pub record_fps: u32,
     /// когда файл прочитан: nemo-shot правит его и сам (кнопка таймера), шелл перечитывает перед правкой
     #[serde(skip)]
     mtime: Option<std::time::SystemTime>,
@@ -25,7 +29,7 @@ pub struct ShotCfg {
 
 impl Default for ShotCfg {
     fn default() -> ShotCfg {
-        ShotCfg { dir: String::new(), copy: true, save: true, loupe: true, notify: true, delay: 3, confirm: "space".into(), prefix: "nemo".into(), record_audio: "off".into(), mtime: None }
+        ShotCfg { dir: String::new(), copy: true, save: true, loupe: true, notify: true, delay: 3, confirm: "space".into(), prefix: "nemo".into(), record_audio: "off".into(), record_dir: String::new(), record_fps: 0, mtime: None }
     }
 }
 
@@ -58,6 +62,8 @@ impl ShotCfg {
             confirm: if old.get("shotConfirm").and_then(Value::as_str) == Some("instant") { "instant".into() } else { d.confirm.clone() },
             prefix: d.prefix,
             record_audio: d.record_audio,
+            record_dir: d.record_dir,
+            record_fps: d.record_fps,
             mtime: None,
         };
         c.save();
@@ -79,6 +85,16 @@ impl ShotCfg {
     }
 
     /// куда лягут снимки: для подсказки в поле
+    /// куда ложатся видео записи экрана
+    pub fn record_folder(&self) -> PathBuf {
+        let d = self.record_dir.trim();
+        if d.is_empty() {
+            crate::config::home().join("Videos")
+        } else {
+            nemo_px::paths::expand(d)
+        }
+    }
+
     pub fn folder(&self) -> PathBuf {
         let d = self.dir.trim();
         if d.is_empty() {

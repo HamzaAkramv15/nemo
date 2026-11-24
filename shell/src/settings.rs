@@ -44,7 +44,6 @@ pub const GROUPS: &[(&str, &[Tab])] = &[
             tab("wall", "обои", "image", "обои картинка фон папка миниатюры skwd skwd-wall видео wallpaper background image folder thumbnails picker video papel parede imagem fundo pasta miniaturas seletor vídeo", crate::wall::tab), // i18n-ok
             tab("fonts", "шрифты", "text", "шрифт размер терминал fastfetch браузер fonts size terminal browser fonte fontes tamanho terminal navegador", crate::fonttab::tab), // i18n-ok
             tab("look", "вид", "eye", "пиксельность пиксели лёгкий режим слабый тормозит виртуалка эффекты развёртка размытие значки иконки курсор pixel pixelation lite slow lag vm animation effects reveal scanlines blur icons cursor visual aparência pixels pixelização leve lento animação efeitos desfoque ícones cursor", tab_look), // i18n-ok
-            tab("access", "доступность", "eye", "доступность контраст высокая контрастность движение анимации экранный диктор клавиатура фокус размер текста accessibility contrast high contrast motion reduce motion screen reader keyboard focus text size acessibilidade contraste movimento teclado foco", crate::settabs::tab_access), // i18n-ok
             tab("anim", "анимации", "slides", "анимации появление закрытие скорость длительность узор дизеринг развёртка шум диагональ блоки плавно сразу движение animations reveal open close speed duration pattern dither fade motion animações abrir fechar velocidade duração padrão movimento", crate::animtab::tab), // i18n-ok
         ],
     ),
@@ -55,7 +54,15 @@ pub const GROUPS: &[(&str, &[Tab])] = &[
             tab("dock", "док", "tile", "док закреплённые dock pinned dock fixados", tab_dock), // i18n-ok
             tab("widgets", "виджеты", "grid", "виджеты график часы заметка widgets graph clock note widgets gráfico relógio nota", tab_widgets), // i18n-ok
             tab("windows", "окна", "float", "окна отступы плавающие стол заголовки углы скругление рамка gaps floating stacking windows titlebars corners rounded radius border janelas espaço flutuantes títulos cantos arredondados borda mosaico", tab_windows), // i18n-ok
+        ],
+    ),
+    (
+        "устройства",
+        &[
             tab("screens", "экраны", "screen", "экраны монитор разрешение частота масштаб vrr hz герц поворот display monitor resolution refresh scale rotation telas tela monitor resolução frequência escala rotação", crate::displays::tab), // i18n-ok
+            tab("power", "питание", "power", "питание батарея профиль производительность экономия предел заряда блокировка простой сон крышка подсветка клавиатуры экран гаснет power battery profile performance saver charge limit lock idle sleep lid keyboard backlight screen off energia bateria perfil", crate::settabs::tab_power), // i18n-ok
+            tab("bt", "bluetooth", "bt", "bluetooth блютуз наушники колонки мышь клавиатура сопряжение подключить забыть заряд bluetooth headphones speaker mouse keyboard pair connect forget battery fones caixa de som mouse teclado parear conectar esquecer bateria", crate::bttab::tab), // i18n-ok
+            Tab { own_scroll: true, ..tab("keys", "клавиши", "keys", "клавиши сочетания хоткеи раскладка keys shortcuts hotkeys layout keyboard teclas atalhos teclado layout disposição", crate::keys::tab) }, // i18n-ok
         ],
     ),
     (
@@ -64,9 +71,9 @@ pub const GROUPS: &[(&str, &[Tab])] = &[
             tab("comfort", "комфорт", "coffee", "комфорт кофе не засыпать бодрствование сон блокировка экран гаснет простой ночной свет тёплый не беспокоить рыбка характер comfort caffeine coffee keep awake sleep idle lock screen off night light warm do not disturb fish character personality conforto café não dormir inatividade luz noturna não perturbe", tab_comfort), // i18n-ok
             tab("region", "язык и время", "clock", "язык и время часы 12 24 формат дата неделя выходные пятница суббота хиджра арабские цифры календарь language time clock 12 24 hour format date week start weekend friday saturday hijri arabic digits calendar idioma horário relógio formato data semana fim de semana", tab_region), // i18n-ok
             tab("notif", "уведомления", "bell", "уведомления не беспокоить место история osd громкость яркость notifications do not disturb position history osd volume brightness notificações notificação perturbe posição histórico volume brilho", tab_notif), // i18n-ok
-            Tab { own_scroll: true, ..tab("keys", "клавиши", "keys", "клавиши сочетания хоткеи раскладка keys shortcuts hotkeys layout keyboard teclas atalhos teclado layout disposição", crate::keys::tab) }, // i18n-ok
-            tab("shots", "скриншоты", "camera", "скриншоты снимок лупа screenshot loupe captura capturas tela imagem lupa", tab_shots), // i18n-ok
+            tab("shots", "захват экрана", "camera", "скриншоты снимок лупа запись экрана видео звук микрофон screenshot loupe recording screen record video audio microphone captura capturas tela imagem lupa gravação", tab_shots), // i18n-ok
             tab("games", "игры", "play", "игры steam proton разрывы gamemode ntsync tearing games shader jogos jogo cortes shader", crate::games::tab), // i18n-ok
+            tab("access", "доступность", "eye", "доступность контраст высокая контрастность движение анимации экранный диктор клавиатура фокус размер текста accessibility contrast high contrast motion reduce motion screen reader keyboard focus text size acessibilidade contraste movimento teclado foco", crate::settabs::tab_access), // i18n-ok
         ],
     ),
     (
@@ -75,7 +82,6 @@ pub const GROUPS: &[(&str, &[Tab])] = &[
             tab("system", "сеанс", "gear", "система язык сон блокировка ожидание ночной свет system language idle sleep lock night light sistema idioma língua português brasileiro brasil suspender bloqueio inatividade luz noturna", tab_system), // i18n-ok
             tab("startup", "автозапуск", "play", "автозапуск запуск при входе программы сеанс startup autostart login apps session inicialização iniciar programas sessão", crate::startup::tab), // i18n-ok
             tab("login", "экран входа", "lock", "экран входа вход логин greetd пользователи пароль numlock вуаль менеджер входа login screen greeter display manager users password numlock veil tela de login entrada greetd usuários senha numlock véu gerenciador de login", crate::login::tab), // i18n-ok
-            tab("bt", "bluetooth", "bt", "bluetooth блютуз наушники колонки мышь клавиатура сопряжение подключить забыть заряд bluetooth headphones speaker mouse keyboard pair connect forget battery fones caixa de som mouse teclado parear conectar esquecer bateria", crate::bttab::tab), // i18n-ok
             tab("agents", "службы", "bolt", "службы трей polkit порталы флешки телефоны автоподключение обложки тексты погода services tray portals automount drives phones covers lyrics weather serviços serviço bandeja portais discos telefones montagem capas letras clima", crate::agents::tab), // i18n-ok
             tab("updates", "обновления", "down", "обновления версия откат updates version rollback atualizações atualizar versão reverter система софт дистрибутив пакеты fedora dnf arch pacman debian ubuntu apt opensuse zypper безопасные удержано ядро system software distribution packages upgrade held back kernel safe sistema atualizações do sistema pacotes", crate::update::tab), // i18n-ok
         ],
@@ -97,6 +103,7 @@ pub fn desc(id: &str) -> &'static str {
         "fonts" => "шрифты шелла, терминала и браузера",
         "look" => "вид деталей: пиксельность, углы, размытие, значки, лёгкий режим",
         "anim" => "как окна и панели появляются и исчезают",
+        "power" => "батарея и профили питания, блокировка, сон, подсветка клавиатуры",
         "access" => "контраст, меньше движения, работа с клавиатуры и экранным диктором",
         "bar" => "что показывает полоса сверху: модули, форма, часы",
         "dock" => "док с программами: край, размер, прятать, числа на значках",
@@ -107,7 +114,7 @@ pub fn desc(id: &str) -> &'static str {
         "region" => "язык, формат времени и даты, календарь",
         "notif" => "уведомления: где показываются, сколько, не беспокоить",
         "keys" => "клавиши: что делает каждое сочетание, свои сочетания",
-        "shots" => "скриншоты: куда сохраняются и что делать после снимка",
+        "shots" => "скриншоты и запись экрана: куда сохраняются, звук, частота кадров",
         "games" => "игры: что включается на время игры",
         "system" => "сеанс: язык, сон, блокировка, строки nemo в конфиге niri",
         "startup" => "что запускается при входе: включить или выключить",
@@ -442,6 +449,8 @@ impl App {
                         self.settings_click(&Act::SCycle("muted_apply"));
                     } else if f == "cast_hide" {
                         self.settings_click(&Act::SCycle("cast_apply"));
+                    } else if f == "rec_dir" {
+                        self.settings_click(&Act::SCycle("rec_dir_apply"));
                     } else if f == "shot_dir" {
                         self.settings_click(&Act::SCycle("shot_dir_apply"));
                     } else if f == "game_apps" {
@@ -465,6 +474,7 @@ impl App {
                     let field = match f {
                         "hex" => &mut self.st.hex,
                         "shot_dir" => &mut self.st.shot_field,
+                        "rec_dir" => &mut self.st.rec_field,
                         "float_apps" => &mut self.st.float_field,
                         "notif_muted" => &mut self.st.muted_field,
                         "cast_hide" => &mut self.st.cast_field,

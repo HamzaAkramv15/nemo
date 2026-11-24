@@ -403,6 +403,7 @@ pub struct State {
     /// настройки nemo-shot (вкладка «скриншоты»)
     pub shot_cfg: crate::shotcfg::ShotCfg,
     pub shot_field: Field,
+    pub rec_field: Field,
     pub float_field: Field,
     /// поле «тихие программы» (настройки → уведомления)
     pub muted_field: Field,
@@ -653,6 +654,7 @@ impl State {
             reset_armed: None,
             shot_cfg: crate::shotcfg::ShotCfg::load(),
             shot_field: Field::default(),
+            rec_field: Field::default(),
             float_field: Field::default(),
             muted_field: Field::default(),
             cast_field: Field::default(),

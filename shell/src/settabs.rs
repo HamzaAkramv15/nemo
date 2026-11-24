@@ -473,7 +473,7 @@ pub(crate) fn reveal_name(id: &str) -> &'static str {
     }
 }
 
-pub(crate) fn tab_comfort(ui: &mut Ui, st: &State, b: R) {
+pub(crate) fn tab_power(ui: &mut Ui, st: &State, b: R) {
     let s = &st.set;
     let half = (b.w - 20) / 2;
     let (lx, rx) = (b.x, b.x + half + 20);
@@ -484,18 +484,6 @@ pub(crate) fn tab_comfort(ui: &mut Ui, st: &State, b: R) {
     y += 52;
     ui.toggle(R::new(lx, y, half, 40), "запирать перед сном", "крышка, suspend, таймер системы", s.lock_sleep, Act::SBool("lock_sleep"));
     y += 46;
-    // кофе: не давать засыпать и гасить экран; правая кнопка на чашке в баре листает те же сроки
-    y = title(ui, b.x, y, b.w, "кофе: не засыпать");
-    ui.toggle(R::new(lx, y, half, 40), "кофе", if st.caffeine.on { "вкл" } else { "выкл" }, st.caffeine.on, Act::CaffeineToggle);
-    num_btn(ui, R::new(rx, y + 6, half, 26), "кофе: выкл. через, мин (0 — без срока)", s.num("caffeine_minutes"), "caffeine_minutes");
-    y += 46;
-    let qw = (b.w - 4 * 6) / 5;
-    for (k, (label, key)) in [("30 мин", "caffeine_30"), ("1 ч", "caffeine_60"), ("2 ч", "caffeine_120"), ("4 ч", "caffeine_240"), ("без срока", "caffeine_inf")].into_iter().enumerate() {
-        ui.button(R::new(b.x + k as i32 * (qw + 6), y, qw, 28), label, "coffee", Tone::Plain, false, true, Act::SCycle(key));
-    }
-    y += 40;
-    ui.toggle(R::new(lx, y, b.w, 26), "кофе само", "пока окно на весь экран (видео, доклад)", s.caffeine_auto, Act::SBool("caffeine_auto"));
-    y += 38;
     // питание: профиль на батарее и от сети; предел заряда, если ноутбук его отдаёт
     y = title(ui, b.x, y, b.w, "питание");
     let prof_name = |p: &str| match p {
@@ -529,6 +517,25 @@ pub(crate) fn tab_comfort(ui: &mut Ui, st: &State, b: R) {
         y += 34;
     }
     y += 6;
+    let _ = y;
+}
+
+pub(crate) fn tab_comfort(ui: &mut Ui, st: &State, b: R) {
+    let s = &st.set;
+    let half = (b.w - 20) / 2;
+    let (lx, rx) = (b.x, b.x + half + 20);
+    // кофе: не давать засыпать и гасить экран; правая кнопка на чашке в баре листает те же сроки
+    let mut y = title(ui, b.x, b.y, b.w, "кофе: не засыпать");
+    ui.toggle(R::new(lx, y, half, 40), "кофе", if st.caffeine.on { "вкл" } else { "выкл" }, st.caffeine.on, Act::CaffeineToggle);
+    num_btn(ui, R::new(rx, y + 6, half, 26), "кофе: выкл. через, мин (0 — без срока)", s.num("caffeine_minutes"), "caffeine_minutes");
+    y += 46;
+    let qw = (b.w - 4 * 6) / 5;
+    for (k, (label, key)) in [("30 мин", "caffeine_30"), ("1 ч", "caffeine_60"), ("2 ч", "caffeine_120"), ("4 ч", "caffeine_240"), ("без срока", "caffeine_inf")].into_iter().enumerate() {
+        ui.button(R::new(b.x + k as i32 * (qw + 6), y, qw, 28), label, "coffee", Tone::Plain, false, true, Act::SCycle(key));
+    }
+    y += 40;
+    ui.toggle(R::new(lx, y, b.w, 26), "кофе само", "пока окно на весь экран (видео, доклад)", s.caffeine_auto, Act::SBool("caffeine_auto"));
+    y += 38;
     // не беспокоить: то же, что в уведомлениях и в игровом режиме
     ui.toggle(R::new(lx, y, half, 26), "не беспокоить", "", s.dnd, Act::SBool("dnd"));
     y += 38;
@@ -853,7 +860,18 @@ pub(crate) fn tab_shots(ui: &mut Ui, st: &State, b: R) {
         _ => "без звука",
     };
     opt_btn(ui, R::new(b.x, y, b.w, 26), "звук записи", audio, Act::SCycle("record_audio"));
-    y += 40;
+    y += 32;
+    let fps = if c.record_fps == 0 { crate::i18n::tr("как у экрана").to_string() } else { format!("{}", c.record_fps) };
+    opt_btn(ui, R::new(b.x, y, b.w, 26), "частота кадров записи", &fps, Act::SCycle("record_fps"));
+    y += 34;
+    // папка видео: отдельно от снимков
+    let rfocused = st.field_focus == Some("rec_dir");
+    let rshown = c.record_folder().display().to_string().replace(&crate::config::home().to_string_lossy().to_string(), "~");
+    ui.field(R::new(b.x, y, b.w - 130, 30), &st.rec_field, &rshown, rfocused, false, Act::SField("rec_dir"));
+    ui.button(R::new(b.right() - 120, y + 2, 120, 26), "применить", "check", Tone::Primary, false, true, Act::SCycle("rec_dir_apply"));
+    y += 38;
+    ui.text_in(PX, R::new(b.x, y, b.w, 20), "красная точка в баре, пока идёт запись; щелчок останавливает", ui.t.text_faint);
+    y += 34;
     // шторка: зрители трансляции видят её, ты — экран (curtain.rs)
     y = title(ui, b.x, y, b.w, "скрыть экран в трансляции");
     opt_btn(ui, R::new(b.x, y, b.w, 26), "шторка", crate::curtain::style_name(&s.curtain_style), Act::SCycle("curtain_style"));
@@ -866,7 +884,7 @@ pub(crate) fn tab_shots(ui: &mut Ui, st: &State, b: R) {
         y += 24;
     }
     y = title(ui, b.x, y, b.w, "клавиши");
-    for (k, v) in [("print", "область · окно · экран"), ("mod+shift+h", "скрыть экран в трансляции"), ("в оверлее", "1–7 инструменты · tab режим · enter готово · ctrl+s файл")] {
+    for (k, v) in [("print", "область · окно · экран"), ("shift+print", "начать и остановить запись"), ("mod+shift+h", "скрыть экран в трансляции"), ("в оверлее", "1–7 инструменты · tab режим · enter готово · ctrl+s файл")] {
         ui.text_in(PX, R::new(b.x, y, 130, 20), k, t.red);
         ui.text_in(PX, R::new(b.x + 140, y, b.w - 140, 20), v, t.text_dim);
         y += 22;

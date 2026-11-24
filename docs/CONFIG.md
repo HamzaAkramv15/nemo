@@ -481,6 +481,8 @@ passes extra mpv options. The look (palette, language, font) is the viewer's (`f
 | `confirm` | `space` | `space`: select, then Space or Enter takes the shot; `instant`: the shot is taken as soon as the mouse is released (area, window), and a full-screen shot at once, without the overlay |
 | `prefix` | `nemo` | the start of the file name |
 | `recordAudio` | `off` | sound of screen recordings: `off`, `mic` (default microphone), `system` (what is playing) |
+| `recordDir` | `""` | folder of screen recordings; empty: the Videos folder of your home (separate from the screenshot folder) |
+| `recordFps` | `0` | frames per second of recordings: `0` as the screen, or `30` / `60` |
 
 ## nemo-agents
 
