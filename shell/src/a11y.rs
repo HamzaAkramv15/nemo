@@ -68,7 +68,9 @@ impl App {
         let (w, h) = crate::settings::SIZE;
         let sw = crate::settings::SIDE_W;
         let body = crate::settings::body_rect(w, h, sw);
-        if n.rect.x < body.x - 8 {
+        // боковой список прокручивается своим колесом; в зеркальной раскладке он справа, и слева направо рамка считается отражённой
+        let lx = if nemo_px::i18n::rtl() { w - n.rect.right() } else { n.rect.x };
+        if lx < body.x - 8 {
             return;
         }
         let off = crate::settings::scroll_of(&self.st);

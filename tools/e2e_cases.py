@@ -301,6 +301,37 @@ def case_barmods(e):
     e.check(c2["barRight"][-1] == first, f"the first chip went to the end (right {c2['barRight']})")
 
 
+def case_rtl(e):
+    print("right-to-left: Arabic mirrors the interface, hit areas included")
+    path = os.path.join(e.HOME, ".config/nemo/shell.json")
+    j = json.load(open(path))
+    old = j.get("lang", "")
+    j["lang"] = "en"
+    json.dump(j, open(path, "w"))
+    e.send("reload", 1.0)
+    open_settings(e, "access")
+    z = e.zones("modal")
+    tabx = lambda text: [int(l.split()[1]) for l in text.splitlines() if "STab(" in l]
+    ltr = tabx(z)
+    j["lang"] = "ar"
+    json.dump(j, open(path, "w"))
+    e.send("reload", 1.2)
+    open_settings(e, "access")
+    z = e.zones("modal")
+    rtl = tabx(z)
+    e.check(bool(ltr) and bool(rtl), "the sidebar tabs exist in both directions")
+    if ltr and rtl:
+        e.check(min(ltr) < 200 and min(rtl) > 500, f"the sidebar moved from the left (x {min(ltr)}) to the right (x {min(rtl)})")
+    e.click("modal", 'SBool("high_contrast")')
+    e.settle(1.0)
+    e.check(e.cfg().get("highContrast") is True, "a mirrored toggle still takes its click")
+    e.click("modal", 'SBool("high_contrast")')
+    j = json.load(open(path))
+    j["lang"] = old
+    json.dump(j, open(path, "w"))
+    e.send("reload", 1.0)
+
+
 def case_reset(e):
     print("settings: a changed row is marked and a right-click resets only it")
     open_settings(e, "widgets")
@@ -412,7 +443,7 @@ def case_island(e):
 
 
 def run(e, which):
-    cases = {"panels": case_panels, "tiles": case_tiles, "layouts": case_layouts, "gallery": case_gallery, "bar": case_bar, "island": case_island, "wallpapers": case_wallpapers, "reset": case_reset, "undo": case_undo, "keyboard": case_keyboard, "barmods": case_barmods, "record": case_record}
+    cases = {"panels": case_panels, "tiles": case_tiles, "layouts": case_layouts, "gallery": case_gallery, "bar": case_bar, "island": case_island, "wallpapers": case_wallpapers, "reset": case_reset, "undo": case_undo, "keyboard": case_keyboard, "barmods": case_barmods, "rtl": case_rtl, "record": case_record}
     e.HOME = e.HOME
     names = list(cases) if which == ["all"] else which
     for n in names:

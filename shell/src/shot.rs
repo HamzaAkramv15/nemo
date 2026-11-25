@@ -992,6 +992,8 @@ fn shoot(st: &mut State, res: &mut Res, target: &str, path: &Path) {
             ui.cv.clear(if st.t.light { C::hex(0xc4bdb8) } else { C::hex(0x2a2626) });
         }
         let st = &*st;
+        // как в render.rs: интерфейс зеркалится в языках с письмом справа налево
+        ui.cv.mirror = nemo_px::i18n::rtl() && !matches!(kind, "widget" | "wall" | "curtain" | "curtain-badge");
         match kind {
             "bar" => {
                 // боковой — столбец уже обоев: под ним просто стол, без кандзи обоев

@@ -86,7 +86,12 @@ impl App {
         let blur: Vec<R>;
         {
             let mut ui = Ui {
-                cv: Canvas::new(buf, bw, bh),
+                cv: {
+                    let mut cv = Canvas::new(buf, bw, bh);
+                    // языки с письмом справа налево: панели и меню зеркалятся; обои, виджеты на столе, шторка и затемнение — нет
+                    cv.mirror = nemo_px::i18n::rtl() && mirrors(&s.kind);
+                    cv
+                },
                 f: &mut self.res.fonts,
                 ic: &mut self.res.icons,
                 t: self.st.t,
@@ -302,4 +307,9 @@ pub fn reveal_of(st: &State, s: &Surf, group: &str) -> (f32, bool) {
     // открытие: быстро и мягко садится (ease-out cubic); закрытие: разгоняется (ease-in)
     let k = if s.closing { 1.0 - t * t } else { 1.0 - (1.0 - t).powi(3) };
     (k, t >= 1.0)
+}
+
+/// зеркалятся поверхности с интерфейсом (бар, окна, меню, уведомления, док); картинка рабочего стола и его виджеты остаются как есть
+pub fn mirrors(k: &SKind) -> bool {
+    matches!(k, SKind::Bar | SKind::Modal | SKind::Popup | SKind::Menu | SKind::Notifs | SKind::Osd | SKind::Tip | SKind::Dock)
 }

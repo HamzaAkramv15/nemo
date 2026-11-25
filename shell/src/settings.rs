@@ -301,7 +301,8 @@ pub fn draw(ui: &mut Ui, st: &State, w: i32, h: i32) {
     // кольцо фокуса обхода клавишей Tab (a11y.rs): рамка выбранного элемента, на обоих окнах — видно при любой палитре
     st.a11y_ring.set(None);
     if let Some(n) = st.a11y_focus.and_then(|i| st.a11y_nodes.borrow().get(i).cloned()) {
-        let r = R::new(n.rect.x - ui.cv.ox - 3, n.rect.y - ui.cv.oy - 3, n.rect.w + 6, n.rect.h + 6);
+        let l = ui.cv.logical(n.rect);
+        let r = R::new(l.x - 3, l.y - 3, l.w + 6, l.h + 6);
         ui.cv.outline(r, t.text_hi, 2);
         ui.cv.outline(r.inset(2), t.bg, 1);
         st.a11y_ring.set(Some(n.rect));

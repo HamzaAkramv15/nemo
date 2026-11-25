@@ -165,7 +165,7 @@ pub trait Action: Clone {
 
 impl<'a, 'b, A: Action> Ui<'a, 'b, A> {
     pub fn hover(&self, r: R) -> bool {
-        let r = R::new(r.x + self.cv.ox, r.y + self.cv.oy, r.w, r.h);
+        let r = self.cv.phys(r);
         self.ptr.map(|(x, y)| r.contains(x, y)).unwrap_or(false)
     }
     /// для дерева доступности (a11y.rs): элемент с этой рамкой; ничего не стоит, пока запись выключена
@@ -173,7 +173,7 @@ impl<'a, 'b, A: Action> Ui<'a, 'b, A> {
         if !crate::a11y::enabled() {
             return;
         }
-        let abs = R::new(r.x + self.cv.ox, r.y + self.cv.oy, r.w, r.h);
+        let abs = self.cv.phys(r);
         let vis = abs.inter(&self.cv.clip_rect());
         crate::a11y::push(crate::a11y::Node {
             role,
@@ -192,7 +192,7 @@ impl<'a, 'b, A: Action> Ui<'a, 'b, A> {
     /// списка, не перехватывает щелчки шапки
     pub fn zone(&mut self, r: R, act: A, cur: Cur) {
         self.cv.reach = self.cv.reach.max(r.y + r.h);
-        let r = R::new(r.x + self.cv.ox, r.y + self.cv.oy, r.w, r.h).inter(&self.cv.clip_rect());
+        let r = self.cv.phys(r).inter(&self.cv.clip_rect());
         if r.w > 0 && r.h > 0 {
             self.zones.push(Zone { r, act, cur });
         }
@@ -200,7 +200,7 @@ impl<'a, 'b, A: Action> Ui<'a, 'b, A> {
 
     /// подсказка для этой рамки; ключ разбирает приложение
     pub fn tip(&mut self, r: R, key: &'static str) {
-        let r = R::new(r.x + self.cv.ox, r.y + self.cv.oy, r.w, r.h).inter(&self.cv.clip_rect());
+        let r = self.cv.phys(r).inter(&self.cv.clip_rect());
         if r.w > 0 && r.h > 0 {
             TIPS.with(|t| t.borrow_mut().push((r, key)));
         }

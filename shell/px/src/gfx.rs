@@ -133,6 +133,9 @@ pub struct Canvas<'a> {
     pub text_shade: Option<C>,
     /// углы, тени, значки (style.rs)
     pub style: Style,
+    /// зеркало слева направо (языки с письмом справа налево): раскладка считается как обычно, а на буфер ложится отражённой по ширине;
+    /// строки и картинки не переворачиваются — отражается только их место
+    pub mirror: bool,
 }
 
 /// проверка вёрстки для `shot --fit`: где лёг каждый текст (координаты буфера), под какой
@@ -283,7 +286,7 @@ fn hash(x: i32, y: i32) -> u32 {
 
 impl<'a> Canvas<'a> {
     pub fn new(buf: &'a mut [u32], w: i32, h: i32) -> Canvas<'a> {
-        Canvas { buf, w, h, ox: 0, oy: 0, clip: R::new(0, 0, w, h), clips: vec![], opacity: 1.0, blur: vec![], reach: 0, shade: C(SHADE.load(std::sync::atomic::Ordering::Relaxed)), text_shade: None, style: crate::style::current() }
+        Canvas { buf, w, h, ox: 0, oy: 0, clip: R::new(0, 0, w, h), clips: vec![], opacity: 1.0, blur: vec![], reach: 0, shade: C(SHADE.load(std::sync::atomic::Ordering::Relaxed)), text_shade: None, style: crate::style::current(), mirror: false }
     }
 
     /// проявление панели: при k клетка видна, если её порог ниже k. Узор — из настроек
@@ -457,12 +460,50 @@ impl<'a> Canvas<'a> {
 
     pub fn push_clip(&mut self, r: R) {
         self.clips.push(self.clip);
-        let r = R::new(r.x + self.ox, r.y + self.oy, r.w, r.h);
+        let r = self.phys(r);
         self.clip = self.clip.inter(&r);
     }
     /// текущая обрезка в координатах буфера (как у зон Ui)
     pub fn clip_rect(&self) -> R {
         self.clip
+    }
+
+    /// прямоугольник буфера → его отражение по ширине (при выключенном зеркале — как есть)
+    #[inline]
+    pub fn mir(&self, r: R) -> R {
+        if self.mirror {
+            R::new(self.w - r.x - r.w, r.y, r.w, r.h)
+        } else {
+            r
+        }
+    }
+
+    /// прямоугольник раскладки → место на буфере: сдвиг холста и зеркало
+    #[inline]
+    pub fn phys(&self, r: R) -> R {
+        self.mir(R::new(r.x + self.ox, r.y + self.oy, r.w, r.h))
+    }
+
+    /// обратное: прямоугольник буфера (зоны, рамки узлов) → координаты раскладки
+    pub fn logical(&self, p: R) -> R {
+        let p = self.mir(p);
+        R::new(p.x - self.ox, p.y - self.oy, p.w, p.h)
+    }
+
+    /// нарисовать блок, который нельзя переворачивать (строка, картинка, векторный значок) шириной w в месте x раскладки:
+    /// при зеркале — на отражённом месте и без зеркала внутри
+    fn unmirrored<T>(&mut self, x: i32, w: i32, f: impl FnOnce(&mut Self, i32) -> T) -> T {
+        if !self.mirror {
+            return f(self, x);
+        }
+        let px = self.w - (x + self.ox) - w - 0;
+        let (ox, m) = (self.ox, self.mirror);
+        self.mirror = false;
+        self.ox = 0;
+        let r = f(self, px);
+        self.mirror = m;
+        self.ox = ox;
+        r
     }
     pub fn pop_clip(&mut self) {
         if let Some(c) = self.clips.pop() {
@@ -487,7 +528,7 @@ impl<'a> Canvas<'a> {
         if c.a() == 0 {
             return;
         }
-        let r = R::new(r.x + self.ox, r.y + self.oy, r.w, r.h).inter(&self.clip);
+        let r = self.phys(r).inter(&self.clip);
         if r.empty() {
             return;
         }
@@ -506,7 +547,7 @@ impl<'a> Canvas<'a> {
 
     /// заменить пиксели (без смешивания) — «дырка» в прозрачность
     pub fn set(&mut self, r: R, c: C) {
-        let r = R::new(r.x + self.ox, r.y + self.oy, r.w, r.h).inter(&self.clip);
+        let r = self.phys(r).inter(&self.clip);
         if r.empty() {
             return;
         }
@@ -521,7 +562,7 @@ impl<'a> Canvas<'a> {
     /// пиксель с готовой (уже предумноженной) альфой — для текста и картинок
     #[inline]
     fn put(&mut self, x: i32, y: i32, src: u32) {
-        let x = x + self.ox;
+        let x = if self.mirror { self.w - 1 - (x + self.ox) } else { x + self.ox };
         let y = y + self.oy;
         if x < self.clip.x || y < self.clip.y || x >= self.clip.x + self.clip.w || y >= self.clip.y + self.clip.h {
             return;
@@ -588,7 +629,7 @@ impl<'a> Canvas<'a> {
     pub fn blur_rect(&mut self, r: R, n: i32) {
         let rad = self.rad(r, n);
         let n = if self.style.corners == Corners::Square { 0 } else { n };
-        let r = R::new(r.x + self.ox, r.y + self.oy, r.w, r.h);
+        let r = self.phys(r);
         if self.blur.iter().any(|b| b.x <= r.x && b.y <= r.y && b.right() >= r.right() && b.bottom() >= r.bottom()) {
             return;
         }
@@ -612,7 +653,7 @@ impl<'a> Canvas<'a> {
     /// размытие под скруглением в пикселях (rad — настоящий радиус формы, а не число фасок, как у blur_rect): размытие не выходит за углы формы
     pub fn blur_round(&mut self, r: R, rad: i32) {
         let rad = rad.min(r.w / 2).min(r.h / 2).max(0);
-        let r = R::new(r.x + self.ox, r.y + self.oy, r.w, r.h);
+        let r = self.phys(r);
         if self.blur.iter().any(|b| b.x <= r.x && b.y <= r.y && b.right() >= r.right() && b.bottom() >= r.bottom()) {
             return;
         }
@@ -779,6 +820,10 @@ impl<'a> Canvas<'a> {
     /// иконка 7×7 из битмапа клетками cell (в сглаженных стилях — со скруглением; обычные значки —
     /// векторные, если они есть в vicon, иначе то же самое)
     pub fn icon(&mut self, name: &str, x: i32, y: i32, cell: i32, c: C) {
+        if self.mirror && (vector_icons() || self.style.smooth) {
+            // гладкие и векторные значки не отражаем: только место
+            return self.unmirrored(x, 7 * cell, |cv, px| cv.icon(name, px - cv.ox, y, cell, c));
+        }
         if vector_icons() && self.icon_vector(name, x, y, cell, c) {
             return;
         }
@@ -884,6 +929,9 @@ impl<'a> Canvas<'a> {
     }
 
     pub fn image(&mut self, img: &Img, x: i32, y: i32, k: f32) {
+        if self.mirror {
+            return self.unmirrored(x, img.w, |cv, px| cv.image(img, px, y, k));
+        }
         let k = k * self.opacity;
         for j in 0..img.h {
             for i in 0..img.w {
@@ -899,6 +947,9 @@ impl<'a> Canvas<'a> {
 
     /// непрозрачная картинка 1:1 — построчным копированием (замороженный экран)
     pub fn blit(&mut self, img: &Img, x: i32, y: i32) {
+        if self.mirror {
+            return self.unmirrored(x, img.w, |cv, px| cv.blit(img, px, y));
+        }
         let x = x + self.ox;
         let y = y + self.oy;
         let c = self.clip.inter(&R::new(x, y, img.w, img.h));
@@ -917,6 +968,9 @@ impl<'a> Canvas<'a> {
 
     /// картинка, растянутая без сглаживания в прямоугольник (обои, обложки)
     pub fn image_scaled(&mut self, img: &Img, r: R, k: f32) {
+        if self.mirror {
+            return self.unmirrored(r.x, r.w, |cv, px| cv.image_scaled(img, R::new(px, r.y, r.w, r.h), k));
+        }
         if img.w == 0 || img.h == 0 || r.empty() {
             return;
         }
@@ -939,6 +993,9 @@ impl<'a> Canvas<'a> {
     /// строка картинки пересчитывается один раз, её повтор — копия готовой строки, при равной
     /// ширине — копия строки целиком. На 1080p это ~1 мс против ~10 у image_scaled
     pub fn image_fast(&mut self, img: &Img, r: R) {
+        if self.mirror {
+            return self.unmirrored(r.x, r.w, |cv, px| cv.image_fast(img, R::new(px, r.y, r.w, r.h)));
+        }
         if img.w <= 0 || img.h <= 0 || r.empty() || img.px.len() < (img.w as usize) * (img.h as usize) {
             return;
         }
@@ -975,6 +1032,11 @@ impl<'a> Canvas<'a> {
     // ── текст ───────────────────────────────────────────────────────────────
     /// строка от левого края; y — верх строки высотой face.line(). Возвращает ширину.
     pub fn text(&mut self, fonts: &mut Fonts, face: Face, x: i32, y: i32, s: &str, c: C) -> i32 {
+        if self.mirror {
+            // строка не переворачивается: отражается её место
+            let w = fonts.width(face, s);
+            return self.unmirrored(x, w, |cv, px| cv.text(fonts, face, px - cv.ox, y, s, c));
+        }
         if let Some(sh) = self.text_shade {
             // сдвиг — на «пиксель» шрифта: у Tiny5 это 1/8 кегля, у мелкого текста — 1 px
             let d = (fonts.line(face) / 16).max(1);
@@ -1544,3 +1606,77 @@ mod over_row_tests {
     }
 }
 
+
+#[cfg(test)]
+mod mirror_tests {
+    use super::*;
+
+    fn canvas(buf: &mut Vec<u32>, w: i32, h: i32, mirror: bool) -> Canvas<'_> {
+        let mut cv = Canvas::new(buf, w, h);
+        cv.mirror = mirror;
+        cv
+    }
+
+    fn cols(buf: &[u32], w: i32, y: i32) -> Vec<i32> {
+        (0..w).filter(|x| buf[(y * w + x) as usize] >> 24 != 0).collect()
+    }
+
+    #[test]
+    fn a_rectangle_lands_at_the_mirrored_place_and_keeps_its_width() {
+        let (w, h) = (100, 4);
+        let mut a = vec![0u32; (w * h) as usize];
+        canvas(&mut a, w, h, false).fill(R::new(10, 0, 30, 4), C::hex(0xffffff));
+        let mut b = vec![0u32; (w * h) as usize];
+        canvas(&mut b, w, h, true).fill(R::new(10, 0, 30, 4), C::hex(0xffffff));
+        assert_eq!(cols(&a, w, 1), (10..40).collect::<Vec<_>>());
+        assert_eq!(cols(&b, w, 1), (60..90).collect::<Vec<_>>(), "x 10..40 becomes 60..90 on a 100 px surface");
+    }
+
+    #[test]
+    fn the_canvas_offset_is_applied_before_the_mirror() {
+        let (w, h) = (100, 2);
+        let mut b = vec![0u32; (w * h) as usize];
+        let mut cv = canvas(&mut b, w, h, true);
+        cv.ox = 5;
+        cv.fill(R::new(10, 0, 20, 2), C::hex(0xffffff));
+        drop(cv);
+        assert_eq!(cols(&b, w, 0), (65..85).collect::<Vec<_>>(), "layout x 10..30 + offset 5 = 15..35, mirrored 65..85");
+    }
+
+    #[test]
+    fn physical_and_layout_rectangles_convert_both_ways() {
+        let mut b = vec![0u32; 200 * 10];
+        let mut cv = canvas(&mut b, 200, 10, true);
+        cv.ox = 7;
+        cv.oy = 3;
+        let r = R::new(12, 1, 40, 5);
+        assert_eq!(cv.logical(cv.phys(r)), r);
+        cv.mirror = false;
+        assert_eq!(cv.logical(cv.phys(r)), r);
+        assert_eq!(cv.phys(r), R::new(19, 4, 40, 5));
+    }
+
+    #[test]
+    fn an_image_keeps_its_orientation_and_only_moves() {
+        let (w, h) = (20, 1);
+        // слева красный пиксель, справа зелёный: после отражения места порядок остаётся тем же
+        let img = Img { w: 2, h: 1, px: vec![C::hex(0xff0000).premul(), C::hex(0x00ff00).premul()] };
+        let mut b = vec![0u32; (w * h) as usize];
+        canvas(&mut b, w, h, true).image(&img, 3, 0, 1.0);
+        // слой 3..5 на 20 px отражается в 15..17, красный остаётся левым
+        assert_eq!(cols(&b, w, 0), vec![15, 16]);
+        assert_eq!(b[15], C::hex(0xff0000).premul());
+        assert_eq!(b[16], C::hex(0x00ff00).premul());
+    }
+
+    #[test]
+    fn clipping_follows_the_mirror() {
+        let (w, h) = (100, 1);
+        let mut b = vec![0u32; (w * h) as usize];
+        let mut cv = canvas(&mut b, w, h, true);
+        cv.push_clip(R::new(0, 0, 20, 1));
+        cv.fill(R::new(0, 0, 100, 1), C::hex(0xffffff));
+        drop(cv);
+        assert_eq!(cols(&b, w, 0), (80..100).collect::<Vec<_>>(), "a clip on the left of the layout is on the right of the surface");
+    }
+}

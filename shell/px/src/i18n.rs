@@ -50,6 +50,11 @@ pub fn set(lang: &str) {
 }
 
 /// код текущего языка («ru», «en», «pt-BR», «de»…)
+/// язык с письмом справа налево: интерфейс зеркалится (gfx::Canvas::mirror)
+pub fn rtl() -> bool {
+    matches!(code(), "ar")
+}
+
 pub fn code() -> &'static str {
     LANGS.get(LANGUAGE.load(Ordering::Relaxed) as usize).map_or("en", |l| l.0)
 }
