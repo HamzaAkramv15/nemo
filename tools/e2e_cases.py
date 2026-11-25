@@ -332,6 +332,67 @@ def case_rtl(e):
     e.send("reload", 1.0)
 
 
+def case_groups(e):
+    print("notifications: the history groups by app, a group opens and clears")
+    known_bar(e, island=False)
+    e.send("t:clearnotifs", 0.5)
+    env = {**os.environ, "DBUS_SESSION_BUS_ADDRESS": e.BUS}
+    for app, title in [("Mail", "Weekly report"), ("Mail", "Invoice 1042"), ("Mail", "Meeting moved"), ("Chat", "Anna: see you at 7")]:
+        subprocess.run(["notify-send", "-a", app, "-t", "20000", title], env=env, capture_output=True)
+        time.sleep(0.3)
+    e.send("t:close", 1.0)
+    e.send("popup cal", 0.8)
+    ok = False
+    for _ in range(30):
+        if 'NotifGroup("mail")' in e.zones("popup"):
+            ok = True
+            break
+        time.sleep(0.2)
+    e.check(ok, "three notes from one app show as one group, and the single one stays a card")
+    z = e.zones("popup")
+    e.check('NotifGroup("chat")' not in z and "NotifClick" in z, "a lone note is a plain card, not a group")
+    e.click("popup", 'NotifGroup("mail")')
+    time.sleep(0.8)
+    z = e.zones("popup")
+    e.check(z.count("NotifClick") >= 4, f"opening the group shows its three notes (and the other card): {z.count('NotifClick')} cards")
+    e.click("popup", 'NotifGroupDel("mail")')
+    time.sleep(0.8)
+    z = e.zones("popup")
+    e.check('NotifGroup("mail")' not in z and z.count("NotifClick") == 1, "clearing the group removes all three and leaves the other card")
+    e.send("t:close", 0.5)
+
+
+def case_dnd(e):
+    print("do not disturb: quiet hours keep cards off the screen, outside them cards show")
+    env = {**os.environ, "DBUS_SESSION_BUS_ADDRESS": e.BUS}
+    path = os.path.join(e.HOME, ".config/nemo/shell.json")
+    h = time.localtime().tm_hour
+    def cfg_with(**kw):
+        j = json.load(open(path))
+        j.update(kw)
+        json.dump(j, open(path, "w"))
+        e.send("reload", 1.0)
+    def card_shows(title):
+        subprocess.run(["notify-send", "-a", "Probe", "-t", "6000", title], env=env, capture_output=True)
+        for _ in range(12):
+            if "NotifClick" in e.zones("notifs") or "NotifAct" in e.zones("notifs"):
+                return True
+            time.sleep(0.2)
+        return False
+    known_bar(e, island=False)
+    e.send("t:clearnotifs", 0.5)
+    cfg_with(dndSchedule=False, dnd=False)
+    e.send("t:close", 0.5)
+    e.check(card_shows("outside quiet hours"), "with no schedule a notification pops up as a card")
+    time.sleep(7)  # let it expire
+    cfg_with(dndSchedule=True, dndFrom=h, dndTo=(h + 2) % 24)
+    e.check(not card_shows("inside quiet hours"), "inside the quiet hours no card pops up")
+    cfg_with(dndSchedule=True, dndFrom=(h + 3) % 24, dndTo=(h + 5) % 24)
+    time.sleep(7)
+    e.check(card_shows("after the window"), "a window that does not cover now lets cards through")
+    cfg_with(dndSchedule=False)
+
+
 def case_reset(e):
     print("settings: a changed row is marked and a right-click resets only it")
     open_settings(e, "widgets")
@@ -443,7 +504,7 @@ def case_island(e):
 
 
 def run(e, which):
-    cases = {"panels": case_panels, "tiles": case_tiles, "layouts": case_layouts, "gallery": case_gallery, "bar": case_bar, "island": case_island, "wallpapers": case_wallpapers, "reset": case_reset, "undo": case_undo, "keyboard": case_keyboard, "barmods": case_barmods, "rtl": case_rtl, "record": case_record}
+    cases = {"panels": case_panels, "tiles": case_tiles, "layouts": case_layouts, "gallery": case_gallery, "bar": case_bar, "island": case_island, "wallpapers": case_wallpapers, "reset": case_reset, "undo": case_undo, "keyboard": case_keyboard, "barmods": case_barmods, "rtl": case_rtl, "groups": case_groups, "dnd": case_dnd, "record": case_record}
     e.HOME = e.HOME
     names = list(cases) if which == ["all"] else which
     for n in names:

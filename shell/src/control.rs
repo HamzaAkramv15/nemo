@@ -20,6 +20,7 @@ pub const TILES: &[(&str, &str, &str)] = &[
     ("caffeine", "кофе", "coffee"),
     ("mic", "микрофон", "mic"),
     ("mute", "звук", "speaker"),
+    ("profile", "профиль питания", "gauge"),
     ("theme", "светлая тема", "sun"),
     ("curtain", "шторка", "eye"),
     ("settings", "настройки", "gear"),
@@ -44,13 +45,15 @@ fn lit(st: &State, k: &str) -> bool {
     match k {
         "wifi" => st.net.wifi_present && st.net.wifi_on,
         "bt" => st.bt.powered,
-        "dnd" => st.set.dnd,
+        "dnd" => crate::notif::dnd_on(&st.set),
         "night" => st.night.on,
         "caffeine" => st.caffeine.on,
         "mic" => !st.audio.mic_muted,
         "mute" => !st.audio.muted,
         "theme" => st.set.light,
         "curtain" => st.curtain.is_some(),
+        // горит, когда профиль не обычный (экономия или производительность)
+        "profile" => st.prof.present && st.prof.active != "balanced",
         _ => false,
     }
 }
@@ -67,6 +70,7 @@ fn act_of(st: &State, k: &str) -> Act {
         "mute" => Act::VolMute,
         "theme" => Act::SCycle(if st.set.light { "theme_dark" } else { "theme_light" }),
         "curtain" => Act::Curtain,
+        "profile" => Act::SCycle("prof_next"),
         "settings" => Act::Settings,
         "lock" => Act::LockNow,
         "power" => Act::Power,
@@ -77,8 +81,9 @@ fn act_of(st: &State, k: &str) -> Act {
 /// значок по состоянию: колокольчик и звук — перечёркнуты
 fn icon_of(st: &State, k: &str, icon: &'static str) -> &'static str {
     match k {
-        "dnd" if !st.set.dnd => "bell",
+        "dnd" if !crate::notif::dnd_on(&st.set) => "bell",
         "mute" if st.audio.muted => "mute",
+        "profile" if st.prof.present => st.prof.icon(),
         _ => icon,
     }
 }

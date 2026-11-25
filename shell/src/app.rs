@@ -303,6 +303,10 @@ pub struct State {
     pub mic: Vec<String>,
     /// идёт запись экрана (recording.rs): красная точка в баре
     pub recording: bool,
+    /// какая группа программы развёрнута в истории уведомлений (ключ notif::group_key)
+    pub notif_open: Option<String>,
+    /// «не беспокоить» на прошлой проверке (с учётом расписания): сменилось — перерисовать значки
+    pub dnd_shown: bool,
     /// дерево доступности последней отрисовки окна настроек (nemo_px::a11y) и выбранный клавишей Tab узел; кольцо фокуса рисует settings.rs
     pub a11y_nodes: std::cell::RefCell<Vec<nemo_px::a11y::Node>>,
     pub a11y_focus: Option<usize>,
@@ -583,6 +587,8 @@ impl State {
             curtain: None,
             mic: vec![],
             recording: false,
+            notif_open: None,
+            dnd_shown: false,
             a11y_nodes: std::cell::RefCell::new(Vec::new()),
             a11y_focus: None,
             a11y_ring: std::cell::Cell::new(None),

@@ -179,6 +179,9 @@ pub enum Act {
     Dnd,
     NotifClear,
     NotifDel(u32),
+    /// история уведомлений: развернуть или свернуть группу программы / убрать группу целиком
+    NotifGroup(String),
+    NotifGroupDel(String),
     NotifAct(u32, String),
     NotifClick(u32),
     Pavu,

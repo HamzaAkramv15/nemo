@@ -1741,4 +1741,8 @@ const DE: &[(&str, &str)] = &[
     ("when idle", "bei Leerlauf"),
     ("on battery only", "nur im Akkubetrieb"),
     ("app font is in “fonts”, screen scale in “screens”", "Programmschrift unter „Schriften“, Bildschirmskalierung unter „Bildschirme“"),
+    ("do not disturb on a schedule", "Nicht stören nach Zeitplan"),
+    ("quiet hours, midnight included", "Ruhezeiten, auch über Mitternacht"),
+    ("control panel", "Schnellzugriff"),
+    ("quiet hours", "Ruhezeiten"),
 ];

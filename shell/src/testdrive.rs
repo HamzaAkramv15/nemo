@@ -4,6 +4,7 @@
 //   zones KIND            — записать зоны поверхности (x y w h Act) в $XDG_RUNTIME_DIR/nemo-test-out.txt
 //   click KIND ТЕКСТ [r]  — нажать (r — правой кнопкой) первую сверху зону, чей Act содержит ТЕКСТ
 //   slider КЛЮЧ ЗНАЧЕНИЕ  — выставить ползунок настроек так, как это делает перетаскивание
+//   clearnotifs           — очистить историю и карточки уведомлений (чистое начало случая)
 //   close                 — закрыть все окна, панели и меню (чистое начало случая)
 //   bardrag SIDE:INDEX|new:ID TOSIDE TOINDEX — перетащить фишку модуля бара (вкладка бар → модули)
 //   nav next|prev|activate|left|right — обход с клавиатуры в окне настроек; пишет выбранный узел
@@ -20,6 +21,7 @@ fn kind_of(k: &str) -> Option<SKind> {
         "modal" => SKind::Modal,
         "bar" => SKind::Bar,
         "popup" => SKind::Popup,
+        "notifs" => SKind::Notifs,
         "dock" => SKind::Dock,
         "menu" => SKind::Menu,
         w => SKind::Widget(w.strip_prefix("widget:")?.parse().ok()?),
@@ -61,6 +63,13 @@ impl App {
                 }
             }
             Some("close") => self.close_all(),
+            Some("clearnotifs") => {
+                self.st.notifs.history.clear();
+                self.st.notifs.popups.clear();
+                self.st.notifs.leaving.clear();
+                self.sync_notifs();
+                self.dirty(&SKind::Bar);
+            }
             Some("bardrag") => {
                 // bardrag SIDE INDEX|new:ID  TOSIDE TOINDEX — как перетаскивание фишки в окне настроек (bartab.rs): места берутся из рядов последнего кадра
                 let (Some(from), Some(ts), Some(ti)) = (it.next(), it.next().and_then(|v| v.parse::<usize>().ok()), it.next().and_then(|v| v.parse::<usize>().ok())) else { return };

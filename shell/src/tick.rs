@@ -43,6 +43,13 @@ impl App {
     pub(crate) fn tick(&mut self) {
         reap_inherited();
         self.caffeine_tick();
+        // тихие часы наступили или кончились: значки колокольчика меняются сами
+        let dnd = crate::notif::dnd_on(&self.st.set);
+        if dnd != self.st.dnd_shown {
+            self.st.dnd_shown = dnd;
+            self.dirty(&SKind::Bar);
+            self.dirty(&SKind::Popup);
+        }
         // запись экрана началась или кончилась (nemo-shot record): точка в баре
         let rec = crate::recording::running().is_some();
         if rec != self.st.recording {

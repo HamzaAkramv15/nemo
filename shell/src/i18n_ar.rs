@@ -1783,4 +1783,8 @@ const AR: &[(&str, &str)] = &[
     ("when idle", "عند الخمول"),
     ("on battery only", "على البطارية فقط"),
     ("app font is in “fonts”, screen scale in “screens”", "خط البرامج في «الخطوط» ومقياس الشاشة في «الشاشات»"),
+    ("do not disturb on a schedule", "عدم الإزعاج حسب جدول"),
+    ("quiet hours, midnight included", "ساعات هادئة تشمل منتصف الليل"),
+    ("control panel", "لوحة التحكم"),
+    ("quiet hours", "ساعات هادئة"),
 ];

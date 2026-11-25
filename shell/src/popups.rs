@@ -193,7 +193,7 @@ fn cal(ui: &mut Ui, st: &State, b: R) {
     let nr = R::new(nx, b.y, b.right() - nx, b.h);
     let n = st.notifs.history.len();
     let sub = if n == 0 { String::new() } else { format!("{n}") };
-    ui.cv.icon(if st.set.dnd { "bellx" } else { "bell" }, nr.x, nr.y + 3, 2, t.red);
+    ui.cv.icon(if crate::notif::dnd_on(&st.set) { "bellx" } else { "bell" }, nr.x, nr.y + 3, 2, t.red);
     // кнопки по ширине своих надписей (в других языках они длиннее), заголовок — в остатке;
     // не влез — остаётся одно число: колокольчик и так говорит, что это уведомления
     let (cw, dw) = (ui.w(PX, "очистить") + 16, ui.w(PX, "не беспокоить") + 16);
@@ -202,7 +202,7 @@ fn cal(ui: &mut Ui, st: &State, b: R) {
     let tw = dx - 6 - (nr.x + 22);
     let title = if ui.w(PX, &title) <= tw { title } else { sub };
     ui.text_in(PX, R::new(nr.x + 22, nr.y, tw.max(0), 20), &title, t.text);
-    ui.button(R::new(dx, nr.y - 2, dw, 24), "не беспокоить", "", Tone::Ghost, st.set.dnd, true, Act::Dnd);
+    ui.button(R::new(dx, nr.y - 2, dw, 24), "не беспокоить", "", Tone::Ghost, crate::notif::dnd_on(&st.set), true, Act::Dnd);
     ui.button(R::new(cx, nr.y - 2, cw, 24), "очистить", "", Tone::Ghost, false, n > 0, Act::NotifClear);
     ui.cv.fill(R::new(nr.x, nr.y + 26, nr.w, 1), t.border);
     let mut y = nr.y + 34;
@@ -212,32 +212,68 @@ fn cal(ui: &mut Ui, st: &State, b: R) {
         return;
     }
     ui.cv.push_clip(R::new(nr.x, y, nr.w, nr.bottom() - y));
-    for note in &st.notifs.history {
+    // по программам: одна запись — карточка как есть; несколько — заголовок группы с числом и последним уведомлением, щелчок раскрывает
+    for (key, idx) in crate::notif::groups(&st.notifs.history) {
         if y > nr.bottom() {
             break;
         }
-        let ch = if note.body.is_empty() { 52 } else { 70 };
-        let r = R::new(nr.x, y, nr.w, ch);
+        if idx.len() == 1 {
+            y += note_card(ui, st, &st.notifs.history[idx[0]], R::new(nr.x, y, nr.w, 0), 0);
+            continue;
+        }
+        let open = st.notif_open.as_deref() == Some(key.as_str());
+        let latest = &st.notifs.history[idx[0]];
+        let r = R::new(nr.x, y, nr.w, 52);
         let hov = ui.hover(r);
-        ui.cv.pxbox(r, &BoxStyle::new(if hov { t.surface_hi } else { t.surface }, if note.critical { t.ember } else { t.border }));
-        ui.zone(r, Act::NotifClick(note.id), Cur::Pointer);
+        ui.cv.pxbox(r, &BoxStyle::new(if hov { t.surface_hi } else { t.surface }, if idx.iter().any(|i| st.notifs.history[*i].critical) { t.ember } else { t.border }));
+        ui.zone(r, Act::NotifGroup(key.clone()), Cur::Pointer);
         let mut x = r.x + 8;
-        if !note.icon.is_empty() {
-            let icon = note.icon.clone();
+        if !latest.icon.is_empty() {
+            let icon = latest.icon.clone();
             ui.app_icon(&icon, x, r.y + 6, 16, 1.0);
             x += 22;
         }
-        let app = if note.app.is_empty() { "система".to_string() } else { note.app.to_lowercase() };
-        let aw = ui.text_in(PX, R::new(x, r.y + 4, r.w / 2, 18), &app, t.red);
-        ui.text_in(PX, R::new(x + aw + 8, r.y + 4, 60, 18), &note.time, t.text_faint);
-        ui.ghost(R::new(r.right() - 24, r.y + 4, 20, 18), "close", Act::NotifDel(note.id));
-        ui.text_in(PX, R::new(r.x + 8, r.y + 26, r.w - 16, 18), &note.summary, t.text);
-        if !note.body.is_empty() {
-            ui.text_in(PX, R::new(r.x + 8, r.y + 46, r.w - 16, 18), &note.body.replace('\n', " "), t.text_dim);
+        let aw = ui.text_in(PX, R::new(x, r.y + 4, r.w / 2, 18), &key, t.red);
+        let chip = format!("×{}", idx.len());
+        let cw = ui.w(PX, &chip);
+        ui.text_in(PX, R::new(x + aw + 8, r.y + 4, cw + 4, 18), &chip, t.ember);
+        ui.cv.icon(if open { "down" } else { "right" }, r.right() - 54, r.y + 7, 2, t.text_faint);
+        ui.ghost(R::new(r.right() - 24, r.y + 4, 20, 18), "close", Act::NotifGroupDel(key.clone()));
+        ui.text_in(PX, R::new(r.x + 8, r.y + 28, r.w - 16, 18), &latest.summary, t.text_dim);
+        y += 58;
+        if open {
+            for i in &idx {
+                y += note_card(ui, st, &st.notifs.history[*i], R::new(nr.x + 14, y, nr.w - 14, 0), 0);
+            }
         }
-        y += ch + 6;
     }
     ui.cv.pop_clip();
+}
+
+/// одна карточка уведомления в истории; возвращает занятую высоту с зазором
+fn note_card(ui: &mut Ui, st: &State, note: &crate::notif::Note, at: R, _depth: i32) -> i32 {
+    let t = ui.t;
+    let _ = st;
+    let ch = if note.body.is_empty() { 52 } else { 70 };
+    let r = R::new(at.x, at.y, at.w, ch);
+    let hov = ui.hover(r);
+    ui.cv.pxbox(r, &BoxStyle::new(if hov { t.surface_hi } else { t.surface }, if note.critical { t.ember } else { t.border }));
+    ui.zone(r, Act::NotifClick(note.id), Cur::Pointer);
+    let mut x = r.x + 8;
+    if !note.icon.is_empty() {
+        let icon = note.icon.clone();
+        ui.app_icon(&icon, x, r.y + 6, 16, 1.0);
+        x += 22;
+    }
+    let app = if note.app.is_empty() { "система".to_string() } else { note.app.to_lowercase() };
+    let aw = ui.text_in(PX, R::new(x, r.y + 4, r.w / 2, 18), &app, t.red);
+    ui.text_in(PX, R::new(x + aw + 8, r.y + 4, 60, 18), &note.time, t.text_faint);
+    ui.ghost(R::new(r.right() - 24, r.y + 4, 20, 18), "close", Act::NotifDel(note.id));
+    ui.text_in(PX, R::new(r.x + 8, r.y + 26, r.w - 16, 18), &note.summary, t.text);
+    if !note.body.is_empty() {
+        ui.text_in(PX, R::new(r.x + 8, r.y + 46, r.w - 16, 18), &note.body.replace('\n', " "), t.text_dim);
+    }
+    ch + 6
 }
 
 // ── звук ────────────────────────────────────────────────────────────────────

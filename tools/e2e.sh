@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # End-to-end checks of the real shell in a nested niri with a throwaway home and a private bus (nothing touches your desktop):
 # it clicks through the real settings pages, widgets and bar by the shell's own click path and checks what the shell wrote.
-#   tools/e2e.sh [CASE...]   CASE: panels tiles layouts gallery bar island wallpapers reset record undo keyboard barmods rtl (default: all)   pictures: E2E_OUT=DIR
+#   tools/e2e.sh [CASE...]   CASE: panels tiles layouts gallery bar island wallpapers reset record undo keyboard barmods rtl groups dnd (default: all)   pictures: E2E_OUT=DIR
 set -uo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 source "$ROOT/tools/nested-session.sh"

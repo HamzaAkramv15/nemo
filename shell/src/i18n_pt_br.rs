@@ -1518,4 +1518,8 @@ const PT_BR: &[(&str, &str)] = &[
     ("when idle", "quando ocioso"),
     ("on battery only", "só na bateria"),
     ("app font is in “fonts”, screen scale in “screens”", "a fonte dos apps está em “fontes”, a escala da tela em “telas”"),
+    ("do not disturb on a schedule", "não perturbe por horário"),
+    ("quiet hours, midnight included", "horas silenciosas, inclusive à meia-noite"),
+    ("control panel", "painel de controle"),
+    ("quiet hours", "horas silenciosas"),
 ];

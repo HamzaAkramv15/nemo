@@ -701,6 +701,14 @@ pub(crate) fn tab_notif(ui: &mut Ui, st: &State, b: R) {
     ui.toggle(R::new(lx, y, half, 40), "не беспокоить", "только срочные", s.dnd, Act::SBool("dnd"));
     ui.slider(R::new(rx, y, half, 40), "сколько висит", (s.notif_timeout as f32 - 2.0) / 28.0, &crate::tf!("{} с", "{} s", "{} s", s.notif_timeout), 12, Act::SSlider("notif_timeout", 2.0, 30.0, 14));
     y += 48;
+    // не беспокоить по расписанию: тихие часы, в том числе через полночь
+    ui.toggle(R::new(lx, y, half, 40), "не беспокоить по расписанию", "тихие часы", s.dnd_schedule, Act::SBool("dnd_schedule"));
+    if s.dnd_schedule {
+        let qw = (half - 8) / 2;
+        num_btn(ui, R::new(rx, y + 6, qw, 26), "с", s.num("dnd_from"), "dnd_from");
+        num_btn(ui, R::new(rx + qw + 8, y + 6, qw, 26), "до", s.num("dnd_to"), "dnd_to");
+    }
+    y += 46;
     ui.toggle(R::new(lx, y, half, 40), "картинки в карточках", "значки и превью от программ", s.notif_images, Act::SBool("notif_images"));
     ui.toggle(R::new(rx, y, half, 40), "в записи и трансляциях", "выкл — зрители их не видят", s.notif_cast, Act::SBool("notif_cast"));
     y += 46;

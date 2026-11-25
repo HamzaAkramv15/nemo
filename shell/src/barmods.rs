@@ -35,6 +35,7 @@ pub const MODULES: &[Module] = &[
     Module { id: "privacy", name: "приватность", group: 4 },
     Module { id: "clock", name: "часы", group: 6 },
     Module { id: "notif", name: "уведомления", group: 6 },
+    Module { id: "control", name: "панель управления", group: 6 },
     Module { id: "settings", name: "настройки", group: 6 },
     Module { id: "power", name: "питание", group: 6 },
     Module { id: "sep", name: "разделитель", group: 7 },

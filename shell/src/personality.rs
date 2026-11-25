@@ -99,7 +99,7 @@ impl Gate {
 impl crate::app::App {
     /// фраза для события, если сейчас можно и она есть на этом языке
     pub fn quip_for(&mut self, ev: Event) -> Option<String> {
-        let busy = self.st.game.fullscreen || self.st.curtain.is_some() || self.st.set.dnd;
+        let busy = self.st.game.fullscreen || self.st.curtain.is_some() || crate::notif::dnd_on(&self.st.set);
         // сначала язык: без фразы на нём лимит не тратится
         let n = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map_or(0, |d| d.as_secs() as usize);
         let text = quip(ev, crate::i18n::code(), n)?;

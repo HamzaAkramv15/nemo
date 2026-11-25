@@ -1741,4 +1741,8 @@ const ES: &[(&str, &str)] = &[
     ("when idle", "en reposo"),
     ("on battery only", "solo con batería"),
     ("app font is in “fonts”, screen scale in “screens”", "la fuente de las apps está en «fuentes», la escala en «pantallas»"),
+    ("do not disturb on a schedule", "no molestar con horario"),
+    ("quiet hours, midnight included", "horas tranquilas, también pasada la medianoche"),
+    ("control panel", "panel de control"),
+    ("quiet hours", "horas tranquilas"),
 ];

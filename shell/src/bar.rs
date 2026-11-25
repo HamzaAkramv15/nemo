@@ -696,14 +696,20 @@ fn module(ui: &mut Ui, st: &State, out: &str, m: &str, x: i32, measure: bool) ->
             if !measure {
                 let r = R::new(x - 2, 0, w + 4, H - 1);
                 let hov = ui.hover(r);
-                let c = if st.set.dnd { t.text_faint } else if hov { t.text_hi } else if n > 0 { t.red } else { t.text_dim };
-                ui.cv.icon(if st.set.dnd { "bellx" } else { "bell" }, x, cy - 7, 2, c);
+                let c = if crate::notif::dnd_on(&st.set) { t.text_faint } else if hov { t.text_hi } else if n > 0 { t.red } else { t.text_dim };
+                ui.cv.icon(if crate::notif::dnd_on(&st.set) { "bellx" } else { "bell" }, x, cy - 7, 2, c);
                 if n > 0 {
                     ui.text_in(PX, R::new(x + 18, 0, 30, H - 1), &n.to_string(), t.text);
                 }
                 ui.zone(r, Act::Popup("cal"), Cur::Pointer);
             }
             w
+        }
+        "control" => {
+            if !measure {
+                ui.button(R::new(x, cy - 11, 26, 22), "", "slides", Tone::Ghost, st.popup_is("control"), true, Act::Popup("control"));
+            }
+            26
         }
         "settings" => {
             if !measure {
@@ -1220,8 +1226,14 @@ fn vmodule(ui: &mut Ui, st: &State, out: &str, m: &str, y: i32, measure: bool) -
         "notif" => {
             let n = st.notifs.history.len();
             let hov = !measure && ui.hover(R::new(x0, y - 2, W, 34));
-            let c = if st.set.dnd { t.text_faint } else if hov { t.text_hi } else if n > 0 { t.red } else { t.text_dim };
-            vstack(ui, st, y, if st.set.dnd { "bellx" } else { "bell" }, c, &if n > 0 { n.min(99).to_string() } else { String::new() }, t.text, Act::Popup("cal"), measure)
+            let c = if crate::notif::dnd_on(&st.set) { t.text_faint } else if hov { t.text_hi } else if n > 0 { t.red } else { t.text_dim };
+            vstack(ui, st, y, if crate::notif::dnd_on(&st.set) { "bellx" } else { "bell" }, c, &if n > 0 { n.min(99).to_string() } else { String::new() }, t.text, Act::Popup("cal"), measure)
+        }
+        "control" => {
+            if !measure {
+                ui.button(R::new(cx - 12, y, 24, 22), "", "slides", Tone::Ghost, st.popup_is("control"), true, Act::Popup("control"));
+            }
+            22
         }
         "settings" => {
             if !measure {

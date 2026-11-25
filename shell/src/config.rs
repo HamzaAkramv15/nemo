@@ -474,6 +474,10 @@ pub struct Settings {
     pub weather_city: String,
     /// "c" — °C и км/ч, "f" — °F и mph
     pub weather_units: String,
+    /// не беспокоить по расписанию: с какого часа и до какого (через полночь тоже), поверх ручного переключателя
+    pub dnd_schedule: bool,
+    pub dnd_from: i32,
+    pub dnd_to: i32,
     pub night_on_h: i32,
     pub night_off_h: i32,
     /// свои app-id игр: через запятую, `name*` — по началу
@@ -536,7 +540,7 @@ pub fn page_keys(tab: &str) -> &'static [&'static str] {
         "widgets" => &["widgets", "widgetContrast", "widgetLook", "widgetPanel", "widgetAlpha", "widgetRadius", "widgetBorder", "widgetShadow"],
         "dock" => &["dock*"],
         "windows" => &["stacking", "titlebars", "floatMedia", "floatPip", "floatApps", "floatW", "floatH", "winGap", "winLeft", "winRight", "winTop", "winBottom", "winRadius", "winBorder", "castHide"],
-        "notif" => &["dnd", "notifTimeout", "notifMax", "notifHistory", "notifPos", "osdPos", "osdBright", "notifOffset", "osdOffset", "notifImages", "island", "notifMuted"],
+        "notif" => &["dnd", "dndSchedule", "dndFrom", "dndTo", "notifTimeout", "notifMax", "notifHistory", "notifPos", "osdPos", "osdBright", "notifOffset", "osdOffset", "notifImages", "island", "notifMuted"],
         "comfort" => &["night", "nightTemp", "nightGeo", "nightOnH", "nightOffH", "nightAlways", "caffeineMinutes", "caffeineAuto", "personality", "dnd"],
         "region" => &["lang", "clock12", "clockSeconds", "clockDate", "dateStyle", "weekStart", "weekend", "hijri", "arabicDigits", "weekNumbers"],
         "system" => &["sessionRestore"],
@@ -618,6 +622,17 @@ impl Settings {
     }
 }
 
+/// час попадает в окно [from, to): окно через полночь (22 → 7) тоже; from == to — окно пусто (расписание ничего не включает)
+pub fn dnd_window(hour: u32, from: u32, to: u32) -> bool {
+    if from == to {
+        false
+    } else if from < to {
+        hour >= from && hour < to
+    } else {
+        hour >= from || hour < to
+    }
+}
+
 /// заводские значения всех настроек одним объектом, посчитанные один раз на процесс
 fn defaults_json() -> &'static serde_json::Map<String, serde_json::Value> {
     static D: std::sync::OnceLock<serde_json::Map<String, serde_json::Value>> = std::sync::OnceLock::new();
@@ -679,6 +694,8 @@ pub const NUMS: &[(&str, i32, i32, i32)] = &[
     ("caffeine_minutes", 0, 480, 15),
     ("dock_zoom", 0, 32, 4),
     ("night_on_h", 0, 23, 1),
+    ("dnd_from", 0, 23, 1),
+    ("dnd_to", 0, 23, 1),
     ("night_off_h", 0, 23, 1),
     ("notif_offset", 0, 400, 2),
     ("osd_offset", 0, 400, 4),
@@ -884,6 +901,9 @@ impl Default for Settings {
             night_geo: String::new(),
             weather_city: "auto".into(),
             weather_units: "c".into(),
+            dnd_schedule: false,
+            dnd_from: 22,
+            dnd_to: 7,
             night_on_h: 20,
             night_off_h: 7,
             game_apps: String::new(),
@@ -987,6 +1007,8 @@ impl Settings {
         // как у ползунка: ниже 0.15 панели почти невидимы, а тень и размытие под ними — «битые рамки» (#8)
         self.glass = self.glass.clamp(0.15, 1.0);
         self.font_pt = self.font_pt.clamp(0, 48);
+        self.dnd_from = self.dnd_from.clamp(0, 23);
+        self.dnd_to = self.dnd_to.clamp(0, 23);
         self.binds.retain(|_, k| k.is_empty() || crate::keys::key_ok(k));
         self.custom_binds.retain(|c| c.key.is_empty() || crate::keys::key_ok(&c.key));
         // модули-скрипты: только имя файла в ~/.config/nemo/scripts; «rec» (повтор) убран
@@ -1167,6 +1189,8 @@ impl Settings {
             "caffeine_minutes" => self.caffeine_minutes,
             "dock_zoom" => self.dock_zoom,
             "night_on_h" => self.night_on_h,
+            "dnd_from" => self.dnd_from,
+            "dnd_to" => self.dnd_to,
             "night_off_h" => self.night_off_h,
             "win_gap" => self.win_gap,
             "win_left" => self.win_left,
@@ -1201,6 +1225,8 @@ impl Settings {
             "caffeine_minutes" => self.caffeine_minutes = v,
             "dock_zoom" => self.dock_zoom = v,
             "night_on_h" => self.night_on_h = v,
+            "dnd_from" => self.dnd_from = v,
+            "dnd_to" => self.dnd_to = v,
             "night_off_h" => self.night_off_h = v,
             "win_gap" => self.win_gap = v,
             "win_left" => self.win_left = v,
@@ -1451,6 +1477,11 @@ impl Settings {
         l.push(String::new());
     }
 
+    /// «не беспокоить» сейчас: ручной переключатель или расписание в этот час (0–23)
+    pub fn dnd_at(&self, hour: u32) -> bool {
+        self.dnd || (self.dnd_schedule && dnd_window(hour, self.dnd_from.clamp(0, 23) as u32, self.dnd_to.clamp(0, 23) as u32))
+    }
+
     /// тема так, как её видят все программы Nemo (тот же разбор style.json, что и у модулей): с высокой контрастностью, если она включена
     pub fn theme(&self) -> crate::theme::Theme {
         nemo_px::look::Look::from_json(&self.style_value(), Some(self.light)).theme
@@ -1688,6 +1719,21 @@ mod schema_tests {
         assert!(!s.reset_key("widget_radius"), "already the default: nothing to do");
         assert!(!s.reset_key("no_such_setting"));
         assert_eq!(s.json_key("bar_split_gap").as_deref(), Some("barSplitGap"));
+    }
+
+    #[test]
+    fn the_dnd_window_handles_day_overnight_and_empty_ranges() {
+        assert!(dnd_window(13, 9, 17) && !dnd_window(17, 9, 17) && !dnd_window(8, 9, 17));
+        assert!(dnd_window(23, 22, 7) && dnd_window(3, 22, 7) && dnd_window(22, 22, 7), "overnight, start included");
+        assert!(!dnd_window(7, 22, 7) && !dnd_window(12, 22, 7), "end excluded, daytime free");
+        assert!(!(0..24).any(|h| dnd_window(h, 5, 5)), "from == to is an empty window, not the whole day");
+        let mut s = Settings::default();
+        s.dnd_schedule = true;
+        assert!(s.dnd_at(23) && !s.dnd_at(12));
+        s.dnd_schedule = false;
+        assert!(!s.dnd_at(23), "the schedule does nothing while it is off");
+        s.dnd = true;
+        assert!(s.dnd_at(12), "the manual switch always wins");
     }
 
     /// сколько ключей пока без описания; число можно только уменьшать (новая настройка без документации ломает тест)

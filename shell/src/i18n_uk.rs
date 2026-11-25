@@ -1741,4 +1741,8 @@ const UK: &[(&str, &str)] = &[
     ("when idle", "під час простою"),
     ("on battery only", "лише на батареї"),
     ("app font is in “fonts”, screen scale in “screens”", "шрифт програм — у «шрифти», масштаб екрана — у «екрани»"),
+    ("do not disturb on a schedule", "не турбувати за розкладом"),
+    ("quiet hours, midnight included", "тихі години, зокрема через північ"),
+    ("control panel", "панель керування"),
+    ("quiet hours", "тихі години"),
 ];

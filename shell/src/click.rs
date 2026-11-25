@@ -261,6 +261,22 @@ impl App {
                     self.toast_note("Nemo", &q);
                 }
             }
+            Act::NotifGroup(k) => {
+                self.st.notif_open = if self.st.notif_open.as_deref() == Some(k.as_str()) { None } else { Some(k) };
+                self.dirty(&SKind::Popup);
+            }
+            Act::NotifGroupDel(k) => {
+                let ids: Vec<u32> = self.st.notifs.history.iter().filter(|n| crate::notif::group_key(&n.app) == k).map(|n| n.id).collect();
+                for id in ids {
+                    self.st.notifs.remove(id, true);
+                    crate::dbus::notif_closed(id, 2);
+                }
+                if self.st.notif_open.as_deref() == Some(k.as_str()) {
+                    self.st.notif_open = None;
+                }
+                self.sync_notifs();
+                self.dirty(&SKind::Popup);
+            }
             Act::NotifDel(id) => {
                 self.st.notifs.remove(id, kind == Some(SKind::Popup));
                 crate::dbus::notif_closed(id, 2);

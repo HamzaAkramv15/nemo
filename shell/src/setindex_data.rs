@@ -6,6 +6,7 @@ pub const INDEX: &[Entry] = &[
     Entry { tab: "diag", label: "программы, которым Nemo доверяет работу", kw: "missing dependencies programs doctor grim wl-clipboard playerctl nmcli required" },
     Entry { tab: "dock", label: "числа и прогресс на значках", kw: "dock badges unread count progress download notifications unity launcher entry" },
     Entry { tab: "dock", label: "зум значка, px", kw: "dock zoom magnification magnify grow hover size macos" },
+    Entry { tab: "notif", label: "не беспокоить по расписанию", kw: "do not disturb schedule quiet hours night dnd timer" },
     Entry { tab: "notif", label: "тихие программы", kw: "mute app notifications silence block popups steam discord per app rules" },
     Entry { tab: "power", label: "предел заряда", kw: "charge limit battery 80 percent" },
     Entry { tab: "comfort", label: "кофе само", kw: "caffeine auto automatic fullscreen video presentation keep awake while watching" },

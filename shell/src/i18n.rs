@@ -1381,4 +1381,8 @@ const PAIRS: &[(&str, &str)] = &[
     ("при простое", "when idle"),
     ("только на батарее", "on battery only"),
     ("шрифт программ — во вкладке «шрифты», масштаб экрана — в «экраны»", "app font is in “fonts”, screen scale in “screens”"),
+    ("не беспокоить по расписанию", "do not disturb on a schedule"),
+    ("тихие часы, в том числе через полночь", "quiet hours, midnight included"),
+    ("панель управления", "control panel"),
+    ("тихие часы", "quiet hours"),
 ];

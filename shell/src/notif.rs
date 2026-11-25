@@ -115,6 +115,33 @@ impl Notifs {
 }
 
 /// сколько уходит карточка, с (0 — сразу): закрытие группы «уведомления»
+/// ключ группы в истории: программа без регистра; без имени — «система»
+pub fn group_key(app: &str) -> String {
+    if app.trim().is_empty() {
+        "система".to_string() // i18n-ok
+    } else {
+        app.to_lowercase()
+    }
+}
+
+/// история по программам: группы в порядке самого свежего уведомления, внутри — индексы в порядке истории (свежие первыми)
+pub fn groups(history: &[Note]) -> Vec<(String, Vec<usize>)> {
+    let mut out: Vec<(String, Vec<usize>)> = vec![];
+    for (i, n) in history.iter().enumerate() {
+        let k = group_key(&n.app);
+        match out.iter_mut().find(|g| g.0 == k) {
+            Some(g) => g.1.push(i),
+            None => out.push((k, vec![i])),
+        }
+    }
+    out
+}
+
+/// «не беспокоить» в этот момент (переключатель или расписание): то, что показывают значки и по чему решают, всплывать ли карточке
+pub fn dnd_on(s: &crate::config::Settings) -> bool {
+    s.dnd_at(nemo_px::time::local_now().hour)
+}
+
 pub fn leave_s(s: &crate::config::Settings) -> f32 {
     let on = s.anim() && s.anim_close && s.reveal_for("notifs", true) != "none";
     if on { s.anim_ms("notifs") * 0.7 / 1000.0 } else { 0.0 }
@@ -820,5 +847,25 @@ mod mute_tests {
         assert!(chamfer_spans(10, 0, 0).iter().all(|x| *x == (0, 0)));
         // сторона у бара плоская: сверху фаски нет
         assert!(chamfer_spans(30, 0, 5)[..20].iter().all(|x| *x == (0, 0)));
+    }
+}
+
+#[cfg(test)]
+mod group_tests {
+    use super::*;
+
+    fn note(id: u32, app: &str) -> Note {
+        Note { id, app: app.into(), icon: String::new(), summary: format!("s{id}"), body: String::new(), actions: vec![], critical: false, image: None, born: Instant::now(), time: String::new(), life: 5.0, left: 5.0, count: 1 }
+    }
+
+    #[test]
+    fn history_groups_by_app_in_order_of_the_newest_member() {
+        let h = vec![note(5, "Mail"), note(4, "chat"), note(3, "mail"), note(2, ""), note(1, "Chat")];
+        let g = groups(&h);
+        assert_eq!(g.iter().map(|x| x.0.as_str()).collect::<Vec<_>>(), vec!["mail", "chat", "система"]);
+        assert_eq!(g[0].1, vec![0, 2], "mail: the newest first, case ignored");
+        assert_eq!(g[1].1, vec![1, 4]);
+        assert_eq!(g[2].1, vec![3], "a note with no app goes to the system group");
+        assert!(groups(&[]).is_empty());
     }
 }

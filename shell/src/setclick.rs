@@ -118,6 +118,7 @@ impl App {
                 match *k {
                     "animations" => s.animations = !s.animations,
                     "high_contrast" => s.high_contrast = !s.high_contrast,
+                    "dnd_schedule" => s.dnd_schedule = !s.dnd_schedule,
                     "reduce_motion" => s.reduce_motion = !s.reduce_motion,
                     "lite" => s.lite = !s.lite,
                     "anim_close" => s.anim_close = !s.anim_close,
@@ -497,6 +498,7 @@ impl App {
                     App::spawn(&crate::launcher::in_term(vec!["sh".into(), "-c".into(), line]));
                     self.st.sys_upd.found = None;
                 }
+                "prof_next" => self.prof_step(1),
                 "prof_battery" | "prof_ac" => {
                     let opts = [("", ""), ("power-saver", ""), ("balanced", ""), ("performance", "")];
                     if *k == "prof_battery" {

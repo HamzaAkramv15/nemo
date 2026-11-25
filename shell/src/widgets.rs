@@ -453,7 +453,7 @@ pub(crate) fn draw_quick(ui: &mut Ui, st: &State, w: &Widget, r: R, _c: C) {
         ("lock", Act::LockNow, false),
         ("moon", Act::NightToggle, st.night.on),
         ("coffee", Act::CaffeineToggle, st.caffeine.on),
-        ("bell", Act::Dnd, st.set.dnd),
+        ("bell", Act::Dnd, crate::notif::dnd_on(&st.set)),
         ("power", Act::Power, false),
         ("gear", Act::Settings, st.modal == Some(crate::app::Modal::Settings)),
     ];

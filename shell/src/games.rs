@@ -141,7 +141,7 @@ impl App {
 
     /// уведомления сейчас только в историю: «не беспокоить» или игра на весь экран
     pub fn quiet(&self) -> bool {
-        self.st.set.dnd || (self.st.set.game_dnd && (self.st.game.game || self.st.game.fullscreen))
+        crate::notif::dnd_on(&self.st.set) || (self.st.set.game_dnd && (self.st.game.game || self.st.game.fullscreen))
     }
 }
 

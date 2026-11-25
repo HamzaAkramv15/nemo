@@ -81,6 +81,7 @@ const TARGETS: &[&str] = &[
     "clipboard",
     "power",
     "popup:cal",
+    "popup:cal-groups",
     "cheat",
     "tip:caffeine",
     "tip:night",
@@ -702,6 +703,19 @@ fn shoot(st: &mut State, res: &mut Res, target: &str, path: &Path) {
             crate::walls::SIZE
         }
         "popup" => {
+            // история по программам: у Mail три уведомления (группа раскрыта), у Chat два (свёрнута), у Steam одно
+            if arg == "cal-groups" {
+                st.notifs.history.clear();
+                for (i, (app, sum)) in [("Mail", "Weekly report"), ("Chat", "Anna: see you at 7"), ("Mail", "Invoice 1042"), ("Steam", "Download complete"), ("Chat", "Omar: ok"), ("Mail", "Meeting moved")].into_iter().enumerate() {
+                    let mut n = mock_note();
+                    n.id = i as u32 + 1;
+                    n.app = app.into();
+                    n.summary = sum.into();
+                    n.body = String::new();
+                    st.notifs.history.push(n);
+                }
+                st.notif_open = Some("mail".into());
+            }
             if arg == "profile" {
                 st.prof = crate::profile::Prof { present: true, active: "performance".into(), list: vec!["power-saver".into(), "balanced".into(), "performance".into()], degraded: String::new() };
             }
@@ -754,7 +768,7 @@ fn shoot(st: &mut State, res: &mut Res, target: &str, path: &Path) {
             if arg.starts_with("weather") {
                 mock_weather(st, arg != "weather-none");
             }
-            let arg = if arg.starts_with("weather") { "weather" } else { arg };
+            let arg = if arg.starts_with("weather") { "weather" } else if arg == "cal-groups" { "cal" } else { arg };
             if let Some(v) = arg.strip_prefix("media-") {
                 st.set.media_viz = if v == "flat" { "off" } else { "bars" }.into();
                 st.set.media_view = match v {
