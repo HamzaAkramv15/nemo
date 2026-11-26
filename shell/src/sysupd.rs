@@ -54,6 +54,8 @@ pub struct Found {
     /// удержано по причинам: (причина, сколько)
     pub held: Vec<(String, usize)>,
     pub err: String,
+    /// сколько устройств ждёт прошивку (fwupd); None — fwupd нет или он не ответил
+    pub fw: Option<usize>,
 }
 
 #[derive(Default)]
@@ -70,7 +72,7 @@ pub fn parse_fedora_json(text: &str) -> Option<Found> {
     let v: serde_json::Value = serde_json::from_str(text.lines().rev().find(|l| l.trim_start().starts_with('{'))?).ok()?;
     let mut held: Vec<(String, usize)> = v["held_by"].as_object()?.iter().map(|(k, n)| (k.clone(), n.as_u64().unwrap_or(0) as usize)).collect();
     held.sort_by(|a, b| b.1.cmp(&a.1).then(a.0.cmp(&b.0)));
-    Some(Found { total: v["total"].as_u64()? as usize, safe: Some(v["safe"].as_u64()? as usize), held, err: String::new() })
+    Some(Found { total: v["total"].as_u64()? as usize, safe: Some(v["safe"].as_u64()? as usize), held, err: String::new(), fw: None })
 }
 
 /// сколько непустых строк вывода — столько пакетов (Arch: checkupdates; Debian: строки «Inst»; SUSE: строки таблицы)
@@ -89,8 +91,28 @@ fn run(cmd: &str, args: &[&str]) -> Result<String, String> {
     Ok(String::from_utf8_lossy(&o.stdout).to_string())
 }
 
+/// `fwupdmgr get-updates --json`: устройства, у которых есть выпуск новее; пустой список — прошивки свежие
+pub fn parse_fwupd_json(text: &str) -> Option<usize> {
+    let v: serde_json::Value = serde_json::from_str(text).ok()?;
+    let devices = v.get("Devices")?.as_array()?;
+    Some(devices.iter().filter(|d| d.get("Releases").and_then(|r| r.as_array()).is_none_or(|r| !r.is_empty())).count())
+}
+
+/// прошивки через fwupd (читает только список, ничего не ставит); None — fwupdmgr нет
+pub fn check_firmware() -> Option<usize> {
+    let exe = nemo_px::paths::find_exe("fwupdmgr")?;
+    let out = Command::new(exe).args(["get-updates", "--json", "--no-unreported-check", "--no-metadata-check"]).stdin(Stdio::null()).output().ok()?;
+    parse_fwupd_json(&String::from_utf8_lossy(&out.stdout))
+}
+
 /// проверка; блокирует нить, зови из отдельной
 pub fn check(family: Family) -> Found {
+    let mut f = check_packages(family);
+    f.fw = check_firmware();
+    f
+}
+
+fn check_packages(family: Family) -> Found {
     let fail = |e: String| Found { err: e, ..Default::default() };
     match family {
         Family::Fedora => {
@@ -206,7 +228,18 @@ pub fn tab(ui: &mut Ui, st: &State, b: R) {
     };
     ui.cv.fill(R::new(b.x, y + 7, 6, 6), col);
     ui.text_in(PX, R::new(b.x + 14, y, b.w - 14, 20), &line, col);
-    y += 34;
+    y += 26;
+    if let Some(n) = s.found.as_ref().and_then(|f| f.fw) {
+        let (txt, c) = if n == 0 {
+            (crate::tf!("прошивки свежие", "firmware is up to date", "firmware atualizado"), t.text_dim)
+        } else {
+            (crate::tf!("прошивка ждёт: {} · в терминале: fwupdmgr update", "firmware waiting: {} · in a terminal: fwupdmgr update", "firmware pendente: {} · no terminal: fwupdmgr update", n), t.text)
+        };
+        ui.cv.fill(R::new(b.x, y + 7, 6, 6), c);
+        ui.text_in(PX, R::new(b.x + 14, y, b.w - 14, 20), &txt, c);
+        y += 26;
+    }
+    y += 8;
     let half = (b.w - 20) / 2;
     ui.button(R::new(b.x, y, half, 30), "проверить", "reboot", Tone::Plain, false, !s.checking, Act::SCycle("sysupd_check"));
     let can = update_command(fam).is_some() && s.found.as_ref().is_some_and(|f| f.err.is_empty() && f.total > 0);
@@ -261,6 +294,13 @@ pub fn tab(ui: &mut Ui, st: &State, b: R) {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn fwupd_answers_become_a_count() {
+        assert_eq!(parse_fwupd_json(r#"{"Devices":[]}"#), Some(0));
+        assert_eq!(parse_fwupd_json(r#"{"Devices":[{"Name":"UEFI dbx","Releases":[{"Version":"2"}]},{"Name":"SSD","Releases":[]}]}"#), Some(1));
+        assert_eq!(parse_fwupd_json("No updatable devices"), None);
+    }
 
     #[test]
     fn the_distribution_is_read_from_os_release() {
