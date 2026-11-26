@@ -164,6 +164,7 @@ const TARGETS: &[&str] = &[
     "osd:curtain",
     "osd:bright",
     "settings:shots",
+    "settings:shots-scroll",
     "settings:windows",
     "settings:dock",
     "settings:screens",
@@ -594,6 +595,12 @@ fn shoot(st: &mut State, res: &mut Res, target: &str, path: &Path) {
                 }
                 st.set.widgets = ws;
                 st.sel_widget = 1;
+            }
+            if arg == "shots-scroll" {
+                // the very bottom of the capture page: the key list must be reachable
+                st.stab = "shots";
+                st.sscroll = (540, "shots");
+                st.sscroll_h.set(1300);
             }
             if arg == "color-apps-scroll" {
                 // низ страницы «программы»: итог своих шаблонов (#27)

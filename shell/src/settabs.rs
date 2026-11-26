@@ -898,6 +898,8 @@ pub(crate) fn tab_shots(ui: &mut Ui, st: &State, b: R) {
         ui.text_in(PX, R::new(b.x + 140, y, b.w - 140, 20), v, t.text_dim);
         y += 22;
     }
+    // the key list is plain text (no click zones), so the scroll length would stop at the slider above it and hide it
+    ui.cv.reach = ui.cv.reach.max(y);
 }
 
 pub(crate) fn tab_about(ui: &mut Ui, st: &State, b: R) {
