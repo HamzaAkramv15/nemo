@@ -1,0 +1,12 @@
+{
+  "api": 1,
+  "id": "nemo-shot",
+  "name": "Nemo Shot",
+  "requires": "nemo-shot",
+  "actions": [
+    { "title": "скриншот области", "keywords": "screenshot capture area crop select", "icon": "camera", "command": ["nemo-shell", "msg", "screenshot", "area"] },
+    { "title": "скриншот окна", "keywords": "screenshot capture window", "icon": "camera", "command": ["nemo-shell", "msg", "screenshot", "window"] },
+    { "title": "скриншот всего экрана", "keywords": "screenshot capture screen monitor", "icon": "camera", "command": ["nemo-shell", "msg", "screenshot", "screen"] },
+    { "title": "запись экрана: начать или остановить", "keywords": "record recording video capture screencast", "icon": "screen", "command": ["nemo-shell", "msg", "screenshot", "record"] }
+  ]
+}

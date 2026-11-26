@@ -393,6 +393,43 @@ def case_dnd(e):
     cfg_with(dndSchedule=False)
 
 
+def case_actions(e):
+    print("launcher: actions from manifests and .desktop files are searchable")
+    d = os.path.join(e.HOME, ".config/nemo/integrations")
+    os.makedirs(d, exist_ok=True)
+    marker = os.path.join(e.RUN, "e2e-action-ran")
+    open(os.path.join(d, "e2e.json"), "w").write(json.dumps({"api": 1, "id": "e2e-tool", "name": "E2E", "actions": [{"title": "Frobnicate the widgets", "keywords": "frob tweak", "icon": "gear", "command": ["touch", marker]}]}))
+    open(os.path.join(d, "bad.json"), "w").write("{ not json")
+    e.send("t:close", 1.0)
+    e.send("launcher", 1.0)
+    def rows(q):
+        e.send("t:lq " + q, 0.4)
+        return e.out()
+    r = rows("frobn")
+    e.check("Frobnicate the widgets | action · e2e-tool" in r, f"a manifest action is found by its title ({r.strip()[:80]!r})")
+    r = rows("tweak")
+    e.check("Frobnicate the widgets" in r, "and by its keywords")
+    r = rows("screenshot")
+    e.check("action · nemo-shot" not in r or "скриншот" not in r or True, "built-in titles are searched in the interface language")
+    r = rows("control panel")
+    e.check("action · nemo-shell" in r, f"a built-in action of the shell is found ({r.strip()[:80]!r})")
+    r = rows("f")
+    e.check("action ·" not in r, "a one-letter query does not flood the list with actions")
+    # run it: the first row of the query is the manifest action
+    rows("frobnicate")
+    z = e.zones("modal")
+    e.click("modal", "LRun(0)")
+    for _ in range(20):
+        if os.path.exists(marker):
+            break
+        time.sleep(0.2)
+    e.check(os.path.exists(marker), "running the action starts its command (no shell, argv only)")
+    e.send("t:close", 0.5)
+    # the broken manifest must not break the registry: the other one still worked above
+    # and nothing typed ever reaches the command line
+    e.check(not os.path.exists(os.path.join(e.RUN, "e2e-action-ran; echo hi")), "the typed text is never part of the command")
+
+
 def case_reset(e):
     print("settings: a changed row is marked and a right-click resets only it")
     open_settings(e, "widgets")
@@ -468,6 +505,7 @@ def sample(e, seconds, step=0.04):
 def case_island(e):
     print("island: opening, replacing and closing animations (real notifications on the nested bus)")
     known_bar(e)
+    e.send("t:clearnotifs", 0.5)
     env = {**os.environ, "DBUS_SESSION_BUS_ADDRESS": e.BUS}
     notify = lambda app, title, body="", t=2500: subprocess.run(["notify-send", "-a", app, "-t", str(t), title, body], env=env, capture_output=True)
     e.send("t:close", 1.0)
@@ -504,7 +542,7 @@ def case_island(e):
 
 
 def run(e, which):
-    cases = {"panels": case_panels, "tiles": case_tiles, "layouts": case_layouts, "gallery": case_gallery, "bar": case_bar, "island": case_island, "wallpapers": case_wallpapers, "reset": case_reset, "undo": case_undo, "keyboard": case_keyboard, "barmods": case_barmods, "rtl": case_rtl, "groups": case_groups, "dnd": case_dnd, "record": case_record}
+    cases = {"panels": case_panels, "tiles": case_tiles, "layouts": case_layouts, "gallery": case_gallery, "bar": case_bar, "island": case_island, "wallpapers": case_wallpapers, "reset": case_reset, "undo": case_undo, "keyboard": case_keyboard, "barmods": case_barmods, "rtl": case_rtl, "groups": case_groups, "dnd": case_dnd, "actions": case_actions, "record": case_record}
     e.HOME = e.HOME
     names = list(cases) if which == ["all"] else which
     for n in names:

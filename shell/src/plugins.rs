@@ -40,6 +40,37 @@ fn term(pid: &AtomicU32) {
 struct Run {
     stop: Arc<AtomicBool>,
     pid: Arc<AtomicU32>,
+    /// нить кончила работу (скрипт отключён за сбои, не запускается): sync может поднять её заново, когда его включили
+    done: Arc<AtomicBool>,
+}
+
+/// безопасный режим: столько быстрых сбоев подряд — и скрипт выключается, пока его не включат вручную (`nemo scripts reset ИМЯ`)
+pub const CRASH_LIMIT: u32 = 5;
+/// быстрый — упал раньше, чем за столько секунд
+pub const FAST_SECS: f32 = 3.0;
+
+/// запуск считается сбоем: недолго прожил и кончил с ошибкой
+pub fn is_crash(lived_secs: f32, success: bool) -> bool {
+    lived_secs < FAST_SECS && !success
+}
+
+fn off_file() -> PathBuf {
+    crate::config::state_dir().join("scripts-off.json")
+}
+
+/// скрипты, выключенные безопасным режимом
+pub fn disabled() -> Vec<String> {
+    std::fs::read_to_string(off_file()).ok().and_then(|t| serde_json::from_str(&t).ok()).unwrap_or_default()
+}
+
+pub fn set_disabled(name: &str, off: bool) {
+    let mut v = disabled();
+    v.retain(|n| n != name);
+    if off {
+        v.push(name.to_string());
+        v.sort();
+    }
+    let _ = crate::config::write_atomic(&off_file(), &serde_json::to_string(&v).unwrap_or_default());
 }
 
 #[derive(Default)]
@@ -106,11 +137,16 @@ impl Plugins {
             self.shown.remove(&k);
         }
         for m in want {
-            if self.runs.contains_key(m) {
-                continue;
+            if let Some(r) = self.runs.get(m) {
+                // нить вышла (отключён за сбои), а его включили обратно — запустить заново
+                if r.done.load(Ordering::SeqCst) && !disabled().iter().any(|n| Some(n.as_str()) == m.strip_prefix("x:")) {
+                    self.runs.remove(m);
+                } else {
+                    continue;
+                }
             }
-            let run = Run { stop: Arc::new(AtomicBool::new(false)), pid: Arc::new(AtomicU32::new(0)) };
-            spawn(m.clone(), run.stop.clone(), run.pid.clone(), tx.clone());
+            let run = Run { stop: Arc::new(AtomicBool::new(false)), pid: Arc::new(AtomicU32::new(0)), done: Arc::new(AtomicBool::new(false)) };
+            spawn(m.clone(), run.stop.clone(), run.pid.clone(), run.done.clone(), tx.clone());
             self.runs.insert(m.clone(), run);
         }
     }
@@ -131,12 +167,21 @@ impl Drop for Plugins {
 /// Скрипт — "$0"
 const LEADER: &str = r#"trap 'trap - TERM; kill -TERM 0' TERM; "$0" & wait $!"#;
 
-fn spawn(id: String, stop: Arc<AtomicBool>, pid: Arc<AtomicU32>, tx: Sender<Msg>) {
+fn spawn(id: String, stop: Arc<AtomicBool>, pid: Arc<AtomicU32>, done: Arc<AtomicBool>, tx: Sender<Msg>) {
     use std::os::unix::fs::PermissionsExt;
     let path = dir().join(&id[2..]);
     std::thread::spawn(move || {
         let mut wait = 60u64;
+        let mut crashes = 0u32;
+        let off = Plug { text: "!".into(), icon: "close".into(), color: "warn".into(), click: String::new() };
+        // выключен безопасным режимом раньше: молчит, значок «!» вместо вывода
+        if disabled().iter().any(|n| n == &id[2..]) {
+            let _ = tx.send(Msg::Plugin(id.clone(), off));
+            done.store(true, Ordering::SeqCst);
+            return;
+        }
         while !stop.load(Ordering::SeqCst) {
+            let started = std::time::Instant::now();
             // не исполняемый — значок ошибки в баре (запуск через sh сам бы не упал)
             let runnable = std::fs::metadata(&path).is_ok_and(|m| m.is_file() && m.permissions().mode() & 0o111 != 0);
             let mut cmd = Command::new("/bin/sh");
@@ -146,6 +191,7 @@ fn spawn(id: String, stop: Arc<AtomicBool>, pid: Arc<AtomicU32>, tx: Sender<Msg>
             let child = if runnable { cmd.spawn().ok() } else { None };
             let Some(mut child) = child else {
                 let _ = tx.send(Msg::Plugin(id.clone(), Plug { text: "?".into(), icon: "close".into(), color: "warn".into(), click: String::new() }));
+                done.store(true, Ordering::SeqCst);
                 return;
             };
             pid.store(child.id(), Ordering::SeqCst);
@@ -189,8 +235,18 @@ fn spawn(id: String, stop: Arc<AtomicBool>, pid: Arc<AtomicU32>, tx: Sender<Msg>
             }
             term(&pid);
             let _ = child.kill();
-            let _ = child.wait();
+            let status = child.wait();
             pid.store(0, Ordering::SeqCst);
+            // быстрые сбои подряд: не крутить сломанный скрипт каждую секунду — выключить и сказать
+            if !stop.load(Ordering::SeqCst) {
+                crashes = if is_crash(started.elapsed().as_secs_f32(), status.as_ref().is_ok_and(|s| s.success())) { crashes + 1 } else { 0 };
+                if crashes >= CRASH_LIMIT {
+                    set_disabled(&id[2..], true);
+                    let _ = tx.send(Msg::Plugin(id.clone(), off));
+                    done.store(true, Ordering::SeqCst);
+                    return;
+                }
+            }
             // спим короткими шагами: убрали модуль из бара — он быстро останавливается
             for _ in 0..wait * 4 {
                 if stop.load(Ordering::SeqCst) {
@@ -227,6 +283,17 @@ mod tests {
 }
 
 #[cfg(test)]
+mod safe_mode_tests {
+    #[test]
+    fn only_a_quick_failure_counts_as_a_crash() {
+        assert!(super::is_crash(0.2, false));
+        assert!(!super::is_crash(0.2, true), "a quick success is a script that simply finished");
+        assert!(!super::is_crash(30.0, false), "a failure after a long run is not a crash loop");
+        assert!(super::CRASH_LIMIT >= 3, "one or two failures must not switch a script off");
+    }
+}
+
+#[cfg(test)]
 mod run_tests {
     use std::sync::atomic::{AtomicBool, AtomicU32, Ordering};
     use std::sync::Arc;
@@ -250,7 +317,7 @@ mod run_tests {
             let (tx, rx) = calloop::channel::channel();
             let (stop, pid) = (Arc::new(AtomicBool::new(false)), Arc::new(AtomicU32::new(0)));
             let _ = std::fs::remove_file(&marker);
-            super::spawn(format!("x:{name}"), stop.clone(), pid.clone(), tx);
+            super::spawn(format!("x:{name}"), stop.clone(), pid.clone(), Arc::new(AtomicBool::new(false)), tx);
             let t0 = std::time::Instant::now();
             loop {
                 if let Ok(crate::app::Msg::Plugin(_, p)) = rx.try_recv() {
@@ -294,6 +361,37 @@ mod run_tests {
         // не исполняемый — значок ошибки
         let (got, _, _) = first("noexec");
         assert_eq!(got.icon, "close");
+        // скрипт, что печатает и тут же падает с интервалом в секунду: после CRASH_LIMIT сбоев его выключают
+        unsafe { std::env::set_var("XDG_STATE_HOME", &d) };
+        let crash = m.join("crash.sh");
+        std::fs::write(&crash, "#!/bin/sh\necho '{\"text\":\"x\",\"interval\":1}'\nexit 1\n").unwrap();
+        std::fs::set_permissions(&crash, std::fs::Permissions::from_mode(0o755)).unwrap();
+        let (tx, rx) = calloop::channel::channel();
+        let (stop, pid, done) = (Arc::new(AtomicBool::new(false)), Arc::new(AtomicU32::new(0)), Arc::new(AtomicBool::new(false)));
+        super::spawn("x:crash.sh".into(), stop.clone(), pid, done.clone(), tx);
+        let t0 = std::time::Instant::now();
+        while !done.load(Ordering::SeqCst) {
+            assert!(t0.elapsed().as_secs() < 20, "the crashing script was never switched off");
+            std::thread::sleep(std::time::Duration::from_millis(100));
+        }
+        assert!(super::disabled().contains(&"crash.sh".to_string()));
+        let mut last = None;
+        while let Ok(crate::app::Msg::Plugin(_, p)) = rx.try_recv() {
+            last = Some(p);
+        }
+        assert_eq!(last.map(|p| p.text), Some("!".to_string()), "the bar shows a warning mark in its place");
+        // выключенный не запускается снова, пока его не включили
+        let (tx2, rx2) = calloop::channel::channel();
+        let done2 = Arc::new(AtomicBool::new(false));
+        super::spawn("x:crash.sh".into(), Arc::new(AtomicBool::new(false)), Arc::new(AtomicU32::new(0)), done2.clone(), tx2);
+        let t1 = std::time::Instant::now();
+        while !done2.load(Ordering::SeqCst) {
+            assert!(t1.elapsed().as_secs() < 5);
+            std::thread::sleep(std::time::Duration::from_millis(20));
+        }
+        assert!(matches!(rx2.try_recv(), Ok(crate::app::Msg::Plugin(_, p)) if p.text == "!"));
+        super::set_disabled("crash.sh", false);
+        assert!(!super::disabled().contains(&"crash.sh".to_string()), "reset turns it back on");
         let _ = std::fs::remove_dir_all(&d);
     }
 }

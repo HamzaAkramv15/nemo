@@ -47,6 +47,10 @@ pub enum Kind {
     /// команда в терминале
     Cmd(String),
     File(PathBuf),
+    /// действие из манифеста интеграции (integrations.rs): номер в LState::acts
+    Act(usize),
+    /// действие из .desktop программы: (номер программы, номер действия)
+    DAct(usize, usize),
 }
 
 #[derive(Clone, Debug)]
@@ -87,6 +91,8 @@ pub struct LState {
     pub thumbs: HashMap<String, Option<Img>>,
     /// номер нити миниатюр: закрыли лаунчер — старая нить бросает работу
     pub tgen: Arc<AtomicU64>,
+    /// действия из манифестов интеграций; читаются при открытии лаунчера
+    pub acts: Vec<crate::integrations::Action>,
 }
 
 /// откуда взять картинку для миниатюры
@@ -189,6 +195,7 @@ impl LState {
         self.counts = std::fs::read_to_string(config::state_dir().join("launch.json")).ok().and_then(|t| serde_json::from_str(&t).ok()).unwrap_or_default();
         self.load_pins();
         self.files = (String::new(), vec![]);
+        self.acts = crate::integrations::load().actions;
         self.refresh(apps, wins);
     }
     pub fn set_mode(&mut self, clip: bool, apps: &[DApp], wins: &[Win]) {
@@ -305,6 +312,28 @@ impl LState {
                         out.push(Item { kind: Kind::Sys(id), name: name.to_string(), sub: "система".into(), icon: icon.to_string() });
                     }
                 }
+            }
+            // действия внутри программ и интеграций: только по запросу от двух букв, после системных и перед самими программами
+            if q.chars().count() >= 2 {
+                let mut acts: Vec<(i32, Item)> = vec![];
+                for (i, a) in self.acts.iter().enumerate() {
+                    let shown = if a.builtin { crate::i18n::tr(&a.title).to_string() } else { a.title.clone() };
+                    let s = score(&shown, &q).max(score(&a.title, &q)).max((score(&a.keywords, &q) as f32 * 0.85) as i32);
+                    if s >= 60 {
+                        acts.push((s, Item { kind: Kind::Act(i), name: shown, sub: crate::tf!("действие · {}", "action · {}", "ação · {}", a.from), icon: a.icon.clone() }));
+                    }
+                }
+                for (i, app) in apps.iter().enumerate() {
+                    for (j, (name, _)) in app.actions.iter().enumerate() {
+                        let full = format!("{}: {}", app.name, name);
+                        let s = score(&full, &q).max(score(name, &q));
+                        if s >= 60 {
+                            acts.push((s - 5, Item { kind: Kind::DAct(i, j), name: full, sub: crate::tf!("действие программы", "app action", "ação do app"), icon: app.icon.clone() }));
+                        }
+                    }
+                }
+                acts.sort_by(|a, b| b.0.cmp(&a.0).then(a.1.name.cmp(&b.1.name)));
+                out.extend(acts.into_iter().take(6).map(|x| x.1));
             }
             for (_, i) in scored.into_iter().take(80) {
                 let a = &apps[i];
@@ -632,6 +661,22 @@ impl App {
             Kind::File(p) => {
                 App::spawn(&["xdg-open".into(), p.to_string_lossy().to_string()]);
             }
+            Kind::Act(i) => {
+                // команда — список аргументов без оболочки
+                if let Some(a) = self.st.launcher.acts.get(i) {
+                    App::spawn(&a.command.clone());
+                }
+            }
+            Kind::DAct(ai, j) => {
+                if let Some((app, exec)) = self.st.apps.get(ai).and_then(|a| a.actions.get(j).map(|x| (a.clone(), x.1.clone()))) {
+                    *self.st.launcher.counts.entry(app.id.clone()).or_insert(0) += 1;
+                    let mut argv = exec_argv(&exec);
+                    if app.terminal {
+                        argv = in_term(argv);
+                    }
+                    App::spawn(&argv);
+                }
+            }
         }
         self.close_modal();
     }
@@ -863,11 +908,11 @@ pub fn draw(ui: &mut Ui, st: &State, w: i32, h: i32) {
                 ui.cv.icon("pin", x, cy - 7, 2, t.red);
                 x += 24;
             }
-            Kind::Sys(_) | Kind::Calc(_) | Kind::Emoji(_) | Kind::Setting(_) | Kind::Cmd(_) | Kind::File(_) => {
+            Kind::Sys(_) | Kind::Calc(_) | Kind::Emoji(_) | Kind::Setting(_) | Kind::Cmd(_) | Kind::File(_) | Kind::Act(_) => {
                 ui.cv.icon(&it.icon, x, cy - 7, 2, t.red);
                 x += 26;
             }
-            Kind::App(_) | Kind::Win(_) => {
+            Kind::App(_) | Kind::Win(_) | Kind::DAct(..) => {
                 ui.app_icon(&it.icon, x, cy - 8, 16, 1.0);
                 x += 26;
             }
@@ -891,7 +936,7 @@ pub fn draw(ui: &mut Ui, st: &State, w: i32, h: i32) {
         let name = label.as_deref().unwrap_or(&it.name);
         let maxw = if l.clip { list.w - (x - r.x) - 70 } else { list.w - 230 };
         // имена программ, окон, файлов и команды — как есть, без перевода интерфейса
-        let raw = !matches!(it.kind, Kind::Sys(_));
+        let raw = !matches!(it.kind, Kind::Sys(_)) && !matches!(&it.kind, Kind::Act(i) if l.acts.get(*i).is_some_and(|a| a.builtin));
         let nw = if raw { ui.f.width(PX, name) } else { ui.w(PX, name) }.min(maxw);
         let nc = if cur { t.text_hi } else { t.text };
         if raw {

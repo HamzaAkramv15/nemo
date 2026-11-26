@@ -11,6 +11,7 @@ mod a11y;
 mod agents;
 mod barmods;
 mod hw;
+mod integrations;
 mod recording;
 mod animtab;
 mod app;

@@ -1,0 +1,2 @@
+{ "api": 1, "id": "nemo-files", "name": "Nemo Files", "requires": "nemo-files",
+  "actions": [ { "title": "файлы: новое окно", "keywords": "files file manager folder browse", "icon": "folder", "command": ["nemo-files"] } ] }

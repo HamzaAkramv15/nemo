@@ -1,0 +1,2 @@
+{ "api": 1, "id": "nemo-play", "name": "Nemo Play", "requires": "nemo-play",
+  "actions": [ { "title": "плеер видео и музыки", "keywords": "player video music media audio", "icon": "play", "command": ["nemo-play"] } ] }

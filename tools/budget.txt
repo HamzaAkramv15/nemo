@@ -4,7 +4,8 @@
 # nemo-shell 13.7 MB, nemo-agents 5.3 MB
 # 2026-11-24: nemo-shell 12.0 -> 13.7 MB with the screen-reader bridge (accesskit + atspi, feature `a11y`, on by default). Idle memory, wakeups and
 # threads measured unchanged (the adapter exists only after a screen reader switches accessibility on); the limit moved by that growth plus 5 %.
-size_nemo-shell 14336
+# 2026-11-26: 13.9 MB after RTL mirroring, notification groups, the integration registry and the crash-loop guard: limit moved to 14.5 MB
+size_nemo-shell 14848
 size_nemo-agents 6656
 #
 # Fixture shells: a fresh nemo-shell in a nested niri (1280x720 window), throwaway home, tools/nested-session.sh.

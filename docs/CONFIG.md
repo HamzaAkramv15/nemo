@@ -405,6 +405,21 @@ can read and change, and the few that take a setting (`disk`, `utc`, `gitdir`) s
 7×7 icons, e.g. `cpu` `ram` `temp` `net` `wifi` `bt` `bell` `clock` `cal` `music` `play` `power`
 `bolt` `leaf` `moon` `sun` `gauge` `chart` `drop` `folder` `image` `camera` `lock` `user` `gear`.
 
+### Integrations: actions for the launcher
+
+A program or script tells Nemo what it can do with a manifest instead of code inside the shell. Today a manifest adds **actions to the launcher search** (type two or more letters: a title or a keyword finds it); the same file will later carry indicators and settings pages. The launcher also finds the **actions of `.desktop` files** (`[Desktop Action …]`: "New private window") and the actions of Nemo's own apps, which ship in the same format inside the shell.
+
+A manifest is a JSON file in `~/.config/nemo/integrations/` (or `$XDG_DATA_DIRS/nemo/integrations/`):
+
+```json
+{ "api": 1, "id": "my-tool", "name": "My Tool", "requires": "my-tool",
+  "actions": [ { "title": "Do it", "keywords": "go run", "icon": "gear", "command": ["my-tool", "--do-it"] } ] }
+```
+
+`command` is a list of arguments, run without a shell: nothing typed in the search ever reaches it. `requires` is a program that must be in `PATH`, otherwise the manifest stays silent. `api` must be `1`; unknown fields are ignored, so a newer manifest does not break an older shell. Limits: a title of at most 80 characters, at most 64 actions and 32 arguments, a file of at most 64 KB. A manifest with the same `id` as a built-in one replaces it. `nemo-shell integrations check` lists what was found and what is wrong.
+
+Bar scripts have a **safe mode**: a script that fails within 3 seconds five times in a row is switched off, the bar shows `!` in its place, and `nemo scripts check` says so. `nemo scripts reset NAME` turns it back on.
+
 ### Widgets
 
 `widgetContrast` (default `true`): widgets without a frame follow the wallpaper under them: on a light

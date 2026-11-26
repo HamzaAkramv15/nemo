@@ -1,0 +1,13 @@
+{
+  "api": 1,
+  "id": "nemo-shell",
+  "name": "Nemo",
+  "actions": [
+    { "title": "панель управления", "keywords": "quick settings control panel tiles volume brightness", "icon": "slides", "command": ["nemo-shell", "msg", "popup", "control"] },
+    { "title": "календарь и уведомления", "keywords": "calendar notifications history date", "icon": "cal", "command": ["nemo-shell", "msg", "popup", "cal"] },
+    { "title": "выбрать обои", "keywords": "wallpaper background picture login", "icon": "image", "command": ["nemo-shell", "msg", "walls"] },
+    { "title": "следующий профиль питания", "keywords": "power profile saver balanced performance", "icon": "gauge", "command": ["nemo-shell", "msg", "profile"] },
+    { "title": "настроить виджеты на столе", "keywords": "edit widgets desktop move arrange", "icon": "grid", "command": ["nemo-shell", "msg", "edit"] },
+    { "title": "перечитать настройки", "keywords": "reload settings refresh", "icon": "reboot", "command": ["nemo-shell", "msg", "reload"] }
+  ]
+}

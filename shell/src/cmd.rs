@@ -613,6 +613,8 @@ pub fn run(args: &[String], me: &str) -> i32 {
         },
         Some("templates") => crate::restyle::cli(&y, &a[1..]),
         Some("scripts") => crate::scriptlib::cli(&y, &a[1..]),
+        // реестр интеграций: что нашлось в манифестах и что в них не так (integrations.rs)
+        Some("integrations") if matches!(a.get(1).copied(), None | Some("check") | Some("list")) => crate::integrations::check_cli(),
         Some("icons") => crate::iconsets::cli(&y, false, &a[1..]),
         Some("cursor") => crate::iconsets::cli(&y, true, &a[1..]),
         Some("export") => crate::bundle::run(&y, "export", &a[1..]),

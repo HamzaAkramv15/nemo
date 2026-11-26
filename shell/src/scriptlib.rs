@@ -77,6 +77,19 @@ pub fn cli(y: &crate::cmd::Sty, args: &[&str]) -> i32 {
             }
             rc
         }
+        ["check"] => {
+            let off = crate::plugins::disabled();
+            for n in crate::plugins::scripts() {
+                let line = if off.contains(&n) { y.warn(&crate::tf!("выключен: падал чаще {} раз подряд; включить: nemo scripts reset {}", "off: failed {} times in a row; turn it on: nemo scripts reset {}", "desligado: falhou {} vezes seguidas; ligar: nemo scripts reset {}", crate::plugins::CRASH_LIMIT, n)) } else { y.ok("✓") };
+                println!(" {n:<20} {line}");
+            }
+            i32::from(!off.is_empty())
+        }
+        ["reset", name] => {
+            crate::plugins::set_disabled(name, false);
+            println!(" {} {name}", y.ok("✓"));
+            0
+        }
         _ => {
             eprintln!(" {} nemo scripts [list | add {} | add all]", y.bad("✕"), crate::tf!("ИМЯ", "NAME", "NOME"));
             2

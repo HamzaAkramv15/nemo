@@ -621,6 +621,8 @@ pub struct App {
     pub mime: Vec<String>,
     /// в Exec есть %f/%F/%u/%U — принимает файлы
     pub takes_files: bool,
+    /// действия из .desktop ([Desktop Action …]): (название, Exec); «новое окно», «приватное окно»
+    pub actions: Vec<(String, String)>,
 }
 
 fn app_dirs() -> Vec<PathBuf> {
@@ -697,6 +699,15 @@ pub fn load_apps() -> Vec<App> {
                     continue;
                 }
             }
+            // «Actions=a;b;» и разделы [Desktop Action a]: название и команда каждого
+            let actions: Vec<(String, String)> = m
+                .get("Actions")
+                .map(|v| v.split(';').filter(|x| !x.is_empty()).filter_map(|a| {
+                    let (_, sec) = ini.iter().find(|(n, _)| n == &format!("Desktop Action {a}"))?;
+                    let (name, exec) = (localized(sec, "Name"), sec.get("Exec").cloned().unwrap_or_default());
+                    (!name.is_empty() && !exec.is_empty()).then_some((name, exec))
+                }).collect())
+                .unwrap_or_default();
             out.push(App {
                 id,
                 name: localized(m, "Name"),
@@ -709,6 +720,7 @@ pub fn load_apps() -> Vec<App> {
                 wm_class: m.get("StartupWMClass").cloned().unwrap_or_default(),
                 mime: m.get("MimeType").map(|v| v.split(';').filter(|x| !x.is_empty()).map(|x| x.to_string()).collect()).unwrap_or_default(),
                 takes_files: m.get("Exec").map(|e| ["%f", "%F", "%u", "%U"].iter().any(|c| e.contains(c))).unwrap_or(false),
+                actions,
             });
         }
     }

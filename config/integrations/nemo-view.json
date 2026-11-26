@@ -1,0 +1,2 @@
+{ "api": 1, "id": "nemo-view", "name": "Nemo View", "requires": "nemo-view",
+  "actions": [ { "title": "просмотр картинок", "keywords": "images viewer pictures photos", "icon": "image", "command": ["nemo-view"] } ] }

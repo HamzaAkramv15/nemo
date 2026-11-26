@@ -5,6 +5,7 @@
 //   click KIND ТЕКСТ [r]  — нажать (r — правой кнопкой) первую сверху зону, чей Act содержит ТЕКСТ
 //   slider КЛЮЧ ЗНАЧЕНИЕ  — выставить ползунок настроек так, как это делает перетаскивание
 //   clearnotifs           — очистить историю и карточки уведомлений (чистое начало случая)
+//   lq ТЕКСТ              — набрать запрос в открытом лаунчере; пишет строки результата «название | подпись»
 //   close                 — закрыть все окна, панели и меню (чистое начало случая)
 //   bardrag SIDE:INDEX|new:ID TOSIDE TOINDEX — перетащить фишку модуля бара (вкладка бар → модули)
 //   nav next|prev|activate|left|right — обход с клавиатуры в окне настроек; пишет выбранный узел
@@ -63,6 +64,14 @@ impl App {
                 }
             }
             Some("close") => self.close_all(),
+            Some("lq") => {
+                // lq ТЕКСТ — набрать запрос в открытом лаунчере и записать строки результата: «название | подпись»
+                let q = c.trim_start().strip_prefix("lq").unwrap_or("").trim().to_string();
+                self.st.launcher.field.set(&q);
+                self.launcher_typed();
+                let rows: String = self.st.launcher.items.iter().map(|i| format!("{} | {}\n", i.name, i.sub)).collect();
+                let _ = std::fs::write(out, rows);
+            }
             Some("clearnotifs") => {
                 self.st.notifs.history.clear();
                 self.st.notifs.popups.clear();
