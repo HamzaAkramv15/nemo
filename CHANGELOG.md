@@ -9,6 +9,10 @@ has its Russian line in CHANGELOG.ru.md: `tools/check.sh` checks that.
 
 ## Unreleased
 
+- **Launcher ranking by frecency**: how often you start an app counts, and so does how recently (an app you used this week beats an old favourite with the same count).
+- **Firmware row** in settings → updates → software: how many devices wait for a firmware update (read-only, from `fwupd`) and the command to run in a terminal.
+- **Quick Look in nemo-files**: Space on a picture opens it in nemo-view. Bluetooth errors from BlueZ are shown in plain, translated words.
+- **Nemo Monitor** (`nemo-monitor`, a separate module forked from TaskLens): a system monitor that explains itself at three levels, in the look of the desktop and read from the same style files; Linux readings from `/proc`, `/sys`, `ss`, `systemctl` and the journal.
 - **Integration registry (first step)**: programs and scripts describe their actions in a small JSON manifest (`~/.config/nemo/integrations`), and the launcher finds them: type two letters of a title or keyword. The launcher also finds `.desktop` actions ("Firefox: New private window") and the actions of Nemo's own apps (screenshots, recording, control panel, wallpapers…). Commands run without a shell; manifests are validated and limited; `nemo-shell integrations check` shows problems. **Bar scripts have a safe mode**: five quick failures in a row switch a script off (a `!` in the bar; `nemo scripts check` and `nemo scripts reset NAME`).
 - **Notifications**: the history is **grouped by app** (a group shows the count and the newest note, a click opens it, the cross clears it; a lone note stays a card); **do not disturb on a schedule** (settings → notifications: quiet hours, past midnight too; the manual switch always wins; the bell icons follow it); the **control panel** has a power-profile tile and a bar module (`control`) to open it. Inline reply already existed (reply from a card).
 - **Right-to-left**: with Arabic the whole interface is mirrored (bar, windows, popups, menus, notifications, dock); text, pictures and wallpaper keep their orientation.
