@@ -24,7 +24,7 @@ pub fn tab(ui: &mut Ui, st: &State, b: R) {
     ui.toggle(R::new(x2, y, half, 40), "переподключать сопряжённые", "наушники и мыши сразу", st.set.bt_reconnect, Act::SBool("bt_reconnect"));
     y += 46;
     if !s.msg.is_empty() {
-        ui.text_in(PX, R::new(b.x, y, b.w, 20), &crate::tf!("не вышло: {}", "failed: {}", "falhou: {}", s.msg), t.warn);
+        ui.text_in(PX, R::new(b.x, y, b.w, 20), &crate::tf!("не вышло: {}", "failed: {}", "falhou: {}", crate::i18n::tr(&s.msg)), t.warn);
         y += 26;
     }
     if !s.powered {

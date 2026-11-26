@@ -446,10 +446,29 @@ pub fn bt_power(adapter: &str, on: bool, tx: Sender<Msg>) {
 /// короткая причина ошибки BlueZ: org.bluez.Error.AuthenticationFailed → «AuthenticationFailed»
 fn bt_err(e: &zbus::Error) -> String {
     let t = match e {
-        zbus::Error::MethodError(name, desc, _) => desc.clone().filter(|d| !d.is_empty()).unwrap_or_else(|| name.rsplit('.').next().unwrap_or("").to_string()),
+        zbus::Error::MethodError(name, desc, _) => {
+            let short = name.rsplit('.').next().unwrap_or("");
+            match bt_reason(short) {
+                Some(w) => return w.to_string(),
+                None => desc.clone().filter(|d| !d.is_empty()).unwrap_or_else(|| short.to_string()),
+            }
+        }
         x => x.to_string(),
     };
     t.chars().take(60).collect()
+}
+
+/// BlueZ error names in plain words (the Russian text is the translation key)
+pub(crate) fn bt_reason(name: &str) -> Option<&'static str> {
+    Some(match name {
+        "AuthenticationFailed" | "AuthenticationRejected" => "не удалось сопрячь: проверь код",
+        "AuthenticationCanceled" => "сопряжение отменено",
+        "AuthenticationTimeout" => "устройство не ответило вовремя",
+        "ConnectionAttemptFailed" | "Failed" | "NotReady" => "не удалось подключиться",
+        "InProgress" | "AlreadyExists" => "уже выполняется",
+        "NotAvailable" | "NotSupported" => "это устройство так не подключить",
+        _ => return None,
+    })
 }
 
 /// подключить или отключить. Новое устройство сначала сопрягается (Pair) и становится доверенным
@@ -542,4 +561,13 @@ pub fn bt_reconnect(paths: Vec<String>, tx: Sender<Msg>) {
             let _ = tx.send(Msg::Bt(query_bt()));
         })
         .ok();
+}
+
+#[cfg(test)]
+mod bt_tests {
+    #[test]
+    fn bluez_errors_become_plain_words() {
+        assert_eq!(super::bt_reason("AuthenticationFailed"), Some("не удалось сопрячь: проверь код"));
+        assert!(super::bt_reason("SomethingNew").is_none());
+    }
 }

@@ -1,6 +1,12 @@
 // Brazilian Portuguese. Keys are the English reference labels.
 #[rustfmt::skip]
 const PT_BR: &[(&str, &str)] = &[
+    ("pairing failed: check the code", "falha ao parear: confira o código"),
+    ("pairing cancelled", "pareamento cancelado"),
+    ("the device did not answer in time", "o dispositivo não respondeu a tempo"),
+    ("could not connect", "não foi possível conectar"),
+    ("already in progress", "já em andamento"),
+    ("this device cannot connect that way", "este dispositivo não conecta assim"),
     ("modules: add or remove", "módulos: adicionar ou remover"),
     ("instant", "instantâneo"),
     ("soft", "suave"),

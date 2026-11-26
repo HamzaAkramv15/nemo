@@ -1147,7 +1147,7 @@ fn mock_tray(st: &mut State) {
 fn mock_bt(st: &mut State) {
     use crate::net::BtDev;
     let dev = |n: &str, icon: &str, c: bool, p: bool, b: Option<u8>| BtDev { path: format!("/org/bluez/hci0/{n}"), name: n.into(), icon: icon.into(), connected: c, paired: p, trusted: p, battery: b };
-    st.bt = crate::net::BtState { present: true, powered: true, adapter: "/org/bluez/hci0".into(), devices: vec![dev("headphones", "audio-headset", true, true, Some(80)), dev("keyboard", "input-keyboard", true, true, Some(12)), dev("mouse", "input-mouse", false, true, None), dev("speaker", "audio-card", false, false, None)], msg: "AuthenticationFailed".into(), busy: "/org/bluez/hci0/speaker".into(), ..Default::default() };
+    st.bt = crate::net::BtState { present: true, powered: true, adapter: "/org/bluez/hci0".into(), devices: vec![dev("headphones", "audio-headset", true, true, Some(80)), dev("keyboard", "input-keyboard", true, true, Some(12)), dev("mouse", "input-mouse", false, true, None), dev("speaker", "audio-card", false, false, None)], msg: crate::net::bt_reason("AuthenticationFailed").unwrap_or_default().into(), busy: "/org/bluez/hci0/speaker".into(), ..Default::default() };
 }
 
 /// датчики образца, а не этой машины: снимки одинаковы везде и не выдают железо
