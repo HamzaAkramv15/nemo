@@ -70,7 +70,7 @@ nested_start() {
   for b in ${NESTED_EXTRA_BINS:-}; do p="$(command -v "$b")" && ln -s "$p" "$t/bin/$b"; done
   nested_fixture_settings "$fixture" >"$t/home/.config/nemo/shell.json" || return 1
   cp "$NESTED_ROOT/config/wallpapers/nemo-reef.png" "$t/home/.local/share/nemo/wallpapers/" 2>/dev/null
-  printf 'spawn-at-startup "nemo-shell"\n' >"$t/niri.kdl"
+  printf 'spawn-at-startup "nemo-shell"\nhotkey-overlay { skip-at-startup; }\n' >"$t/niri.kdl"
   # GIO_USE_VFS=local: no gvfs daemon (it leaves a FUSE mount inside the folder); GSETTINGS_BACKEND=memory: nothing reaches dconf
   mkdir -p "$t/greet-look"
   # свой каталог вида экрана входа: иначе вложенный шелл пишет в настоящий /var/lib/nemo-greet/look и подменяет обои на экране входа
