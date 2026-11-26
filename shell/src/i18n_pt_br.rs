@@ -1,6 +1,14 @@
 // Brazilian Portuguese. Keys are the English reference labels.
 #[rustfmt::skip]
 const PT_BR: &[(&str, &str)] = &[
+    ("phone", "telefone"),
+    ("Your phone through KDE Connect: notifications, clipboard, files. Here: the devices and finding the phone.", "Celular pelo KDE Connect: notificações, área de transferência, arquivos. Aqui: os dispositivos e achar o celular."),
+    ("not checked yet", "ainda não verificado"),
+    ("KDE Connect is not installed: install the kdeconnect package (and the KDE Connect app on the phone), then open this page again.", "KDE Connect não está instalado: instale o pacote kdeconnect (e o app KDE Connect no celular) e abra esta página de novo."),
+    ("refresh the list", "atualizar a lista"),
+    ("no devices: start KDE Connect on the phone in the same network and pair it (kdeconnect-app)", "nenhum dispositivo: abra o KDE Connect no celular na mesma rede e pareie (kdeconnect-app)"),
+    ("not paired", "não pareado"),
+    ("ring the phone", "tocar o celular"),
     ("pairing failed: check the code", "falha ao parear: confira o código"),
     ("pairing cancelled", "pareamento cancelado"),
     ("the device did not answer in time", "o dispositivo não respondeu a tempo"),

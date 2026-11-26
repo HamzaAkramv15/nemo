@@ -1555,6 +1555,12 @@ impl Settings {
                 l.push(s);
             }
         }
+        if self.blur_on() {
+            // окно Nemo Monitor рисуется полупрозрачным (стекло из стиля), а блюр ему даёт это правило: свой регион он не отдаёт
+            for s in ["window-rule {".to_string(), "    match app-id=r#\"^nemo-monitor$\"#".into(), format!("    background-effect {{ blur true;{xray} }}"), "}".into(), String::new()] {
+                l.push(s);
+            }
+        }
         if !self.blur_xray && self.blur_on() {
             // панели шелла: без xray размытие берёт и окна за ними, а не только обои
             for s in ["layer-rule {", "    match namespace=\"^nemo-(bar|popup|menu|notif|dock|osd)$\"", "    background-effect { xray false; }", "}", ""] {

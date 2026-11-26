@@ -163,6 +163,9 @@ pub enum Act {
     NetEditor,
     BtPower(bool),
     BtDev(String),
+    /// телефон (KDE Connect): позвонить, сопрячь; id устройства
+    PhoneRing(String),
+    PhonePair(String),
     BtScan,
     /// забыть сопряжённое устройство (#36)
     BtForget(String),

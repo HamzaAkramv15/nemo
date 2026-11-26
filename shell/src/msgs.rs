@@ -178,6 +178,11 @@ impl App {
                 }
                 self.dirty(&SKind::Modal);
             }
+            Msg::Phone(f) => {
+                self.st.phone.found = Some(f);
+                self.st.phone.checking = false;
+                self.dirty(&SKind::Modal);
+            }
             Msg::SysUpd(f) => {
                 self.st.sys_upd.found = Some(f);
                 self.st.sys_upd.checking = false;

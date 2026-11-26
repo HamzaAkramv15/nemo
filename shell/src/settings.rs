@@ -62,6 +62,7 @@ pub const GROUPS: &[(&str, &[Tab])] = &[
             tab("screens", "экраны", "screen", "экраны монитор разрешение частота масштаб vrr hz герц поворот display monitor resolution refresh scale rotation telas tela monitor resolução frequência escala rotação", crate::displays::tab), // i18n-ok
             tab("power", "питание", "power", "питание батарея профиль производительность экономия предел заряда блокировка простой сон крышка подсветка клавиатуры экран гаснет power battery profile performance saver charge limit lock idle sleep lid keyboard backlight screen off energia bateria perfil", crate::settabs::tab_power), // i18n-ok
             tab("bt", "bluetooth", "bt", "bluetooth блютуз наушники колонки мышь клавиатура сопряжение подключить забыть заряд bluetooth headphones speaker mouse keyboard pair connect forget battery fones caixa de som mouse teclado parear conectar esquecer bateria", crate::bttab::tab), // i18n-ok
+            tab("phone", "телефон", "bt", "телефон смартфон kdeconnect kde connect уведомления буфер файлы найти позвонить phone smartphone notifications clipboard files find ring celular telefone", crate::phone::tab), // i18n-ok
             Tab { own_scroll: true, ..tab("keys", "клавиши", "keys", "клавиши сочетания хоткеи раскладка keys shortcuts hotkeys layout keyboard teclas atalhos teclado layout disposição", crate::keys::tab) }, // i18n-ok
         ],
     ),
@@ -402,6 +403,10 @@ impl App {
             "updates" if self.st.upd_page == 1 => {
                 let tx = self.tx.clone();
                 crate::sysupd::start(&mut self.st, tx, false);
+            }
+            "phone" => {
+                let tx = self.tx.clone();
+                crate::phone::start(&mut self.st, tx);
             }
             "login" => self.st.login_probe = crate::login::probe(),
             "diag" => self.st.diag = Some(crate::diagtab::collect()),

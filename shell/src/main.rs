@@ -99,6 +99,7 @@ mod popups;
 mod setindex;
 mod units;
 mod sysupd;
+mod phone;
 mod tips;
 mod power;
 mod session;

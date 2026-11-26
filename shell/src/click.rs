@@ -207,6 +207,13 @@ impl App {
                 App::open_tool(&["blueman-manager", "overskride"], &["bluetoothctl"]);
             }
             Act::BtPower(on) => net::bt_power(&self.st.bt.adapter.clone(), on, self.tx.clone()),
+            Act::PhoneRing(id) => crate::phone::command(&id, "ring"),
+            Act::PhonePair(id) => {
+                crate::phone::command(&id, "pair");
+                let tx = self.tx.clone();
+                self.st.phone.checking = false;
+                crate::phone::start(&mut self.st, tx);
+            }
             Act::BtDev(path) => {
                 let Some(d) = self.st.bt.devices.iter().find(|d| d.path == path).cloned() else { return };
                 net::bt_toggle_dev(d, self.tx.clone(), self.st.bt.clone());

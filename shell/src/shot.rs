@@ -68,6 +68,7 @@ const TARGETS: &[&str] = &[
     "settings:wall",
     "settings:system",
     "settings:bt",
+    "settings:phone",
     "settings:about",
     "launcher",
     "launcher:calc",
@@ -467,6 +468,16 @@ fn shoot(st: &mut State, res: &mut Res, target: &str, path: &Path) {
                     niri: "niri 26.04-nemo.6".into(),
                     overrides: 1,
                     last_override: "2026-11-20 14:02 · 3.2.1 · unsigned".into(),
+                });
+            }
+            if arg == "phone" {
+                st.phone.found = Some(crate::phone::Found {
+                    tool: true,
+                    devs: vec![
+                        crate::phone::Dev { id: "0123abcd".into(), name: "Pixel 8".into(), paired: true, reachable: true },
+                        crate::phone::Dev { id: "4455cc".into(), name: "tablet".into(), paired: true, reachable: false },
+                        crate::phone::Dev { id: "77ee".into(), name: "new phone".into(), paired: false, reachable: true },
+                    ],
                 });
             }
             if arg == "bt" {

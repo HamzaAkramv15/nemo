@@ -149,6 +149,8 @@ pub struct LockSurf {
 pub enum Msg {
     /// итог проверки обновлений дистрибутива (sysupd.rs)
     SysUpd(crate::sysupd::Found),
+    /// список устройств KDE Connect (phone.rs)
+    Phone(crate::phone::Found),
     /// итог записи регулятора железа (hw.rs): Err — текст для уведомления
     Hw(Result<(), String>),
     /// просьба экранного диктора (a11y.rs): узел и нажать ли его (иначе — только фокус)
@@ -288,6 +290,8 @@ pub struct State {
     pub quip: crate::personality::Gate,
     /// обновления самого дистрибутива (sysupd.rs)
     pub sys_upd: crate::sysupd::Sys,
+    /// телефон через KDE Connect (phone.rs)
+    pub phone: crate::phone::Phone,
     /// страница «обновлений»: 0 — рабочий стол (сам Nemo), 1 — софт (пакеты дистрибутива)
     pub upd_page: u8,
     /// шпаргалка по клавишам: поиск и прокрутка
@@ -579,6 +583,7 @@ impl State {
             tip: None,
             quip: Default::default(),
             sys_upd: Default::default(),
+            phone: Default::default(),
             upd_page: 0,
             cheat: Default::default(),
             ac_prev: None,

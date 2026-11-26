@@ -9,6 +9,7 @@ has its Russian line in CHANGELOG.ru.md: `tools/check.sh` checks that.
 
 ## Unreleased
 
+- **Phone tab** in settings → devices (KDE Connect): the paired devices with their state, "ring the phone" and pairing; it only wraps the `kdeconnect-cli` you install yourself. The **Nemo Monitor** window is translucent with the style's glass (and blurred by the compositor when blur is on) and follows colour, light or dark and corners live.
 - **Launcher ranking by frecency**: how often you start an app counts, and so does how recently (an app you used this week beats an old favourite with the same count).
 - **Firmware row** in settings → updates → software: how many devices wait for a firmware update (read-only, from `fwupd`) and the command to run in a terminal.
 - **Quick Look in nemo-files**: Space on a picture opens it in nemo-view. Bluetooth errors from BlueZ are shown in plain, translated words.

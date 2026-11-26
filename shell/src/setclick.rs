@@ -455,6 +455,11 @@ impl App {
                     }
                     self.dirty(&SKind::Modal);
                 }
+                "phone_refresh" => {
+                    let tx = self.tx.clone();
+                    crate::phone::start(&mut self.st, tx);
+                    self.dirty(&SKind::Modal);
+                }
                 "sysupd_check" => {
                     let tx = self.tx.clone();
                     crate::sysupd::start(&mut self.st, tx, true);
