@@ -82,6 +82,8 @@ pub struct LState {
     pub confirm_wipe: Option<Instant>,
     pub items: Vec<Item>,
     pub counts: HashMap<String, u32>,
+    /// когда приложение запускали в последний раз (секунды Unix): недавнее выше давнего при равном числе запусков
+    pub last: HashMap<String, u64>,
     /// найденные файлы для «/»: запрос, на который они найдены, и сами пути
     pub files: (String, Vec<PathBuf>),
     /// номер поиска файлов: старые нити видят, что их запрос устарел, и бросают обход
@@ -193,6 +195,7 @@ impl LState {
         self.clip = clip;
         self.confirm_wipe = None;
         self.counts = std::fs::read_to_string(config::state_dir().join("launch.json")).ok().and_then(|t| serde_json::from_str(&t).ok()).unwrap_or_default();
+        self.last = std::fs::read_to_string(config::state_dir().join("launch-last.json")).ok().and_then(|t| serde_json::from_str(&t).ok()).unwrap_or_default();
         self.load_pins();
         self.files = (String::new(), vec![]);
         self.acts = crate::integrations::load().actions;
@@ -298,8 +301,8 @@ impl LState {
                     .max(score(&a.comment, &q) as f32 * 0.3)
                     .max(score(&a.id, &q) as f32 * 0.5);
                 if s > 0.0 {
-                    let used = *self.counts.get(&a.id).unwrap_or(&0) as f32;
-                    scored.push((s + used.min(40.0) * if q.is_empty() { 1.0 } else { 0.25 }, i));
+                    let used = frecency(*self.counts.get(&a.id).unwrap_or(&0), self.last.get(&a.id).copied(), now_secs());
+                    scored.push((s + used * if q.is_empty() { 1.0 } else { 0.25 }, i));
                 }
             }
             scored.sort_by(|a, b| b.0.partial_cmp(&a.0).unwrap_or(std::cmp::Ordering::Equal).then(apps[a.1].name.cmp(&apps[b.1].name)));
@@ -611,7 +614,9 @@ impl App {
             Kind::App(ai) => {
                 if let Some(a) = self.st.apps.get(ai).cloned() {
                     *self.st.launcher.counts.entry(a.id.clone()).or_insert(0) += 1;
+                    self.st.launcher.last.insert(a.id.clone(), now_secs());
                     let _ = config::write_atomic(&config::state_dir().join("launch.json"), &serde_json::to_string(&self.st.launcher.counts).unwrap_or_default());
+                    let _ = config::write_atomic(&config::state_dir().join("launch-last.json"), &serde_json::to_string(&self.st.launcher.last).unwrap_or_default());
                     let mut argv = exec_argv(&a.exec);
                     if a.terminal {
                         argv = in_term(argv);
@@ -670,6 +675,8 @@ impl App {
             Kind::DAct(ai, j) => {
                 if let Some((app, exec)) = self.st.apps.get(ai).and_then(|a| a.actions.get(j).map(|x| (a.clone(), x.1.clone()))) {
                     *self.st.launcher.counts.entry(app.id.clone()).or_insert(0) += 1;
+                    self.st.launcher.last.insert(app.id.clone(), now_secs());
+                    let _ = config::write_atomic(&config::state_dir().join("launch-last.json"), &serde_json::to_string(&self.st.launcher.last).unwrap_or_default());
                     let mut argv = exec_argv(&exec);
                     if app.terminal {
                         argv = in_term(argv);
@@ -983,9 +990,36 @@ pub fn draw(ui: &mut Ui, st: &State, w: i32, h: i32) {
     ui.text_in(PX, R::new(fx, fr.h - 30, fr.w - 28, 20), hint, t.text_faint);
 }
 
+fn now_secs() -> u64 {
+    std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|d| d.as_secs()).unwrap_or(0)
+}
+
+/// вес запусков: число запусков (не больше 40), умноженное на «свежесть»: запускали за последние трое суток — полностью,
+/// за две недели — 0.7, за два месяца — 0.45, раньше (или время неизвестно) — 0.25
+pub(crate) fn frecency(count: u32, last: Option<u64>, now: u64) -> f32 {
+    let age_days = last.map(|l| now.saturating_sub(l) / 86400);
+    let k = match age_days {
+        Some(d) if d <= 3 => 1.0,
+        Some(d) if d <= 14 => 0.7,
+        Some(d) if d <= 60 => 0.45,
+        _ => 0.25,
+    };
+    count.min(40) as f32 * k
+}
+
 #[cfg(test)]
 mod tests {
-    use super::score;
+    use super::{frecency, score};
+
+    #[test]
+    fn a_recent_app_beats_an_old_favourite_with_the_same_count() {
+        let now = 1_795_000_000;
+        let day = 86400;
+        assert!(frecency(10, Some(now - day), now) > frecency(10, Some(now - 30 * day), now));
+        assert!(frecency(10, Some(now - 30 * day), now) > frecency(10, None, now));
+        assert_eq!(frecency(100, Some(now), now), 40.0, "the count is capped");
+        assert_eq!(frecency(0, Some(now), now), 0.0);
+    }
 
     /// порядок выдачи: начало названия, начало слова, сокращение, подстрока, буквы по порядку, ничего
     #[test]
