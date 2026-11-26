@@ -15,7 +15,8 @@ TH="$(mktemp -d)"
 trap 'rm -rf "$TH"' EXIT
 mkdir -p "$TH/home" "$TH/run"; chmod 700 "$TH/run"
 args=("$@"); ((${#args[@]})) || args=(--release --locked --workspace --quiet)
-env HOME="$TH/home" XDG_CONFIG_HOME="$TH/home/.config" XDG_STATE_HOME="$TH/home/.local/state" XDG_DATA_HOME="$TH/home/.local/share" \
+mkdir -p "$TH/greet-look"
+env NEMO_GREET_LOOK="$TH/greet-look" HOME="$TH/home" XDG_CONFIG_HOME="$TH/home/.config" XDG_STATE_HOME="$TH/home/.local/state" XDG_DATA_HOME="$TH/home/.local/share" \
   XDG_CACHE_HOME="$TH/home/.cache" XDG_RUNTIME_DIR="$TH/run" cargo test --manifest-path "$ROOT/shell/Cargo.toml" "${args[@]}"
 rc=$?
 after=""; [[ -e $real_keys ]] && after="$(stat -c '%Y %s' "$real_keys")"

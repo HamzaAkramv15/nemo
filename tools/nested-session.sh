@@ -72,7 +72,9 @@ nested_start() {
   cp "$NESTED_ROOT/config/wallpapers/nemo-reef.png" "$t/home/.local/share/nemo/wallpapers/" 2>/dev/null
   printf 'spawn-at-startup "nemo-shell"\n' >"$t/niri.kdl"
   # GIO_USE_VFS=local: no gvfs daemon (it leaves a FUSE mount inside the folder); GSETTINGS_BACKEND=memory: nothing reaches dconf
-  setsid env -i HOME="$t/home" XDG_CONFIG_HOME="$t/home/.config" XDG_STATE_HOME="$t/home/.local/state" XDG_DATA_HOME="$t/home/.local/share" \
+  mkdir -p "$t/greet-look"
+  # свой каталог вида экрана входа: иначе вложенный шелл пишет в настоящий /var/lib/nemo-greet/look и подменяет обои на экране входа
+  setsid env -i NEMO_GREET_LOOK="$t/greet-look" HOME="$t/home" XDG_CONFIG_HOME="$t/home/.config" XDG_STATE_HOME="$t/home/.local/state" XDG_DATA_HOME="$t/home/.local/share" \
     XDG_CACHE_HOME="$t/home/.cache" XDG_RUNTIME_DIR="$t/run" WAYLAND_DISPLAY="$host" PATH="$t/bin:/usr/bin:/bin" LANG=C.UTF-8 \
     GIO_USE_VFS=local GSETTINGS_BACKEND=memory NEMO_NO_KBD=1 NEMO_TEST_IPC=1 dbus-run-session -- "$niri" -c "$t/niri.kdl" >"$t/niri.log" 2>&1 &
   NESTED_NIRI_PID=$!

@@ -21,6 +21,8 @@ if [[ -x $BIN ]] && [[ -n "$(find "$ROOT/shell/src" "$ROOT/shell/px/src" -name '
 fi
 GOLD="$ROOT/tools/golden.txt" SKIP="$ROOT/tools/golden-skip.txt"
 TMP="$(mktemp -d)"
+mkdir -p "$TMP/greet-look"
+export NEMO_GREET_LOOK="$TMP/greet-look"
 trap 'rm -rf "$TMP"' EXIT
 mkdir -p "$TMP/home" "$TMP/out"
 # an empty environment: user, host, locale and the check's own variables must not leak into a picture

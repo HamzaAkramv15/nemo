@@ -103,8 +103,11 @@ fn readable(p: &Path) -> bool {
     std::fs::set_permissions(p, std::fs::Permissions::from_mode(0o644)).is_ok()
 }
 
+/// ключ картинки лежит рядом с самой картинкой, а не в состоянии пользователя: так любой, кто записал в папку чужой wall.png (другой шелл,
+/// вложенная сессия проверки), этим сбивает ключ, и настоящий шелл при следующей проверке выложит свои обои. Раньше ключ был в
+/// ~/.local/state/nemo, и чужая запись оставалась незамеченной: на экране входа висели обои не с твоего стола
 fn key_file() -> PathBuf {
-    crate::config::state_dir().join("login-wall.key")
+    dir().join("wall.key")
 }
 
 /// чем рисовать фон экрана входа: desktop — как на столе, pixel — пиксельные из палитры, plain — цвет темы
@@ -137,6 +140,7 @@ pub fn wall(img: &Img, key: &str) {
     let (tmp, dst) = (dir().join(".wall.png.tmp"), dir().join("wall.png"));
     if buf.save_with_format(&tmp, image::ImageFormat::Png).is_ok() && readable(&tmp) && std::fs::rename(&tmp, &dst).is_ok() {
         let _ = crate::config::write_atomic(&kf, key);
+        readable(&kf);
     } else {
         let _ = std::fs::remove_file(&tmp);
     }
@@ -157,6 +161,7 @@ pub fn wall_other(job: Option<crate::wall::Job>, tag: &str) {
         None if wanted("plain") => {
             let _ = std::fs::remove_file(dir().join("wall.png"));
             let _ = crate::config::write_atomic(&key_file(), "plain");
+            readable(&key_file());
         }
         None => {}
     }
@@ -431,4 +436,34 @@ fn sync() -> i32 {
     }
     println!("{}", dir().display());
     0
+}
+
+#[cfg(test)]
+mod wall_key_tests {
+    use super::*;
+
+    fn img(c: u32) -> Img {
+        Img { w: 4, h: 4, px: vec![c; 16] }
+    }
+
+    /// чужой шелл (вложенная сессия проверки, второй пользователь) записал в папку другие обои: настоящий должен это заметить и выложить свои.
+    /// Раньше ключ лежал в состоянии пользователя, и на экране входа месяцами могли висеть чужие обои
+    #[test]
+    fn a_wallpaper_written_by_someone_else_is_noticed_and_replaced() {
+        let d = std::env::temp_dir().join(format!("nemo-login-key-{}", std::process::id()));
+        std::fs::create_dir_all(&d).unwrap();
+        // SAFETY: единственный тест, что меняет NEMO_GREET_LOOK
+        unsafe { std::env::set_var("NEMO_GREET_LOOK", &d) };
+        assert!(wanted("mine"), "nothing is there yet");
+        wall(&img(0xff112233), "mine");
+        assert!(!wanted("mine"), "the same picture is not written again");
+        // чужой записал своё: у него другой ключ в той же папке
+        wall(&img(0xff2a3bc8), "stranger");
+        assert!(wanted("mine"), "the key next to the picture says it is not mine any more");
+        wall(&img(0xff112233), "mine");
+        assert!(!wanted("mine"));
+        let png = image::open(d.join("wall.png")).unwrap().to_rgb8();
+        assert_eq!(png.get_pixel(0, 0).0, [0x11, 0x22, 0x33], "and the picture on disk is mine again");
+        let _ = std::fs::remove_dir_all(&d);
+    }
 }
